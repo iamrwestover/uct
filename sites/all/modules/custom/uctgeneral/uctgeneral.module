@@ -5,5 +5,5 @@
  */
 function uctgeneral_init() {
   global $user;
-  var_dump($user);
+//  var_dump($user);
 }
