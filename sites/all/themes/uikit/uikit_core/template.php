@@ -5,7 +5,8 @@
  * Conditional logic and data processing for the UIkit theme.
  */
 
-DEFINE('UIKIT_SRC', '//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4');
+//DEFINE('UIKIT_SRC', '//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4');
+DEFINE('UIKIT_SRC', '/sites/all/libraries/uikit/uikit-2.27.2');
 
 /**
  * Include common functions used throughout theme.

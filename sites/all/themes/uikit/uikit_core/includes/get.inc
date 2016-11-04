@@ -28,13 +28,13 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
     'version' => $uikit_version,
   ));
 
-  drupal_add_js("//cdnjs.cloudflare.com/ajax/libs/jquery/$jquery_version/jquery.min.js", array(
-    'type' => 'external',
-    'group' => JS_THEME,
-    'every_page' => TRUE,
-    'weight' => -20,
-    'version' => $jquery_version,
-  ));
+//  drupal_add_js("//cdnjs.cloudflare.com/ajax/libs/jquery/$jquery_version/jquery.min.js", array(
+//    'type' => 'external',
+//    'group' => JS_THEME,
+//    'every_page' => TRUE,
+//    'weight' => -20,
+//    'version' => $jquery_version,
+//  ));
 
 //  drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.min.js', array(
 //    'type' => 'external',
