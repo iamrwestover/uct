@@ -1,0 +1,38 @@
+<?php
+/**
+ * @file
+ * UCT base features and functions.
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function avsbase_init() {
+
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function avsbase_menu() {
+  $items = array();
+  return $items;
+}
+
+
+
+/**
+ * Implements hook_modules_installed().
+ *
+ * @see avsbase_install()
+ */
+function avsbase_modules_installed($modules) {
+  if (in_array('menu', $modules)) {
+    $menu = array(
+      'menu_name' => 'avs',
+      'title' => t('AVS Menu'),
+      'description' => t('AVS AIS links'),
+    );
+    menu_save($menu);
+  }
+}

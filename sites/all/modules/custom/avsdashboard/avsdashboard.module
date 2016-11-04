@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * UCT Dashboard to show system overview.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function avsdashboard_menu() {
+  $items['avs'] = array(
+    'title' => 'Dashboard',
+    'page callback' => 'avsdashboard_home',
+//    'page arguments' => array('admin'),
+//    'position' => 'right',
+    'access arguments' => array('access content'),
+    'menu_name' => 'avs',
+    'expanded' => TRUE,
+  );
+  $items['avs/dashboard'] = array(
+    'title' => 'Dashboard Home',
+//    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'menu_name' => 'avs',
+    'expanded' => TRUE,
+  );
+
+  $items['avs/customer'] = array(
+    'title' => 'Customers',
+    'page callback' => 'avsdashboard_customer',
+//    'page arguments' => array('admin'),
+//    'position' => 'right',
+    'access arguments' => array('access content'),
+//    'type' => MENU_LOCAL_TASK,
+    'menu_name' => 'avs',
+    'expanded' => TRUE,
+//    'context' => MENU_CONTEXT_INLINE,
+  );
+
+  $items['avs/customer/somelink'] = array(
+    'title' => 'Some page',
+    'page callback' => 'avsdashboard_somepage',
+//    'page arguments' => array('admin'),
+//    'position' => 'right',
+    'access arguments' => array('access content'),
+//    'type' => MENU_LOCAL_TASK,
+    'menu_name' => 'avs',
+    'expanded' => TRUE,
+//    'context' => MENU_CONTEXT_INLINE,
+  );
+
+  $items['avs/somelink2'] = array(
+    'title' => 'Some page2',
+    'page callback' => 'avsdashboard_somepage2',
+//    'page arguments' => array('admin'),
+//    'position' => 'right',
+    'access arguments' => array('access content'),
+//    'type' => MENU_LOCAL_TASK,
+    'menu_name' => 'avs',
+    'expanded' => TRUE,
+//    'context' => MENU_CONTEXT_INLINE,
+  );
+  return $items;
+}
+
+/**
+ * Home
+ */
+function avsdashboard_home() {
+  return 'dashboard HOME!';
+}
+
+/**
+ * Home
+ */
+function avsdashboard_customer() {
+  return 'Customers!';
+}
+
+/**
+ * Home
+ */
+function avsdashboard_somepage() {
+  return 'Somepage!';
+}
+
+/**
+ * Home
+ */
+function avsdashboard_somepage2() {
+  return 'Somepage 2!';
+}

@@ -1,0 +1,4 @@
+name = AVS AIS Base Module
+description = Base module for AVS AIS system.
+core = 7.x
+package = AVS
