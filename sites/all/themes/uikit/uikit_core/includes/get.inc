@@ -20,7 +20,7 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
       break;
   }
 
-  drupal_add_css("//cdnjs.cloudflare.com/ajax/libs/uikit/$uikit_version/css/$uikit_css", array(
+  drupal_add_css(UIKIT_SRC . "/css/$uikit_css", array(
     'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
@@ -36,15 +36,15 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
     'version' => $jquery_version,
   ));
 
-  drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.min.js', array(
-    'type' => 'external',
-    'group' => JS_THEME,
-    'every_page' => TRUE,
-    'weight' => -20,
-    'version' => '3.0.0',
-  ));
+//  drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.min.js', array(
+//    'type' => 'external',
+//    'group' => JS_THEME,
+//    'every_page' => TRUE,
+//    'weight' => -20,
+//    'version' => '3.0.0',
+//  ));
 
-  drupal_add_js("//cdnjs.cloudflare.com/ajax/libs/uikit/$uikit_version/js/uikit.min.js", array(
+  drupal_add_js(UIKIT_SRC . "/js/uikit.min.js", array(
     'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,

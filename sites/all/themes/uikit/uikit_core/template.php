@@ -5,6 +5,8 @@
  * Conditional logic and data processing for the UIkit theme.
  */
 
+DEFINE('UIKIT_SRC', '//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4');
+
 /**
  * Include common functions used throughout theme.
  */
@@ -729,7 +731,7 @@ function uikit_preprocess_fieldset(&$variables) {
         break;
     }
 
-    drupal_add_css("//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4/css/components/$accordian_css", array(
+    drupal_add_css(UIKIT_SRC . "/css/components/$accordian_css", array(
       'type' => 'external',
       'group' => CSS_THEME,
       'every_page' => TRUE,
@@ -737,7 +739,7 @@ function uikit_preprocess_fieldset(&$variables) {
       'version' => '2.26.4',
     ));
 
-    drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4/js/components/accordion.min.js', array(
+    drupal_add_js(UIKIT_SRC . '/js/components/accordion.min.js', array(
       'type' => 'external',
       'group' => JS_THEME,
       'every_page' => TRUE,
@@ -797,7 +799,7 @@ function uikit_preprocess_form(&$variables) {
       break;
   }
 
-  drupal_add_css("//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4/css/components/$form_advanced_css", array(
+  drupal_add_css(UIKIT_SRC . "/css/components/$form_advanced_css", array(
     'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
