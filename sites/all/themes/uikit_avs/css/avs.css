@@ -1,17 +1,4 @@
-/* Fonts
- ========================================================================== */
-
-@font-face {
-  font-family: 'fontawesome';
-  /*src: url('../fonts/proximanova-light-webfont.eot');*/
-  /*src: url('../fonts/proximanova-light-webfont.eot?#iefix') format('embedded-opentype'),*/
-  url('../fonts/fontawesome-webfont.woff') format('woff'),
-  url('../fonts/fontawesome-webfont.ttf') format('truetype'),
-  /*url('../fonts/proximanova-light-webfont.svg#ProximaNovaLight') format('svg');*/
-  font-weight: 300;
-  font-style: normal;
-}
 
 body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
-  font-family: "fontawesome", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
