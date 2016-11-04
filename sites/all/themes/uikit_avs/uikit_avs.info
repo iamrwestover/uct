@@ -1,0 +1,8 @@
+name = AVS Theme
+description = A theme for AVS AIS using UIkit as a base theme.
+core = 7.x
+base theme = uikit
+
+stylesheets[all][] = css/avs.css
+scripts[] = js/uikit-subtheme.js
+
