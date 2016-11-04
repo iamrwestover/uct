@@ -1,3 +1,5 @@
 name = UCT General
 description = General customizations for UCT.
 core = 7.x
+package = Ultimate Care Trading
+files[] = uctgeneral.module

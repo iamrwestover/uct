@@ -1,0 +1,6 @@
+name = UCT Dashboard
+description = System overview for UCT
+core = 7.x
+package = Ultimate Care Trading
+dependencies[] = uctgeneral
+files[] = uctdashboard.module
