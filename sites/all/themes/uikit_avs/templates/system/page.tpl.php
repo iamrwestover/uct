@@ -137,7 +137,7 @@
 </div>
 
 
-<div class="uk-margin-left uk-margin-right uk-margin-top">
+<div class="uk-margin-left uk-margin-right">
   <div<?php print $page_container_attributes; ?>>
     <?php if ($site_slogan): ?>
       <div id="site-slogan">
@@ -159,7 +159,7 @@
       <div<?php print $content_attributes; ?>>
         <?php print render($title_prefix); ?>
         <?php if ($title): ?>
-          <div id="page-title" class="uk-article-title"><?php print $title; ?></div><?php endif; ?>
+          <div id="page-title" class="uk-article-title uk-margin-bottom uk-margin-top"><?php print $title; ?></div><?php endif; ?>
         <?php print render($title_suffix); ?>
 
         <?php if ($page['intro']): ?>
