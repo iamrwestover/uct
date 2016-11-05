@@ -14,4 +14,4 @@
  * @ingroup uikit_themeable
  */
 
-print '<ul class="uk-nav uk-nav-offcanvas uk-nav-parent-icon" data-uk-nav><li class="uk-nav-header">General</li>' . $variables['tree'] . '</ul>';
+print '<ul class="uk-nav uk-nav-offcanvas"><li class="uk-nav-header">User</li>' . $variables['tree'] . '</ul>';

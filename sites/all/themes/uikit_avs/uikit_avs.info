@@ -1,5 +1,5 @@
 name = AVS Theme
-description = A theme for AVS AIS using UIkit as a base theme.
+description = A theme for AVS AIS using UIkit as base.
 core = 7.x
 base theme = uikit
 

@@ -18,12 +18,12 @@ function avsdashboard_menu() {
     'menu_name' => 'avs',
     'expanded' => TRUE,
   );
-  $items['avs/dashboard'] = array(
-    'title' => 'Dashboard Home',
+//  $items['avs/dashboard'] = array(
+//    'title' => 'Dashboard Home',
 //    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'menu_name' => 'avs',
-    'expanded' => TRUE,
-  );
+//    'menu_name' => 'avs',
+//    'expanded' => TRUE,
+//  );
 
   $items['avs/customer'] = array(
     'title' => 'Customers',

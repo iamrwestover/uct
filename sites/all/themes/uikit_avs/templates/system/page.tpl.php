@@ -159,7 +159,7 @@
       <div<?php print $content_attributes; ?>>
         <?php print render($title_prefix); ?>
         <?php if ($title): ?>
-          <h1 id="page-title" class="uk-article-title"><?php print $title; ?></h1><?php endif; ?>
+          <div id="page-title" class="uk-article-title"><?php print $title; ?></div><?php endif; ?>
         <?php print render($title_suffix); ?>
 
         <?php if ($page['intro']): ?>
