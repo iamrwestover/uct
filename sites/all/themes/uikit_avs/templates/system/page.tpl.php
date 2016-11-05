@@ -77,7 +77,7 @@
 ?>
 <header<?php print $header_attributes; ?>>
   <nav<?php print $navbar_attributes; ?>>
-    <a href="#offcanvas" class="uk-navbar-toggle" data-uk-offcanvas></a>
+    <a href="#offcanvas" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>
     <?php if ($logo): ?>
       <a href="<?php print $front_page; ?>" id="logo-large" class="uk-navbar-brand uk-hidden-small" title="<?php print t('Home'); ?>" rel="home">
         <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>

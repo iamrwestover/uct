@@ -21,6 +21,9 @@ html {
   position: relative;
   top: 2px;
 }
+.uk-offcanvas {
+  background: none;
+}
 .uk-offcanvas-bar {
   background: #2b3643;
 }
@@ -105,3 +108,8 @@ html:not(.uk-touch) .uk-nav-offcanvas > li > a:hover {
 }
 
 /* Content area */
+
+/* Forms */
+.form-required {
+  color: #D05;
+}
