@@ -55,9 +55,9 @@ if (in_array('uk-nav-offcanvas', $variables['attributes']['class'])) {
 $dropdown_support = TRUE;
 
 $icons = array(
-  'avs' => 'dashboard',
-  'avs/customer' => 'users',
-  'avs/somelink2' => 'tags',
+  'dashboard' => 'dashboard',
+  'customers' => 'users',
+  'products' => 'tags',
 );
 //foreach (element_children($menu_tree) as $v) {
 //  dpm($v . '=' . $menu_tree[$v]['#title'] . '=' . $menu_tree[$v]['#href']);
