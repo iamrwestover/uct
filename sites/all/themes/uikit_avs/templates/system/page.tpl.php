@@ -77,7 +77,7 @@
 ?>
 <header<?php print $header_attributes; ?>>
   <nav<?php print $navbar_attributes; ?>>
-    <a href="#offcanvas" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>
+    <a href="#main-menu-offcanvas" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>
     <?php if ($logo): ?>
       <a href="<?php print $front_page; ?>" id="logo-large" class="uk-navbar-brand uk-hidden-small" title="<?php print t('Home'); ?>" rel="home">
         <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>
@@ -85,8 +85,9 @@
     <?php endif; ?>
 
     <?php if ($site_name): ?>
-      <a href="<?php print $front_page; ?>" id="site-name" class="uk-navbar-brand uk-hidden-small" title="<?php print t('Home'); ?>" rel="home">
-        <span><?php print $site_name; ?></span>
+      <a href="<?php print $front_page; ?>" id="site-name" class="uk-navbar-brand" title="<?php print t('Home'); ?>" rel="home">
+        <span class="uk-hidden-small"><?php print $site_name; ?></span>
+        <span class="uk-hidden-medium uk-hidden-large">UCT</span>
       </a>
     <?php endif; ?>
 
@@ -116,10 +117,8 @@
   </nav>
 </header>
 
-
-
 <div id="header-bar" class="uk-panel">
-  <div class="uk-grid uk-grid-width-1-2">
+  <div class="uk-grid uk-grid-width-small-1-2">
     <div>
     <?php if ($breadcrumb && $display_breadcrumb): ?>
       <div id="breadcrumbs">
@@ -128,7 +127,7 @@
       <?php endif; ?>
     </div>
 
-    <div class="">
+    <div class="uk-hidden-small">
       <div class="uk-text-right">
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>
@@ -137,7 +136,7 @@
 </div>
 
 
-<div class="uk-margin-left uk-margin-right">
+<div id="page-outer-wrapper" class="uk-margin-left uk-margin-right">
   <div<?php print $page_container_attributes; ?>>
     <?php if ($site_slogan): ?>
       <div id="site-slogan">
@@ -200,19 +199,19 @@
 
     </div>
 
-    <div class="uk-grid" data-uk-grid-margin>
-      <?php if ($page['footer']): ?>
-        <div id="footer" class="uk-width-1-1">
-          <?php print render($page['footer']); ?>
-        </div>
-      <?php endif; ?>
-    </div>
+    <?php if ($page['footer']): ?>
+      <div class="uk-grid" data-uk-grid-margin>
+          <div id="footer" class="uk-width-1-1">
+            <?php print render($page['footer']); ?>
+          </div>
+      </div>
+    <?php endif; ?>
 
   </div>
 </div>
 
 <?php if ($offcanvas_main || $offcanvas_secondary): ?>
-  <div id="offcanvas" class="uk-offcanvas">
+  <div id="main-menu-offcanvas" class="uk-offcanvas">
     <div class="uk-offcanvas-bar">
       <?php print $offcanvas_main; ?>
       <?php print $offcanvas_secondary; ?>

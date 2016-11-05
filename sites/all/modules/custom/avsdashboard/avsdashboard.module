@@ -9,7 +9,7 @@
  * Implementation of hook_menu().
  */
 function avsdashboard_menu() {
-  $items['avs'] = array(
+  $items['dashboard'] = array(
     'title' => 'Dashboard',
     'page callback' => 'avsdashboard_home',
 //    'page arguments' => array('admin'),
@@ -17,6 +17,7 @@ function avsdashboard_menu() {
     'access arguments' => array('access content'),
     'menu_name' => 'avs',
     'expanded' => TRUE,
+    'weight' => -1,
   );
 //  $items['avs/dashboard'] = array(
 //    'title' => 'Dashboard Home',
@@ -25,7 +26,7 @@ function avsdashboard_menu() {
 //    'expanded' => TRUE,
 //  );
 
-  $items['avs/customer'] = array(
+  $items['customers'] = array(
     'title' => 'Customers',
     'page callback' => 'avsdashboard_customer',
 //    'page arguments' => array('admin'),
@@ -49,7 +50,7 @@ function avsdashboard_menu() {
 ////    'context' => MENU_CONTEXT_INLINE,
 //  );
 
-  $items['avs/somelink2'] = array(
+  $items['products'] = array(
     'title' => 'Products',
     'page callback' => 'avsdashboard_somepage2',
 //    'page arguments' => array('admin'),
@@ -68,7 +69,108 @@ function avsdashboard_menu() {
  */
 function avsdashboard_home() {
   $output = <<<HTML
-Home!
+<nav class="uk-navbar">
+
+                                    <a class="uk-navbar-brand" href="#">Brand</a>
+
+                                    <ul class="uk-navbar-nav">
+                                        <li class="uk-parent uk-active" data-uk-dropdown="" aria-haspopup="true" aria-expanded="false">
+                                            <a href=""><i class="uk-icon-home"></i> Level1</a>
+
+                                            <div class="uk-dropdown uk-dropdown-navbar" aria-hidden="true">
+                                                <ul class="uk-nav uk-nav-navbar">
+                                                    <li><a href="#">Item</a></li>
+                                                    <li><a href="#">Another item</a></li>
+                                                    <li class="uk-nav-header">Header</li>
+                                                    <li><a href="#">Item</a></li>
+                                                    <li><a href="#">Another item</a></li>
+                                                    <li class="uk-nav-divider"></li>
+                                                    <li><a href="#">Separated item</a></li>
+                                                </ul>
+                                            </div>
+
+                                        </li>
+
+                                    </ul>
+
+                                    <div class="uk-navbar-content">Some <a href="#">link</a>.</div>
+
+                                    <div class="uk-navbar-content uk-hidden-small">
+                                        <form class="uk-form uk-margin-remove uk-display-inline-block">
+                                            <input type="text" placeholder="Search">
+                                            <button class="uk-button uk-button-primary">Submit</button>
+                                        </form>
+                                    </div>
+
+                                    <div class="uk-navbar-content uk-navbar-flip  uk-hidden-small">
+                                        <div class="uk-button-group">
+                                            <a class="uk-button uk-button-danger" href="#">Link</a>
+                                            <button class="uk-button uk-button-danger">Button</button>
+                                        </div>
+                                    </div>
+
+                                </nav>
+<hr />
+                                <nav class="uk-navbar">
+
+                                    <ul class="uk-navbar-nav">
+                                        <li class="uk-active"><a href="">Active</a></li>
+                                        <li class="uk-hidden-small"><a href="">Item</a></li>
+                                        <li class="uk-parent" data-uk-dropdown="" aria-haspopup="true" aria-expanded="false">
+                                            <a href="">Parent</a>
+
+                                            <div class="uk-dropdown uk-dropdown-navbar uk-dropdown-bottom" aria-hidden="true" tabindex="" style="top: 40px; left: 0px;">
+                                                <ul class="uk-nav uk-nav-navbar">
+                                                    <li><a href="#">Item</a></li>
+                                                    <li><a href="#">Another item</a></li>
+                                                    <li class="uk-nav-header">Header</li>
+                                                    <li><a href="#">Item</a></li>
+                                                    <li><a href="#">Another item</a></li>
+                                                    <li class="uk-nav-divider"></li>
+                                                    <li><a href="#">Separated item</a></li>
+                                                </ul>
+                                            </div>
+
+                                        </li>
+                                    </ul>
+
+                                    <div class="uk-navbar-flip">
+
+                                        <ul class="uk-navbar-nav">
+                                            <li class="uk-parent" data-uk-dropdown="" aria-haspopup="true" aria-expanded="false">
+                                                <a href="">Parent</a>
+
+                                                <div class="uk-dropdown uk-dropdown-navbar" aria-hidden="true">
+                                                    <ul class="uk-nav uk-nav-navbar">
+                                                        <li><a href="#">Item</a></li>
+                                                        <li><a href="#">Another item</a></li>
+                                                        <li class="uk-nav-header">Header</li>
+                                                        <li><a href="#">Item</a></li>
+                                                        <li><a href="#">Another item</a></li>
+                                                        <li class="uk-nav-divider"></li>
+                                                        <li><a href="#">Separated item</a></li>
+                                                    </ul>
+                                                </div>
+
+                                            </li>
+                                            <li class="uk-hidden-small"><a href="">Item</a></li>
+                                            <li class="uk-active"><a href="">Active</a></li>
+                                        </ul>
+
+                                    </div>
+
+                                    <div class="uk-navbar-content uk-navbar-center">Center</div>
+
+                                </nav>
+
+                                <div class="uk-panel uk-panel-box">
+                                <div class="uk-panel-title">Famous!</div>
+                                <div class="uk-panel-body">They don't know what I know</div>
+</div>
+<div class="uk-panel uk-panel-box uk-panel-box-primary">
+                                <div class="uk-panel-title">Famous!</div>
+                                <div class="uk-panel-body">They don't know what I know</div>
+</div>
 HTML;
 
   return $output;

@@ -12,59 +12,68 @@ html,
   font-weight: 600;
 }
 
+/* Off canvas */
+#main-menu-offcanvas.uk-offcanvas {
+  background: none;
+}
+#main-menu-offcanvas .uk-offcanvas-bar {
+  background: #2b3643;
+}
+#main-menu-offcanvas .uk-offcanvas-bar:after {
+  box-shadow: 0 0 5px 2px #1f2a37;
+}
+#main-menu-offcanvas .uk-nav-offcanvas .uk-nav-header {
+  background: #333e4c;
+  color: #798d9b;
+}
+html #main-menu-offcanvas .uk-nav.uk-nav-offcanvas > li.uk-active > a {
+  background: #1f2a37;
+}
+#main-menu-offcanvas .uk-nav-offcanvas > .uk-open > a,
+html:not(.uk-touch) #main-menu-offcanvas .uk-nav-offcanvas > li > a:focus,
+html:not(.uk-touch) #main-menu-offcanvas .uk-nav-offcanvas > li > a:hover {
+  background: #404c5a;
+}
+
 /* Top area */
 html {
   background: #eef1f5;
 }
-.uk-navbar-toggle,
+#page-header .uk-navbar-toggle,
 #site-name {
   position: relative;
   top: 2px;
 }
-.uk-offcanvas {
-  background: none;
-}
-.uk-offcanvas-bar {
-  background: #2b3643;
-}
-.uk-offcanvas-bar:after {
-  box-shadow: 0 0 5px 2px #1f2a37;
-}
-.uk-nav-offcanvas .uk-nav-header {
-  background: #333e4c;
-  color: #798d9b;
-}
-html .uk-nav.uk-nav-offcanvas > li.uk-active > a {
-  background: #1f2a37;
-}
-.uk-nav-offcanvas > .uk-open > a,
-html:not(.uk-touch) .uk-nav-offcanvas > li > a:focus,
-html:not(.uk-touch) .uk-nav-offcanvas > li > a:hover {
-  background: #404c5a;
-}
-.uk-navbar {
+#page-header .uk-navbar {
   background: #2b3643;
   border: none;
   border-radius: 0;
 }
-.uk-navbar-brand, .uk-navbar-content, .uk-navbar-toggle {
+#page-header .uk-navbar-brand,
+#page-header .uk-navbar-content,
+#page-header .uk-navbar-toggle {
   text-shadow: none;
 }
-.uk-navbar-brand,
-.uk-navbar-toggle,
-.uk-navbar-brand:focus, .uk-navbar-brand:hover,
-.uk-navbar-toggle:focus, .uk-navbar-toggle:hover,
+#page-header .uk-navbar-brand,
+#page-header .uk-navbar-toggle,
+#page-header .uk-navbar-brand:focus,
+#page-header .uk-navbar-brand:hover,
+#page-header .uk-navbar-toggle:focus,
+#page-header .uk-navbar-toggle:hover,
 #navbar-flip--secondary-menu a {
   color: #fafafa;
 }
 #navbar-flip--secondary-menu a {
   text-shadow: none;
 }
-#navbar-flip--secondary-menu li:hover a {
-  background: #3c4855;
-}
 #navbar-flip--secondary-menu li.uk-active a {
   background: #46525f;
+}
+#page-header .uk-navbar-nav > li > a:active,
+#page-header .uk-navbar-nav > li.uk-open > a,
+#page-header .uk-navbar-nav > li:hover > a,
+#page-header .uk-navbar-nav > li > a:focus {
+  background: #3c4855;
 }
 #header-bar {
   background: #fff;
@@ -76,28 +85,29 @@ html:not(.uk-touch) .uk-nav-offcanvas > li > a:hover {
 }
 
 /* Boxes */
-.uk-panel-box {
+#page-content > .uk-panel-box,
+.uk-block .uk-panel-box {
   background: #fff;
   border: none;
   box-shadow: 0 1px 2px #ccc;
 }
-.uk-panel-box-primary .uk-panel-title,
-.uk-panel-box-primary {
+.uk-block .uk-panel-box-primary .uk-panel-title,
+.uk-block .uk-panel-box-primary {
   background: #3598dc;
   color: #fff;
 }
-.uk-panel-box-success .uk-panel-title,
-.uk-panel-box-success {
+.uk-block .uk-panel-box-success .uk-panel-title,
+.uk-block .uk-panel-box-success {
   /*background: #32c5d2;*/
   /*color: #fff;*/
 }
-.uk-panel-box-warning .uk-panel-title,
-.uk-panel-box-warning {
+.uk-block .uk-panel-box-warning .uk-panel-title,
+.uk-block .uk-panel-box-warning {
   background: #f1c40f;
   color: #fff;
 }
-.uk-panel-box-danger .uk-panel-title,
-.uk-panel-box-danger {
+.uk-block .uk-panel-box-danger .uk-panel-title,
+.uk-block .uk-panel-box-danger {
   /*background: #e7505a;*/
   /*color: #fff;*/
 }
@@ -108,6 +118,9 @@ html:not(.uk-touch) .uk-nav-offcanvas > li > a:hover {
 }
 
 /* Content area */
+#page-outer-wrapper {
+  padding-bottom: 15px; /* Fix bug on ios where uk-margin-bottom doesnt work properly on outer div. */
+}
 
 /* Forms */
 .form-required {
