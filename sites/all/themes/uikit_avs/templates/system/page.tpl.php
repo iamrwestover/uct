@@ -90,104 +90,125 @@
       </a>
     <?php endif; ?>
 
-<!--    --><?php //if ($main_menu || $secondary_menu || $navbar_menus): ?>
+    <?php if ($main_menu || $secondary_menu || $navbar_menus): ?>
 <!--      --><?php //print $navbar_main; ?>
-<!--      --><?php //print $navbar_secondary; ?>
-<!--      --><?php //print $navbar_menus; ?>
-<!--    --><?php //endif; ?>
+      <?php print $navbar_secondary; ?>
+      <?php print $navbar_menus; ?>
+    <?php endif; ?>
 
-
-
-    <?php if ($logo || $site_name): ?>
-      <div id="site-branding" class="uk-navbar-center uk-visible-small">
-        <?php if ($logo): ?>
-          <a href="<?php print $front_page; ?>" class="uk-navbar-brand" title="<?php print t('Home'); ?>" rel="home" id="logo-small">
-            <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>
-          </a>
-        <?php endif; ?>
-
+<!---->
+<!---->
+<!--    --><?php //if ($logo || $site_name): ?>
+<!--      <div id="site-branding" class="uk-navbar-center uk-visible-small">-->
+<!--        --><?php //if ($logo): ?>
+<!--          <a href="--><?php //print $front_page; ?><!--" class="uk-navbar-brand" title="--><?php //print t('Home'); ?><!--" rel="home" id="logo-small">-->
+<!--            <img src="--><?php //print $logo; ?><!--" alt="--><?php //print t('Home'); ?><!--"/>-->
+<!--          </a>-->
+<!--        --><?php //endif; ?>
+<!---->
 <!--        --><?php //if ($site_name): ?>
 <!--          <a href="--><?php //print $front_page; ?><!--" class="uk-navbar-brand" title="--><?php //print t('Home'); ?><!--" rel="home">-->
 <!--            <span>--><?php //print $site_name; ?><!--</span>-->
 <!--          </a>-->
 <!--        --><?php //endif; ?>
-      </div>
-    <?php endif; ?>
+<!--      </div>-->
+<!--    --><?php //endif; ?>
   </nav>
 </header>
 
-<div<?php print $page_container_attributes; ?>>
-  <?php if ($site_slogan): ?>
-    <div id="site-slogan">
-      <div class="uk-margin-bottom"><?php print $site_slogan; ?></div>
+
+
+<div id="header-bar" class="uk-panel">
+  <div class="uk-grid uk-grid-width-1-2">
+    <div>
+    <?php if ($breadcrumb && $display_breadcrumb): ?>
+      <div id="breadcrumbs">
+        <?php print $breadcrumb; ?>
+      </div>
+      <?php endif; ?>
     </div>
-  <?php endif; ?>
 
-  <div class="uk-grid" data-uk-grid-margin>
-    <?php if ($page['header']): ?>
-      <?php print render($page['header']); ?>
-    <?php endif; ?>
+    <div class="">
+      <div class="uk-text-right">
+        <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <?php if ($page['highlighted']): ?>
-      <div id="highlighted" class="uk-width-1-1">
-        <?php print render($page['highlighted']); ?>
+
+<div class="uk-margin-left uk-margin-right uk-margin-top">
+  <div<?php print $page_container_attributes; ?>>
+    <?php if ($site_slogan): ?>
+      <div id="site-slogan">
+        <div class="uk-margin-bottom"><?php print $site_slogan; ?></div>
       </div>
     <?php endif; ?>
 
-    <div<?php print $content_attributes; ?>>
-      <?php print render($title_prefix); ?>
-      <?php if ($title): ?>
-        <h1 id="page-title" class="uk-article-title"><?php print $title; ?></h1><?php endif; ?>
-      <?php print render($title_suffix); ?>
+    <div class="uk-grid" data-uk-grid-margin>
+      <?php if ($page['header']): ?>
+        <?php print render($page['header']); ?>
+      <?php endif; ?>
 
-      <?php if ($breadcrumb && $display_breadcrumb): ?>
-        <div id="breadcrumbs">
-          <?php print $breadcrumb; ?>
+      <?php if ($page['highlighted']): ?>
+        <div id="highlighted" class="uk-width-1-1">
+          <?php print render($page['highlighted']); ?>
         </div>
       <?php endif; ?>
 
-      <?php if ($tabs): ?>
-        <?php print render($tabs); ?>
-      <?php endif; ?>
+      <div<?php print $content_attributes; ?>>
+        <?php print render($title_prefix); ?>
+        <?php if ($title): ?>
+          <h1 id="page-title" class="uk-article-title"><?php print $title; ?></h1><?php endif; ?>
+        <?php print render($title_suffix); ?>
 
-      <?php if ($messages): ?>
-        <div id="messages" class="uk-width-1-1">
-          <?php print $messages; ?>
+        <?php if ($page['intro']): ?>
+          <?php print render($page['intro']); ?>
+        <?php endif; ?>
+
+        <?php if ($tabs): ?>
+          <?php print render($tabs); ?>
+        <?php endif; ?>
+
+        <?php if ($messages): ?>
+          <div id="messages" class="uk-width-1-1 uk-panel-">
+            <?php print $messages; ?>
+          </div>
+        <?php endif; ?>
+
+        <?php print render($page['help']); ?>
+
+        <?php if ($action_links): ?>
+          <ul class="action-links uk-subnav uk-subnav-pill"><?php print render($action_links); ?></ul>
+        <?php endif; ?>
+
+        <?php print render($page['content']); ?>
+        <?php print $feed_icons; ?>
+      </div>
+
+      <?php if ($page['sidebar_first']): ?>
+        <div<?php print $sidebar_first_attributes; ?>>
+          <?php print render($page['sidebar_first']); ?>
         </div>
       <?php endif; ?>
 
-      <?php print render($page['help']); ?>
-
-      <?php if ($action_links): ?>
-        <ul class="action-links uk-subnav uk-subnav-pill"><?php print render($action_links); ?></ul>
+      <?php if ($page['sidebar_second']): ?>
+        <div<?php print $sidebar_second_attributes; ?>>
+          <?php print render($page['sidebar_second']); ?>
+        </div>
       <?php endif; ?>
 
-      <?php print render($page['content']); ?>
-      <?php print $feed_icons; ?>
     </div>
 
-    <?php if ($page['sidebar_first']): ?>
-      <div<?php print $sidebar_first_attributes; ?>>
-        <?php print render($page['sidebar_first']); ?>
-      </div>
-    <?php endif; ?>
-
-    <?php if ($page['sidebar_second']): ?>
-      <div<?php print $sidebar_second_attributes; ?>>
-        <?php print render($page['sidebar_second']); ?>
-      </div>
-    <?php endif; ?>
+    <div class="uk-grid" data-uk-grid-margin>
+      <?php if ($page['footer']): ?>
+        <div id="footer" class="uk-width-1-1">
+          <?php print render($page['footer']); ?>
+        </div>
+      <?php endif; ?>
+    </div>
 
   </div>
-
-  <div class="uk-grid" data-uk-grid-margin>
-    <?php if ($page['footer']): ?>
-      <div id="footer" class="uk-width-1-1">
-        <?php print render($page['footer']); ?>
-      </div>
-    <?php endif; ?>
-  </div>
-
 </div>
 
 <?php if ($offcanvas_main || $offcanvas_secondary): ?>

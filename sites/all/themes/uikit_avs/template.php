@@ -25,6 +25,7 @@ function uikit_avs_process_html(&$variables) {
  * Implements template_preprocess_page().
  */
 function uikit_avs_preprocess_page(&$variables) {
+
 }
 
 /**

@@ -67,7 +67,11 @@ function avsdashboard_menu() {
  * Home
  */
 function avsdashboard_home() {
-  return 'dashboard HOME!' . l('aa', 'AGAGA');
+  $output = <<<HTML
+Home!
+HTML;
+
+  return $output;
 }
 
 /**

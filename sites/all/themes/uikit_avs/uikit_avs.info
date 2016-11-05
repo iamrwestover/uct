@@ -6,3 +6,11 @@ base theme = uikit
 stylesheets[all][] = css/avs.css
 scripts[] = js/uikit-subtheme.js
 
+regions[header] = 'Page heading'
+regions[intro] = 'Introduction'
+regions[highlighted] = 'Highlighted'
+regions[help] = 'Help'
+regions[content] = 'Content'
+regions[sidebar_first] = 'Sidebar first'
+regions[sidebar_second] = 'Sidebar second'
+regions[footer] = 'Footer'

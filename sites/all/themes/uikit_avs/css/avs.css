@@ -1,4 +1,79 @@
-
+/* Font */
 body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+
+/* Font weight */
+html,
+.uk-article-title {
+  font-weight: 300;
+}
+.uk-form-stacked .uk-form-label {
+  font-weight: 600;
+}
+
+/* Top area */
+body {
+  background: #eef1f5;
+}
+.uk-offcanvas-bar {
+  background: #2b3643;
+}
+.uk-offcanvas-bar:after {
+  box-shadow: 0 0 5px 2px #1f2a37;
+}
+.uk-navbar {
+  background: #2b3643;
+  border: none;
+  border-radius: 0;
+}
+.uk-navbar-brand, .uk-navbar-content, .uk-navbar-toggle {
+  text-shadow: none;
+}
+.uk-navbar-brand,
+.uk-navbar-toggle,
+.uk-navbar-brand:focus, .uk-navbar-brand:hover,
+.uk-navbar-toggle:focus, .uk-navbar-toggle:hover {
+  color: #fff;
+}
+#header-bar {
+  background: #fff;
+  padding: 15px;
+}
+#breadcrumbs .uk-breadcrumb {
+  margin: 0;
+}
+
+/* Boxes */
+.uk-panel-box {
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 2px #ccc;
+}
+.uk-panel-box-primary .uk-panel-title,
+.uk-panel-box-primary {
+  background: #3598dc;
+  color: #fff;
+}
+.uk-panel-box-success .uk-panel-title,
+.uk-panel-box-success {
+  /*background: #32c5d2;*/
+  /*color: #fff;*/
+}
+.uk-panel-box-warning .uk-panel-title,
+.uk-panel-box-warning {
+  background: #f1c40f;
+  color: #fff;
+}
+.uk-panel-box-danger .uk-panel-title,
+.uk-panel-box-danger {
+  /*background: #e7505a;*/
+  /*color: #fff;*/
+}
+
+/* Intro Area */
+#region-intro-wrapper {
+  padding-top: 20px;
+}
+
+/* Content area */

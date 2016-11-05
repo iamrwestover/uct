@@ -50,7 +50,9 @@
 <head>
   <?php print $head; ?>
   <title><?php print $head_title; ?></title>
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+<!--  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">-->
+  <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&subset=all" rel="stylesheet">
+
   <?php print $styles; ?>
 </head>
 <body class="<?php print $classes; ?>" <?php print $attributes;?>>
