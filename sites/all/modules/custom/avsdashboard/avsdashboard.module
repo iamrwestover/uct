@@ -37,20 +37,20 @@ function avsdashboard_menu() {
 //    'context' => MENU_CONTEXT_INLINE,
   );
 
-  $items['avs/customer/somelink'] = array(
-    'title' => 'Some page',
-    'page callback' => 'avsdashboard_somepage',
-//    'page arguments' => array('admin'),
-//    'position' => 'right',
-    'access arguments' => array('access content'),
-//    'type' => MENU_LOCAL_TASK,
-    'menu_name' => 'avs',
-    'expanded' => TRUE,
-//    'context' => MENU_CONTEXT_INLINE,
-  );
+//  $items['avs/customer/somelink'] = array(
+//    'title' => 'Some page',
+//    'page callback' => 'avsdashboard_somepage',
+////    'page arguments' => array('admin'),
+////    'position' => 'right',
+//    'access arguments' => array('access content'),
+////    'type' => MENU_LOCAL_TASK,
+//    'menu_name' => 'avs',
+//    'expanded' => TRUE,
+////    'context' => MENU_CONTEXT_INLINE,
+//  );
 
   $items['avs/somelink2'] = array(
-    'title' => 'Some page2',
+    'title' => 'Products',
     'page callback' => 'avsdashboard_somepage2',
 //    'page arguments' => array('admin'),
 //    'position' => 'right',
@@ -67,7 +67,7 @@ function avsdashboard_menu() {
  * Home
  */
 function avsdashboard_home() {
-  return 'dashboard HOME!';
+  return 'dashboard HOME!' . l('aa', 'AGAGA');
 }
 
 /**
