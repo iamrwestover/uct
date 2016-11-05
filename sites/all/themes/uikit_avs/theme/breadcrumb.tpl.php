@@ -15,15 +15,14 @@
 $breadcrumb = $variables['breadcrumb'];
 $path = explode('/', current_path());
 
-//if (!empty($breadcrumb)) {
-  // Provide a navigational heading to give context for breadcrumb links to
-  // screen-reader users. Make the heading invisible with .uk-hidden.
-  $output = '<h2 class="uk-hidden">' . t('You are here') . '</h2>';
-  $output .= '<ul class="uk-breadcrumb">';
-  foreach ($breadcrumb as $crumb) {
-    $output .= '<li>' . $crumb . '</li>';
-  }
-  $output .= '<li>' . drupal_get_title() . '</li>';
-  $output .= '</ul>';
-  print $output;
-//}
+// Provide a navigational heading to give context for breadcrumb links to
+// screen-reader users. Make the heading invisible with .uk-hidden.
+$output = '<h2 class="uk-hidden">' . t('You are here') . '</h2>';
+$output .= '<ul class="uk-breadcrumb">';
+foreach ($breadcrumb as $crumb) {
+  $output .= '<li>' . $crumb . '</li>';
+}
+$page_title = drupal_is_front_page() ? t('Home') : drupal_get_title();
+$output .= '<li>' . $page_title . '</li>';
+$output .= '</ul>';
+print $output;
