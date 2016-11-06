@@ -77,7 +77,7 @@
 ?>
 <header<?php print $header_attributes; ?>>
   <nav<?php print $navbar_attributes; ?>>
-    <a href="#main-menu-offcanvas" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>
+    <a href="#menu-toggle" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>
     <?php if ($logo): ?>
       <a href="<?php print $front_page; ?>" id="logo-large" class="uk-navbar-brand uk-hidden-small" title="<?php print t('Home'); ?>" rel="home">
         <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>
@@ -211,7 +211,7 @@
 </div>
 
 <?php if ($offcanvas_main || $offcanvas_secondary): ?>
-  <div id="main-menu-offcanvas" class="uk-offcanvas">
+  <div id="menu-toggle" class="uk-offcanvas">
     <div class="uk-offcanvas-bar">
       <?php print $offcanvas_main; ?>
       <?php print $offcanvas_secondary; ?>

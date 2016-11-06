@@ -2,14 +2,14 @@
 
 /**
  * @file
- * UCT Dashboard to show system overview.
+ * AVS Dashboard to show system overview.
  */
 
 /**
  * Implementation of hook_menu().
  */
 function avsdashboard_menu() {
-  $items['dashboard'] = array(
+  $items['a/dashboard'] = array(
     'title' => 'Dashboard',
     'page callback' => 'avsdashboard_home',
     'access arguments' => array('access content'),
@@ -18,15 +18,7 @@ function avsdashboard_menu() {
     'weight' => -1,
   );
 
-  $items['customers'] = array(
-    'title' => 'Customers',
-    'page callback' => 'avsdashboard_customer',
-    'access arguments' => array('access content'),
-    'menu_name' => 'avs',
-    'expanded' => TRUE,
-  );
-
-  $items['products'] = array(
+  $items['a/products'] = array(
     'title' => 'Products',
     'page callback' => 'avsdashboard_somepage2',
     'access arguments' => array('access content'),

@@ -1,27 +1,27 @@
 
 /* Off canvas */
-#main-menu-offcanvas.uk-offcanvas {
+#menu-toggle.uk-offcanvas {
   background: none;
 }
-#main-menu-offcanvas .uk-offcanvas-bar {
+#menu-toggle .uk-offcanvas-bar {
   background: #2b3643;
 }
-#main-menu-offcanvas .uk-offcanvas-bar:after {
+#menu-toggle .uk-offcanvas-bar:after {
   box-shadow: 0 0 5px 2px #1f2a37;
 }
-#main-menu-offcanvas .uk-nav-offcanvas .uk-nav-header {
+#menu-toggle .uk-nav-offcanvas .uk-nav-header {
   background: #333e4c;
   color: #798d9b;
 }
-html #main-menu-offcanvas .uk-nav.uk-nav-offcanvas > li.uk-active > a {
+html #menu-toggle .uk-nav.uk-nav-offcanvas > li.uk-active > a {
   background: #1f2a37;
 }
-#main-menu-offcanvas .uk-nav-offcanvas > .uk-open > a,
-html:not(.uk-touch) #main-menu-offcanvas .uk-nav-offcanvas > li > a:focus,
-html:not(.uk-touch) #main-menu-offcanvas .uk-nav-offcanvas > li > a:hover {
+#menu-toggle .uk-nav-offcanvas > .uk-open > a,
+html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:focus,
+html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
   background: #404c5a;
 }
-#main-menu-offcanvas .uk-nav-offcanvas > li > a {
+#menu-toggle .uk-nav-offcanvas > li > a {
   color: #fafafa;
 }
 
