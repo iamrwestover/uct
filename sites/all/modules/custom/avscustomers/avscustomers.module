@@ -11,17 +11,33 @@
 function avscustomers_menu() {
   $items['a/customers'] = array(
     'title' => 'Customers',
-    'page callback' => 'avscustomers_home',
-    'access arguments' => array('access content'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avcustomers_home_form'),
+    'access callback' => 'user_is_logged_in',
     'menu_name' => 'avs',
     'expanded' => TRUE,
+  );
+  $items['a/customers/add'] = array(
+    'title' => 'New Customer',
+    'page callback' => 'avscustomers_add',
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'avs',
+    'expanded' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/crud.inc',
   );
   return $items;
 }
 
 /**
- * Customers homepage callback.
+ * Customers homepage form.
+ *
+ * @param $form
+ * @param $form_state
+ * @return array
  */
-function avscustomers_home() {
-  return 'Customers!';
+function avcustomers_home_form($form, &$form_state) {
+  $btn_options = array('attributes' => array('class' => AVS_STYLE_CLASS_BTN . ' ' . AVS_STYLE_CLASS_BTN_PRIMARY));
+  $form['new_button'] = array('#markup' => l('New customer', 'a/customers/add', $btn_options));
+  return $form;
 }
