@@ -41,3 +41,22 @@ function avcustomers_home_form($form, &$form_state) {
   $form['new_button'] = array('#markup' => l('New customer', 'a/customers/add', $btn_options));
   return $form;
 }
+
+///**
+// * Implementation of hook_theme().
+// *
+// * @param $existing
+// * @param $type
+// * @param $theme
+// * @param $path
+// * @return array
+// */
+//function avscustomers_theme($existing, $type, $theme, $path) {
+//  return array(
+//    'avscustomers_add_form' => array(
+//      'render element' => 'form',
+//      'template' => 'avscustomers-add-form',
+//      'path' => $path . '/templates/forms',
+//    ),
+//  );
+//}
