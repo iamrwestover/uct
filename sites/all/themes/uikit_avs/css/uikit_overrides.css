@@ -1,0 +1,18 @@
+/* General */
+html {
+  background: #eef1f5;
+}
+
+/* Font */
+body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Font weight */
+/*html,*/
+.uk-article-title {
+  font-weight: 300;
+}
+.uk-form-stacked .uk-form-label {
+  font-weight: 600;
+}

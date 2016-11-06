@@ -1,16 +1,3 @@
-/* Font */
-body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
-  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-
-/* Font weight */
-html,
-.uk-article-title {
-  font-weight: 300;
-}
-.uk-form-stacked .uk-form-label {
-  font-weight: 600;
-}
 
 /* Off canvas */
 #main-menu-offcanvas.uk-offcanvas {
@@ -34,11 +21,11 @@ html:not(.uk-touch) #main-menu-offcanvas .uk-nav-offcanvas > li > a:focus,
 html:not(.uk-touch) #main-menu-offcanvas .uk-nav-offcanvas > li > a:hover {
   background: #404c5a;
 }
+#main-menu-offcanvas .uk-nav-offcanvas > li > a {
+  color: #fafafa;
+}
 
 /* Top area */
-html {
-  background: #eef1f5;
-}
 #page-header .uk-navbar-toggle,
 #site-name {
   position: relative;
@@ -80,15 +67,13 @@ html {
   padding: 15px;
   border-bottom: solid 1px #e7ecf1;
 }
-#page-title {
-  text-shadow: 0 1px 1px #fff;
-}
 #breadcrumbs .uk-breadcrumb {
   margin: 0;
 }
 
 /* Boxes */
 #page-content > .uk-panel-box,
+#block-system-help .uk-panel-box,
 .uk-block .uk-panel-box {
   background: #fff;
   border: none;
@@ -123,6 +108,9 @@ html {
 /* Content area */
 #page-outer-wrapper {
   padding-bottom: 15px; /* Fix bug on ios where uk-margin-bottom doesnt work properly on outer div. */
+}
+#page-title {
+  /*text-shadow: 0 1px 1px #fff;*/
 }
 
 /* Forms */

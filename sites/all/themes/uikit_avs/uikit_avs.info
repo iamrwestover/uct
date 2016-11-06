@@ -4,6 +4,7 @@ core = 7.x
 base theme = uikit
 
 stylesheets[all][] = css/avs.css
+stylesheets[all][] = css/uikit_overrides.css
 scripts[] = js/uikit-subtheme.js
 
 regions[header] = 'Page heading'

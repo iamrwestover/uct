@@ -69,108 +69,32 @@ function avsdashboard_menu() {
  */
 function avsdashboard_home() {
   $output = <<<HTML
-<nav class="uk-navbar">
+<div class="uk-block uk-block-muted">
 
-                                    <a class="uk-navbar-brand" href="#">Brand</a>
+                                <div class="uk-container uk-container-center">
 
-                                    <ul class="uk-navbar-nav">
-                                        <li class="uk-parent uk-active" data-uk-dropdown="" aria-haspopup="true" aria-expanded="false">
-                                            <a href=""><i class="uk-icon-home"></i> Level1</a>
+                                <h3>The quick brown fox jumps over the lazy dog</h3>
 
-                                            <div class="uk-dropdown uk-dropdown-navbar" aria-hidden="true">
-                                                <ul class="uk-nav uk-nav-navbar">
-                                                    <li><a href="#">Item</a></li>
-                                                    <li><a href="#">Another item</a></li>
-                                                    <li class="uk-nav-header">Header</li>
-                                                    <li><a href="#">Item</a></li>
-                                                    <li><a href="#">Another item</a></li>
-                                                    <li class="uk-nav-divider"></li>
-                                                    <li><a href="#">Separated item</a></li>
-                                                </ul>
+                                    <div class="uk-grid uk-grid-width-medium-1-2" data-uk-grid-margin="">
+                                        <div class="">
+                                            <div class="uk-panel">
+                                                <p>A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart. I am alone, and feel the charm of existence in this spot, which was created for the bliss of souls like mine. I am so happy, my dear friend, so absorbed in the exquisite sense of mere tranquil existence, that I neglect my talents.</p>
+
+<p>I should be incapable of drawing a single stroke at the present moment; and yet I feel that I never was a greater artist than now. When, while the lovely valley teems with vapour around me, and the meridian sun strikes the upper surface of the impenetrable foliage of my trees, and but a few stray gleams steal into the inner sanctuary, I throw myself down among the tall grass by the trickling stream; and, as I lie close to the earth, a thousand unknown plants are noticed by me: when I hear the buzz of the little world among the stalks, and grow familiar with the countless indescribable forms of the insects and flies, then I feel the presence of the Almighty, who formed us in his own image, and the breath</p>
                                             </div>
+                                        </div>
+                                        <div class="">
+                                            <div class="uk-panel">
+                                                <p>One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly, slightly domed and divided by arches into stiff sections.</p>
 
-                                        </li>
-
-                                    </ul>
-
-                                    <div class="uk-navbar-content">Some <a href="#">link</a>.</div>
-
-                                    <div class="uk-navbar-content uk-hidden-small">
-                                        <form class="uk-form uk-margin-remove uk-display-inline-block">
-                                            <input type="text" placeholder="Search">
-                                            <button class="uk-button uk-button-primary">Submit</button>
-                                        </form>
-                                    </div>
-
-                                    <div class="uk-navbar-content uk-navbar-flip  uk-hidden-small">
-                                        <div class="uk-button-group">
-                                            <a class="uk-button uk-button-danger" href="#">Link</a>
-                                            <button class="uk-button uk-button-danger">Button</button>
+<p>The bedding was hardly able to cover it and seemed ready to slide off any moment. His many legs, pitifully thin compared with the size of the rest of him, waved about helplessly as he looked. "What's happened to me? " he thought. It wasn't a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. A collection of textile samples lay spread out on the table - Samsa was a travelling salesman - and above it there hung a picture that he had recently cut out of an illustrated magazine and housed</p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                </nav>
-<hr />
-                                <nav class="uk-navbar">
+                                </div>
 
-                                    <ul class="uk-navbar-nav">
-                                        <li class="uk-active"><a href="">Active</a></li>
-                                        <li class="uk-hidden-small"><a href="">Item</a></li>
-                                        <li class="uk-parent" data-uk-dropdown="" aria-haspopup="true" aria-expanded="false">
-                                            <a href="">Parent</a>
-
-                                            <div class="uk-dropdown uk-dropdown-navbar uk-dropdown-bottom" aria-hidden="true" tabindex="" style="top: 40px; left: 0px;">
-                                                <ul class="uk-nav uk-nav-navbar">
-                                                    <li><a href="#">Item</a></li>
-                                                    <li><a href="#">Another item</a></li>
-                                                    <li class="uk-nav-header">Header</li>
-                                                    <li><a href="#">Item</a></li>
-                                                    <li><a href="#">Another item</a></li>
-                                                    <li class="uk-nav-divider"></li>
-                                                    <li><a href="#">Separated item</a></li>
-                                                </ul>
-                                            </div>
-
-                                        </li>
-                                    </ul>
-
-                                    <div class="uk-navbar-flip">
-
-                                        <ul class="uk-navbar-nav">
-                                            <li class="uk-parent" data-uk-dropdown="" aria-haspopup="true" aria-expanded="false">
-                                                <a href="">Parent</a>
-
-                                                <div class="uk-dropdown uk-dropdown-navbar" aria-hidden="true">
-                                                    <ul class="uk-nav uk-nav-navbar">
-                                                        <li><a href="#">Item</a></li>
-                                                        <li><a href="#">Another item</a></li>
-                                                        <li class="uk-nav-header">Header</li>
-                                                        <li><a href="#">Item</a></li>
-                                                        <li><a href="#">Another item</a></li>
-                                                        <li class="uk-nav-divider"></li>
-                                                        <li><a href="#">Separated item</a></li>
-                                                    </ul>
-                                                </div>
-
-                                            </li>
-                                            <li class="uk-hidden-small"><a href="">Item</a></li>
-                                            <li class="uk-active"><a href="">Active</a></li>
-                                        </ul>
-
-                                    </div>
-
-                                    <div class="uk-navbar-content uk-navbar-center">Center</div>
-
-                                </nav>
-
-                                <div class="uk-panel uk-panel-box">
-                                <div class="uk-panel-title">Famous!</div>
-                                <div class="uk-panel-body">They don't know what I know</div>
-</div>
-<div class="uk-panel uk-panel-box uk-panel-box-primary">
-                                <div class="uk-panel-title">Famous!</div>
-                                <div class="uk-panel-body">They don't know what I know</div>
-</div>
+                            </div>
 HTML;
 
   return $output;

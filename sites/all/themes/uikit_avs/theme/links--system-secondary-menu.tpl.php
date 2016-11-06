@@ -64,6 +64,10 @@ foreach ($menu_tree as $key => $value) {
   if (isset($value['#href']) && array_key_exists($value['#href'], $icons)) {
     $menu_tree[$key]['#localized_options']['html'] = TRUE;
     $menu_tree[$key]['#title'] = '<i class="uk-icon-small uk-icon-' . $icons[$value['#href']] . '"></i>';
+    // Notification badge test.
+    if ($value['#href'] == 'user') {
+      $menu_tree[$key]['#title'] = '<span class="uk-badge uk-badge-danger uk-panel-badge" style="margin: 2px 2px 0 0;">3</span>' . $menu_tree[$key]['#title'];
+    }
   }
 
   if (isset($value['#below']) && !empty($value['#below']) && $dropdown_support) {
