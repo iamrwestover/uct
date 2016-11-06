@@ -12,54 +12,26 @@ function avsdashboard_menu() {
   $items['dashboard'] = array(
     'title' => 'Dashboard',
     'page callback' => 'avsdashboard_home',
-//    'page arguments' => array('admin'),
-//    'position' => 'right',
     'access arguments' => array('access content'),
     'menu_name' => 'avs',
     'expanded' => TRUE,
     'weight' => -1,
   );
-//  $items['avs/dashboard'] = array(
-//    'title' => 'Dashboard Home',
-//    'type' => MENU_DEFAULT_LOCAL_TASK,
-//    'menu_name' => 'avs',
-//    'expanded' => TRUE,
-//  );
 
   $items['customers'] = array(
     'title' => 'Customers',
     'page callback' => 'avsdashboard_customer',
-//    'page arguments' => array('admin'),
-//    'position' => 'right',
     'access arguments' => array('access content'),
-//    'type' => MENU_LOCAL_TASK,
     'menu_name' => 'avs',
     'expanded' => TRUE,
-//    'context' => MENU_CONTEXT_INLINE,
   );
-
-//  $items['avs/customer/somelink'] = array(
-//    'title' => 'Some page',
-//    'page callback' => 'avsdashboard_somepage',
-////    'page arguments' => array('admin'),
-////    'position' => 'right',
-//    'access arguments' => array('access content'),
-////    'type' => MENU_LOCAL_TASK,
-//    'menu_name' => 'avs',
-//    'expanded' => TRUE,
-////    'context' => MENU_CONTEXT_INLINE,
-//  );
 
   $items['products'] = array(
     'title' => 'Products',
     'page callback' => 'avsdashboard_somepage2',
-//    'page arguments' => array('admin'),
-//    'position' => 'right',
     'access arguments' => array('access content'),
-//    'type' => MENU_LOCAL_TASK,
     'menu_name' => 'avs',
     'expanded' => TRUE,
-//    'context' => MENU_CONTEXT_INLINE,
   );
   return $items;
 }
