@@ -1,0 +1,40 @@
+<?php
+/**
+ * @file
+ * UCT base features and functions.
+ */
+
+define('AV_CATEGORY_ID_PAYMENT_METHOD', 1);
+require_once 'inc/helpers.inc';
+
+/**
+ * Implements hook_modules_installed().
+ *
+ * @see avbase_install()
+ */
+function avbase_modules_installed($modules) {
+  if (in_array('menu', $modules)) {
+    $menu = array(
+      'menu_name' => 'av',
+      'title' => t('AV Menu'),
+      'description' => t('AV AIS links'),
+    );
+    menu_save($menu);
+  }
+}
+
+
+/**
+ * Implementation of hook_init().
+ */
+function avbase_init() {
+
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function avbase_menu() {
+  $items = array();
+  return $items;
+}

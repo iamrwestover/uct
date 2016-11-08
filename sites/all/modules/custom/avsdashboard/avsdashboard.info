@@ -1,5 +1,0 @@
-name = AVS AIS Dashboard
-description = System overview for AVS AIS
-core = 7.x
-package = AVS
-dependencies[] = avsbase

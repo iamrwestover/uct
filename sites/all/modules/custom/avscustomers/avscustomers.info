@@ -1,5 +1,0 @@
-name = AVS AIS Customers
-description = Customer module for AVS AIS
-core = 7.x
-package = AVS
-dependencies[] = avsbase

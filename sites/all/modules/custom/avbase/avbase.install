@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function avbase_enable() {
+  $t = get_t();
+
+  // Create a custom menu, if Menu module is enabled.
+  // @see avbase_modules_installed()
+  if (module_exists('menu')) {
+    $menu = array(
+      'menu_name' => 'av',
+      'title' => $t('AV Menu'),
+      'description' => $t('AV AIS links'),
+    );
+    menu_save($menu);
+  }
+}

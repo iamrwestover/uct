@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * @file
+ * AV Customers module.
+ */
+
+define('AVCUSTOMERS_MODULE_PATH', drupal_get_path('module', 'avcustomers'));
+
+/**
+ * Implementation of hook_menu().
+ */
+function avcustomers_menu() {
+  $items['av/customers'] = array(
+    'title' => 'Customers',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avcustomers_home_form'),
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+  );
+  $items['av/customers/add'] = array(
+    'title' => 'New Customer',
+    'page callback' => 'avcustomers_new',
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/crud.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme().
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function avcustomers_theme($existing, $type, $theme, $path) {
+  $forms_template_path = $path . '/templates/forms';
+  return array(
+    'avcustomers_new_form' => array(
+      'render element' => 'form',
+      'template' => 'avcustomers-new-form',
+      'path' => $forms_template_path,
+    ),
+    'avcustomers_home_form' => array(
+      'render element' => 'form',
+      'template' => 'avcustomers-home-form',
+      'path' => $forms_template_path,
+    ),
+  );
+}
+
+/**
+ * Customers homepage form.
+ *
+ * @param $form
+ * @param $form_state
+ * @return array
+ */
+function avcustomers_home_form($form, &$form_state) {
+//  drupal_add_js('sites/all/libraries/ag-grid/ag-grid.min.js');
+//  drupal_add_js(AVCUSTOMERS_MODULE_PATH . '/js/avcustomers.js');
+
+  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
+  $form['new_button'] = array('#markup' => l('New customer', 'av/customers/add', $btn_options));
+
+  $header = array('Customer', 'Company', 'Name', 'Contact');
+  $rows = array();
+//  $results = db_query("SELECT * FROM {avtbl_customers}");
+  $result = db_select('avtbl_customers', 'ac')
+    ->fields('ac')
+    ->extend('PagerDefault')
+    ->limit(2)
+    ->execute();
+  foreach ($result as $row) {
+    $rows[] = array(
+      check_plain($row->display_name),
+      check_plain($row->company),
+      check_plain($row->first_name),
+      '',
+    );
+  }
+  $table_attributes = array('id' => 'customers-list-table');
+  $form['table']['#markup'] = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
+  $form['pager']['#markup'] = theme('pager', array('tags' => array()));;
+//$form['#after_build'] = array('avcustomers_home_form_after_build');
+//  $form['ag-grid']['#markup'] = '<div id="myGrid" style="height: 300px;" class="ag-fresh"></div>';
+  return $form;
+}
+
+function avcustomers_home_form_after_build($form, &$form_state) {
+  dpm('f');
+  dpm($form);
+  return $form;
+}
