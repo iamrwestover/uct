@@ -79,6 +79,12 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
   border: none;
   box-shadow: 0 1px 2px #ccc;
 }
+.uk-switcher > .uk-panel-box {
+  background: none;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
 .uk-block .uk-panel-box-primary .uk-panel-title,
 .uk-block .uk-panel-box-primary {
   background: #3598dc;
@@ -116,4 +122,7 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 /* Forms */
 .form-required {
   color: #D05;
+}
+.uk-form-row.uk-form-danger {
+  background: transparent !important;
 }

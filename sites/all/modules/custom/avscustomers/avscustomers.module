@@ -19,7 +19,7 @@ function avscustomers_menu() {
   );
   $items['a/customers/add'] = array(
     'title' => 'New Customer',
-    'page callback' => 'avscustomers_add',
+    'page callback' => 'avscustomers_new',
     'access callback' => 'user_is_logged_in',
     'menu_name' => 'avs',
     'expanded' => TRUE,
@@ -27,6 +27,25 @@ function avscustomers_menu() {
     'file' => 'inc/crud.inc',
   );
   return $items;
+}
+
+/**
+ * Implementation of hook_theme().
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function avscustomers_theme($existing, $type, $theme, $path) {
+  return array(
+    'avscustomers_new_form' => array(
+      'render element' => 'form',
+      'template' => 'avscustomers-new-form',
+      'path' => $path . '/templates/forms',
+    ),
+  );
 }
 
 /**
@@ -42,21 +61,3 @@ function avcustomers_home_form($form, &$form_state) {
   return $form;
 }
 
-///**
-// * Implementation of hook_theme().
-// *
-// * @param $existing
-// * @param $type
-// * @param $theme
-// * @param $path
-// * @return array
-// */
-//function avscustomers_theme($existing, $type, $theme, $path) {
-//  return array(
-//    'avscustomers_add_form' => array(
-//      'render element' => 'form',
-//      'template' => 'avscustomers-add-form',
-//      'path' => $path . '/templates/forms',
-//    ),
-//  );
-//}
