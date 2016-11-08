@@ -51,6 +51,7 @@ $form['address']['address']['#attributes']['rows'] = 3;
   <ul class="uk-tab" data-uk-tab="{connect:'#more-info'}">
     <li><a href="">Address</a></li>
     <li><a href="">Payment</a></li>
+    <li><a href="">Notes</a></li>
   </ul>
   <ul id="more-info" class="uk-switcher">
     <li class="uk-panel uk-panel-box">
@@ -69,6 +70,7 @@ $form['address']['address']['#attributes']['rows'] = 3;
       </div>
     </li>
     <li class="uk-panel uk-panel-box"><div><?php print drupal_render($form['payment']); ?></div></li>
+    <li class="uk-panel uk-panel-box">Notes!</li>
   </ul>
 </div>
 
