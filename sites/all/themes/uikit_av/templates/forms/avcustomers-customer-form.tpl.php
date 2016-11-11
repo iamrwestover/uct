@@ -87,4 +87,6 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 </div>
 
 <?php
+$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
+$form['buttons']['cancel']['#markup'] = l('Cancel', 'av/customers', array('attributes' => array('class' => array('uk-button'))));
 print drupal_render_children($form);

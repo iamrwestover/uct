@@ -5,6 +5,7 @@
  */
 
 define('AV_CATEGORY_ID_PAYMENT_METHOD', 1);
+
 require_once 'inc/helpers.inc';
 
 /**

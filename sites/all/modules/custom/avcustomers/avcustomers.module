@@ -7,6 +7,8 @@
 
 define('AVCUSTOMERS_MODULE_PATH', drupal_get_path('module', 'avcustomers'));
 
+require_once 'inc/helpers.inc';
+
 /**
  * Implementation of hook_menu().
  */
@@ -21,10 +23,25 @@ function avcustomers_menu() {
   );
   $items['av/customers/add'] = array(
     'title' => 'New Customer',
-    'page callback' => 'avcustomers_new',
+    'page callback' => 'avcustomers_customer_form_load',
+    'page arguments' => array(NULL),
     'access callback' => 'user_is_logged_in',
-    'menu_name' => 'av',
-    'expanded' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/crud.inc',
+  );
+  $items['av/customers/%avcustomer/edit'] = array(
+    'title' => 'Edit Customer',
+    'page callback' => 'avcustomers_customer_form_load',
+    'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/crud.inc',
+  );
+  $items['av/customers/%avcustomer/delete'] = array(
+    'title' => 'Delete Customer',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avcustomers_customer_delete_confirm_form', 2),
+    'access callback' => 'user_is_logged_in',
     'type' => MENU_CALLBACK,
     'file' => 'inc/crud.inc',
   );
@@ -43,7 +60,7 @@ function avcustomers_menu() {
 function avcustomers_theme($existing, $type, $theme, $path) {
   $forms_template_path = $path . '/templates/forms';
   $form_names = array(
-    'avcustomers_new_form',
+    'avcustomers_customer_form',
     'avcustomers_home_form',
   );
 
@@ -93,12 +110,12 @@ function avcustomers_home_form($form, &$form_state) {
   $action_links_all = array();
   foreach ($result as $row) {
     $action_links = array('links' => array(
-      'edit' => array('title' => 'edit', 'href' => 'av/customers/' . $row->id . '/edit', 'icon_key' => 'edit'),
-      'delete' => array('title' => 'delete', 'href' => 'av/customers/' . $row->id . '/delete', 'icon_key' => 'remove'),
+      'edit' => array('title' => 'edit', 'href' => 'av/customers/' . $row->id . '/edit', 'icon_kedy' => 'edit'),
+      'delete' => array('title' => 'delete', 'href' => 'av/customers/' . $row->id . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
     ));
 
     $action_links_all[] = $action_links;
-    $actions_html = theme('links__button_group', $action_links);
+    $actions_html = theme('links__bare', $action_links);
     $rows[] = array(
     'data' => array(
       'display_name' => check_plain($row->display_name),
@@ -112,7 +129,13 @@ function avcustomers_home_form($form, &$form_state) {
   }
 
   $table_attributes = array('id' => 'customers-list-table');
-  $form['table']['#markup'] = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes, 'action_links_all' => $action_links_all));
+  if (empty($rows)) {
+    $table_markup = '<p>Nothing recorded yet.</p>';
+  }
+  else {
+    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes, 'action_links_all' => $action_links_all));
+  }
+  $form['table']['#markup'] = $table_markup;
   $form['pager']['#markup'] = theme('pager', array('tags' => array()));
 //$form['#after_build'] = array('avcustomers_home_form_after_build');
 //  $form['ag-grid']['#markup'] = '<div id="myGrid" style="height: 300px;" class="ag-fresh"></div>';
