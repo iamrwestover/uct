@@ -88,4 +88,3 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 
 <?php
 print drupal_render_children($form);
-?>

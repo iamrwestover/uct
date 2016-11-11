@@ -42,18 +42,21 @@ function avcustomers_menu() {
  */
 function avcustomers_theme($existing, $type, $theme, $path) {
   $forms_template_path = $path . '/templates/forms';
-  return array(
-    'avcustomers_new_form' => array(
-      'render element' => 'form',
-      'template' => 'avcustomers-new-form',
-      'path' => $forms_template_path,
-    ),
-    'avcustomers_home_form' => array(
-      'render element' => 'form',
-      'template' => 'avcustomers-home-form',
-      'path' => $forms_template_path,
-    ),
+  $form_names = array(
+    'avcustomers_new_form',
+    'avcustomers_home_form',
   );
+
+  $theme_forms = array();
+  foreach ($form_names as $form_name) {
+    $theme_forms[$form_name] = array(
+      'render element' => 'form',
+      'template' => str_replace('_', '-', $form_name),
+      'path' => $forms_template_path,
+    );
+  }
+
+  return $theme_forms;
 }
 
 /**
@@ -70,25 +73,47 @@ function avcustomers_home_form($form, &$form_state) {
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array('#markup' => l('New customer', 'av/customers/add', $btn_options));
 
-  $header = array('Customer', 'Company', 'Name', 'Contact');
+  $header = array(
+    array('data' => 'Customer', 'field' => 'display_name'),
+    array('data' => 'Company', 'field' => 'company'),
+    array('data' => 'Name', 'field' => 'first_name'),
+//    array('data' => 'Contact', 'field' => ''),
+    '&nbsp;',
+  );
+
   $rows = array();
-//  $results = db_query("SELECT * FROM {avtbl_customers}");
   $result = db_select('avtbl_customers', 'ac')
     ->fields('ac')
     ->extend('PagerDefault')
-    ->limit(2)
+    ->extend('TableSort')
+    ->limit(10)
+    ->orderByHeader($header)
     ->execute();
+
+  $action_links_all = array();
   foreach ($result as $row) {
+    $action_links = array('links' => array(
+      'edit' => array('title' => 'edit', 'href' => 'av/customers/' . $row->id . '/edit', 'icon_key' => 'edit'),
+      'delete' => array('title' => 'delete', 'href' => 'av/customers/' . $row->id . '/delete', 'icon_key' => 'remove'),
+    ));
+
+    $action_links_all[] = $action_links;
+    $actions_html = theme('links__button_group', $action_links);
     $rows[] = array(
-      check_plain($row->display_name),
-      check_plain($row->company),
-      check_plain($row->first_name),
-      '',
+    'data' => array(
+      'display_name' => check_plain($row->display_name),
+      'company' => check_plain($row->company),
+      'first_name' => check_plain($row->first_name),
+//    'display_name' => '',
+      'actions' => $actions_html,
+    ),
+    'class' => array('uk-table-middle'),
     );
   }
+
   $table_attributes = array('id' => 'customers-list-table');
-  $form['table']['#markup'] = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
-  $form['pager']['#markup'] = theme('pager', array('tags' => array()));;
+  $form['table']['#markup'] = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes, 'action_links_all' => $action_links_all));
+  $form['pager']['#markup'] = theme('pager', array('tags' => array()));
 //$form['#after_build'] = array('avcustomers_home_form_after_build');
 //  $form['ag-grid']['#markup'] = '<div id="myGrid" style="height: 300px;" class="ag-fresh"></div>';
   return $form;

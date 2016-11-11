@@ -126,3 +126,10 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 .uk-form-row.uk-form-danger {
   background: transparent !important;
 }
+
+/* Tables */
+th > a > img {
+  position: relative;
+  left: 5px;
+  top: -2px;
+}
