@@ -79,12 +79,12 @@ function avproducts_product_form_info_fields(&$form, $row) {
   );
   $info['initial_qty_date'] = array(
     '#type' => 'textfield',
-    '#title' => 'As of date',
+    '#title' => 'Initial quantity start date',
     '#default_value' => isset($row->qty) ? $row->qty : '',
-    '#maxlength' => 10,
     '#access' => empty($row->id),
     '#required' => TRUE,
-    '#element_validate' => array('date_validate'),
+    '#element_validate' => array('avbase_date_validate'),
+    '#av_date_format' => 'M. d, Y',
   );
   $info['uom_id'] = array(
     '#type' => 'select',
@@ -101,7 +101,6 @@ function avproducts_product_form_info_fields(&$form, $row) {
   $info['eoq'] = array(
     '#type' => 'textfield',
     '#title' => 'EOQ',
-    '#description' => 'Economic order quantity',
     '#default_value' => isset($row->eoq) ? $row->roeoqp : '',
     '#maxlength' => 10,
     '#element_validate' => array('element_validate_integer_positive'),

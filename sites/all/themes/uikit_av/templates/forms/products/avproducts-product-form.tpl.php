@@ -7,6 +7,7 @@ $form['buttons']['#prefix'] = '<div class="uk-margin-top">';
 $form['buttons']['#suffix'] = '</div>';
 
 $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
+$form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
 ?>
 
 <div class="uk-grid uk-grid-large">
@@ -15,7 +16,7 @@ $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
       <div class="uk-width-2-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['title']); ?></div>
       <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['code']); ?></div>
 
-      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['category_id']); ?></div>
+      <div class="uk-width-2-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['category_id']); ?></div>
       <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['uom_id']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['description']); ?></div>
