@@ -17,14 +17,6 @@ function avdashboard_menu() {
     'expanded' => TRUE,
     'weight' => -1,
   );
-
-  $items['av/products'] = array(
-    'title' => 'Products',
-    'page callback' => 'avdashboard_somepage2',
-    'access arguments' => array('access content'),
-    'menu_name' => 'av',
-    'expanded' => TRUE,
-  );
   return $items;
 }
 

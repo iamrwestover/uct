@@ -1,30 +1,27 @@
 <?php
 
 /**
- * New Customer page.
+ * New Vendor page.
  * @param object $row
- *    Customer row object.
+ *    Vendor row object.
  *
  * @return string
  */
-function avcustomers_customer_form_load($row) {
-  return drupal_get_form('avcustomers_customer_form', $row);
+function avvendors_vendor_form_load($row) {
+  return drupal_get_form('avvendors_vendor_form', $row);
 }
 
-function avcustomers_customer_form($form, &$form_state, $row) {
+function avvendors_vendor_form($form, &$form_state, $row) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-//  $form['customer_info'] = array('#type' => 'vertical_tabs');
+//  $form['vendor_info'] = array('#type' => 'vertical_tabs');
   // Info group.
-  avcustomers_customer_form_info_fields($form, $row);
+  avvendors_vendor_form_info_fields($form, $row);
 
   // Contact group.
-  avcustomers_customer_form_contact_fields($form, $row);
+  avvendors_vendor_form_contact_fields($form, $row);
 
   // Address group.
-  avcustomers_customer_form_address_fields($form, $row);
-
-  // Payment group.
-  avcustomers_customer_form_payment_fields($form, $row);
+  avvendors_vendor_form_address_fields($form, $row);
 
   // Miscellaneous.
   $form['misc'] = array(
@@ -43,16 +40,16 @@ function avcustomers_customer_form($form, &$form_state, $row) {
     '#value' => t('Save'),
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/customers'),
+    '#markup' => l('Cancel', 'av/vendors'),
   );
   return $form;
 }
 
 /**
- * New customer - generate info fields.
+ * New vendor - generate info fields.
  * @param $form
  */
-function avcustomers_customer_form_info_fields(&$form, $row) {
+function avvendors_vendor_form_info_fields(&$form, $row) {
   $form['info'] = array(
     '#type' => 'fieldset',
     '#title' => 'Info',
@@ -98,10 +95,10 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
 }
 
 /**
- * New customer - generate contact fields.
+ * New vendor - generate contact fields.
  * @param $form
  */
-function avcustomers_customer_form_contact_fields(&$form, $row) {
+function avvendors_vendor_form_contact_fields(&$form, $row) {
   $form['contact'] = array(
     '#type' => 'fieldset',
     '#title' => 'Contact details',
@@ -128,10 +125,10 @@ function avcustomers_customer_form_contact_fields(&$form, $row) {
 }
 
 /**
- * New customer - generate address fields.
+ * New vendor - generate address fields.
  * @param $form
  */
-function avcustomers_customer_form_address_fields(&$form, $row) {
+function avvendors_vendor_form_address_fields(&$form, $row) {
   $form['address'] = array(
     '#type' => 'fieldset',
     '#title' => 'Address',
@@ -160,40 +157,17 @@ function avcustomers_customer_form_address_fields(&$form, $row) {
     '#default_value' => isset($row->zip_code) ? check_plain($row->zip_code) : '',
     '#maxlength' => 16,
   );
-  $address['same_addr'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Billing address same as shipping address',
-    '#default_value' => isset($row->same_addr) ? (empty($row->same_addr) ? 0 : 1) : '',
-  );
   $form['address'] += $address;
 }
 
 /**
- * New customer - generate payment fields.
- * @param $form
- */
-function avcustomers_customer_form_payment_fields(&$form, $row) {
-  $form['payment'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'Payment',
-  );
-
-  $payment['payment_method_id'] = array(
-    '#type' => 'select',
-    '#title' => 'Preferred payment method',
-    '#options' => avbase_get_payment_method_options_array(),
-  );
-  $form['payment'] += $payment;
-}
-
-/**
- * Submit handler to avcustomers_customer_form().
+ * Submit handler to avvendors_vendor_form().
  * @param $form
  * @param $form_state
  *
  * @throws
  */
-function avcustomers_customer_form_submit($form, &$form_state) {
+function avvendors_vendor_form_submit($form, &$form_state) {
   $transaction = db_transaction();
   try {
     $values = $form_state['values'];
@@ -209,8 +183,6 @@ function avcustomers_customer_form_submit($form, &$form_state) {
       'city',
       'province',
       'zip_code',
-      'same_addr',
-      'payment_method_id',
     );
 
     // Get $form_state values and store them on $row array.
@@ -237,34 +209,34 @@ function avcustomers_customer_form_submit($form, &$form_state) {
       // Insert new record.
       // Save timestamp when record is created.
       $row['created'] = time();
-      if (db_insert('avtbl_customers')->fields($row)->execute()) {
-        drupal_set_message('New customer saved.');
+      if (db_insert('avtbl_vendors')->fields($row)->execute()) {
+        drupal_set_message('New vendor saved.');
       }
     }
     else {
       // Update record.
-      if (db_update('avtbl_customers')->fields($row)->condition('id', $record_id)->execute()) {
+      if (db_update('avtbl_vendors')->fields($row)->condition('id', $record_id)->execute()) {
         drupal_set_message('Changes saved.');
       }
     }
   }
   catch (Exception $e) {
     $transaction->rollback();
-//    watchdog_exception('avcustomers', $e);
+//    watchdog_exception('avvendors', $e);
     throw $e;
   }
 }
 
 /**
- * Menu callback: confirm customer delete.
+ * Menu callback: confirm vendor delete.
  * @param $form
  * @param $form_state
  * @param object $row
  *
  * @return array
  */
-function avcustomers_customer_delete_confirm_form($form, &$form_state, $row) {
-  $prompt = 'Are you sure you want to delete this customer?';
+function avvendors_vendor_delete_confirm_form($form, &$form_state, $row) {
+  $prompt = 'Are you sure you want to delete this vendor?';
   $display_name = check_plain($row->display_name);
   $company = check_plain($row->company);
   $description = <<<HTML
@@ -277,13 +249,13 @@ HTML;
 }
 
 /**
- * Handler for customer delete.
+ * Handler for vendor delete.
  *
- * @see avcustomers_customer_delete_confirm_form()
+ * @see avvendors_vendor_delete_confirm_form()
  */
-function avcustomers_customer_delete_confirm_form_submit($form, &$form_state) {
+function avvendors_vendor_delete_confirm_form_submit($form, &$form_state) {
   if (isset($form_state['row']->id)) {
-    if (avcustomers_customer_delete($form_state['row']->id)) {
+    if (avvendors_vendor_delete($form_state['row']->id)) {
       drupal_set_message('Record deleted.');
     }
   }

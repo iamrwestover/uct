@@ -58,6 +58,7 @@ $icons = array(
   'av/dashboard' => 'dashboard',
   'av/customers' => 'users',
   'av/products' => 'tags',
+  'av/vendors' => 'truck',
 );
 //foreach (element_children($menu_tree) as $v) {
 //  dpm($v . '=' . $menu_tree[$v]['#title'] . '=' . $menu_tree[$v]['#href']);
