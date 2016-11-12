@@ -17,3 +17,56 @@ function avbase_enable() {
     menu_save($menu);
   }
 }
+
+/**
+ * Implementation of hook_schema().
+ * @return array
+ */
+function avbase_schema() {
+  $schema['avtbl_category_groups'] = array(
+    'description' => 'Category groups',
+    'fields' => array(
+      'id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Category title',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'Category description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'group_id' => array(
+        'description' => 'Category group ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'weight' => array(
+        'description' => 'Weight for sorting.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'group_id' => array('group_id'),
+    ),
+  );
+
+  return $schema;
+}

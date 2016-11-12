@@ -31,11 +31,6 @@ function avproducts_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
-      'created' => array(
-        'description' => 'Timestamp when the record is created',
-        'type' => 'int',
-        'not null' => TRUE,
-      ),
       'description' => array(
         'description' => 'Product description',
         'type' => 'text',
@@ -98,6 +93,11 @@ function avproducts_schema() {
         'description' => 'Miscellaneous product info',
         'type' => 'text',
         'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Timestamp when the record is created',
+        'type' => 'int',
+        'not null' => TRUE,
       ),
     ),
     'primary key' => array('id'),

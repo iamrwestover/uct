@@ -25,12 +25,14 @@ function avbase_get_categories($group_id) {
 }
 
 /**
- * Get payment methods array for use with options form api.
+ * Get list of categories under a group.
+ * @param int $group_id
+ * @return array
  */
-function avbase_get_payment_method_options_array() {
-  $payment_methods = avbase_get_categories(AV_CATEGORY_ID_PAYMENT_METHOD);
+function avbase_get_category_options_array($group_id) {
+  $categories = avbase_get_categories($group_id);
   $options = array();
-  foreach ($payment_methods as $v) {
+  foreach ($categories as $v) {
     $options[$v->id] = check_plain($v->title);
   }
   return $options;

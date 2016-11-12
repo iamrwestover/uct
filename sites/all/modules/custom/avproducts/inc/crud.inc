@@ -41,14 +41,85 @@ function avproducts_product_form_info_fields(&$form, $row) {
     '#title' => 'Title',
     '#default_value' => isset($row->title) ? check_plain($row->title) : '',
     '#maxlength' => 255,
+    '#required' => TRUE,
   );
-  $info['title'] = array(
+  $info['code'] = array(
     '#type' => 'textfield',
     '#title' => 'Product code',
     '#default_value' => isset($row->code) ? check_plain($row->code) : '',
-    '#maxlength' => 255,
+    '#maxlength' => 32,
   );
-
+  $info['category_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Category',
+    '#options' => avbase_get_category_options_array(AV_CATEGORY_ID_PRODUCT_CATEGORY),
+  );
+  $info['description'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Description',
+    '#default_value' => isset($row->description) ? check_plain($row->description) : '',
+    '#maxlength' => 65000,
+  );
+  $info['qty'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Quantity',
+    '#default_value' => isset($row->qty) ? $row->qty : 0,
+    '#maxlength' => 10,
+    '#access' => !empty($row->id),
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+  $info['initial_qty'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Initial quantity on hand',
+    '#default_value' => isset($row->qty) ? $row->qty : '',
+    '#maxlength' => 10,
+    '#access' => empty($row->id),
+    '#required' => TRUE,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+  $info['initial_qty_date'] = array(
+    '#type' => 'textfield',
+    '#title' => 'As of date',
+    '#default_value' => isset($row->qty) ? $row->qty : '',
+    '#maxlength' => 10,
+    '#access' => empty($row->id),
+    '#required' => TRUE,
+    '#element_validate' => array('date_validate'),
+  );
+  $info['uom_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Unit of measure',
+    '#options' => avbase_get_category_options_array(AV_CATEGORY_ID_UNIT_OF_MEASURE),
+  );
+  $info['rop'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reorder point',
+    '#default_value' => isset($row->rop) ? $row->rop : '',
+    '#maxlength' => 10,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+  $info['eoq'] = array(
+    '#type' => 'textfield',
+    '#title' => 'EOQ',
+    '#description' => 'Economic order quantity',
+    '#default_value' => isset($row->eoq) ? $row->roeoqp : '',
+    '#maxlength' => 10,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+  $info['price'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Price',
+    '#default_value' => isset($row->price) ? $row->price : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+  );
+  $info['cost'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Cost',
+    '#default_value' => isset($row->cost) ? $row->cost : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+  );
   $form['info'] += $info;
 }
 

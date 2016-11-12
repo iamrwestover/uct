@@ -181,7 +181,7 @@ function avcustomers_customer_form_payment_fields(&$form, $row) {
   $payment['payment_method_id'] = array(
     '#type' => 'select',
     '#title' => 'Preferred payment method',
-    '#options' => avbase_get_payment_method_options_array(),
+    '#options' => avbase_get_category_options_array(AV_CATEGORY_ID_PAYMENT_METHOD),
   );
   $form['payment'] += $payment;
 }

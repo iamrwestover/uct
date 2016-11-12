@@ -101,5 +101,9 @@ function uikit_av_textfield($variables) {
 
   $output = '<input' . drupal_attributes($element['#attributes']) . ' />';
 
+  // Add element icon if set.
+  if (isset($element['#icon_key'])) {
+    $output = '<div class="uk-form-icon"><i class="uk-icon-' . $element['#icon_key'] . '"></i>' . $output . '</div>';
+  }
   return $output . $extra;
 }
