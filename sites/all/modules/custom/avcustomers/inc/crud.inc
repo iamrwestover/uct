@@ -34,7 +34,7 @@ function avcustomers_customer_form($form, &$form_state, $row) {
   );
   $form['misc']['notes'] = array(
     '#type' => 'textarea',
-    '#title' => 'Notes',
+    '#title' => 'Miscellaneous',
     '#default_value' => isset($row->data['notes']) ? check_plain($row->data['notes']) : '',
     '#maxlength' => 255,
   );

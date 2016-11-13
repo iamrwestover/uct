@@ -59,7 +59,7 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
     <ul class="uk-tab" data-uk-tab="{connect:'#more-info'}">
       <li><a href="">Address</a></li>
       <li><a href="">Payment</a></li>
-      <li><a href="">Notes</a></li>
+      <li><a href="">Miscellaneous</a></li>
     </ul>
     <ul id="more-info" class="uk-switcher">
       <li class="uk-panel uk-panel-box">

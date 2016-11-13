@@ -41,3 +41,22 @@ function avbase_menu() {
   $items = array();
   return $items;
 }
+
+/**
+ * Implementation of hook_form_alter().
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function avbase_form_alter(&$form, $form_state, $form_id) {
+  if (!user_access('administer nodes')) {
+    if ($form_id == 'user_filter_form') {
+      $form['#access'] = FALSE;
+    }
+
+    if ($form_id == 'user_admin_account') {
+      drupal_set_title('Users');
+      $form['options']['#access'] = FALSE;
+    }
+  }
+}

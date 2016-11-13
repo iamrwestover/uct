@@ -82,7 +82,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
   }
   $info['initial_qty'] = array(
     '#type' => 'textfield',
-    '#title' => 'Initial quantity on hand',
+    '#title' => 'Beginning quantity',
     '#default_value' => isset($row->qty) ? $row->qty : '',
     '#maxlength' => 10,
     '#access' => empty($row->id),
@@ -92,12 +92,15 @@ function avproducts_product_form_info_fields(&$form, $row) {
   $initial_qty_date_format = 'M. d, Y';
   $info['initial_qty_date'] = array(
     '#type' => 'textfield',
-    '#title' => 'Initial quantity start date',
+    '#title' => 'Beginning quantity start date',
     '#default_value' => isset($row->initial_qty_date) ? date($initial_qty_date_format, $row->initial_qty_date) : '',
     '#access' => empty($row->id),
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_date'),
     '#av_date_format' => $initial_qty_date_format,
+    '#attributes' => array(
+      'autocomplete' => 'off',
+    ),
   );
   $info['uom_id'] = array(
     '#type' => 'select',
@@ -120,14 +123,14 @@ function avproducts_product_form_info_fields(&$form, $row) {
   );
   $info['price'] = array(
     '#type' => 'textfield',
-    '#title' => 'Price',
+    '#title' => 'Sales price',
     '#default_value' => isset($row->price) ? avbase_money_format('%01.2f', $row->price) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
   );
   $info['cost'] = array(
     '#type' => 'textfield',
-    '#title' => 'Cost',
+    '#title' => 'Unit cost',
     '#default_value' => isset($row->cost) ? avbase_money_format('%01.2f', $row->cost) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
