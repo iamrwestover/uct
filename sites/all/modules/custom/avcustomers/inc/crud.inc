@@ -12,8 +12,9 @@ function avcustomers_customer_form_load($row) {
 }
 
 function avcustomers_customer_form($form, &$form_state, $row) {
+  drupal_set_title('New customer');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-//  $form['customer_info'] = array('#type' => 'vertical_tabs');
+
   // Info group.
   avcustomers_customer_form_info_fields($form, $row);
 
@@ -181,7 +182,7 @@ function avcustomers_customer_form_payment_fields(&$form, $row) {
   $payment['payment_method_id'] = array(
     '#type' => 'select',
     '#title' => 'Preferred payment method',
-    '#options' => avbase_get_category_options_array(AV_CATEGORY_ID_PAYMENT_METHOD),
+    '#options' => avbase_get_category_options_array(AVCATEGORY_ID_PAYMENT_METHOD),
   );
   $form['payment'] += $payment;
 }
@@ -216,7 +217,10 @@ function avcustomers_customer_form_submit($form, &$form_state) {
     // Get $form_state values and store them on $row array.
     $row = array();
     foreach ($save_field_ids as $field_id) {
-      $row[$field_id] = isset($values[$field_id]) ? $values[$field_id] : NULL;
+      if (!isset($values[$field_id]) || trim($values[$field_id]) == '') {
+        continue;
+      }
+      $row[$field_id] = $values[$field_id];
     }
 
     // Get values for "data" field.

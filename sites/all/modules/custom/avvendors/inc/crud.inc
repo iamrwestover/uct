@@ -12,8 +12,9 @@ function avvendors_vendor_form_load($row) {
 }
 
 function avvendors_vendor_form($form, &$form_state, $row) {
+  drupal_set_title('New vendor');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-//  $form['vendor_info'] = array('#type' => 'vertical_tabs');
+
   // Info group.
   avvendors_vendor_form_info_fields($form, $row);
 
@@ -188,7 +189,10 @@ function avvendors_vendor_form_submit($form, &$form_state) {
     // Get $form_state values and store them on $row array.
     $row = array();
     foreach ($save_field_ids as $field_id) {
-      $row[$field_id] = isset($values[$field_id]) ? $values[$field_id] : NULL;
+      if (!isset($values[$field_id]) || trim($values[$field_id]) == '') {
+        continue;
+      }
+      $row[$field_id] = $values[$field_id];
     }
 
     // Get values for "data" field.

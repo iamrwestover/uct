@@ -18,10 +18,29 @@ function avbase_get_categories($group_id) {
   $result = db_query($query, array(':group_id' => $group_id));
   $rows = array();
   foreach ($result as $k => $row) {
-    $rows[] = $row;
+    $rows[$row->id] = $row;
   }
 
   return $data[$group_id] = $rows;
+}
+
+/**
+ * Get multiple categories.
+ * @see avbase_get_categories()
+ * @param $group_ids
+ * @return array
+ */
+function avbase_get_categories_multiple($group_ids) {
+  if (is_numeric($group_ids)) {
+    $group_ids = array($group_ids);
+  }
+
+  $rows = array();
+  foreach ($group_ids as $id) {
+    $rows += avbase_get_categories($id);
+  }
+
+  return $rows;
 }
 
 /**
@@ -39,12 +58,12 @@ function avbase_get_category_options_array($group_id) {
 }
 
 /**
- * Validate date.
+ * Check if element is a valid date.
  * @param $element
  * @param $form_state
  * @param $form
  */
-function avbase_date_validate($element, &$form_state, $form) {
+function avbase_element_validate_date($element, &$form_state, $form) {
   $date = $element['#value'];
   $date_format = isset($element['#av_date_format']) ? $element['#av_date_format'] : 'M. d, Y';
   $date_info = date_parse_from_format($date_format, $date);
@@ -60,4 +79,17 @@ function avbase_date_validate($element, &$form_state, $form) {
   elseif (!empty($date_info['warning_count'])) {
     form_error($element, t('%element_title is invalid.', $t_args));
   }
+  else {
+    // Set this element's value as timestamp equivalent.
+    $form_state['values'][$element['#name']] = strtotime($date);
+  }
+}
+
+/**
+ * Custom money format.
+ * @param $format
+ * @param $number
+ */
+function avbase_money_format($format, $number) {
+  return sprintf($format, $number);
 }

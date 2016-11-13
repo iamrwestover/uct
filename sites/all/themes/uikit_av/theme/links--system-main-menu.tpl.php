@@ -67,8 +67,8 @@ $icons = array(
 foreach ($menu_tree as $key => $value) {
   // Add icons.
   if (isset($value['#href']) && array_key_exists($value['#href'], $icons)) {
-    $menu_tree[$key]['#localized_options']['html'] = TRUE;
-    $menu_tree[$key]['#title'] = '<i class="uk-margin-right uk-icon-small uk-icon-' . $icons[$value['#href']] . '"></i>' . check_plain($menu_tree[$key]['#title']);
+    $menu_tree[$key]['#localized_options']['icon_key'] = $icons[$value['#href']];
+    $menu_tree[$key]['#localized_options']['icon_classes'] = array('uk-icon-small', 'uk-margin-right');
   }
 
   if (isset($value['#below']) && !empty($value['#below']) && $dropdown_support) {

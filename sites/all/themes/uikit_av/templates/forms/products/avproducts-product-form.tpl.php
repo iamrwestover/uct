@@ -8,6 +8,10 @@ $form['buttons']['#suffix'] = '</div>';
 
 $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
 $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
+
+$qty_html = drupal_render($form['info']['qty']);
+$initial_qty_html = drupal_render($form['info']['initial_qty']);
+$initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
 ?>
 
 <div class="uk-grid uk-grid-large">
@@ -26,13 +30,20 @@ $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{forma
 
   <div class="uk-width-1-2">
     <div class="uk-grid uk-grid-small">
-      <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
       <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['price']); ?></div>
+      <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
       <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
       <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
 
-      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['initial_qty']); ?></div>
-      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['initial_qty_date']); ?></div>
+      <?php if ($qty_html): ?>
+        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $qty_html; ?></div>
+      <?php endif; ?>
+      <?php if ($initial_qty_html): ?>
+        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $initial_qty_html; ?></div>
+      <?php endif; ?>
+      <?php if ($initial_qty_date_html): ?>
+        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $initial_qty_date_html; ?></div>
+      <?php endif; ?>
     </div>
   </div>
 
@@ -42,5 +53,6 @@ $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{forma
 
 <?php
 $form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
-$form['buttons']['cancel']['#markup'] = l('Cancel', 'av/products', array('attributes' => array('class' => array('uk-button'))));
+$close_btn_label = empty($form['id']['#value']) ? 'Cancel' : 'Close';
+$form['buttons']['cancel']['#markup'] = l($close_btn_label, 'av/products', array('attributes' => array('class' => array('uk-button'))));
 print drupal_render_children($form);

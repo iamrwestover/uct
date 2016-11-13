@@ -4,9 +4,9 @@
  * UCT base features and functions.
  */
 
-define('AV_CATEGORY_ID_PAYMENT_METHOD', 1);
-define('AV_CATEGORY_ID_PRODUCT_CATEGORY', 2);
-define('AV_CATEGORY_ID_UNIT_OF_MEASURE', 3);
+define('AVCATEGORY_ID_PAYMENT_METHOD', 1);
+define('AVCATEGORY_ID_PRODUCT_CATEGORY', 2);
+define('AVCATEGORY_ID_UNIT_OF_MEASURE', 3);
 
 require_once 'inc/helpers.inc';
 
