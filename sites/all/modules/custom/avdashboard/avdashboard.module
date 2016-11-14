@@ -20,6 +20,14 @@ function avdashboard_menu() {
     'expanded' => TRUE,
     'weight' => -1,
   );
+  $items['av/grid'] = array(
+    'title' => 'Grid',
+    'page callback' => 'avdashboard_grid',
+    'access arguments' => array('access content'),
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
@@ -84,4 +92,19 @@ function avdashboard_somepage() {
  */
 function avdashboard_somepage2() {
   return 'Somepage 2!';
+}
+
+function avdashboard_grid() {
+    drupal_add_js('sites/all/libraries/ag-grid/ag-grid.min.js');
+  drupal_add_js(AVCUSTOMERS_MODULE_PATH . '/js/avcustomers.js');
+  $output = <<<HTML
+<div id="myGrid" style="height: 300px;" class="ag-fresh"></div>
+<div class="uk-button-group uk-margin-top uk-align-right">
+    <button class="uk-button uk-button-primary">Print..</button>
+    <button class="uk-button uk-button-danger">Export..</button>
+    <button class="uk-button">Save as..</button>
+</div>
+HTML;
+
+  return $output;
 }
