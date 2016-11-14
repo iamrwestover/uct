@@ -36,7 +36,7 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
 
       <?php if ($qty_html): ?>
-        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $qty_html; ?></div>
+        <div class="uk-width-1-1 uk-margin-small-bottom"><?php print $qty_html; ?></div>
       <?php endif; ?>
       <?php if ($initial_qty_html): ?>
         <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $initial_qty_html; ?></div>
@@ -44,6 +44,9 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <?php if ($initial_qty_date_html): ?>
         <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $initial_qty_date_html; ?></div>
       <?php endif; ?>
+
+      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['qty2']); ?></div>
+      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['price2']); ?></div>
     </div>
   </div>
 

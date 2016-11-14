@@ -58,12 +58,12 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#type' => 'fieldset',
     '#title' => 'Info',
   );
-  $info['title'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Title',
-    '#default_value' => isset($row->data['title']) ? check_plain($row->data['title']) : '',
-    '#maxlength' => 32,
-  );
+//  $info['title'] = array(
+//    '#type' => 'textfield',
+//    '#title' => 'Title',
+//    '#default_value' => isset($row->data['title']) ? check_plain($row->data['title']) : '',
+//    '#maxlength' => 32,
+//  );
   $info['first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'First name',
@@ -94,6 +94,13 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#default_value' => isset($row->display_name) ? check_plain($row->display_name) : '',
     '#maxlength' => 255,
     '#required' => TRUE,
+  );
+  $info['credit_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Credit limit',
+    '#default_value' => isset($row->credit_limit) ? avbase_money_format('%01.2f', $row->credit_limit) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
   );
   $form['info'] += $info;
 }
@@ -225,7 +232,7 @@ function avcustomers_customer_form_submit($form, &$form_state) {
 
     // Get values for "data" field.
     $data_ids = array(
-      'title',
+//      'title',
       'contact_number',
       'website',
       'notes',

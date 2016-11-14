@@ -37,10 +37,10 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
     <div class="uk-grid uk-grid-small">
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['company']); ?></div>
 
-      <div class="uk-width-1-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['title']); ?></div>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['first_name']); ?></div>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['middle_name']); ?></div>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['last_name']); ?></div>
+<!--      <div class="uk-width-1-10 uk-margin-small-bottom">--><?php //print drupal_render($form['info']['title']); ?><!--</div>-->
+      <div class="uk-width-2-6 uk-margin-small-bottom"><?php print drupal_render($form['info']['first_name']); ?></div>
+      <div class="uk-width-2-6 uk-margin-small-bottom"><?php print drupal_render($form['info']['middle_name']); ?></div>
+      <div class="uk-width-2-6 uk-margin-small-bottom"><?php print drupal_render($form['info']['last_name']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['display_name']); ?></div>
     </div>
@@ -52,6 +52,8 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
       <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['contact']['contact_number']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['contact']['website']); ?></div>
+
+      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['credit_limit']); ?></div>
     </div>
   </div>
 
