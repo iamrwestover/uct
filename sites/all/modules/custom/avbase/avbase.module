@@ -49,7 +49,7 @@ function avbase_menu() {
  * @param $form_id
  */
 function avbase_form_alter(&$form, $form_state, $form_id) {
-  if (!user_access('administer nodes')) {
+  if (!user_access('administer modules')) {
     if ($form_id == 'user_filter_form') {
       $form['#access'] = FALSE;
     }
