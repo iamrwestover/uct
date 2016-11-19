@@ -14,6 +14,7 @@ body {
 }
 #menu-toggle .uk-offcanvas-bar:after {
   box-shadow: 0 0 5px 2px #1f2a37;
+  box-shadow: none;
 }
 #menu-toggle .uk-nav-offcanvas .uk-nav-header {
   background: #333e4c;
@@ -74,7 +75,7 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 }
 #header-bar {
   background: #fff;
-  padding: 15px;
+  padding: 11px 15px;
   border-bottom: solid 1px #e7ecf1;
 }
 #breadcrumbs .uk-breadcrumb {

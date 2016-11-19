@@ -63,13 +63,13 @@
                     $body.removeClass('uk-offcanvas-page').css({width: '', height: '', marginLeft: '', marginRight: ''});
                     //panel.removeClass('uk-active');
 
-                    bar.removeClass('uk-offcanvas-bar-show');
+                    //bar.removeClass('uk-offcanvas-bar-show');
                     $html.css('margin-top', '');
                     window.scrollTo(scrollpos.x, scrollpos.y);
-                    bar.trigger('hide.uk.offcanvas', [panel, bar]);
+                    //bar.trigger('hide.uk.offcanvas', [panel, bar]);
 
                     // Update ARIA
-                    panel.attr('aria-hidden', 'true');
+                    //panel.attr('aria-hidden', 'true');
                 };
 
             if (!panel.length) return;
@@ -86,7 +86,7 @@
                 }
 
                 setTimeout(function(){
-                    bar.removeClass('uk-offcanvas-bar-show');
+                    //bar.removeClass('uk-offcanvas-bar-show');
                 }, 0);
 
             } else {

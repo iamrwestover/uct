@@ -99,17 +99,17 @@
 <!--  </nav>-->
 <!--</header>-->
 
-<div id="header-bar" class="uk-panel">
-  <div class="uk-grid uk-grid-width-small-1-2">
-    <div>
-    <?php if ($breadcrumb && $display_breadcrumb): ?>
+<div id="header-bar">
+  <div class="uk-grid">
+    <div class="uk-width-small-1-2">
+      <?php if ($breadcrumb && $display_breadcrumb): ?>
       <div id="breadcrumbs">
         <?php print $breadcrumb; ?>
       </div>
       <?php endif; ?>
     </div>
 
-    <div class="uk-hidden-small">
+    <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>

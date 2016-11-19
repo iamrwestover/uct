@@ -35,7 +35,7 @@ function avdashboard_menu() {
  * Home
  */
 function avdashboard_home() {
-  drupal_add_css(AVDASHBOARD_MODULE_PATH . '/css/avdashboard.css', array('type' => 'external'));
+  drupal_add_css(AVDASHBOARD_MODULE_PATH . '/css/avdashboard.css');
   drupal_add_js(AVDASHBOARD_MODULE_PATH . '/js/amcharts_3.20.17/amcharts/amcharts.js');
   drupal_add_js(AVDASHBOARD_MODULE_PATH . '/js/amcharts_3.20.17/amcharts/serial.js');
   drupal_add_js(AVDASHBOARD_MODULE_PATH . '/js/amcharts_3.20.17/amcharts/themes/light.js');

@@ -6,7 +6,7 @@
  */
 
 //DEFINE('UIKIT_SRC', '//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4');
-DEFINE('UIKIT_SRC', url('', array('absolute' => TRUE)) . '/sites/all/libraries/uikit/uikit-2.27.2');
+DEFINE('UIKIT_SRC', url('', array('absolute' => TRUE)) . 'sites/all/libraries/uikit/uikit-2.27.2');
 
 /**
  * Include common functions used throughout theme.
@@ -604,7 +604,8 @@ function uikit_preprocess_comment(&$variables) {
   $user_pictures = variable_get('user_pictures') ? 1 : 0;
 
   // Chech if a default picture has been set.
-  $user_picture_default = !empty(variable_get('user_picture_default')) ? 1 : 0;
+  $_picture_default = variable_get('user_picture_default');
+  $user_picture_default = !empty($_picture_default) ? 1 : 0;
 
   // Add comment classes.
   $variables['classes_array'][] = 'uk-comment';
