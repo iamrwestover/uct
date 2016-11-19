@@ -75,47 +75,29 @@
  * @ingroup uikit_themeable
  */
 ?>
-<header<?php print $header_attributes; ?>>
-  <nav<?php print $navbar_attributes; ?>>
-    <a href="#menu-toggle" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>
-    <?php if ($logo): ?>
-      <a href="<?php print $front_page; ?>" id="logo-large" class="uk-navbar-brand uk-hidden-small" title="<?php print t('Home'); ?>" rel="home">
-        <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>
-      </a>
-    <?php endif; ?>
-
-    <?php if ($site_name): ?>
-      <a href="<?php print $front_page; ?>" id="site-name" class="uk-navbar-brand" title="<?php print t('Home'); ?>" rel="home">
-        <span class="uk-hidden-small"><?php print $site_name; ?></span>
-        <span class="uk-hidden-medium uk-hidden-large">UCT</span>
-      </a>
-    <?php endif; ?>
-
-    <?php if ($main_menu || $secondary_menu || $navbar_menus): ?>
-<!--      --><?php //print $navbar_main; ?>
-      <?php print $navbar_secondary; ?>
-      <?php print $navbar_menus; ?>
-    <?php endif; ?>
-
-<!---->
-<!---->
-<!--    --><?php //if ($logo || $site_name): ?>
-<!--      <div id="site-branding" class="uk-navbar-center uk-visible-small">-->
-<!--        --><?php //if ($logo): ?>
-<!--          <a href="--><?php //print $front_page; ?><!--" class="uk-navbar-brand" title="--><?php //print t('Home'); ?><!--" rel="home" id="logo-small">-->
-<!--            <img src="--><?php //print $logo; ?><!--" alt="--><?php //print t('Home'); ?><!--"/>-->
-<!--          </a>-->
-<!--        --><?php //endif; ?>
-<!---->
-<!--        --><?php //if ($site_name): ?>
-<!--          <a href="--><?php //print $front_page; ?><!--" class="uk-navbar-brand" title="--><?php //print t('Home'); ?><!--" rel="home">-->
-<!--            <span>--><?php //print $site_name; ?><!--</span>-->
-<!--          </a>-->
-<!--        --><?php //endif; ?>
-<!--      </div>-->
+<!--<header--><?php //print $header_attributes; ?><!-->
+<!--  <nav--><?php //print $navbar_attributes; ?><!-->
+<!--    <a href="#menu-toggle" class="uk-navbar-toggle" data-uk-offcanvas="{mode:'reveal'}"></a>-->
+<!--    --><?php //if ($logo): ?>
+<!--      <a href="--><?php //print $front_page; ?><!--" id="logo-large" class="uk-navbar-brand uk-hidden-small" title="--><?php //print t('Home'); ?><!--" rel="home">-->
+<!--        <img src="--><?php //print $logo; ?><!--" alt="--><?php //print t('Home'); ?><!--"/>-->
+<!--      </a>-->
 <!--    --><?php //endif; ?>
-  </nav>
-</header>
+<!---->
+<!--    --><?php //if ($site_name): ?>
+<!--      <a href="--><?php //print $front_page; ?><!--" id="site-name" class="uk-navbar-brand" title="--><?php //print t('Home'); ?><!--" rel="home">-->
+<!--        <span class="uk-hidden-small">--><?php //print $site_name; ?><!--</span>-->
+<!--        <span class="uk-hidden-medium uk-hidden-large">UCT</span>-->
+<!--      </a>-->
+<!--    --><?php //endif; ?>
+<!---->
+<!--    --><?php //if ($main_menu || $secondary_menu || $navbar_menus): ?>
+<!--      --><?php //print $navbar_main; ?>
+<!--      --><?php //print $navbar_secondary; ?>
+<!--      --><?php //print $navbar_menus; ?>
+<!--    --><?php //endif; ?>
+<!--  </nav>-->
+<!--</header>-->
 
 <div id="header-bar" class="uk-panel">
   <div class="uk-grid uk-grid-width-small-1-2">
@@ -211,7 +193,7 @@
 </div>
 
 <?php if ($offcanvas_main || $offcanvas_secondary): ?>
-  <div id="menu-toggle" class="uk-offcanvas">
+  <div id="menu-toggle" class="uk-offcanvas uk-active">
     <div class="uk-offcanvas-bar">
       <?php print $offcanvas_main; ?>
       <?php print $offcanvas_secondary; ?>

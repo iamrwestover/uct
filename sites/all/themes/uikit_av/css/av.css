@@ -1,10 +1,16 @@
 
 /* Off canvas */
+body {
+  margin-left: 50px;
+}
 #menu-toggle.uk-offcanvas {
-  background: none;
+  /*background: none;*/
+  width: 50px;
 }
 #menu-toggle .uk-offcanvas-bar {
   background: #2b3643;
+  clip: rect(0px 50px 100vh 0px);
+  transform: translateX(0);
 }
 #menu-toggle .uk-offcanvas-bar:after {
   box-shadow: 0 0 5px 2px #1f2a37;
@@ -12,6 +18,7 @@
 #menu-toggle .uk-nav-offcanvas .uk-nav-header {
   background: #333e4c;
   color: #798d9b;
+  text-align: center;
 }
 html #menu-toggle .uk-nav.uk-nav-offcanvas > li.uk-active > a {
   background: #1f2a37;
@@ -23,6 +30,9 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 }
 #menu-toggle .uk-nav-offcanvas > li > a {
   color: #fafafa;
+}
+#menu-toggle .uk-nav-offcanvas a > i {
+  min-width: 20px;
 }
 
 /* Top area */

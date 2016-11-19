@@ -55,6 +55,7 @@ if (in_array('uk-nav-offcanvas', $variables['attributes']['class'])) {
 $dropdown_support = TRUE;
 
 $icons = array(
+  'default' => 'circle-o',
   'av/dashboard' => 'dashboard',
   'av/customers' => 'users',
   'av/products' => 'tags',
@@ -66,8 +67,9 @@ $icons = array(
 
 foreach ($menu_tree as $key => $value) {
   // Add icons.
-  if (isset($value['#href']) && array_key_exists($value['#href'], $icons)) {
-    $menu_tree[$key]['#localized_options']['icon_key'] = $icons[$value['#href']];
+  if (isset($value['#href'])) {
+    $icon_key = array_key_exists($value['#href'], $icons) ? $icons[$value['#href']] : $icons['default'];
+    $menu_tree[$key]['#localized_options']['icon_key'] = $icon_key;
     $menu_tree[$key]['#localized_options']['icon_classes'] = array('uk-icon-small', 'uk-margin-right');
   }
 

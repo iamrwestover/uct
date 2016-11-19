@@ -5,7 +5,8 @@ base theme = uikit
 
 stylesheets[all][] = css/av.css
 stylesheets[all][] = css/uikit_overrides.css
-scripts[] = js/uikit-subtheme.js
+scripts[] = js/uikit_av.js
+scripts[] = js/offcanvas.js
 
 regions[header] = 'Page heading'
 regions[intro] = 'Introduction'
