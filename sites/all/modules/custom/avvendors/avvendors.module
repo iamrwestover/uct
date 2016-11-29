@@ -45,7 +45,7 @@ function avvendors_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
   );
-  return $items;
+  return $items;d
 }
 
 /**
