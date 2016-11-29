@@ -46,6 +46,7 @@ function avvendors_menu() {
     'file' => 'inc/crud.inc',
   );
   return $items;
+  ();
 }
 
 /**
