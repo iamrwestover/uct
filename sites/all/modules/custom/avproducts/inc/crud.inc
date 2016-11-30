@@ -19,7 +19,8 @@ function avproducts_product_form_load($row) {
  * @param $row
  * @return array
  */
-function avproducts_product_form($form, &$form_state, $row) {$form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+function avproducts_product_form($form, &$form_state, $row) {
+  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
   drupal_set_title($page_title);
 
@@ -104,7 +105,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
   $info['category_id'] = array(
     '#type' => 'select',
     '#title' => 'Category',
-    '#options' => avbase_get_category_options_array(AVCATEGORY_ID_PRODUCT_CATEGORY),
+    '#options' => avbase_get_category_options_arra'product_cat'RY),
   );
   $info['description'] = array(
     '#type' => 'textarea',
@@ -156,7 +157,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
   $info['uom_id'] = array(
     '#type' => 'select',
     '#title' => 'Unit of measure',
-    '#options' => avbase_get_category_options_array(AVCATEGORY_ID_UNIT_OF_MEASURE),
+    '#options' => avbase_get_category_options_arra'uom'RE),
   );
   $info['rop'] = array(
     '#type' => 'textfield',

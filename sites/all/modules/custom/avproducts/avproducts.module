@@ -112,7 +112,7 @@ function avproducts_home_form($form, &$form_state) {
     ->execute();
 
   $action_links_all = array();
-  $categories = avbase_get_categories_multiple(array(AVCATEGORY_ID_PRODUCT_CATEGORY, AVCATEGORY_ID_UNIT_OF_MEASURE));
+  $categories = avbase_get_categories_multiple(array('product_cat', 'uom'));
   foreach ($result as $row) {
     $action_links = array('links' => array(
       'edit' => array('title' => 'edit', 'href' => 'av/products/' . $row->id . '/edit', 'icon_kedy' => 'edit'),

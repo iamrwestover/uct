@@ -89,7 +89,32 @@ function avbase_element_validate_date($element, &$form_state, $form) {
  * Custom money format.
  * @param $format
  * @param $number
+ *
+ * @return string
  */
 function avbase_money_format($format, $number) {
   return sprintf($format, $number);
+}
+
+/**
+ * Load category group details.
+ *
+ * @param $row_id
+ * @return mixed
+ */
+function avcategory_load($row_id) {
+  $data = &drupal_static(__FUNCTION__, array());
+  if (isset($data[$row_id])) {
+    return $data[$row_id];
+  }
+
+  $query = "SELECT * FROM {avtbl_category_groups} WHERE id = :row_id";
+  $args = array(':row_id' => $row_id);
+  $row = db_query($query, $args)->fetchObject();
+  if (isset($row->data)) {
+    $row->data = unserialize($row->data);
+  }
+
+  $data[$row_id] = $row;
+  return $row;
 }
