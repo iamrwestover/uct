@@ -125,8 +125,8 @@ function avproducts_home_form($form, &$form_state) {
     'data' => array(
       'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
       'display_name' => check_plain($row->title),
-      'category' => check_plain($categories[$row->category_id]->title),
-      'uom' => check_plain($categories[$row->uom_id]->title),
+      'category' => isset($categories[$row->category_id]) ? check_plain($categories[$row->category_id]->title) : '',
+      'uom' => isset($categories[$row->uom_id]) ? check_plain($categories[$row->uom_id]->title) : '',
       'description' => check_plain($row->description),
       'price' => array('data' => avbase_money_format('%01.2f', $row->price), 'style' => 'text-align: right'),
       'cost' => array('data' => avbase_money_format('%01.2f', $row->cost), 'style' => 'text-align: right'),

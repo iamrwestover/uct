@@ -11,9 +11,22 @@ function avcustomers_customer_form_load($row) {
   return drupal_get_form('avcustomers_customer_form', $row);
 }
 
+/**
+ * Customers form.
+ *
+ * @param $form
+ * @param $form_state
+ * @param $row
+ *
+ * @return array
+ */
 function avcustomers_customer_form($form, &$form_state, $row) {
-  drupal_set_title('New customer');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $page_title = empty($form['id']['#value']) ? 'New customer' : 'Edit customer';
+  drupal_set_title($page_title);
+
+  // Set crud settings.
+  avcustomers_customer_form_settings($form);
 
   // Info group.
   avcustomers_customer_form_info_fields($form, $row);
@@ -47,6 +60,50 @@ function avcustomers_customer_form($form, &$form_state, $row) {
     '#markup' => l('Cancel', 'av/customers'),
   );
   return $form;
+}
+
+/**
+ * Set crud form settings.
+ * @param $form
+ */
+function avcustomers_customer_form_settings(&$form) {
+  $table_name = 'avtbl_customers';
+
+  // Set generic submit handler.
+  $form['#submit'] = array('avbase_crud_form_submit');
+  $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
+
+  // Set field names to save.
+  $save_field_ids = array(
+    'first_name',
+    'last_name',
+    'middle_name',
+    'company',
+    'display_name',
+    'email',
+    'address',
+    'city',
+    'province',
+    'zip_code',
+    'same_addr',
+    'payment_method_id',
+  );
+  $form['save_field_ids'] = array(
+    '#type' => 'value',
+    '#value' => $save_field_ids,
+  );
+
+  // Set which fields belong to data field.
+  $data_ids = array(
+    //'title',
+    'contact_number',
+    'website',
+    'notes',
+  );
+  $form['data_ids'] = array(
+    '#type' => 'value',
+    '#value' => $data_ids,
+  );
 }
 
 /**
@@ -192,78 +249,6 @@ function avcustomers_customer_form_payment_fields(&$form, $row) {
     '#options' => avbase_get_category_options_array(AVCATEGORY_ID_PAYMENT_METHOD),
   );
   $form['payment'] += $payment;
-}
-
-/**
- * Submit handler to avcustomers_customer_form().
- * @param $form
- * @param $form_state
- *
- * @throws
- */
-function avcustomers_customer_form_submit($form, &$form_state) {
-  $transaction = db_transaction();
-  try {
-    $values = $form_state['values'];
-    $record_id = isset($values['id']) ? $values['id'] : NULL;
-    $save_field_ids = array(
-      'first_name',
-      'last_name',
-      'middle_name',
-      'company',
-      'display_name',
-      'email',
-      'address',
-      'city',
-      'province',
-      'zip_code',
-      'same_addr',
-      'payment_method_id',
-    );
-
-    // Get $form_state values and store them on $row array.
-    $row = array();
-    foreach ($save_field_ids as $field_id) {
-      if (!isset($values[$field_id]) || trim($values[$field_id]) == '') {
-        continue;
-      }
-      $row[$field_id] = $values[$field_id];
-    }
-
-    // Get values for "data" field.
-    $data_ids = array(
-//      'title',
-      'contact_number',
-      'website',
-      'notes',
-    );
-    $row['data'] = array();
-    foreach ($data_ids as $data_id) {
-      $row['data'][$data_id] = isset($values[$data_id]) ? $values[$data_id] : NULL;
-    }
-    $row['data'] = serialize($row['data']);
-
-    // Do save.
-    if (empty($record_id) || !is_numeric($record_id)) {
-      // Insert new record.
-      // Save timestamp when record is created.
-      $row['created'] = time();
-      if (db_insert('avtbl_customers')->fields($row)->execute()) {
-        drupal_set_message('New customer saved.');
-      }
-    }
-    else {
-      // Update record.
-      if (db_update('avtbl_customers')->fields($row)->condition('id', $record_id)->execute()) {
-        drupal_set_message('Changes saved.');
-      }
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-//    watchdog_exception('avcustomers', $e);
-    throw $e;
-  }
 }
 
 /**

@@ -54,10 +54,9 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
     <div class="uk-grid uk-grid-small">
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['company']); ?></div>
 
-      <div class="uk-width-1-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['title']); ?></div>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['first_name']); ?></div>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['middle_name']); ?></div>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['last_name']); ?></div>
+      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['first_name']); ?></div>
+      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['middle_name']); ?></div>
+      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['last_name']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['display_name']); ?></div>
     </div>
@@ -76,7 +75,7 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
   <div class="uk-width-1-1 uk-margin-top">
     <ul class="uk-tab" data-uk-tab="{connect:'#more-info'}">
       <li><a href="">Address</a></li>
-      <li><a href="">Notes</a></li>
+      <li><a href="">Miscellaneous</a></li>
     </ul>
     <ul id="more-info" class="uk-switcher">
       <li class="uk-panel uk-panel-box">

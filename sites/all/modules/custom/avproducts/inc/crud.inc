@@ -19,9 +19,12 @@ function avproducts_product_form_load($row) {
  * @param $row
  * @return array
  */
-function avproducts_product_form($form, &$form_state, $row) {
-  drupal_set_title('New product');
-  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+function avproducts_product_form($form, &$form_state, $row) {$form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
+  drupal_set_title($page_title);
+
+  // Set crud settings.
+  avproducts_product_form_settings($form);
 
   // Info group.
   avproducts_product_form_info_fields($form, $row);
@@ -33,7 +36,47 @@ function avproducts_product_form($form, &$form_state, $row) {
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/products'),
   );
+
   return $form;
+}
+
+/**
+ * Set crud form settings.
+ * @param $form
+ */
+function avproducts_product_form_settings(&$form) {
+  $table_name = 'avtbl_products';
+
+  // Set generic submit handler.
+  $form['#submit'] = array('avbase_crud_form_submit');
+  $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
+
+  // Set field names to save.
+  $save_field_ids = array(
+    'code',
+    'title',
+    'category_id',
+    'uom_id',
+    'description',
+    'qty',
+    'rop',
+    'eoq',
+    'cost',
+    'price',
+  );
+  if (empty($form['id']['#value'])) {
+    $save_field_ids[] = 'initial_qty';
+    $save_field_ids[] = 'initial_qty_date';
+  }
+  $form['save_field_ids'] = array(
+    '#type' => 'value',
+    '#value' => $save_field_ids,
+  );
+  // Set which fields belong to data field.
+  $form['data_ids'] = array(
+    '#type' => 'value',
+    '#value' => array(),
+  );
 }
 
 /**
@@ -166,77 +209,6 @@ function avproducts_qty_validate($element, &$form_state, $form) {
     $element['#value'] = $form_state['values']['qty'];
   }
   element_validate_integer_positive($element, $form_state);
-}
-
-/**
- * Submit handler to avproducts_product_form().
- * @param $form
- * @param $form_state
- *
- * @throws
- */
-function avproducts_product_form_submit($form, &$form_state) {
-  $transaction = db_transaction();
-  try {
-    $values = $form_state['values'];
-    $record_id = isset($values['id']) ? $values['id'] : NULL;
-    $save_field_ids = array(
-      'code',
-      'title',
-      'category_id',
-      'uom_id',
-      'description',
-      'qty',
-      'rop',
-      'eoq',
-      'cost',
-      'price',
-    );
-    if (empty($record_id)) {
-      $save_field_ids[] = 'initial_qty';
-      $save_field_ids[] = 'initial_qty_date';
-    }
-
-    // Get $form_state values and store them on $row array.
-    $row = array();
-    foreach ($save_field_ids as $field_id) {
-      if (!isset($values[$field_id]) || trim($values[$field_id]) == '') {
-        continue;
-      }
-      $row[$field_id] = $values[$field_id];
-    }
-
-    // Get values for "data" field.
-    $data_ids = array(
-
-    );
-    $row['data'] = array();
-    foreach ($data_ids as $data_id) {
-      $row['data'][$data_id] = isset($values[$data_id]) ? $values[$data_id] : NULL;
-    }
-    $row['data'] = serialize($row['data']);
-
-    // Do save.
-    if (empty($record_id) || !is_numeric($record_id)) {
-      // Insert new record.
-      // Save timestamp when record is created.
-      $row['created'] = time();
-      if (db_insert('avtbl_products')->fields($row)->execute()) {
-        drupal_set_message('New product saved.');
-      }
-    }
-    else {
-      // Update record.
-      if (db_update('avtbl_products')->fields($row)->condition('id', $record_id)->execute()) {
-        drupal_set_message('Changes saved.');
-      }
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-//    watchdog_exception('avproducts', $e);
-    throw $e;
-  }
 }
 
 /**

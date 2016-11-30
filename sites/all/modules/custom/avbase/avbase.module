@@ -9,6 +9,7 @@ define('AVCATEGORY_ID_PRODUCT_CATEGORY', 2);
 define('AVCATEGORY_ID_UNIT_OF_MEASURE', 3);
 
 require_once 'inc/helpers.inc';
+require_once 'inc/crud.inc';
 
 /**
  * Implements hook_modules_installed().

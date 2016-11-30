@@ -12,8 +12,12 @@ function avvendors_vendor_form_load($row) {
 }
 
 function avvendors_vendor_form($form, &$form_state, $row) {
-  drupal_set_title('New vendor');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $page_title = empty($form['id']['#value']) ? 'New vendor' : 'Edit vendor';
+  drupal_set_title($page_title);
+
+  // Set crud settings.
+  avvendors_vendor_form_settings($form);
 
   // Info group.
   avvendors_vendor_form_info_fields($form, $row);
@@ -31,7 +35,7 @@ function avvendors_vendor_form($form, &$form_state, $row) {
   );
   $form['misc']['notes'] = array(
     '#type' => 'textarea',
-    '#title' => 'Notes',
+    '#title' => 'Miscellaneous',
     '#default_value' => isset($row->data['notes']) ? check_plain($row->data['notes']) : '',
     '#maxlength' => 255,
   );
@@ -47,6 +51,47 @@ function avvendors_vendor_form($form, &$form_state, $row) {
 }
 
 /**
+ * Set crud form settings.
+ * @param $form
+ */
+function avvendors_vendor_form_settings(&$form) {
+  $table_name = 'avtbl_vendors';
+
+  // Set generic submit handler.
+  $form['#submit'] = array('avbase_crud_form_submit');
+  $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
+
+  // Set field names to save.
+  $save_field_ids = array(
+    'first_name',
+    'last_name',
+    'middle_name',
+    'company',
+    'display_name',
+    'email',
+    'address',
+    'city',
+    'province',
+    'zip_code',
+  );
+  $form['save_field_ids'] = array(
+    '#type' => 'value',
+    '#value' => $save_field_ids,
+  );
+
+  // Set which fields belong to data field.
+  $data_ids = array(
+    'contact_number',
+    'website',
+    'notes',
+  );
+  $form['data_ids'] = array(
+    '#type' => 'value',
+    '#value' => $data_ids,
+  );
+}
+
+/**
  * New vendor - generate info fields.
  * @param $form
  */
@@ -54,12 +99,6 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
   $form['info'] = array(
     '#type' => 'fieldset',
     '#title' => 'Info',
-  );
-  $info['title'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Title',
-    '#default_value' => isset($row->data['title']) ? check_plain($row->data['title']) : '',
-    '#maxlength' => 32,
   );
   $info['first_name'] = array(
     '#type' => 'textfield',
@@ -159,76 +198,6 @@ function avvendors_vendor_form_address_fields(&$form, $row) {
     '#maxlength' => 16,
   );
   $form['address'] += $address;
-}
-
-/**
- * Submit handler to avvendors_vendor_form().
- * @param $form
- * @param $form_state
- *
- * @throws
- */
-function avvendors_vendor_form_submit($form, &$form_state) {
-  $transaction = db_transaction();
-  try {
-    $values = $form_state['values'];
-    $record_id = isset($values['id']) ? $values['id'] : NULL;
-    $save_field_ids = array(
-      'first_name',
-      'last_name',
-      'middle_name',
-      'company',
-      'display_name',
-      'email',
-      'address',
-      'city',
-      'province',
-      'zip_code',
-    );
-
-    // Get $form_state values and store them on $row array.
-    $row = array();
-    foreach ($save_field_ids as $field_id) {
-      if (!isset($values[$field_id]) || trim($values[$field_id]) == '') {
-        continue;
-      }
-      $row[$field_id] = $values[$field_id];
-    }
-
-    // Get values for "data" field.
-    $data_ids = array(
-      'title',
-      'contact_number',
-      'website',
-      'notes',
-    );
-    $row['data'] = array();
-    foreach ($data_ids as $data_id) {
-      $row['data'][$data_id] = isset($values[$data_id]) ? $values[$data_id] : NULL;
-    }
-    $row['data'] = serialize($row['data']);
-
-    // Do save.
-    if (empty($record_id) || !is_numeric($record_id)) {
-      // Insert new record.
-      // Save timestamp when record is created.
-      $row['created'] = time();
-      if (db_insert('avtbl_vendors')->fields($row)->execute()) {
-        drupal_set_message('New vendor saved.');
-      }
-    }
-    else {
-      // Update record.
-      if (db_update('avtbl_vendors')->fields($row)->condition('id', $record_id)->execute()) {
-        drupal_set_message('Changes saved.');
-      }
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-//    watchdog_exception('avvendors', $e);
-    throw $e;
-  }
 }
 
 /**
