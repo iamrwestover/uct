@@ -5,7 +5,7 @@ define('AV_STYLE_CLASS_BTN_PRIMARY', 'uk-button-primary');
 
 /**
  * Get categories.
- * @param int $group_id
+ * @param string $group_id
  * @return array()
  */
 function avbase_get_categories($group_id) {
@@ -14,7 +14,7 @@ function avbase_get_categories($group_id) {
     return $data[$group_id];
   }
 
-  $query = "SELECT * FROM {avtbl_category_groups} WHERE group_id = :group_id";
+  $query = "SELECT * FROM {avtbl_categories} WHERE group_id = :group_id";
   $result = db_query($query, array(':group_id' => $group_id));
   $rows = array();
   foreach ($result as $k => $row) {
@@ -45,7 +45,7 @@ function avbase_get_categories_multiple($group_ids) {
 
 /**
  * Get list of categories under a group.
- * @param int $group_id
+ * @param string $group_id
  * @return array
  */
 function avbase_get_category_options_array($group_id) {
@@ -56,6 +56,21 @@ function avbase_get_category_options_array($group_id) {
   }
   return $options;
 }
+
+/**
+ * Delete category.
+ * @param $id
+ *
+ * @return bool
+ */
+function avbase_category_delete($id) {
+  if (!empty($id) && is_numeric($id)) {
+    if (db_query("DELETE FROM {avtbl_categories} WHERE id = :row_id", array(':row_id' => $id))) {
+      return TRUE;
+    }
+  }
+}
+
 
 /**
  * Check if element is a valid date.
@@ -108,7 +123,7 @@ function avcategory_load($row_id) {
     return $data[$row_id];
   }
 
-  $query = "SELECT * FROM {avtbl_category_groups} WHERE id = :row_id";
+  $query = "SELECT * FROM {avtbl_categories} WHERE id = :row_id";
   $args = array(':row_id' => $row_id);
   $row = db_query($query, $args)->fetchObject();
   if (isset($row->data)) {

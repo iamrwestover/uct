@@ -54,6 +54,7 @@ function avproducts_product_form_settings(&$form) {
 
   // Set field names to save.
   $save_field_ids = array(
+    'created',
     'code',
     'title',
     'category_id',
@@ -105,7 +106,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
   $info['category_id'] = array(
     '#type' => 'select',
     '#title' => 'Category',
-    '#options' => avbase_get_category_options_arra'product_cat'RY),
+    '#options' => avbase_get_category_options_array('product_cat'),
   );
   $info['description'] = array(
     '#type' => 'textarea',
@@ -157,7 +158,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
   $info['uom_id'] = array(
     '#type' => 'select',
     '#title' => 'Unit of measure',
-    '#options' => avbase_get_category_options_arra'uom'RE),
+    '#options' => avbase_get_category_options_array('uom'),
   );
   $info['rop'] = array(
     '#type' => 'textfield',

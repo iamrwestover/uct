@@ -18,19 +18,19 @@ function avbase_categories_home() {
  */
 function avbase_categories_form($form, &$form_state, $category_id) {
   $category = avbase_category_groups($category_id);
-  $category_menu_path = 'av/categories/' . $category['menu_path'];
+  $category_menu_path = $category['menu_path'];
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array('#markup' => l('New ' . strtolower($category['name']), $category_menu_path . '/add', $btn_options));
 
   $header = array(
     array('data' => 'ID', 'field' => 'id', 'sort' => 'asc', 'class' => array('uk-hidden')),
-    array('data' => 'Name', 'field' => 'title'),
+    array('data' => 'Title', 'field' => 'title'),
     array('data' => 'Description', 'field' => 'description'),
     '&nbsp;',
   );
 
   $rows = array();
-  $result = db_select('avtbl_category_groups', 'acg')
+  $result = db_select('avtbl_categories', 'acg')
     ->fields('acg')
     ->condition('group_id', $category_id)
     ->extend('PagerDefault')
@@ -103,6 +103,29 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
 
   // Set crud settings.
   avbase_category_form_settings($form);
+
+  $form['group_id'] = array('#type' => 'value', '#value' => $category_id);
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Title',
+    '#default_value' => isset($row->title) ? check_plain($row->title) : '',
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Description',
+    '#default_value' => isset($row->description) ? check_plain($row->description) : '',
+    '#maxlength' => 255,
+  );
+
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  $form['buttons']['cancel'] = array(
+    '#markup' => l('Cancel', $category['menu_path']),
+  );
   return $form;
 }
 
@@ -111,7 +134,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
  * @param $form
  */
 function avbase_category_form_settings(&$form) {
-  $table_name = 'avtbl_category_groups';
+  $table_name = 'avtbl_categories';
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
@@ -119,24 +142,66 @@ function avbase_category_form_settings(&$form) {
 
   // Set field names to save.
   $save_field_ids = array(
-    'code',
     'title',
-    'category_id',
-    'uom_id',
     'description',
-    'qty',
-    'rop',
-    'eoq',
-    'cost',
-    'price',
+    'group_id',
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,
   );
   // Set which fields belong to data field.
+  $data_ids = array();
   $form['data_ids'] = array(
     '#type' => 'value',
-    '#value' => array(),
+    '#value' => $data_ids,
   );
+}
+
+/**
+ * Menu callback: confirm category delete.
+ * @param $form
+ * @param $form_state
+ * @param object $row
+ *
+ * @return array
+ */
+function avbase_category_delete_confirm_form($form, &$form_state, $category_id, $row) {
+  $category = avbase_category_groups($category_id);
+  $prompt = 'Are you sure you want to delete this ' . $category['name'] . '?';
+  $display_name = check_plain($row->title);
+  $desc = check_plain($row->description);
+  $description = <<<HTML
+  <h1 class="uk-article-title">$display_name</h1>$desc
+  <hr />
+  <p>This action cannot be undone.</p>
+HTML;
+  $form_state['row'] = $row;
+  return confirm_form(array(), $prompt, '', $description);
+}
+
+/**
+ * Handler for category delete.
+ */
+function avbase_category_delete_confirm_form_submit($form, &$form_state) {
+  if (isset($form_state['row']->id)) {
+    if (avbase_category_delete($form_state['row']->id)) {
+      drupal_set_message('Record deleted.');
+    }
+  }
+  $form_state['redirect'] = '';
+}
+
+/**
+ * Alter Category edit/add form.
+ * @param $form
+ * @param $form_state
+ */
+function avbase_category_form_alter(&$form, $form_state) {
+  $group_id = $form['group_id']['#value'];
+  switch ($group_id) {
+    case 'uom':
+      dsm('s');
+      break;
+  }
 }

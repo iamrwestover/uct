@@ -63,6 +63,7 @@ function avvendors_vendor_form_settings(&$form) {
 
   // Set field names to save.
   $save_field_ids = array(
+    'created',
     'first_name',
     'last_name',
     'middle_name',

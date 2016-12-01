@@ -23,8 +23,8 @@ function avbase_enable() {
  * @return array
  */
 function avbase_schema() {
-  $schema['avtbl_category_groups'] = array(
-    'description' => 'Category groups',
+  $schema['avtbl_categories'] = array(
+    'description' => 'Categories',
     'fields' => array(
       'id' => array(
         'description' => 'TODO: please describe this field!',

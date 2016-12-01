@@ -48,7 +48,7 @@ function avbase_menu() {
   $categories = avbase_category_groups();
   foreach ($categories as $k => $v) {
     $category_title = isset($v['plural_name']) ? $v['plural_name'] : $v['name'];
-    $items['av/categories/' . $v['menu_path']] = array(
+    $items[$v['menu_path']] = array(
       'title' => $category_title,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_categories_form', $k),
@@ -56,7 +56,7 @@ function avbase_menu() {
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/categories.inc',
     );
-    $items['av/categories/' . $v['menu_path'] . '/add'] = array(
+    $items[$v['menu_path'] . '/add'] = array(
       'title' => 'New',
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, NULL),
@@ -64,7 +64,7 @@ function avbase_menu() {
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/categories.inc',
     );
-    $items['av/categories/' . $v['menu_path'] . '/%avcategory/edit'] = array(
+    $items[$v['menu_path'] . '/%avcategory/edit'] = array(
       'title' => 'Edit',
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, 3),
@@ -72,14 +72,14 @@ function avbase_menu() {
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/categories.inc',
     );
-    //$items['av/categories/' . $v['menu_path'] . '/%category_group/delete'] = array(
-    //  'title' => $category_title,
-    //  'page callback' => 'drupal_get_form',
-    //  'page arguments' => array('avbase_category_delete_confirm_form', 2),
-    //  'access callback' => 'user_is_logged_in',
-    //  'type' => MENU_LOCAL_TASK,
-    //  'file' => 'inc/categories.inc',
-    //);
+    $items[$v['menu_path'] . '/%avcategory/delete'] = array(
+      'title' => 'Delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avbase_category_delete_confirm_form', $k, 3),
+      'access callback' => 'user_is_logged_in',
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'inc/categories.inc',
+    );
   }
   return $items;
 }
@@ -101,6 +101,12 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
       $form['options']['#access'] = FALSE;
     }
   }
+
+  switch ($form_id) {
+    case 'avbase_category_form':
+      avbase_category_form_alter($form, $form_state);
+      break;
+  }
 }
 
 /**
@@ -112,17 +118,17 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
 function avbase_category_groups($category_id = '') {
   $groups = array();
   $groups['payment_method'] = array(
-    'menu_path' => 'payment-methods',
+    'menu_path' => 'av/categories/payment-methods',
     'name' => 'Payment Method',
     'plural_name' => 'Payment Methods',
   );
   $groups['product_cat'] = array(
-    'menu_path' => 'product-categories',
+    'menu_path' => 'av/categories/product-categories',
     'name' => 'Product Category',
     'plural_name' => 'Product Categories',
   );
   $groups['uom'] = array(
-    'menu_path' => 'uom',
+    'menu_path' => 'av/categories/uom',
     'name' => 'Unit of Measure',
   );
 

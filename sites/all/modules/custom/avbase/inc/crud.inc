@@ -39,7 +39,9 @@ function avbase_crud_form_submit($form, &$form_state) {
       if (empty($record_id) || !is_numeric($record_id)) {
         // Insert new record.
         // Save timestamp when record is created.
-        $row['created'] = time();
+        if (array_search('created', $save_field_ids) !== FALSE) {
+          $row['created'] = time();
+        }
         if (db_insert($table_name)->fields($row)->execute()) {
           drupal_set_message('New record saved.');
         }
