@@ -6,8 +6,13 @@ unset($form['info']['#title']);
 $form['buttons']['#prefix'] = '<div class="uk-margin-top">';
 $form['buttons']['#suffix'] = '</div>';
 
+// Calendar settings.
 $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
 $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
+
+// Misc.
+$form['info']['uom_id']['#attributes']['style'] = 'width: 100%;';
+$form['info']['category_id']['#attributes']['style'] = 'width: 100%;';
 
 $qty_html = drupal_render($form['info']['qty']);
 $initial_qty_html = drupal_render($form['info']['initial_qty']);
@@ -17,36 +22,34 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
 <div class="uk-grid uk-grid-large">
   <div class="uk-width-1-2">
     <div class="uk-grid uk-grid-small">
-      <div class="uk-width-2-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['title']); ?></div>
-      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['code']); ?></div>
+      <div class="uk-width-2-3 uk-margin-bottom"><?php print drupal_render($form['info']['title']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['code']); ?></div>
 
-      <div class="uk-width-2-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['category_id']); ?></div>
-      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['uom_id']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['category_id']); ?></div>
+      <?php if ($qty_html): ?>
+        <div class="uk-width-1-3 uk-margin-bottom"><?php print $qty_html; ?></div>
+      <?php endif; ?>
+      <?php if ($initial_qty_html): ?>
+        <div class="uk-width-1-3 uk-margin-bottom"><?php print $initial_qty_html; ?></div>
+      <?php endif; ?>
+      <?php if ($initial_qty_date_html): ?>
+        <div class="uk-width-1-3 uk-margin-bottom"><?php print $initial_qty_date_html; ?></div>
+      <?php endif; ?>
 
-      <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['description']); ?></div>
+      <div class="uk-width-1-6 uk-margin-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
+      <div class="uk-width-1-6 uk-margin-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
+
+      <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['info']['description']); ?></div>
     </div>
   </div>
 
 
   <div class="uk-width-1-2">
     <div class="uk-grid uk-grid-small">
-      <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['price']); ?></div>
-      <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
-      <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
-      <div class="uk-width-1-4 uk-margin-small-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
 
-      <?php if ($qty_html): ?>
-        <div class="uk-width-1-1 uk-margin-small-bottom"><?php print $qty_html; ?></div>
-      <?php endif; ?>
-      <?php if ($initial_qty_html): ?>
-        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $initial_qty_html; ?></div>
-      <?php endif; ?>
-      <?php if ($initial_qty_date_html): ?>
-        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print $initial_qty_date_html; ?></div>
-      <?php endif; ?>
-
-      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['qty2']); ?></div>
-      <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['info']['price2']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['uom_id']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['price']); ?></div>
     </div>
   </div>
 

@@ -119,6 +119,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
     '#maxlength' => 255,
   );
 
+  $form['buttons']['#prefix'] = '<div class="uk-margin-top"></div>';
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),

@@ -122,14 +122,14 @@ function avproducts_product_form_info_fields(&$form, $row) {
     '#access' => !empty($row->id),
     '#element_validate' => array('avproducts_qty_validate'),
   );
-  $info['qty2'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Quantity per UOM',
-    '#default_value' => isset($row->qty2) ? $row->qty2 : 1,
-    '#maxlength' => 10,
-//    '#access' => !empty($row->id),
-    '#element_validate' => array('avproducts_qty_validate'),
-  );
+//  $info['qty2'] = array(
+//    '#type' => 'textfield',
+//    '#title' => 'Quantity per UOM',
+//    '#default_value' => isset($row->qty2) ? $row->qty2 : 1,
+//    '#maxlength' => 10,
+////    '#access' => !empty($row->id),
+//    '#element_validate' => array('avproducts_qty_validate'),
+//  );
   if (!empty($row->id)) {
     $info['qty']['#markup'] = (isset($row->qty) ? $row->qty : 0) . ' ' . l('( adjust quantity )', '#');
   }
@@ -176,21 +176,21 @@ function avproducts_product_form_info_fields(&$form, $row) {
   );
   $info['price'] = array(
     '#type' => 'textfield',
-    '#title' => 'UOM Sales price',
-    '#default_value' => isset($row->price) ? avbase_money_format('%01.2f', $row->price) : '',
-    '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
-  );
-  $info['price2'] = array(
-    '#type' => 'textfield',
     '#title' => 'Sales price',
     '#default_value' => isset($row->price) ? avbase_money_format('%01.2f', $row->price) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
   );
+  //$info['price2'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Sales price',
+  //  '#default_value' => isset($row->price) ? avbase_money_format('%01.2f', $row->price) : '',
+  //  '#maxlength' => 19,
+  //  '#element_validate' => array('element_validate_number'),
+  //);
   $info['cost'] = array(
     '#type' => 'textfield',
-    '#title' => 'UOM Unit cost',
+    '#title' => 'Unit cost',
     '#default_value' => isset($row->cost) ? avbase_money_format('%01.2f', $row->cost) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
