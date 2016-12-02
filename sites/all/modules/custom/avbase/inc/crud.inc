@@ -8,10 +8,6 @@
  * @throws
  */
 function avbase_crud_form_submit($form, &$form_state) {
-  dpm($_POST);
-  dpm($form);
-  dpm($form_state);
-  return;
   $transaction = db_transaction();
   try {
     $values = $form_state['values'];

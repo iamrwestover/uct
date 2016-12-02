@@ -20,8 +20,8 @@ function avproducts_product_form_load($row) {
  * @return array
  */
 function avproducts_product_form($form, &$form_state, $row) {
-  drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/product_form.js');
-  drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
+  //drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/product_form.js');
+  //drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
   drupal_set_title($page_title);
@@ -30,7 +30,7 @@ function avproducts_product_form($form, &$form_state, $row) {
   avproducts_product_form_settings($form);
 
   // Info group.
-  avproducts_product_form_info_fields($form, $row);
+  avproducts_product_form_info_fields($form, $form_state, $row);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
@@ -87,8 +87,10 @@ function avproducts_product_form_settings(&$form) {
 /**
  * Product form - generate info fields.
  * @param $form
+ * @param $form_state
+ * @param $row
  */
-function avproducts_product_form_info_fields(&$form, $row) {
+function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   $form['info'] = array(
     '#type' => 'fieldset',
     '#title' => 'Info',
@@ -162,6 +164,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
     '#type' => 'select',
     '#title' => 'Base UOM',
     '#options' => avbase_get_category_options_array('uom'),
+    '#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
   );
   $info['rop'] = array(
     '#type' => 'textfield',
@@ -199,18 +202,47 @@ function avproducts_product_form_info_fields(&$form, $row) {
     '#element_validate' => array('element_validate_number'),
   );
 
-  $info['repeater_uom'] = array(
-    '#prefix' => '<div class="repeater-uom"><div data-repeater-list="group-a"><div data-repeater-item>',
-    '#suffix' => '</div></div><button type="button" data-repeater-create class="uk-button">Add UOM</button></div>',
-  );
-  $info['repeater_uom']['repeater_test'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Repeater test',
-    //'#default_value' => isset($row->rop) ? $row->rop : '',
-    '#maxlength' => 10,
-    '#element_validate' => array('element_validate_integer_positive'),
-  );
+  //$info['repeater_uom'] = array(
+  //  '#prefix' => '<div class="repeater-uom"><div data-repeater-list="group-a"><div data-repeater-item>',
+  //  '#suffix' => '</div></div><button type="button" data-repeater-create class="uk-button">Add UOM</button></div>',
+  //);
 
+  $form_state['uom_count'] = isset($form_state['uom_count']) ? $form_state['uom_count'] : 0;
+  $uom_count = $form_state['uom_count'];
+  $info['uom_group'] = array(
+    '#prefix' => '<div id="multiple-uom-wrapper">',
+    '#suffix' => '</div>',
+    '#tree' => TRUE,
+    '#theme' => array('uom_multiple'),
+  );
+  for ($x = 0; $x < $uom_count; $x++) {
+    $info['uom_group']['uoms'][$x]['repeater_test'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Repeater test',
+      //'#default_value' => isset($row->rop) ? $row->rop : '',
+      '#maxlength' => 10,
+      '#element_validate' => array('element_validate_integer_positive'),
+    );
+    $info['uom_group']['uoms'][$x]['uom_id'] = array(
+      '#type' => 'select',
+      '#title' => 'UOM',
+      '#options' => avbase_get_category_options_array('uom'),
+      //'#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
+    );
+  }
+  $info['uom_group']['add_more'] = array(
+    '#type' => 'submit',
+    '#name' =>'uom_add_more',
+    '#value' => t('Add another UOM'),
+    //'#attributes' => array('class' => array('field-add-more-submit')),
+    '#limit_validation_errors' => array(array('uom_group')),
+    '#submit' => array('avproducts_uom_add_more_submit'),
+    '#ajax' => array(
+      'callback' => 'avproducts_uom_add_more_js',
+      'wrapper' => 'multiple-uom-wrapper',
+      'effect' => 'fade',
+    ),
+  );
   $repeater_html = <<<HTML
 <div class="repeater-uom">
 <div data-repeater-list="group-a">
@@ -233,8 +265,6 @@ HTML;
  * @param $form
  */
 function avproducts_qty_validate($element, &$form_state, $form) {
-  dpm($form_state);
-  dpm($_POST);
   // If this is a new record, set qty to be the same as initial qty.
   if (empty($form_state['values']['id'])) {
     $form_state['values']['qty'] = $form_state['values']['initial_qty'];
@@ -277,3 +307,57 @@ function avproducts_product_delete_confirm_form_submit($form, &$form_state) {
   }
   $form_state['redirect'] = '';
 }
+
+/**
+ * Submit handler for the "Add another UOM" button of a product form.
+ *
+ * This handler is run regardless of whether JS is enabled or not. It makes
+ * changes to the form state. If the button was clicked with JS disabled, then
+ * the page is reloaded with the complete rebuilt form. If the button was
+ * clicked with JS enabled, then ajax_form_callback() calls avproducts_uom_add_more_js()
+ * to return just the changed part of the form.
+ */
+function avproducts_uom_add_more_submit($form, &$form_state) {
+  //$button = $form_state['triggering_element'];
+  $element = $form['info']['uom_group'];
+  //dpm($element);
+  //dpm($form);
+  $form_state['uom_count']++;
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Ajax callback in response to a new UOM being added to the form.
+ *
+ * This returns the new page content to replace the page content made obsolete
+ * by the form submission.
+ *
+ * @see avproducts_uom_add_more_submit()
+ */
+function avproducts_uom_add_more_js($form, $form_state) {
+  $button = $form_state['triggering_element'];
+
+  //// Go one level up in the form, to the widgets container.
+  //$element = drupal_array_get_nested_value($form, array_slice($button['#array_parents'], 0, -1));
+  //$field_name = $element['#field_name'];
+  //$langcode = $element['#language'];
+  //$parents = $element['#field_parents'];
+  //
+  //$field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);
+  //
+  //$field = $field_state['field'];
+  //if ($field['cardinality'] != FIELD_CARDINALITY_UNLIMITED) {
+  //  return;
+  //}
+  //
+  //// Add a DIV around the delta receiving the Ajax effect.
+  //$delta = $element['#max_delta'];
+  //$element[$delta]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
+  //$element[$delta]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
+  $element = $form['info']['uom_group'];
+  $uom_count = $form_state['uom_count'];
+  $element['uoms'][$uom_count - 1]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
+  $element['uoms'][$uom_count - 1]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
+  return $element;
+}
+

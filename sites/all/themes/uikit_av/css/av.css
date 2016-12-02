@@ -131,6 +131,10 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 }
 
 /* Forms */
+.form-text,
+.form-select {
+  width: 100%;
+}
 .form-required {
   color: #D05;
 }

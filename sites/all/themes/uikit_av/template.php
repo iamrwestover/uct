@@ -79,7 +79,7 @@ function uikit_av_textfield($variables) {
   $element = $variables['element'];
   $element['#attributes']['type'] = 'text';
   element_set_attributes($element, array('id', 'name', 'value', 'size', 'maxlength'));
-  $classes = array('form-text', 'uk-width-1-1');
+  $classes = array('form-text'/*, 'uk-width-1-1'*/);
   if (isset($element['#parents']) && form_get_error($element)) {
     $classes[] = 'uk-form-danger';
   }

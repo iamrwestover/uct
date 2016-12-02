@@ -11,8 +11,8 @@ $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
 $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
 
 // Misc.
-$form['info']['uom_id']['#attributes']['style'] = 'width: 100%;';
-$form['info']['category_id']['#attributes']['style'] = 'width: 100%;';
+//$form['info']['uom_id']['#attributes']['style'] = 'width: 100%;';
+//$form['info']['category_id']['#attributes']['style'] = 'width: 100%;';
 
 $qty_html = drupal_render($form['info']['qty']);
 $initial_qty_html = drupal_render($form['info']['initial_qty']);
@@ -50,6 +50,8 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['uom_id']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['price']); ?></div>
+
+      <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['info']['uom_group']); ?></div>
     </div>
   </div>
 

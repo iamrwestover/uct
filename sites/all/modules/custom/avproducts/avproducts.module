@@ -62,6 +62,7 @@ function avproducts_theme($existing, $type, $theme, $path) {
   $form_names = array(
     'avproducts_product_form',
     'avproducts_home_form',
+    'uom_multiple',
   );
 
   $theme_forms = array();
