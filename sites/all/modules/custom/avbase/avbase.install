@@ -42,7 +42,7 @@ function avbase_schema() {
         'description' => 'Category description',
         'type' => 'varchar',
         'length' => '255',
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'group_id' => array(
         'description' => 'Category group ID',
@@ -62,8 +62,8 @@ function avbase_schema() {
       ),
     ),
     'primary key' => array('id'),
-    'unique keys' => array(
-      'group_id' => array('group_id')
+    'indexes' => array(
+      'group_id' => array('group_id'),
     ),
   );
 

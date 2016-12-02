@@ -202,7 +202,6 @@ function avbase_category_form_alter(&$form, $form_state) {
   $group_id = $form['group_id']['#value'];
   switch ($group_id) {
     case 'uom':
-      dsm('s');
       break;
   }
 }

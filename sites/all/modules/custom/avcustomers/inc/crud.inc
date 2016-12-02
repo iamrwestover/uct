@@ -87,7 +87,7 @@ function avcustomers_customer_form_settings(&$form) {
     'province',
     'zip_code',
     'same_addr',
-    'payment_method_id',
+    'payment_method_id' => array('type' => 'int'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',

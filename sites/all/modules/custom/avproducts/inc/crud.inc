@@ -20,6 +20,8 @@ function avproducts_product_form_load($row) {
  * @return array
  */
 function avproducts_product_form($form, &$form_state, $row) {
+  drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/product_form.js');
+  drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
   drupal_set_title($page_title);
@@ -57,16 +59,16 @@ function avproducts_product_form_settings(&$form) {
     'created',
     'code',
     'title',
-    'category_id',
-    'uom_id',
+    'category_id' => array('type' => 'int'),
+    'uom_id' => array('type' => 'int'),
     'description',
-    'qty',
-    'rop',
-    'eoq',
-    'cost',
-    'price',
+    'rop' => array('type' => 'int'),
+    'eoq' => array('type' => 'int'),
+    'cost' => array('type' => 'float'),
+    'price' => array('type' => 'int'),
   );
   if (empty($form['id']['#value'])) {
+    $save_field_ids[] = 'qty';
     $save_field_ids[] = 'initial_qty';
     $save_field_ids[] = 'initial_qty_date';
   }
@@ -75,9 +77,10 @@ function avproducts_product_form_settings(&$form) {
     '#value' => $save_field_ids,
   );
   // Set which fields belong to data field.
+  $data_ids = array();
   $form['data_ids'] = array(
     '#type' => 'value',
-    '#value' => array(),
+    '#value' => $data_ids,
   );
 }
 
@@ -116,11 +119,11 @@ function avproducts_product_form_info_fields(&$form, $row) {
   );
   $info['qty'] = array(
     '#type' => empty($row->id) ? 'textfield' : 'item',
-    '#title' => 'UOM Quantity',
+    '#title' => 'On-hand quantity',
 //    '#default_value' => isset($row->qty) ? $row->qty : 0,
     '#maxlength' => 10,
     '#access' => !empty($row->id),
-    '#element_validate' => array('avproducts_qty_validate'),
+    '#element_validate' => empty($row->id) ? array('avproducts_qty_validate') : array(),
   );
 //  $info['qty2'] = array(
 //    '#type' => 'textfield',
@@ -157,7 +160,7 @@ function avproducts_product_form_info_fields(&$form, $row) {
   );
   $info['uom_id'] = array(
     '#type' => 'select',
-    '#title' => 'Unit of measure',
+    '#title' => 'Base UOM',
     '#options' => avbase_get_category_options_array('uom'),
   );
   $info['rop'] = array(
@@ -195,6 +198,31 @@ function avproducts_product_form_info_fields(&$form, $row) {
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
   );
+
+  $info['repeater_uom'] = array(
+    '#prefix' => '<div class="repeater-uom"><div data-repeater-list="group-a"><div data-repeater-item>',
+    '#suffix' => '</div></div><button type="button" data-repeater-create class="uk-button">Add UOM</button></div>',
+  );
+  $info['repeater_uom']['repeater_test'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Repeater test',
+    //'#default_value' => isset($row->rop) ? $row->rop : '',
+    '#maxlength' => 10,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+
+  $repeater_html = <<<HTML
+<div class="repeater-uom">
+<div data-repeater-list="group-a">
+  <div data-repeater-item>
+    <input type="text" name="text-input" value="A"/>
+    <input data-repeater-delete type="button" value="Delete" />
+  </div>
+</div>
+<input data-repeater-create type="button" value="Add" />
+</div>
+HTML;
+  //$info['test'] = array('#markup' => $repeater_html);
   $form['info'] += $info;
 }
 
@@ -205,6 +233,8 @@ function avproducts_product_form_info_fields(&$form, $row) {
  * @param $form
  */
 function avproducts_qty_validate($element, &$form_state, $form) {
+  dpm($form_state);
+  dpm($_POST);
   // If this is a new record, set qty to be the same as initial qty.
   if (empty($form_state['values']['id'])) {
     $form_state['values']['qty'] = $form_state['values']['initial_qty'];

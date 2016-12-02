@@ -84,9 +84,6 @@ function avproducts_theme($existing, $type, $theme, $path) {
  * @return array
  */
 function avproducts_home_form($form, &$form_state) {
-//  drupal_add_js('sites/all/libraries/ag-grid/ag-grid.min.js');
-//  drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/avproducts.js');
-
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array('#markup' => l('New product', 'av/products/add', $btn_options));
 

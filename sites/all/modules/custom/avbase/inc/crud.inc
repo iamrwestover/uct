@@ -8,6 +8,10 @@
  * @throws
  */
 function avbase_crud_form_submit($form, &$form_state) {
+  dpm($_POST);
+  dpm($form);
+  dpm($form_state);
+  return;
   $transaction = db_transaction();
   try {
     $values = $form_state['values'];
@@ -16,10 +20,20 @@ function avbase_crud_form_submit($form, &$form_state) {
 
     // Get $form_state values and store them on $row array.
     $row = array();
-    foreach ($save_field_ids as $field_id) {
-      if (!isset($values[$field_id]) || trim($values[$field_id]) == '') {
+    foreach ($save_field_ids as $k => $field) {
+      $field_type = 'string';
+      if (is_array($field)) {
+        $field_id = $k;
+        $field_type = isset($field['type']) ? $field['type'] : $field_type;
+      }
+      else {
+        $field_id = $field;
+      }
+
+      if (!isset($values[$field_id])) {
         continue;
       }
+      settype($values[$field_id], $field_type);
       $row[$field_id] = $values[$field_id];
     }
 
@@ -27,8 +41,21 @@ function avbase_crud_form_submit($form, &$form_state) {
     $data_ids = isset($values['data_ids']) ? $values['data_ids'] : array();
     if (!empty($data_ids)) {
       $row['data'] = array();
-      foreach ($data_ids as $data_id) {
-        $row['data'][$data_id] = isset($values[$data_id]) ? $values[$data_id] : NULL;
+      foreach ($data_ids as $k => $data) {
+        $data_type = 'string';
+        if (is_array($data)) {
+          $data_id = $k;
+          $data_type = isset($data['type']) ? $data['type'] : $data_type;
+        }
+        else {
+          $data_id = $data;
+        }
+
+        if (!isset($values[$data_id])) {
+          continue;
+        }
+        settype($values[$data_id], $data_type);
+        $row['data'][$data_id] = $values[$data_id];
       }
       $row['data'] = serialize($row['data']);
     }
