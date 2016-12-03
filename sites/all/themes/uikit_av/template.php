@@ -107,3 +107,18 @@ function uikit_av_textfield($variables) {
   }
   return $output . $extra;
 }
+
+/**
+ * Overrides theme_select().
+ */
+function uikit_av_select($variables) {
+  $element = $variables['element'];
+  element_set_attributes($element, array('id', 'name', 'size'));
+  $classes = array('form-select');
+  if (isset($element['#parents']) && form_get_error($element)) {
+    $classes[] = 'uk-form-danger';
+  }
+  _form_set_class($element, $classes);
+
+  return '<select' . drupal_attributes($element['#attributes']) . '>' . form_select_options($element) . '</select>';
+}

@@ -1,10 +1,13 @@
 <?php
 // Remove fieldset titles.
-unset($form['info']['#title']);
+//unset($form['info']['#title']);
+//unset($form['uom']['#title']);
+$form['info']['#access'] = FALSE;
+$form['uom']['#access'] = FALSE;
 
 // Wrap buttons.
-$form['buttons']['#prefix'] = '<div class="uk-margin-top">';
-$form['buttons']['#suffix'] = '</div>';
+//$form['buttons']['#prefix'] = '<div class="uk-margin-top">';
+//$form['buttons']['#suffix'] = '</div>';
 
 // Calendar settings.
 $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
@@ -51,7 +54,7 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['price']); ?></div>
 
-      <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['info']['uom_group']); ?></div>
+      <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['uom']['uom_group']); ?></div>
     </div>
   </div>
 

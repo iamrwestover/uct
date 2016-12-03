@@ -5,6 +5,7 @@ base theme = uikit
 
 stylesheets[all][] = css/av.css
 stylesheets[all][] = css/uikit_overrides.css
+scripts[] = js/drupal_overrides.js
 scripts[] = js/uikit_av.js
 scripts[] = js/offcanvas.js
 

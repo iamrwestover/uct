@@ -1,10 +1,10 @@
 <?php
 // Remove fieldset titles.
-unset($form['info']['#title']);
-unset($form['contact']['#title']);
-unset($form['address']['#title']);
-unset($form['payment']['#title']);
-unset($form['misc']['#title']);
+$form['info']['#access'] = FALSE;
+$form['contact']['#access'] = FALSE;
+$form['address']['#access'] = FALSE;
+$form['payment']['#access'] = FALSE;
+$form['misc']['#access'] = FALSE;
 
 //unset($form['contact']['email']['#title']);
 //unset($form['contact']['contact_number']['#title']);

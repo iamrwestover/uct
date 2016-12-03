@@ -31,6 +31,8 @@ function avproducts_product_form($form, &$form_state, $row) {
 
   // Info group.
   avproducts_product_form_info_fields($form, $form_state, $row);
+  // UOM group.
+  avproducts_product_form_uom_fields($form, $form_state, $row);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
@@ -39,7 +41,6 @@ function avproducts_product_form($form, &$form_state, $row) {
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/products'),
   );
-
   return $form;
 }
 
@@ -127,14 +128,6 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#access' => !empty($row->id),
     '#element_validate' => empty($row->id) ? array('avproducts_qty_validate') : array(),
   );
-//  $info['qty2'] = array(
-//    '#type' => 'textfield',
-//    '#title' => 'Quantity per UOM',
-//    '#default_value' => isset($row->qty2) ? $row->qty2 : 1,
-//    '#maxlength' => 10,
-////    '#access' => !empty($row->id),
-//    '#element_validate' => array('avproducts_qty_validate'),
-//  );
   if (!empty($row->id)) {
     $info['qty']['#markup'] = (isset($row->qty) ? $row->qty : 0) . ' ' . l('( adjust quantity )', '#');
   }
@@ -165,6 +158,9 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#title' => 'Base UOM',
     '#options' => avbase_get_category_options_array('uom'),
     '#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#required' => TRUE,
   );
   $info['rop'] = array(
     '#type' => 'textfield',
@@ -201,61 +197,96 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
   );
+  $form['info'] += $info;
+}
 
-  //$info['repeater_uom'] = array(
-  //  '#prefix' => '<div class="repeater-uom"><div data-repeater-list="group-a"><div data-repeater-item>',
-  //  '#suffix' => '</div></div><button type="button" data-repeater-create class="uk-button">Add UOM</button></div>',
-  //);
+/**
+ * Product form - generate UOM fields.
+ * @param $form
+ * @param $form_state
+ * @param $row
+ */
+function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
+  $clicked_button = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
+  $uom_count = $form_state['uoms']['uom_count'] = isset($form_state['uoms']['uom_count']) ? $form_state['uoms']['uom_count'] : 0;
 
-  $form_state['uom_count'] = isset($form_state['uom_count']) ? $form_state['uom_count'] : 0;
-  $uom_count = $form_state['uom_count'];
-  $info['uom_group'] = array(
+  $form['uom'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Other unit of measure',
+  );
+
+  $group['uom_group'] = array(
     '#prefix' => '<div id="multiple-uom-wrapper">',
     '#suffix' => '</div>',
     '#tree' => TRUE,
     '#theme' => array('uom_multiple'),
   );
+
+  $user_input = isset($form_state['input']) ? $form_state['input'] : array();
+  $current_uom_group_values = isset($user_input['uom_group']['uoms']) ? $user_input['uom_group']['uoms'] : array();
+  $uom_names = avbase_get_categories('uom');
   for ($x = 0; $x < $uom_count; $x++) {
-    $info['uom_group']['uoms'][$x]['repeater_test'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Repeater test',
-      //'#default_value' => isset($row->rop) ? $row->rop : '',
-      '#maxlength' => 10,
-      '#element_validate' => array('element_validate_integer_positive'),
-    );
-    $info['uom_group']['uoms'][$x]['uom_id'] = array(
+    $remove_index = isset($clicked_button['#remove_uom_index']) ? $clicked_button['#remove_uom_index'] : NULL;
+    if ($x === $remove_index) {
+      $form_state['uoms']['uom_count']--;
+      continue;
+    }
+
+    $last_uom_id = isset($current_uom_group_values[$x - 1]) ? $current_uom_group_values[$x - 1]['uom_id'] : $user_input['uom_id'];
+    $last_uom_name = isset($uom_names[$last_uom_id]) ? check_plain($uom_names[$last_uom_id]->title) : 'UOM';
+    $group['uom_group']['uoms'][$x]['uom_id'] = array(
       '#type' => 'select',
       '#title' => 'UOM',
       '#options' => avbase_get_category_options_array('uom'),
       //'#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
+      '#required' => TRUE,
+      '#empty_value' => 0,
+      '#empty_option' => '- Select -',
+      '#element_validate' => array('element_validate_av_group_uom'),
+    );
+
+    $group['uom_group']['uoms'][$x]['qty'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Qty.',
+      '#description' => 'Number of ' . strtolower(check_plain($last_uom_name)) . ' per UOM',
+      //'#default_value' => isset($row->rop) ? $row->rop : '',
+      '#maxlength' => 10,
+      '#element_validate' => array('element_validate_integer_positive'),
+      '#required' => TRUE,
+    );
+    //$group['uom_group']['uoms'][$x]['per_uom_label'] = array(
+    //  '#type' => 'item',
+    //  '#title' => '&nbsp;',
+    //  '#markup' => 'per box'
+    //);
+    $group['uom_group']['uoms'][$x]['delete_btn'] = array(
+      '#remove_uom_index' => $x,
+      '#type' => 'submit',
+      '#name' =>'uom_delete',
+      '#value' => t('Delete'),
+      '#limit_validation_errors' => array(),
+      '#submit' => array('avproducts_uom_multiple_submit'),
+      '#ajax' => array(
+        'callback' => 'avproducts_uom_multiple_js',
+        'wrapper' => 'multiple-uom-wrapper',
+        'effect' => 'fade',
+      ),
     );
   }
-  $info['uom_group']['add_more'] = array(
+  $group['uom_group']['add_btn'] = array(
     '#type' => 'submit',
     '#name' =>'uom_add_more',
     '#value' => t('Add another UOM'),
     //'#attributes' => array('class' => array('field-add-more-submit')),
-    '#limit_validation_errors' => array(array('uom_group')),
-    '#submit' => array('avproducts_uom_add_more_submit'),
+    '#limit_validation_errors' => array(array('uom_group'), array('uom_id')),
+    '#submit' => array('avproducts_uom_multiple_submit'),
     '#ajax' => array(
-      'callback' => 'avproducts_uom_add_more_js',
+      'callback' => 'avproducts_uom_multiple_js',
       'wrapper' => 'multiple-uom-wrapper',
       'effect' => 'fade',
     ),
   );
-  $repeater_html = <<<HTML
-<div class="repeater-uom">
-<div data-repeater-list="group-a">
-  <div data-repeater-item>
-    <input type="text" name="text-input" value="A"/>
-    <input data-repeater-delete type="button" value="Delete" />
-  </div>
-</div>
-<input data-repeater-create type="button" value="Add" />
-</div>
-HTML;
-  //$info['test'] = array('#markup' => $repeater_html);
-  $form['info'] += $info;
+  $form['uom'] += $group;
 }
 
 /**
@@ -309,55 +340,42 @@ function avproducts_product_delete_confirm_form_submit($form, &$form_state) {
 }
 
 /**
- * Submit handler for the "Add another UOM" button of a product form.
+ * Submit handler for the UOM form (multiple UOMs) in a product form.
  *
  * This handler is run regardless of whether JS is enabled or not. It makes
  * changes to the form state. If the button was clicked with JS disabled, then
  * the page is reloaded with the complete rebuilt form. If the button was
- * clicked with JS enabled, then ajax_form_callback() calls avproducts_uom_add_more_js()
+ * clicked with JS enabled, then ajax_form_callback() calls avproducts_uom_multiple_js()
  * to return just the changed part of the form.
  */
-function avproducts_uom_add_more_submit($form, &$form_state) {
-  //$button = $form_state['triggering_element'];
-  $element = $form['info']['uom_group'];
-  //dpm($element);
-  //dpm($form);
-  $form_state['uom_count']++;
+function avproducts_uom_multiple_submit($form, &$form_state) {
+  $button = $form_state['triggering_element'];
+  switch ($button['#name']) {
+    case 'uom_add_more':
+      $form_state['uoms']['uom_count']++;
+      break;
+  }
+
   $form_state['rebuild'] = TRUE;
 }
 
 /**
- * Ajax callback in response to a new UOM being added to the form.
+ * Ajax callback in response to the UOM form (multiple UOMS) being submitted.
  *
  * This returns the new page content to replace the page content made obsolete
  * by the form submission.
  *
- * @see avproducts_uom_add_more_submit()
+ * @see avproducts_uom_multiple_submit()
  */
-function avproducts_uom_add_more_js($form, $form_state) {
+function avproducts_uom_multiple_js($form, $form_state) {
   $button = $form_state['triggering_element'];
-
-  //// Go one level up in the form, to the widgets container.
-  //$element = drupal_array_get_nested_value($form, array_slice($button['#array_parents'], 0, -1));
-  //$field_name = $element['#field_name'];
-  //$langcode = $element['#language'];
-  //$parents = $element['#field_parents'];
-  //
-  //$field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);
-  //
-  //$field = $field_state['field'];
-  //if ($field['cardinality'] != FIELD_CARDINALITY_UNLIMITED) {
-  //  return;
-  //}
-  //
-  //// Add a DIV around the delta receiving the Ajax effect.
-  //$delta = $element['#max_delta'];
-  //$element[$delta]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
-  //$element[$delta]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
-  $element = $form['info']['uom_group'];
-  $uom_count = $form_state['uom_count'];
-  $element['uoms'][$uom_count - 1]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
-  $element['uoms'][$uom_count - 1]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
+  $element = $form['uom']['uom_group'];
+  switch ($button['#name']) {
+    case 'uom_add_more':
+      $uom_count = $form_state['uoms']['uom_count'];
+      $element['uoms'][$uom_count - 1]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
+      $element['uoms'][$uom_count - 1]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
+      break;
+  }
   return $element;
 }
-
