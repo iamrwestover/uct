@@ -54,6 +54,7 @@ function avproducts_product_form_settings(&$form) {
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
+  $form['entity_name'] = array('#type' => 'value', '#value' => 'product');
 
   // Set field names to save.
   $save_field_ids = array(
@@ -160,7 +161,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
-    '#required' => TRUE,
+    //'#required' => TRUE,
   );
   $info['rop'] = array(
     '#type' => 'textfield',

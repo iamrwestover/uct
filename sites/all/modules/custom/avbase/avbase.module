@@ -103,9 +103,12 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
   }
 
   switch ($form_id) {
-    case 'avbase_category_form':
-      avbase_category_form_alter($form, $form_state);
-      break;
+    //case 'avbase_categories_form':
+    //  avbase_categories_form_alter($form, $form_state);
+    //  break;
+    //case 'avbase_category_form':
+    //  avbase_category_form_alter($form, $form_state);
+    //  break;
   }
 }
 

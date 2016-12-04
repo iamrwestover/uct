@@ -60,6 +60,7 @@ function avvendors_vendor_form_settings(&$form) {
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
+  $form['entity_name'] = array('#type' => 'value', '#value' => 'vendor');
 
   // Set field names to save.
   $save_field_ids = array(

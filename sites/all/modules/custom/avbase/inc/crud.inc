@@ -58,7 +58,14 @@ function avbase_crud_form_submit($form, &$form_state) {
 
     // Do save.
     $table_name = isset($values['table_name']) ? $values['table_name'] : NULL;
+    $entity_name = isset($values['entity_name']) ? $values['entity_name'] : '';
     if (!empty($row) && !empty($table_name)) {
+      // Let other modules perform pre-save processes.
+      if (!empty($entity_name)) {
+        module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'pre-save', $row, $table_name);
+      }
+
+      // Do save.
       if (empty($record_id) || !is_numeric($record_id)) {
         // Insert new record.
         // Save timestamp when record is created.

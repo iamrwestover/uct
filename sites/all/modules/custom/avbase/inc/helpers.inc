@@ -10,18 +10,18 @@ define('AV_STYLE_CLASS_BTN_PRIMARY', 'uk-button-primary');
  */
 function avbase_get_categories($group_id) {
   $data = &drupal_static(__FUNCTION__, array());
-  if (isset($data[$group_id])) {
-    return $data[$group_id];
+  if (empty($data)) {
+    $query = "SELECT * FROM {avtbl_categories}";
+    $result = db_query($query);
+    $rows = array();
+    foreach ($result as $k => $row) {
+      $rows[$row->group_id][$row->id] = $row;
+    }
+    $data = $rows;
+    $data[$group_id] = isset($data[$group_id]) ? $data[$group_id] : array();
   }
 
-  $query = "SELECT * FROM {avtbl_categories} WHERE group_id = :group_id";
-  $result = db_query($query, array(':group_id' => $group_id));
-  $rows = array();
-  foreach ($result as $k => $row) {
-    $rows[$row->id] = $row;
-  }
-
-  return $data[$group_id] = $rows;
+  return isset($data[$group_id]) ? $data[$group_id] : array();
 }
 
 /**

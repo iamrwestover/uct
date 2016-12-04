@@ -72,6 +72,7 @@ function avcustomers_customer_form_settings(&$form) {
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
+  $form['entity_name'] = array('#type' => 'value', '#value' => 'customer');
 
   // Set field names to save.
   $save_field_ids = array(
