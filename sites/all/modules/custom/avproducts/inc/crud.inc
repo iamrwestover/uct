@@ -20,7 +20,7 @@ function avproducts_product_form_load($row) {
  * @return array
  */
 function avproducts_product_form($form, &$form_state, $row) {
-  //drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/product_form.js');
+  drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/product_form.js');
   //drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
@@ -154,11 +154,14 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
       'autocomplete' => 'off',
     ),
   );
+
+  $default_uom = avbase_get_category(array('group_id' => 'uom', 'system_default' => 1));
+  $default_uom_id = isset($default_uom->id) ? $default_uom->id : 0;
   $info['uom_id'] = array(
     '#type' => 'select',
     '#title' => 'Base UOM',
     '#options' => avbase_get_category_options_array('uom'),
-    '#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
+    '#default_value' => isset($row->uom_id) ? $row->uom_id : $default_uom_id,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
     //'#required' => TRUE,
@@ -225,7 +228,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
 
   $user_input = isset($form_state['input']) ? $form_state['input'] : array();
   $current_uom_group_values = isset($user_input['uom_group']['uoms']) ? $user_input['uom_group']['uoms'] : array();
-  $uom_names = avbase_get_categories('uom');
+  $uom_categories = avbase_get_categories('uom');
   for ($x = 0; $x < $uom_count; $x++) {
     $remove_index = isset($clicked_button['#remove_uom_index']) ? $clicked_button['#remove_uom_index'] : NULL;
     if ($x === $remove_index) {
@@ -234,7 +237,10 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
     }
 
     $last_uom_id = isset($current_uom_group_values[$x - 1]) ? $current_uom_group_values[$x - 1]['uom_id'] : $user_input['uom_id'];
-    $last_uom_name = isset($uom_names[$last_uom_id]) ? check_plain($uom_names[$last_uom_id]->title) : 'UOM';
+    $plural_form = avbase_get_category_plural_form(array('group_id' => 'uom', 'id' => $last_uom_id));
+    $last_uom = array();
+    $last_uom_name = isset($last_uom->title) ? $last_uom->title : 'UOM';
+    $last_uom_name = isset($last_uom->data['plural_form']) ? $last_uom->data['plural_form'] : $last_uom_name;
     $group['uom_group']['uoms'][$x]['uom_id'] = array(
       '#type' => 'select',
       '#title' => 'UOM',
@@ -244,16 +250,24 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       '#empty_value' => 0,
       '#empty_option' => '- Select -',
       '#element_validate' => array('element_validate_av_group_uom'),
+      '#attributes' => array(
+        'class' => array('uom-group-select'),
+        'data-uom-index' => $x,
+      ),
     );
 
     $group['uom_group']['uoms'][$x]['qty'] = array(
       '#type' => 'textfield',
       '#title' => 'Qty.',
-      '#description' => 'Number of ' . strtolower(check_plain($last_uom_name)) . ' per UOM',
+      '#description' => 'Number of ' . strtolower(check_plain($plural_form)) . ' per UOM',
       //'#default_value' => isset($row->rop) ? $row->rop : '',
       '#maxlength' => 10,
       '#element_validate' => array('element_validate_integer_positive'),
       '#required' => TRUE,
+      '#attributes' => array(
+        'autocomplete' => 'off',
+        'class' => array('uom-group-qty'),
+      ),
     );
     //$group['uom_group']['uoms'][$x]['per_uom_label'] = array(
     //  '#type' => 'item',

@@ -8,19 +8,23 @@ define('AV_STYLE_CLASS_BTN_PRIMARY', 'uk-button-primary');
  * @param string $group_id
  * @return array()
  */
-function avbase_get_categories($group_id) {
+function avbase_get_categories($group_id = NULL) {
   $data = &drupal_static(__FUNCTION__, array());
   if (empty($data)) {
     $query = "SELECT * FROM {avtbl_categories}";
     $result = db_query($query);
     $rows = array();
     foreach ($result as $k => $row) {
+      $row->data = unserialize($row->data);
       $rows[$row->group_id][$row->id] = $row;
     }
     $data = $rows;
     $data[$group_id] = isset($data[$group_id]) ? $data[$group_id] : array();
   }
 
+  if (empty($group_id)) {
+    return $data;
+  }
   return isset($data[$group_id]) ? $data[$group_id] : array();
 }
 
@@ -58,6 +62,56 @@ function avbase_get_category_options_array($group_id) {
 }
 
 /**
+ * Get a category db row.
+ * @param array $conditions
+ * @return array
+ */
+function avbase_get_category($conditions) {
+  if (isset($conditions['group_id'])) {
+    $group_id = $conditions['group_id'];
+    unset($conditions['group_id']);
+    $rows[$group_id] = avbase_get_categories($group_id);
+  }
+  else {
+    $rows = avbase_get_categories();
+  }
+
+  foreach ($rows as $groups) {
+    foreach ($groups as $category) {
+      $match = FALSE;
+      //dpm($category);
+      foreach ($conditions as $k => $v) {
+
+        $match = isset($category->$k) && $category->$k == $v;
+        if (!$match) {
+          break;
+        }
+      }
+      if ($match) {
+        return $category;
+      }
+    }
+  }
+  return array();
+}
+
+/**
+ * Get data value of a category.
+ * @param $data_id
+ * @param $conditions
+ * @return string
+ */
+function avbase_get_category_data_value($data_id, $conditions) {
+  $category = avbase_get_category($conditions);
+  return isset($category->data[$data_id]) ? $category->data[$data_id] : NULL;
+}
+
+function avbase_get_category_plural_form($conditions) {
+  $category = avbase_get_category($conditions);
+  return check_plain(isset($category->data['plural_form']) ? $category->data['plural_form'] : $category->title);
+}
+
+/**
  * Delete category.
  * @param $id
  *
@@ -69,6 +123,7 @@ function avbase_category_delete($id) {
       return TRUE;
     }
   }
+  return FALSE;
 }
 
 

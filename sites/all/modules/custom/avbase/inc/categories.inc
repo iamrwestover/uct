@@ -232,6 +232,7 @@ function avbase_category_delete_confirm_form_submit($form, &$form_state) {
  * Implementation of hook_categories_(uom)_list_alter().
  * Alter UOM List table.
  * @param $table_options
+ * @param $db_rows
  */
 function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
   $header = &$table_options['header'];
