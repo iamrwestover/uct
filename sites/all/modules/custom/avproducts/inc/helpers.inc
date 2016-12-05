@@ -41,8 +41,6 @@ function element_validate_av_group_uom($element, &$form_state, $form) {
   $values = $form_state['values'];
   $base_uom_id = $values['uom_id'];
   if (empty($base_uom_id)) {
-    //dpm(implode('][', $element['#parents']));
-    //form_error($element, 'Select a Base UOM first before adding new ones.');
     form_set_error('uom_group', 'Select a Base UOM first before adding new ones.');
     return;
   }

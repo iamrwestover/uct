@@ -20,7 +20,16 @@ function avproducts_product_form_load($row) {
  * @return array
  */
 function avproducts_product_form($form, &$form_state, $row) {
-  drupal_add_js(AVPRODUCTS_MODULE_PATH . '/js/product_form.js');
+  $uom_categories = avbase_get_categories('uom');
+  $js_settings = array('avbaseUOMCategories' => $uom_categories);
+  $form['#attached']['js'] = array(
+    AVPRODUCTS_MODULE_PATH . '/js/product_form.js',
+    array(
+      'data' => $js_settings,
+      'type' => 'setting',
+    ),
+  );
+
   //drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
@@ -158,6 +167,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   $default_uom = avbase_get_category(array('group_id' => 'uom', 'system_default' => 1));
   $default_uom_id = isset($default_uom->id) ? $default_uom->id : 0;
   $info['uom_id'] = array(
+    '#id' => 'uom-id',
     '#type' => 'select',
     '#title' => 'Base UOM',
     '#options' => avbase_get_category_options_array('uom'),
@@ -211,6 +221,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
  * @param $row
  */
 function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
+  $user_input = isset($form_state['input']) ? $form_state['input'] : array();
   $clicked_button = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
   $uom_count = $form_state['uoms']['uom_count'] = isset($form_state['uoms']['uom_count']) ? $form_state['uoms']['uom_count'] : 0;
 
@@ -226,9 +237,8 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
     '#theme' => array('uom_multiple'),
   );
 
-  $user_input = isset($form_state['input']) ? $form_state['input'] : array();
+
   $current_uom_group_values = isset($user_input['uom_group']['uoms']) ? $user_input['uom_group']['uoms'] : array();
-  $uom_categories = avbase_get_categories('uom');
   for ($x = 0; $x < $uom_count; $x++) {
     $remove_index = isset($clicked_button['#remove_uom_index']) ? $clicked_button['#remove_uom_index'] : NULL;
     if ($x === $remove_index) {
@@ -238,10 +248,10 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
 
     $last_uom_id = isset($current_uom_group_values[$x - 1]) ? $current_uom_group_values[$x - 1]['uom_id'] : $user_input['uom_id'];
     $plural_form = avbase_get_category_plural_form(array('group_id' => 'uom', 'id' => $last_uom_id));
-    $last_uom = array();
-    $last_uom_name = isset($last_uom->title) ? $last_uom->title : 'UOM';
-    $last_uom_name = isset($last_uom->data['plural_form']) ? $last_uom->data['plural_form'] : $last_uom_name;
+    $plural_form = $plural_form ? $plural_form : '(base uom)';
+    $plural_form = strtolower(check_plain($plural_form));
     $group['uom_group']['uoms'][$x]['uom_id'] = array(
+      '#id' => 'uom-select-' . $x,
       '#type' => 'select',
       '#title' => 'UOM',
       '#options' => avbase_get_category_options_array('uom'),
@@ -253,13 +263,17 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       '#attributes' => array(
         'class' => array('uom-group-select'),
         'data-uom-index' => $x,
+        //'data-uom-last-name' => $plural_form,
       ),
     );
 
+    $current_uom_name = empty($current_uom_group_values[$x]['uom_id']) ? 'UOM' : $group['uom_group']['uoms'][$x]['uom_id']['#options'][$current_uom_group_values[$x]['uom_id']];
+    $current_uom_name = strtolower($current_uom_name);
     $group['uom_group']['uoms'][$x]['qty'] = array(
+      '#id' => 'uom-qty-' . $x,
       '#type' => 'textfield',
       '#title' => 'Qty.',
-      '#description' => 'Number of ' . strtolower(check_plain($plural_form)) . ' per UOM',
+      '#description' => t('number of @uom1 per @uom2', array('@uom1' => $plural_form, '@uom2' => $current_uom_name)),
       //'#default_value' => isset($row->rop) ? $row->rop : '',
       '#maxlength' => 10,
       '#element_validate' => array('element_validate_integer_positive'),

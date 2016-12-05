@@ -21,3 +21,8 @@ body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
 .uk-form-row+.uk-form-row {
   margin-top: 10px;
 }
+
+/* Others */
+.uk-tooltip {
+  word-break: normal !important;
+}
