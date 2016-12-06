@@ -41,7 +41,7 @@ function element_validate_av_group_uom($element, &$form_state, $form) {
   $values = $form_state['values'];
   $base_uom_id = $values['uom_id'];
   if (empty($base_uom_id)) {
-    form_set_error('uom_group', 'Select a Base UOM first before adding new ones.');
+    form_set_error('uoms', 'Select a Base UOM first before adding new ones.');
     return;
   }
 
@@ -54,9 +54,9 @@ function element_validate_av_group_uom($element, &$form_state, $form) {
   $dup_error_msg = 'Duplicate UOMs selected.';
   $errors = form_get_errors();
   //if (in_array($dup_error_msg, $errors))
-  $uoms = $values['uom_group']['uoms'];
+  $uoms = $values['uoms'];
   foreach ($uoms as $k => $uom) {
-    if ($k == $element['#parents'][2]) {
+    if ($k == $element['#parents'][1]) {
       continue;
     }
 

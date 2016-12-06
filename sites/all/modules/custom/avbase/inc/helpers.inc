@@ -108,6 +108,10 @@ function avbase_get_category_data_value($data_id, $conditions) {
 
 function avbase_get_category_plural_form($conditions) {
   $category = avbase_get_category($conditions);
+  if (empty($category->data)) {
+    return '';
+  }
+
   return check_plain(isset($category->data['plural_form']) ? $category->data['plural_form'] : $category->title);
 }
 

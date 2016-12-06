@@ -76,7 +76,7 @@ function avproducts_product_form_settings(&$form) {
     'rop' => array('type' => 'int'),
     'eoq' => array('type' => 'int'),
     'cost' => array('type' => 'float'),
-    'price' => array('type' => 'int'),
+    'price' => array('type' => 'float'),
   );
   if (empty($form['id']['#value'])) {
     $save_field_ids[] = 'qty';
@@ -88,7 +88,9 @@ function avproducts_product_form_settings(&$form) {
     '#value' => $save_field_ids,
   );
   // Set which fields belong to data field.
-  $data_ids = array();
+  $data_ids = array(
+    'uoms' => array('type' => 'array'),
+  );
   $form['data_ids'] = array(
     '#type' => 'value',
     '#value' => $data_ids,
@@ -132,7 +134,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   );
   $info['qty'] = array(
     '#type' => empty($row->id) ? 'textfield' : 'item',
-    '#title' => 'On-hand quantity',
+    '#title' => 'Qty.',
 //    '#default_value' => isset($row->qty) ? $row->qty : 0,
     '#maxlength' => 10,
     '#access' => !empty($row->id),
@@ -143,12 +145,16 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   }
   $info['initial_qty'] = array(
     '#type' => 'textfield',
-    '#title' => 'Beginning quantity',
+    '#title' => 'Qty.',
     '#default_value' => isset($row->qty) ? $row->qty : '',
     '#maxlength' => 10,
     '#access' => empty($row->id),
     '#required' => TRUE,
     '#element_validate' => array('element_validate_integer_positive'),
+    '#attributes' => array(
+      'autocomplete' => 'off',
+    ),
+    '#special_element_type' => 'number',
   );
   $initial_qty_date_format = 'M. d, Y';
   $info['initial_qty_date'] = array(
@@ -191,25 +197,30 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#element_validate' => array('element_validate_integer_positive'),
   );
   $info['price'] = array(
+    '#id' => 'uom-price',
     '#type' => 'textfield',
     '#title' => 'Sales price',
-    '#default_value' => isset($row->price) ? avbase_money_format('%01.2f', $row->price) : '',
+    '#default_value' => isset($row->price) ? round($row->price, 2) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
+    '#attributes' => array(
+      'autocomplete' => 'off',
+      'step' => '0.01',
+    ),
+    '#special_element_type' => 'number',
   );
-  //$info['price2'] = array(
-  //  '#type' => 'textfield',
-  //  '#title' => 'Sales price',
-  //  '#default_value' => isset($row->price) ? avbase_money_format('%01.2f', $row->price) : '',
-  //  '#maxlength' => 19,
-  //  '#element_validate' => array('element_validate_number'),
-  //);
   $info['cost'] = array(
+    '#id' => 'uom-cost',
     '#type' => 'textfield',
     '#title' => 'Unit cost',
-    '#default_value' => isset($row->cost) ? avbase_money_format('%01.2f', $row->cost) : '',
+    '#default_value' => isset($row->cost) ? round($row->cost, 2) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
+    '#attributes' => array(
+      'autocomplete' => 'off',
+      'step' => '0.01',
+    ),
+    '#special_element_type' => 'number',
   );
   $form['info'] += $info;
 }
@@ -221,99 +232,143 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
  * @param $row
  */
 function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
+  $db_row_uoms = empty($row->data['uoms']) ? array() : $row->data['uoms'];
   $user_input = isset($form_state['input']) ? $form_state['input'] : array();
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
   $clicked_button = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
-  $uom_count = $form_state['uoms']['uom_count'] = isset($form_state['uoms']['uom_count']) ? $form_state['uoms']['uom_count'] : 0;
+  $uom_values = isset($user_input['uoms']) ? $user_input['uoms'] : $db_row_uoms;
+  $base_uom_id = isset($user_input['uom_id']) ? $user_input['uom_id'] : (isset($row->uom_id) ? $row->uom_id : 0);
 
-  $form['uom'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'Other unit of measure',
-  );
+  if ($clicked_button)
+    switch ($clicked_button['#name']) {
+      case 'uom_delete':
+        $remove_uom_key = isset($clicked_button['#remove_uom_key']) ? $clicked_button['#remove_uom_key'] : NULL;
+        unset($uom_values[$remove_uom_key]);
+        break;
+      case 'uom_add_more':
+        $uom_values = empty($user_input['uoms']) ? array() : $user_input['uoms'];
+        $uom_values[] = array();
+        break;
+  }
+
 
   $group['uom_group'] = array(
     '#prefix' => '<div id="multiple-uom-wrapper">',
     '#suffix' => '</div>',
-    '#tree' => TRUE,
     '#theme' => array('uom_multiple'),
   );
-
-
-  $current_uom_group_values = isset($user_input['uom_group']['uoms']) ? $user_input['uom_group']['uoms'] : array();
-  for ($x = 0; $x < $uom_count; $x++) {
-    $remove_index = isset($clicked_button['#remove_uom_index']) ? $clicked_button['#remove_uom_index'] : NULL;
-    if ($x === $remove_index) {
-      $form_state['uoms']['uom_count']--;
-      continue;
-    }
-
-    $last_uom_id = isset($current_uom_group_values[$x - 1]) ? $current_uom_group_values[$x - 1]['uom_id'] : $user_input['uom_id'];
+  $group['uom_group']['uoms']['#tree'] = TRUE;
+  $uom_index = -1;
+  $last_uom_id = $base_uom_id;
+  foreach ($uom_values as $uom_key => $uom_row) {
+    $uom_index++;
+    $fields = array();
     $plural_form = avbase_get_category_plural_form(array('group_id' => 'uom', 'id' => $last_uom_id));
     $plural_form = $plural_form ? $plural_form : '(base uom)';
     $plural_form = strtolower(check_plain($plural_form));
-    $group['uom_group']['uoms'][$x]['uom_id'] = array(
-      '#id' => 'uom-select-' . $x,
+    $fields['uom_id'] = array(
+      '#id' => 'uom-select-' . $uom_index,
       '#type' => 'select',
       '#title' => 'UOM',
       '#options' => avbase_get_category_options_array('uom'),
-      //'#default_value' => isset($row->uom_id) ? $row->uom_id : 0,
+      '#default_value' => isset($uom_row['uom_id']) ? $uom_row['uom_id'] : 0,
       '#required' => TRUE,
       '#empty_value' => 0,
       '#empty_option' => '- Select -',
       '#element_validate' => array('element_validate_av_group_uom'),
       '#attributes' => array(
         'class' => array('uom-group-select'),
-        'data-uom-index' => $x,
+        'data-uom-index' => $uom_index,
         //'data-uom-last-name' => $plural_form,
       ),
     );
 
-    $current_uom_name = empty($current_uom_group_values[$x]['uom_id']) ? 'UOM' : $group['uom_group']['uoms'][$x]['uom_id']['#options'][$current_uom_group_values[$x]['uom_id']];
+    $current_uom_name = empty($uom_row['uom_id']) ? 'UOM' : $fields['uom_id']['#options'][$uom_row['uom_id']];
     $current_uom_name = strtolower($current_uom_name);
-    $group['uom_group']['uoms'][$x]['qty'] = array(
-      '#id' => 'uom-qty-' . $x,
+    $fields['qty'] = array(
+      '#id' => 'uom-qty-' . $uom_index,
       '#type' => 'textfield',
       '#title' => 'Qty.',
       '#description' => t('number of @uom1 per @uom2', array('@uom1' => $plural_form, '@uom2' => $current_uom_name)),
-      //'#default_value' => isset($row->rop) ? $row->rop : '',
+      '#default_value' => isset($uom_row['qty']) ? $uom_row['qty'] : '',
       '#maxlength' => 10,
       '#element_validate' => array('element_validate_integer_positive'),
       '#required' => TRUE,
       '#attributes' => array(
         'autocomplete' => 'off',
+        'data-uom-index' => $uom_index,
         'class' => array('uom-group-qty'),
       ),
+      '#special_element_type' => 'number',
     );
-    //$group['uom_group']['uoms'][$x]['per_uom_label'] = array(
-    //  '#type' => 'item',
-    //  '#title' => '&nbsp;',
-    //  '#markup' => 'per box'
+
+    $fields['cost'] = array(
+      '#id' => 'uom-cost-' . $uom_index,
+      '#type' => 'textfield',
+      '#title' => 'Unit cost',
+      '#default_value' => isset($uom_row['cost']) ? round($uom_row['cost'], 2) : '',
+      '#maxlength' => 19,
+      '#element_validate' => array('element_validate_number'),
+      '#attributes' => array(
+        'autocomplete' => 'off',
+        'class' => array('uom-group-cost'),
+      ),
+      //'#input' => FALSE,
+      '#disabled' => TRUE,
+    );
+    $fields['price'] = array(
+      '#id' => 'uom-price-' . $uom_index,
+      '#type' => 'textfield',
+      '#title' => 'Sales price',
+      '#default_value' => !empty($uom_row['price']) ? round($uom_row['price'], 2) : '',
+      '#maxlength' => 19,
+      '#element_validate' => array('element_validate_number'),
+      '#attributes' => array(
+        'autocomplete' => 'off',
+        'class' => array('uom-group-price'),'step' => '0.01',
+      ),
+      '#special_element_type' => 'number',
+    );
+    //$fields['auto_compute_price'] = array(
+    //  '#id' => 'uom-price-auto-' . $uom_index,
+    //  '#type' => 'checkbox',
+    //  '#title' => 'Auto-compute price',
+    //  '#default_value' => empty($uom_row['auto_compute_price']) ? 0 : 1,
     //);
-    $group['uom_group']['uoms'][$x]['delete_btn'] = array(
-      '#remove_uom_index' => $x,
+    $fields['delete_btn'] = array(
+      '#remove_uom_key' => $uom_key,
       '#type' => 'submit',
       '#name' =>'uom_delete',
-      '#value' => t('Delete'),
+      '#value' => t('Delete') . $uom_key,
       '#limit_validation_errors' => array(),
       '#submit' => array('avproducts_uom_multiple_submit'),
       '#ajax' => array(
         'callback' => 'avproducts_uom_multiple_js',
         'wrapper' => 'multiple-uom-wrapper',
-        'effect' => 'fade',
+        'effect' => 'none',
       ),
     );
+    $group['uom_group']['uoms'][$uom_key] = $fields;
+    $last_uom_id = $uom_row['uom_id'];
   }
+
   $group['uom_group']['add_btn'] = array(
     '#type' => 'submit',
     '#name' =>'uom_add_more',
     '#value' => t('Add another UOM'),
     //'#attributes' => array('class' => array('field-add-more-submit')),
-    '#limit_validation_errors' => array(array('uom_group'), array('uom_id')),
+    '#limit_validation_errors' => array(array('uoms'), array('uom_id')),
     '#submit' => array('avproducts_uom_multiple_submit'),
     '#ajax' => array(
       'callback' => 'avproducts_uom_multiple_js',
       'wrapper' => 'multiple-uom-wrapper',
-      'effect' => 'fade',
+      'effect' => 'none',
     ),
+  );
+
+  $form['uom'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Other unit of measure',
   );
   $form['uom'] += $group;
 }
@@ -381,7 +436,7 @@ function avproducts_uom_multiple_submit($form, &$form_state) {
   $button = $form_state['triggering_element'];
   switch ($button['#name']) {
     case 'uom_add_more':
-      $form_state['uoms']['uom_count']++;
+      //$form_state['uoms']['uom_count']++;
       break;
   }
 
@@ -401,9 +456,9 @@ function avproducts_uom_multiple_js($form, $form_state) {
   $element = $form['uom']['uom_group'];
   switch ($button['#name']) {
     case 'uom_add_more':
-      $uom_count = $form_state['uoms']['uom_count'];
-      $element['uoms'][$uom_count - 1]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
-      $element['uoms'][$uom_count - 1]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
+      //$uom_count = $form_state['uoms']['uom_count'];
+      //$element['uoms'][$uom_count - 1]['#prefix'] = '<div class="ajax-new-content">' . (isset($element[$delta]['#prefix']) ? $element[$delta]['#prefix'] : '');
+      //$element['uoms'][$uom_count - 1]['#suffix'] = (isset($element[$delta]['#suffix']) ? $element[$delta]['#suffix'] : '') . '</div>';
       break;
   }
   return $element;

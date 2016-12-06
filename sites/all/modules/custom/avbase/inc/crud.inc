@@ -46,7 +46,6 @@ function avbase_crud_form_submit($form, &$form_state) {
         else {
           $data_id = $data;
         }
-
         if (!isset($values[$data_id])) {
           continue;
         }

@@ -77,7 +77,7 @@ function uikit_av_process_block(&$variables) {
  */
 function uikit_av_textfield($variables) {
   $element = $variables['element'];
-  $element['#attributes']['type'] = 'text';
+  $element['#attributes']['type'] = isset($element['#special_element_type']) ? $element['#special_element_type'] : 'text';
   element_set_attributes($element, array('id', 'name', 'value', 'size', 'maxlength'));
   $classes = array('form-text'/*, 'uk-width-1-1'*/);
   if (isset($element['#parents']) && form_get_error($element)) {
