@@ -145,6 +145,22 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
   -webkit-transition: width 2s, height 2s, -webkit-transform 2s; /* Safari */
   transition: width 2s, height 2s, transform 2s;
 }
+html.js input.form-autocomplete {
+  background: none;
+}
+#autocomplete {
+  border-color: #99baca;
+  border-radius: 4px;
+  margin-top: 1px;
+}
+#autocomplete li {
+  color: inherit;
+  cursor: pointer;
+  padding: 5px;
+}
+#autocomplete li.selected {
+  background: #f5fbfe;
+}
 
 /* Tables */
 th > a > img {

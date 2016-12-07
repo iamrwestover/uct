@@ -21,6 +21,7 @@ $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{forma
 
 $form['info']['cost']['#attributes']['class'][] = 'uk-text-right';
 $form['info']['price']['#attributes']['class'][] = 'uk-text-right';
+$form['info']['qty']['#attributes']['class'][] = 'uk-text-right';
 //$form['info']['uom_id']['#attributes']['style'] = 'width: 100%;';
 //$form['info']['category_id']['#attributes']['style'] = 'width: 100%;';
 

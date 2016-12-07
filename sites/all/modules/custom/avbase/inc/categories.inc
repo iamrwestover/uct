@@ -346,8 +346,7 @@ function avbase_category_agent_form_alter(&$form, $db_row) {
         '#title' => t('Vendor'),
         '#size' => 30,
         '#maxlength' => 60,
-        '#autocomplete_path' => 'user/autocomplete',
-        //'#default_value' => 'aAron',
+        '#autocomplete_path' => 'av/vendors/autocomplete',
         '#weight' => 1.2,
         '#required' => TRUE,
         '#attributes' => array(

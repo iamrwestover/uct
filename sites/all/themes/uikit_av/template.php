@@ -89,6 +89,7 @@ function uikit_av_textfield($variables) {
   if ($element['#autocomplete_path'] && !empty($element['#autocomplete_input'])) {
     drupal_add_library('system', 'drupal.autocomplete');
     $element['#attributes']['class'][] = 'form-autocomplete';
+    $element['#icon_key'] = 'circle-o-notch';
 
     $attributes = array();
     $attributes['type'] = 'hidden';
@@ -103,7 +104,7 @@ function uikit_av_textfield($variables) {
 
   // Add element icon if set.
   if (isset($element['#icon_key'])) {
-    $output = '<div class="uk-form-icon"><i class="uk-icon-' . $element['#icon_key'] . '"></i>' . $output . '</div>';
+    $output = '<div class="uk-form-icon uk-width-1-1"><i class="uk-icon-' . $element['#icon_key'] . '"></i>' . $output . '</div>';
   }
   return $output . $extra;
 }

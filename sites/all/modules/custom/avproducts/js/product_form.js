@@ -5,15 +5,16 @@
 (function ($) {
   var $baseUOMEl = $('#uom-id');
   $baseUOMEl.change(function() {
-    var $firstUOMEl = $('#uom-select-0');
-    var $firstQtyEl = $('#uom-qty-0');
-    if ($firstUOMEl.length) {
-      var UOMName = avbaseCategoryGetname($(this).val(), true);
-      var firstUOMName = avbaseCategoryGetname($firstUOMEl.val());
-      UOMName = UOMName ? UOMName.toLowerCase() : '(base uom)';
-      firstUOMName = firstUOMName ? firstUOMName.toLowerCase() : 'uom';
-      $firstQtyEl.attr('title', Drupal.t('number of @uom1 per @uom2', {'@uom1': UOMName, '@uom2': firstUOMName}));
-    }
+    $('.uom-group-select').trigger('change');
+    //var $firstUOMEl = $('#uom-select-0');
+    //var $firstQtyEl = $('#uom-qty-0');
+    //if ($firstUOMEl.length) {
+    //  var UOMName = avbaseCategoryGetname($(this).val(), true);
+    //  var firstUOMName = avbaseCategoryGetname($firstUOMEl.val());
+    //  UOMName = UOMName ? UOMName.toLowerCase() : '(base uom)';
+    //  firstUOMName = firstUOMName ? firstUOMName.toLowerCase() : 'uom';
+    //  $firstQtyEl.attr('title', Drupal.t('number of @uom1 per @uom2', {'@uom1': UOMName, '@uom2': firstUOMName}));
+    //}
   });
 
   /**
@@ -39,9 +40,9 @@
           var $prevUOMEl = $('#uom-select-' + (uomIndex - 1));
 
           // Get current and previous UOM name.
-          if ($prevUOMEl.length) {
-            prevUOMID = $prevUOMEl.val();
-          }
+          //if ($prevUOMEl.length) {
+          //  prevUOMID = $prevUOMEl.val();
+          //}
 
           var prevUOMName = avbaseCategoryGetname(prevUOMID, true);
           var currentUOMName = avbaseCategoryGetname(currentUOMID);
@@ -54,11 +55,11 @@
           $qtyEl.attr('title', Drupal.t('@uom1 per @uom2', {'@uom1': prevUOMName, '@uom2': currentUOMName}));
           $qtyEl.focus().select();
 
-          if ($nextQtyEl.length) {
-            var nextUOMName = avbaseCategoryGetname($nextUOMEl.val());
-            nextUOMName = nextUOMName ? nextUOMName.toLowerCase() : 'uom';
-            $nextQtyEl.attr('title', Drupal.t('@uom1 per @uom2', {'@uom1': currentUOMNamePlural, '@uom2': nextUOMName}));
-          }
+          //if ($nextQtyEl.length) {
+          //  var nextUOMName = avbaseCategoryGetname($nextUOMEl.val());
+          //  nextUOMName = nextUOMName ? nextUOMName.toLowerCase() : 'uom';
+          //  $nextQtyEl.attr('title', Drupal.t('@uom1 per @uom2', {'@uom1': currentUOMNamePlural, '@uom2': nextUOMName}));
+          //}
         });
       });
 

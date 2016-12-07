@@ -1,8 +1,9 @@
 (function ($) {
-  /**
-   * Prepare the Ajax request before it is sent.
-   */
+
   if (Drupal.ajax) {
+    /**
+     * Prepare the Ajax request before it is sent.
+     */
     Drupal.ajax.prototype.beforeSend = function (xmlhttprequest, options) {
       if (this.form) {
         options.extraData = options.extraData || {};
@@ -41,6 +42,30 @@
           }
           $(this.element).append('<i class="uk-icon-refresh uk-icon-spin' + marginClass + '"></i>');
         }
+      }
+    };
+  }
+
+
+  if (Drupal.jsAC) {
+    /**
+     * Override autocomplete status animations.
+     * @param status
+     */
+    Drupal.jsAC.prototype.setStatus = function (status) {
+      switch (status) {
+        case 'begin':
+          console.log('autocomplete-begin');
+          //$(this.input).addClass('throbbing');
+          $(this.input).siblings('i').addClass('uk-icon-spin uk-text-primary');
+          $(this.ariaLive).html(Drupal.t('Searching for matches...'));
+          break;
+        case 'cancel':
+        case 'error':
+        case 'found':
+          $(this.input).siblings('i').removeClass('uk-icon-spin uk-text-primary');
+          //$(this.input).removeClass('throbbing');
+          break;
       }
     };
   }

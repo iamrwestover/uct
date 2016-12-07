@@ -121,7 +121,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   );
   $info['code'] = array(
     '#type' => 'textfield',
-    '#title' => 'Product code',
+    '#title' => 'Product keyword',
     '#default_value' => isset($row->code) ? check_plain($row->code) : '',
     '#maxlength' => 32,
   );
@@ -365,7 +365,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       ),
     );
     $group['uom_group']['uoms'][$uom_key] = $fields;
-    $last_uom_id = $uom_row['uom_id'];
+    //$last_uom_id = $uom_row['uom_id'];
   }
 
   $group['uom_group']['add_btn'] = array(

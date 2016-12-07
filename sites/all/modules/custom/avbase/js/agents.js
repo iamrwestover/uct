@@ -1,20 +1,5 @@
 (function ($) {
-  if (Drupal.jsAC) {
-    Drupal.jsAC.prototype.setStatus = function (status) {
-      switch (status) {
-        case 'begin':
-                console.log('r');
-          $(this.input).addClass('throbbing');
-          $(this.ariaLive).html(Drupal.t('Searching for matches...'));
-          break;
-        case 'cancel':
-        case 'error':
-        case 'found':
-          $(this.input).removeClass('throbbing');
-          break;
-      }
-    };
-  }
+
 }(jQuery));
 
 
@@ -24,11 +9,7 @@ jQuery(document).ready(function ($) {
     var twinID = $(this).data('twin-id');
     var $el = $('#' + twinID);
     $el.val($(node).data('autocompleteValue'));
-    //console.log($(node).data('autocompleteValue'));
-    //console.log($(node));
-    $(this).val($(node).find('div').html());
-    //console.log($(node).innerHTML());
-    console.log(Drupal.ACDB.prototype);
+    $(this).val($(node).find('div#a-vendor-text').html());
   });
 
   //$('.form-autocomplete').change(function() {
