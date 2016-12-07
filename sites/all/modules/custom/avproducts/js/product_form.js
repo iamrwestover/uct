@@ -51,13 +51,13 @@
           currentUOMNamePlural = currentUOMNamePlural ? currentUOMNamePlural.toLowerCase() : 'uom';
 
 
-          $qtyEl.attr('title', Drupal.t('number of @uom1 per @uom2', {'@uom1': prevUOMName, '@uom2': currentUOMName}));
+          $qtyEl.attr('title', Drupal.t('@uom1 per @uom2', {'@uom1': prevUOMName, '@uom2': currentUOMName}));
           $qtyEl.focus().select();
 
           if ($nextQtyEl.length) {
             var nextUOMName = avbaseCategoryGetname($nextUOMEl.val());
             nextUOMName = nextUOMName ? nextUOMName.toLowerCase() : 'uom';
-            $nextQtyEl.attr('title', Drupal.t('number of @uom1 per @uom2', {'@uom1': currentUOMNamePlural, '@uom2': nextUOMName}));
+            $nextQtyEl.attr('title', Drupal.t('@uom1 per @uom2', {'@uom1': currentUOMNamePlural, '@uom2': nextUOMName}));
           }
         });
       });
@@ -65,7 +65,7 @@
       // Auto-compute and update UOM cost and price values (only if empty) whenever base cost and price values are changed.
       $('#uom-cost, #uom-price').once('avproductsAmtAutoCompute', function() {
         $(this).change(function(e, UOMIndex) {
-          var amount = Drupal.checkPlain($(this).val());
+          var amount = $(this).val();
 
           // @todo compute based on child UOM
           var fieldId = $(this).attr('id');
@@ -79,14 +79,14 @@
           $uomIDs.each(function() {
             var uomIndex = $(this).data('uom-index');
             var $qtyEl = $('#uom-qty-' + uomIndex);
+            var $childAmtEl = $('#' + fieldId + '-' + (uomIndex - 1));
             var $amountEl = $('#' + fieldId + '-' + uomIndex);
-
             var qty = Drupal.checkPlain($qtyEl.val());
-            if (fieldId == 'uom-price' && $amountEl.val() != '') {
-              // If qty isn't numeric or;
-              // If $amountEl is not empty, user already specified desired price, so no need to auto-compute.
-              //return;
+            if ($childAmtEl.length) {
+              amount = $childAmtEl.val();
             }
+
+            amount = Drupal.checkPlain(amount);
             if (!$.isNumeric(amount) || !$.isNumeric(qty)) {
               $amountEl.val('');
               return;
@@ -135,6 +135,9 @@
 jQuery(document).ready(function ($) {
   // Auto-compute cost on first page load.
   $('#uom-cost').trigger('change');
+
+  // Power up UOM drop down field.
+  //$('#uom-id').select2();
 });
 
 

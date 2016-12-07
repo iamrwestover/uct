@@ -112,7 +112,7 @@ function avbase_get_category_plural_form($conditions) {
     return '';
   }
 
-  return check_plain(isset($category->data['plural_form']) ? $category->data['plural_form'] : $category->title);
+  return check_plain(!empty($category->data['plural_form']) ? $category->data['plural_form'] : $category->title);
 }
 
 /**
