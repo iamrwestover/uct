@@ -265,7 +265,7 @@ function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
 }
 
 /**
- * Implementation of hook_categories_(uom)_list_alter().
+ * Implementation of hook_categories_(uom)_form_alter().
  * @param $form
  * @param $db_row
  */
@@ -308,24 +308,77 @@ function avbase_avbase_crud_dbchange_uom($op, $row, $table_name) {
       break;
   }
 }
-///**
-// * Pre-submit handler for UOM add/edit form.
-// * @param $form
-// * @param $form_state
-// * @throws
-// */
-//function avbase_category_uom_form_submit($form, &$form_state) {
-//  $transaction = db_transaction();
-//  try {
-//    $values = $form_state['values'];
-//    $record_id = isset($values['id']) ? $values['id'] : NULL;
-//    if (!empty($record_id)) {
-//      // Purge
-//    }
-//  }
-//  catch (Exception $e) {
-//    $transaction->rollback();
-//    watchdog_exception('crud_save_uom', $e);
-//    throw $e;
-//  }
-//}
+
+/**
+ * Implementation of hook_categories_(agent_cust)_form_alter().
+ * @param $form
+ * @param $db_row
+ */
+function avbase_category_agent_cust_form_alter(&$form, $db_row) {
+  avbase_category_agent_form_alter($form, $db_row);
+}
+
+/**
+ * Implementation of hook_categories_(agent_vend)_form_alter().
+ * @param $form
+ * @param $db_row
+ */
+function avbase_category_agent_vend_form_alter(&$form, $db_row) {
+  avbase_category_agent_form_alter($form, $db_row);
+}
+
+function avbase_category_agent_form_alter(&$form, $db_row) {
+  $entity_name = $form['entity_name']['#value'];
+  //switch ($entity_name) {
+  //
+  //}
+  $form['title']['#title'] = t('Agent name');
+  $form['description']['#access'] = FALSE;
+
+  $form['#attached']['js'] = array(
+    AVBASE_MODULE_PATH . '/js/agents.js',
+  );
+  switch ($entity_name) {
+    case 'agent_vend':
+      $form['vendor_name'] = array(
+        '#id' => 'vendor-name',
+        '#type' => 'textfield',
+        '#title' => t('Vendor'),
+        '#size' => 30,
+        '#maxlength' => 60,
+        '#autocomplete_path' => 'user/autocomplete',
+        //'#default_value' => 'aAron',
+        '#weight' => 1.2,
+        '#required' => TRUE,
+        '#attributes' => array(
+          'data-twin-id' => 'vendor-id',
+        ),
+      );
+      $form['vendor_id'] = array(
+        '#id' => 'vendor-id',
+        '#type' => 'textfield',
+        '#element_validate' => array('element_validate_integer_positive'),
+        '#required' => TRUE,
+      );
+      break;
+  }
+  //dpm($form);
+  //$form['system_default'] = array(
+  //  '#type' => 'checkbox',
+  //  '#title' => 'Use this UOM as system default',
+  //  '#weight' => 1.2,
+  //  '#default_value' => !empty($db_row->system_default),
+  //);
+  //$form['plural_form'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Plural form',
+  //  '#default_value' => isset($db_row->data['plural_form']) ? check_plain($db_row->data['plural_form']) : '',
+  //  '#maxlength' => 32,
+  //  '#weight' => 1.1,
+  //);
+  //
+  ////$form['data_ids']['#value'][] = 'default';
+  //$form['data_ids']['#value'][] = 'plural_form';
+  //$form['save_field_ids']['#value'][] = 'system_default';
+  ////array_unshift($form['#submit'], 'avbase_category_uom_form_submit');
+}

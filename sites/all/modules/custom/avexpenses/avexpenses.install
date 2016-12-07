@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ * @return mixed
+ */
+//function avexpenses_schema() {
+//  $schema['avtbl_products'] = array(
+//    'description' => 'Products',
+//    'fields' => array(
+//      'id' => array(
+//        'description' => 'Product ID',
+//        'type' => 'serial',
+//        'unsigned' => TRUE,
+//        'not null' => TRUE,
+//      ),
+//      'code' => array(
+//        'description' => 'Product code',
+//        'type' => 'varchar',
+//        'length' => '32',
+//        'not null' => FALSE,
+//      ),
+//      'title' => array(
+//        'description' => 'Product title',
+//        'type' => 'varchar',
+//        'length' => '255',
+//        'not null' => TRUE,
+//      ),
+//      'category_id' => array(
+//        'description' => 'Category ID',
+//        'type' => 'int',
+//        'not null' => FALSE,
+//      ),
+//      'description' => array(
+//        'description' => 'Product description',
+//        'type' => 'text',
+//        'not null' => FALSE,
+//      ),
+//      'qty' => array(
+//        'description' => 'Actual on-hand quantity.',
+//        'type' => 'int',
+//        'unsigned' => TRUE,
+//        'not null' => TRUE,
+//        'default' => 0,
+//      ),
+//      'initial_qty' => array(
+//        'description' => 'Initial product quantity.',
+//        'type' => 'int',
+//        'unsigned' => TRUE,
+//        'not null' => TRUE,
+//      ),
+//      'initial_qty_date' => array(
+//        'description' => 'Date when initial quantity was received.',
+//        'type' => 'int',
+//        'unsigned' => TRUE,
+//        'not null' => TRUE,
+//      ),
+//      'uom_id' => array(
+//        'description' => 'Unit of measure - Category ID',
+//        'type' => 'int',
+//        'unsigned' => TRUE,
+//        'not null' => TRUE,
+//      ),
+//      'rop' => array(
+//        'description' => 'Reorder point',
+//        'type' => 'int',
+//        'unsigned' => TRUE,
+//        'not null' => FALSE,
+//      ),
+//      'eoq' => array(
+//        'description' => 'Economic order quantity',
+//        'type' => 'int',
+//        'unsigned' => TRUE,
+//        'not null' => FALSE,
+//      ),
+//      'cost' => array(
+//        'description' => 'Unit cost',
+//        'type' => 'numeric',
+//        'unsigned' => TRUE,
+//        'not null' => FALSE,
+//        'precision' => '12',
+//        'scale' => '6',
+//      ),
+//      'price' => array(
+//        'description' => 'Unit price',
+//        'type' => 'numeric',
+//        'unsigned' => TRUE,
+//        'not null' => FALSE,
+//        'precision' => '12',
+//        'scale' => '6',
+//      ),
+//      'data' => array(
+//        'description' => 'Miscellaneous product info',
+//        'type' => 'text',
+//        'not null' => FALSE,
+//      ),
+//      'created' => array(
+//        'description' => 'Timestamp when the record is created',
+//        'type' => 'int',
+//        'not null' => TRUE,
+//      ),
+//    ),
+//    'primary key' => array('id'),
+//    'unique keys' => array(
+//      'code' => array('code')
+//    ),
+//    'indexes' => array(
+//      'category_id' => array('category_id'),
+//      'title' => array('title'),
+//    ),
+//  );
+//
+//  return $schema;
+//}

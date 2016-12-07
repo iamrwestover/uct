@@ -7,6 +7,7 @@
 require_once 'inc/helpers.inc';
 require_once 'inc/crud.inc';
 
+define('AVBASE_MODULE_PATH', drupal_get_path('module', 'avbase'));
 define('AVBASE_LIBRARIES_PATH', 'sites/all/libraries');
 /**
  * Implements hook_modules_installed().
@@ -47,7 +48,9 @@ function avbase_menu() {
   );
 
   $categories = avbase_category_groups();
+  $x = -1;
   foreach ($categories as $k => $v) {
+    $x++;
     $category_title = isset($v['plural_name']) ? $v['plural_name'] : $v['name'];
     $items[$v['menu_path']] = array(
       'title' => $category_title,
@@ -56,6 +59,7 @@ function avbase_menu() {
       'access callback' => 'user_is_logged_in',
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/categories.inc',
+      'weight' => $x,
     );
     $items[$v['menu_path'] . '/add'] = array(
       'title' => 'New',
@@ -134,6 +138,16 @@ function avbase_category_groups($category_id = '') {
   $groups['uom'] = array(
     'menu_path' => 'av/categories/uom',
     'name' => 'Unit of Measure',
+  );
+  $groups['agent_vend'] = array(
+    'menu_path' => 'av/categories/vendor-agents',
+    'name' => 'Vendor Agent',
+    'plural_name' => 'Vendor Agents',
+  );
+  $groups['agent_cust'] = array(
+    'menu_path' => 'av/categories/customer-agents',
+    'name' => 'Customer Agent',
+    'plural_name' => 'Customer Agents',
   );
 
   if (isset($groups[$category_id])) {

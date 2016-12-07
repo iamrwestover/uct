@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * AV Products module.
+ */
+
+define('AVEXPENSES_MODULE_PATH', drupal_get_path('module', 'avexpenses'));
+
+//require_once 'inc/helpers.inc';
+
+/**
+ * Implementation of hook_menu().
+ */
+function avexpenses_menu() {
+  $items['av/expenses'] = array(
+    'title' => 'Expenses',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avexpenses_home_form'),
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+  );
+  //$items['av/purchase-order/new'] = array(
+  //  'title' => 'New Purchase Order',
+  //  'page callback' => 'avproducts_product_form_load',
+  //  'page arguments' => array(NULL),
+  //  'access callback' => 'user_is_logged_in',
+  //  //'type' => MENU_LOCAL_TASK,
+  //  'file' => 'inc/crud.inc',
+  //  'menu_name' => 'av',
+  //  'expanded' => TRUE,
+  //);
+  return $items;
+}
+
+/**
+ * Expenses List page.
+ * @param $form
+ * @param $form_state
+ * @return array
+ */
+function avexpenses_home_form($form, &$form_state) {
+  return array();
+}
