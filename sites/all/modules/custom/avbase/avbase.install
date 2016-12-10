@@ -44,6 +44,12 @@ function avbase_schema() {
         'length' => '255',
         'not null' => FALSE,
       ),
+      'system_default' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
       'group_id' => array(
         'description' => 'Category group ID',
         'type' => 'varchar',

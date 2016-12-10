@@ -86,9 +86,11 @@ function avvendors_schema() {
       ),
     ),
     'primary key' => array('id'),
+    'unique keys' => array(
+      'display_name' => array('display_name')
+    ),
     'indexes' => array(
       'company' => array('company'),
-      'display_name' => array('display_name'),
       'email' => array('email'),
       'first_name' => array('first_name'),
       'last_name' => array('last_name'),
