@@ -74,6 +74,9 @@ function avcustomers_customer_form_settings(&$form) {
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'customer');
 
+  // Set autocomplete off.
+  $form['#attributes']['autocomplete'] = 'off';
+
   // Set field names to save.
   $save_field_ids = array(
     'created',
@@ -149,10 +152,11 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
   );
   $info['display_name'] = array(
     '#type' => 'textfield',
-    '#title' => 'Display name as',
+    '#title' => 'Display name',
     '#default_value' => isset($row->display_name) ? check_plain($row->display_name) : '',
     '#maxlength' => 255,
     '#required' => TRUE,
+    '#element_validate' => array('avbase_element_validate_display_name'),
   );
   $info['credit_limit'] = array(
     '#type' => 'textfield',

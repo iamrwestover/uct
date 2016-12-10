@@ -160,6 +160,43 @@ function avbase_element_validate_date($element, &$form_state, $form) {
 }
 
 /**
+ * Check if element is a valid and unique display_name.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_display_name($element, &$form_state, $form) {
+  //$values = isset($form_state['values']) ? $form_state['values'] : array();
+  //$table_name = $values['table_name'];
+  $display_name = $element['#value'];
+  $exists = db_query("SELECT id FROM {avtbl_customers} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+  if (!$exists) {
+    $exists = db_query("SELECT id FROM {avtbl_vendors} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+  }
+  if ($exists) {
+    form_error($element, t('Another customer or vendor is already using this @field_title', array('@field_title' => $element['#title'])));
+  }
+  //$date_format = isset($element['#av_date_format']) ? $element['#av_date_format'] : 'M. d, Y';
+  //$date_info = date_parse_from_format($date_format, $date);
+  //
+  //$t_args = array(
+  //  '%element_title' => $element['#title'],
+  //  '@date_format' => $date_format,
+  //  '@sample_date' => format_date(time(), 'custom', $date_format)
+  //);
+  //if (!empty($date_info['error_count'])) {
+  //  form_error($element, t('Date format for %element_title is invalid. Kindly follow this format: @date_format (e.g. @sample_date)', $t_args));
+  //}
+  //elseif (!empty($date_info['warning_count'])) {
+  //  form_error($element, t('%element_title is invalid.', $t_args));
+  //}
+  //else {
+  //  // Set this element's value as timestamp equivalent.
+  //  $form_state['values'][$element['#name']] = strtotime($date);
+  //}
+}
+
+/**
  * Custom money format.
  * @param $format
  * @param $number

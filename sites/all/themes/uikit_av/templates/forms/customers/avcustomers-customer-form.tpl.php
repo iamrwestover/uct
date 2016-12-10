@@ -82,7 +82,7 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
         </div>
 
       </li>
-      <li class="uk-panel uk-panel-box"><?php print drupal_render($form['payment']); ?></li>
+      <li class="uk-panel uk-panel-box"><?php print drupal_render($form['payment']['payment_method_id']); ?></li>
       <li class="uk-panel uk-panel-box"><?php print drupal_render($form['misc']['notes']); ?></li>
     </ul>
   </div>
