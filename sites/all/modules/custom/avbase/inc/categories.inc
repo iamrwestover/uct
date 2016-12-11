@@ -1,5 +1,8 @@
 <?php
 
+// Include specific category inc file.
+module_load_include('inc', 'avbase', 'inc/categories/' . arg(2));
+
 /**
  * Categories home page.
  * @return string
@@ -19,7 +22,7 @@ function avbase_categories_home() {
 function avbase_categories_form($form, &$form_state, $category_id) {
   $form['group_id'] = array('#type' => 'value', '#value' => $category_id);
   $category = avbase_category_groups($category_id);
-  $category_menu_path = $category['menu_path'];
+  $category_menu_path = 'av/categories/' . $category_id;
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array('#markup' => l('New ' . strtolower($category['name']), $category_menu_path . '/add', $btn_options));
 
@@ -30,8 +33,9 @@ function avbase_categories_form($form, &$form_state, $category_id) {
     'actions' => array('data' => '&nbsp;', '#weight' => 3),
   );
 
-  $result = db_select('avtbl_categories', 'acg')
-    ->fields('acg')
+  $result = db_select('avtbl_categories', 'avc')
+    ->addTag('avcategory_load_' . $category_id)
+    ->fields('avc')
     ->condition('group_id', $category_id)
     ->extend('PagerDefault')
     ->extend('TableSort')
@@ -95,7 +99,7 @@ function avbase_categories_form($form, &$form_state, $category_id) {
     $table_markup = theme('table', $table_options);
   }
   $form['table']['#markup'] = $table_markup;
-  $form['pager']['#markup'] = theme('pager', array('tags' => array()));
+  $form['pager']['#markup'] = '<br />' . theme('pager', array('tags' => array()));
 
   return $form;
 }
@@ -155,7 +159,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
     '#value' => t('Save'),
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', $category['menu_path']),
+    '#markup' => l('Cancel', 'av/categories/' . $category_id),
   );
 
   drupal_alter('category_' . $category_id . '_form', $form, $row);
@@ -175,6 +179,9 @@ function avbase_category_form_settings(&$form, $category_id) {
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => $entity_name);
+
+  // Set autocomplete off.
+  $form['#attributes']['autocomplete'] = 'off';
 
   // Set field names to save.
   $save_field_ids = array(
@@ -229,155 +236,73 @@ function avbase_category_delete_confirm_form_submit($form, &$form_state) {
 }
 
 /**
- * Implementation of hook_categories_(uom)_list_alter().
- * Alter UOM List table.
- * @param $table_options
- * @param $db_rows
- */
-function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
-  $header = &$table_options['header'];
-  $rows = &$table_options['rows'];
-  $prefix = __FUNCTION__;
-
-  $column_default_key = $prefix . '_default';
-
-  $header[$column_default_key] = array(
-    'data' => 'Default',
-    '#weight' => 1.1,
-  );
-
-  foreach ($rows as $k => &$row) {
-    $db_row = isset($db_rows[$k]) ? $db_rows[$k] : array();
-    $data = empty($db_row->data) ? array() : $db_row->data;
-
-    // Append plural form to UOM Title.
-    $plural_form = empty($data['plural_form']) ? '' : strtolower(check_plain($data['plural_form']));
-    if ($plural_form) {
-      $row['data']['title']['data'] .= '<span class="uk-text-muted"> / ' . $plural_form . '</span>';
-    }
-
-    // Add 'Default UOM' column.
-    $row['data'][$column_default_key] = array(
-      'data' => empty($db_row->system_default) ? '' : 'Yes',
-    );
-  }
-
-}
-
-/**
- * Implementation of hook_categories_(uom)_form_alter().
+ * Alter Agent add/edit form.
  * @param $form
  * @param $db_row
  */
-function avbase_category_uom_form_alter(&$form, $db_row) {
-  $form['system_default'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Use this UOM as system default',
-    '#weight' => 1.2,
-    '#default_value' => !empty($db_row->system_default),
-  );
-  $form['plural_form'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Plural form',
-    '#default_value' => isset($db_row->data['plural_form']) ? check_plain($db_row->data['plural_form']) : '',
-    '#maxlength' => 32,
-    '#weight' => 1.1,
-  );
-
-  //$form['data_ids']['#value'][] = 'default';
-  $form['data_ids']['#value'][] = 'plural_form';
-  $form['save_field_ids']['#value'][] = 'system_default';
-  //array_unshift($form['#submit'], 'avbase_category_uom_form_submit');
-}
-
-
-/**
- * Perform actions depending on the kind of change that will be made
- * on the database for UOM categories.
- * @param $op
- * @param $row
- * @param $table_name
- */
-function avbase_avbase_crud_dbchange_uom($op, $row, $table_name) {
-  switch ($op) {
-    case 'pre-save':
-      // Make sure this $row is the only system default UOM if necessary.
-      if (!empty($row['system_default'])) {
-        db_query("UPDATE {{$table_name}} SET system_default = 0 WHERE group_id = :group_id", array(':group_id' => $row['group_id']));
-      }
-      break;
-  }
-}
-
-/**
- * Implementation of hook_categories_(agent_cust)_form_alter().
- * @param $form
- * @param $db_row
- */
-function avbase_category_agent_cust_form_alter(&$form, $db_row) {
-  avbase_category_agent_form_alter($form, $db_row);
-}
-
-/**
- * Implementation of hook_categories_(agent_vend)_form_alter().
- * @param $form
- * @param $db_row
- */
-function avbase_category_agent_vend_form_alter(&$form, $db_row) {
-  avbase_category_agent_form_alter($form, $db_row);
-}
-
 function avbase_category_agent_form_alter(&$form, $db_row) {
   $entity_name = $form['entity_name']['#value'];
-  //switch ($entity_name) {
-  //
-  //}
   $form['title']['#title'] = t('Agent name');
   $form['description']['#access'] = FALSE;
 
   $form['#attached']['js'] = array(
     AVBASE_MODULE_PATH . '/js/agents.js',
   );
+  $form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
   switch ($entity_name) {
     case 'agent_vend':
-      $form['vendor_name'] = array(
-        '#id' => 'vendor-name',
-        '#type' => 'textfield',
-        '#title' => t('Vendor'),
-        '#size' => 30,
-        '#maxlength' => 60,
-        '#autocomplete_path' => 'av/vendors/autocomplete',
-        '#weight' => 1.2,
-        '#required' => TRUE,
-        '#attributes' => array(
-          'data-twin-id' => 'vendor-id',
-        ),
-      );
-      $form['vendor_id'] = array(
-        '#id' => 'vendor-id',
-        '#type' => 'textfield',
-        '#element_validate' => array('element_validate_integer_positive'),
-        '#required' => TRUE,
-      );
+      //$form['vendor_id'] = array(
+      //  '#id' => 'vendor-id',
+      //  '#type' => 'textfield',
+      //  '#title' => t('Vendor'),
+      //  '#size' => 30,
+      //  '#maxlength' => 60,
+      //  '#autocomplete_path' => 'av/vendors/autocomplete',
+      //  '#weight' => 1.2,
+      //  '#required' => TRUE,
+      //  '#element_validate' => array('avbase_element_validate_display_name_exists'),
+      //  '#table_name' => 'avtbl_vendors',
+      //  '#default_value' => empty($db_row->vendor_name) ? '' : check_plain($db_row->vendor_name),
+      //  //'#prefix' => '<div id="multiple-vendor-wrapper">',
+      //  //'#suffix' => '</div>',
+      //);
+
+      //$group['add_btn'] = array(
+      //  '#type' => 'submit',
+      //  '#name' =>'vendor_add_more',
+      //  '#value' => t('Add another vendor'),
+      //  //'#attributes' => array('class' => array('field-add-more-submit')),
+      //  '#limit_validation_errors' => array(array('uoms'), array('uom_id')),
+      //  '#submit' => array('avproducts_uom_multiple_submit'),
+      //  '#ajax' => array(
+      //    'callback' => 'avproducts_uom_multiple_js',
+      //    'wrapper' => 'multiple-uom-wrapper',
+      //    'effect' => 'none',
+      //  ),
+      //);
       break;
   }
-  //dpm($form);
-  //$form['system_default'] = array(
-  //  '#type' => 'checkbox',
-  //  '#title' => 'Use this UOM as system default',
-  //  '#weight' => 1.2,
-  //  '#default_value' => !empty($db_row->system_default),
-  //);
-  //$form['plural_form'] = array(
-  //  '#type' => 'textfield',
-  //  '#title' => 'Plural form',
-  //  '#default_value' => isset($db_row->data['plural_form']) ? check_plain($db_row->data['plural_form']) : '',
-  //  '#maxlength' => 32,
-  //  '#weight' => 1.1,
-  //);
-  //
-  ////$form['data_ids']['#value'][] = 'default';
-  //$form['data_ids']['#value'][] = 'plural_form';
-  //$form['save_field_ids']['#value'][] = 'system_default';
-  ////array_unshift($form['#submit'], 'avbase_category_uom_form_submit');
 }
+
+/**
+ * Menu callback - retrieve a JSON object containing autocomplete suggestions for existing categories.
+ * @param string $string
+ */
+function avbase_category_autocomplete($category_id, $string = '') {
+  $matches = array();
+  $string = trim($string);
+  if ($string) {
+    $query = db_select('avtbl_categories', 'avc')->fields('avc', array('title'));
+    $query->condition('avc.title', '%' . db_like($string) . '%', 'LIKE');
+    $query->condition('avc.group_id', $category_id);
+    $query->range(0, 10);
+    $result = $query->execute();
+
+    foreach ($result as $row) {
+      $matches[$row->title] = check_plain($row->title);
+    }
+  }
+
+  drupal_json_output($matches);
+}
+

@@ -61,7 +61,7 @@ function avbase_crud_form_submit($form, &$form_state) {
     if (!empty($row) && !empty($table_name)) {
       // Let other modules perform pre-save processes.
       if (!empty($entity_name)) {
-        module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'pre-save', $row, $table_name);
+        module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'pre-save', $row, $form_state);
       }
 
       // Do save.
@@ -71,7 +71,7 @@ function avbase_crud_form_submit($form, &$form_state) {
         if (array_search('created', $save_field_ids) !== FALSE) {
           $row['created'] = time();
         }
-        if (db_insert($table_name)->fields($row)->execute()) {
+        if ($row['id'] = db_insert($table_name)->fields($row)->execute()) {
           drupal_set_message('New record saved.');
         }
       } else {
@@ -79,6 +79,12 @@ function avbase_crud_form_submit($form, &$form_state) {
         if (db_update($table_name)->fields($row)->condition('id', $record_id)->execute()) {
           drupal_set_message('Changes saved.');
         }
+        $row['id'] = $record_id;
+      }
+
+      // Let other modules perform after-save processes.
+      if (!empty($entity_name)) {
+        module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'after-save', $row, $form_state);
       }
     }
     else {

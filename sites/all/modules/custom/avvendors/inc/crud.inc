@@ -73,6 +73,7 @@ function avvendors_vendor_form_settings(&$form) {
     'middle_name',
     'company',
     'display_name',
+    'agent_id' => array('type' => 'int'),
     'email',
     'address',
     'city',
@@ -136,6 +137,17 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
     '#maxlength' => 255,
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_display_name'),
+  );
+  $info['agent_id'] = array(
+    '#id' => 'agent-id',
+    '#type' => 'textfield',
+    '#title' => t('Agent'),
+    '#maxlength' => 64,
+    '#autocomplete_path' => 'av/categories/agent_vend/autocomplete',
+    '#weight' => 1.2,
+    '#element_validate' => array('avbase_element_validate_category_exists'),
+    '#element_validate_conditions' => array('group_id' => 'agent_vend'),
+    '#default_value' => empty($row->agent_name) ? '' : check_plain($row->agent_name),
   );
   $form['info'] += $info;
 }

@@ -44,6 +44,12 @@ function avvendors_schema() {
         'length' => '255',
         'not null' => TRUE,
       ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'email' => array(
         'description' => 'E-mail address',
         'type' => 'varchar',
@@ -90,6 +96,7 @@ function avvendors_schema() {
       'display_name' => array('display_name')
     ),
     'indexes' => array(
+      'agent_id' => array('agent_id'),
       'company' => array('company'),
       'email' => array('email'),
       'first_name' => array('first_name'),

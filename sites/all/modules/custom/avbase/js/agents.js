@@ -4,23 +4,10 @@
 
 
 jQuery(document).ready(function ($) {
-  $('#vendor-name').on('autocompleteSelect', function(e, node) {
-    console.log('selected!');
-    var twinID = $(this).data('twin-id');
-    var $el = $('#' + twinID);
-    $el.val($(node).data('autocompleteValue'));
-    $(this).val($(node).find('div#a-vendor-text').html());
-  });
-
-  //$('.form-autocomplete').change(function() {
-  //  var twinID = $(this).data('twin-id');
-  //  var $el = $('#' + twinID);
-  //  if ($el.length) {
-  //    $el.val('');
-  //  }
-  //}).keyup(function() {
-  //  $(this).trigger('change');
+  //$('#vendor-name').on('autocompleteSelect', function(e, node) {
+  //  $(this).val($(node).find('div#a-vendor-text').html());
   //});
+
 });
 
 

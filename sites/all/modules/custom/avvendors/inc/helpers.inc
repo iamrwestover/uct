@@ -12,8 +12,11 @@ function avvendor_load($vendor_id) {
     return $data[$vendor_id];
   }
 
-  $query = "SELECT * FROM {avtbl_vendors} WHERE id = :vendor_id";
-  $args = array(':vendor_id' => $vendor_id);
+  $query = "SELECT avv.*, avc.title AS agent_name
+  FROM {avtbl_vendors} avv
+  LEFT JOIN {avtbl_categories} avc ON avc.id = avv.agent_id AND avc.group_id = :group_id
+  WHERE avv.id = :vendor_id";
+  $args = array(':vendor_id' => $vendor_id, ':group_id' => 'agent_vend');
   $row = db_query($query, $args)->fetchObject();
   if (isset($row->data)) {
     $row->data = unserialize($row->data);
@@ -45,19 +48,27 @@ function avvendors_autocomplete($string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
-    $result = db_select('avtbl_vendors')
-      ->fields('avtbl_vendors', array('id', 'display_name', 'company'))
-      ->condition('display_name', '%' . db_like($string) . '%', 'LIKE')
-      ->range(0, 10)
-      ->execute();
+    $db_or = db_or();
+    $db_or->condition('avv.display_name', '%' . db_like($string) . '%', 'LIKE');
+    $db_or->condition('avv.company', '%' . db_like($string) . '%', 'LIKE');
+    $db_or->condition('avv.first_name', '%' . db_like($string) . '%', 'LIKE');
+    $db_or->condition('avv.last_name', '%' . db_like($string) . '%', 'LIKE');
+
+    $query = db_select('avtbl_vendors', 'avv')->fields('avv', array('display_name', 'company'));
+    $query->leftJoin('avtbl_categories', 'avc', 'avc.id = avv.agent_id');
+    $query->addField('avc', 'title', 'agent_name');
+    $query->condition($db_or);
+    $query->range(0, 15);
+    $result = $query->execute();
+
     foreach ($result as $row) {
       $row->display_name = check_plain($row->display_name);
-      $row_html = $row->display_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
-      //$row_html .= '<div style="display: none;" id="a-vendor-id">' . $row->display_name . '</div>';
-      $row_html .= '<div style="display: none;" id="a-vendor-text">' . $row->display_name . '</div>';
-      $matches[$row->id] = $row_html;
+      $row_html = $row->agent_name . '-' . $row->display_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
+      //$row_html .= '<div style="display: none;" id="a-vendor-text">' . $row->display_name . '</div>';
+      $matches[$row->display_name] = $row_html;
     }
   }
 
   drupal_json_output($matches);
 }
+

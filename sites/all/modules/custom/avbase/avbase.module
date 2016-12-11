@@ -52,7 +52,7 @@ function avbase_menu() {
   foreach ($categories as $k => $v) {
     $x++;
     $category_title = isset($v['plural_name']) ? $v['plural_name'] : $v['name'];
-    $items[$v['menu_path']] = array(
+    $items['av/categories/' . $k] = array(
       'title' => $category_title,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_categories_form', $k),
@@ -61,7 +61,7 @@ function avbase_menu() {
       'file' => 'inc/categories.inc',
       'weight' => $x,
     );
-    $items[$v['menu_path'] . '/add'] = array(
+    $items['av/categories/' . $k . '/add'] = array(
       'title' => 'New',
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, NULL),
@@ -69,7 +69,7 @@ function avbase_menu() {
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/categories.inc',
     );
-    $items[$v['menu_path'] . '/%avcategory/edit'] = array(
+    $items['av/categories/' . $k . '/%avcategory/edit'] = array(
       'title' => 'Edit',
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, 3),
@@ -77,7 +77,7 @@ function avbase_menu() {
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/categories.inc',
     );
-    $items[$v['menu_path'] . '/%avcategory/delete'] = array(
+    $items['av/categories/' . $k . '/%avcategory/delete'] = array(
       'title' => 'Delete',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_category_delete_confirm_form', $k, 3),
@@ -86,6 +86,15 @@ function avbase_menu() {
       'file' => 'inc/categories.inc',
     );
   }
+
+  $items['av/categories/%/autocomplete'] = array(
+    'title' => 'Categories Autocomplete',
+    'page callback' => 'avbase_category_autocomplete',
+    'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/categories.inc',
+  );
   return $items;
 }
 
@@ -126,26 +135,26 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
 function avbase_category_groups($category_id = '') {
   $groups = array();
   $groups['payment_method'] = array(
-    'menu_path' => 'av/categories/payment-methods',
+    //'menu_path' => 'av/categories/payment-methods',
     'name' => 'Payment Method',
     'plural_name' => 'Payment Methods',
   );
   $groups['product_cat'] = array(
-    'menu_path' => 'av/categories/product-categories',
+    //'menu_path' => 'av/categories/product-categories',
     'name' => 'Product Category',
     'plural_name' => 'Product Categories',
   );
   $groups['uom'] = array(
-    'menu_path' => 'av/categories/uom',
+    //'menu_path' => 'av/categories/uom',
     'name' => 'Unit of Measure',
   );
   $groups['agent_vend'] = array(
-    'menu_path' => 'av/categories/vendor-agents',
+    //'menu_path' => 'av/categories/vendor-agents',
     'name' => 'Vendor Agent',
     'plural_name' => 'Vendor Agents',
   );
   $groups['agent_cust'] = array(
-    'menu_path' => 'av/categories/customer-agents',
+    //'menu_path' => 'av/categories/customer-agents',
     'name' => 'Customer Agent',
     'plural_name' => 'Customer Agents',
   );

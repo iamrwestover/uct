@@ -79,7 +79,6 @@ function avbase_get_category($conditions) {
   foreach ($rows as $groups) {
     foreach ($groups as $category) {
       $match = FALSE;
-      //dpm($category);
       foreach ($conditions as $k => $v) {
 
         $match = isset($category->$k) && $category->$k == $v;
@@ -166,34 +165,59 @@ function avbase_element_validate_date($element, &$form_state, $form) {
  * @param $form
  */
 function avbase_element_validate_display_name($element, &$form_state, $form) {
-  //$values = isset($form_state['values']) ? $form_state['values'] : array();
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  $record_id = isset($values['id']) ? $values['id'] : 0;
   //$table_name = $values['table_name'];
   $display_name = $element['#value'];
-  $exists = db_query("SELECT id FROM {avtbl_customers} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+  $exists = db_query("SELECT id FROM {avtbl_customers} WHERE display_name = :display_name AND id <> :id", array(':display_name' => $display_name, ':id' => $record_id))->fetch();
   if (!$exists) {
-    $exists = db_query("SELECT id FROM {avtbl_vendors} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+    $exists = db_query("SELECT id FROM {avtbl_vendors} WHERE display_name = :display_name AND id <> :id", array(':display_name' => $display_name, ':id' => $record_id))->fetch();
   }
   if ($exists) {
     form_error($element, t('Another customer or vendor is already using this @field_title', array('@field_title' => $element['#title'])));
   }
-  //$date_format = isset($element['#av_date_format']) ? $element['#av_date_format'] : 'M. d, Y';
-  //$date_info = date_parse_from_format($date_format, $date);
-  //
-  //$t_args = array(
-  //  '%element_title' => $element['#title'],
-  //  '@date_format' => $date_format,
-  //  '@sample_date' => format_date(time(), 'custom', $date_format)
-  //);
-  //if (!empty($date_info['error_count'])) {
-  //  form_error($element, t('Date format for %element_title is invalid. Kindly follow this format: @date_format (e.g. @sample_date)', $t_args));
-  //}
-  //elseif (!empty($date_info['warning_count'])) {
-  //  form_error($element, t('%element_title is invalid.', $t_args));
-  //}
-  //else {
-  //  // Set this element's value as timestamp equivalent.
-  //  $form_state['values'][$element['#name']] = strtotime($date);
-  //}
+}
+
+
+/**
+ * Check if element contains an existing display_name.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_display_name_exists($element, &$form_state, $form) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  $record_id = isset($values['id']) ? $values['id'] : 0;
+
+  $table_name = $element['#table_name'];
+  $display_name = $element['#value'];
+  $row = db_query("SELECT id, agent_id FROM {{$table_name}} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+  if (!$row) {
+    form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
+  }
+  elseif (!empty($row->agent_id) && $record_id != $row->agent_id) {
+    form_error($element, t('Another agent has already been assigned to this @field_title.', array('@field_title' => $element['#title'])));
+  }
+  else {
+    // Set this element's value as matching row id.
+    $form_state['values'][$element['#name']] = $row->id;
+  }
+}
+
+/**
+ * Check if category title is unique to its group.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_category_title_unique($element, &$form_state, $form) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  $record_id = isset($values['id']) ? $values['id'] : 0;
+  $title = $element['#value'];
+  $exists = db_query("SELECT id FROM {avtbl_categories} WHERE title = :title AND id <> :id", array(':title' => $title, ':id' => $record_id))->fetch();
+  if ($exists) {
+    form_error($element, t('@field_title already exists.', array('@field_title' => $element['#title'])));
+  }
 }
 
 /**
@@ -219,13 +243,39 @@ function avcategory_load($row_id) {
     return $data[$row_id];
   }
 
-  $query = "SELECT * FROM {avtbl_categories} WHERE id = :row_id";
-  $args = array(':row_id' => $row_id);
-  $row = db_query($query, $args)->fetchObject();
+  $category_id = arg(2);
+  $query = db_select('avtbl_categories', 'avc')->fields('avc');
+  $query->condition('avc.id', $row_id);
+
+  // Let other modules alter category load query.
+  $query->addTag('avcategory_load_' . $category_id);
+
+  $row = $query->execute()->fetchObject();
   if (isset($row->data)) {
     $row->data = unserialize($row->data);
   }
 
   $data[$row_id] = $row;
   return $row;
+}
+
+/**
+ * Check if element contains an existing category.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_category_exists($element, &$form_state, $form) {
+  if (trim($element['#value']) == '') {
+    return;
+  }
+  $conditions = $element['#element_validate_conditions'];
+  $conditions['title'] = check_plain($element['#value']);
+  $category = avbase_get_category($conditions);
+  if (empty($category->id)) {
+    form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
+  }
+  else {
+    $form_state['values'][$element['#name']] = $category->id;
+  }
 }

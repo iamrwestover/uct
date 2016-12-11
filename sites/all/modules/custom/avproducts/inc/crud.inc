@@ -69,6 +69,9 @@ function avproducts_product_form_settings(&$form) {
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'product');
 
+  // Set autocomplete off.
+  $form['#attributes']['autocomplete'] = 'off';
+
   // Set field names to save.
   $save_field_ids = array(
     'created',
@@ -129,6 +132,9 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#type' => 'select',
     '#title' => 'Category',
     '#options' => avbase_get_category_options_array('product_cat'),
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->category_id) ? $row->category_id : 0,
   );
   $info['description'] = array(
     '#type' => 'textarea',

@@ -12,7 +12,10 @@ function avcustomer_load($customer_id) {
     return $data[$customer_id];
   }
 
-  $query = "SELECT * FROM {avtbl_customers} WHERE id = :customer_id";
+  $query = "SELECT avcust.*, avcat.title as agent_name
+  FROM {avtbl_customers} avcust
+  LEFT JOIN {avtbl_categories} avcat ON avcat.id = avcust.agent_id AND avcat.group_id = 'agent_cust'
+  WHERE avcust.id = :customer_id";
   $args = array(':customer_id' => $customer_id);
   $row = db_query($query, $args)->fetchObject();
   if (isset($row->data)) {

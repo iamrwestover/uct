@@ -43,6 +43,7 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
       <div class="uk-width-2-6 uk-margin-small-bottom"><?php print drupal_render($form['info']['last_name']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['display_name']); ?></div>
+      <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['agent_id']); ?></div>
     </div>
   </div>
 
