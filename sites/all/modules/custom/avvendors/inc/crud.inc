@@ -142,7 +142,7 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
     '#id' => 'agent-id',
     '#type' => 'textfield',
     '#title' => t('Agent'),
-    '#maxlength' => 64,
+    '#maxlength' => 255,
     '#autocomplete_path' => 'av/categories/agent_vend/autocomplete',
     '#weight' => 1.2,
     '#element_validate' => array('avbase_element_validate_category_exists'),
@@ -166,6 +166,7 @@ function avvendors_vendor_form_contact_fields(&$form, $row) {
     '#title' => 'E-mail address',
     '#default_value' => isset($row->email) ? check_plain($row->email) : '',
     '#maxlength' => 255,
+    '#element_validate' => array('avbase_element_validate_email'),
   );
   $contact['contact_number'] = array(
     '#type' => 'textfield',

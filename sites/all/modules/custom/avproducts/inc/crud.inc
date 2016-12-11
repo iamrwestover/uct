@@ -140,7 +140,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#type' => 'textarea',
     '#title' => 'Description',
     '#default_value' => isset($row->description) ? check_plain($row->description) : '',
-    '#maxlength' => 65000,
+    '#maxlength' => 255,
   );
   $info['qty'] = array(
     '#type' => 'textfield',
@@ -252,7 +252,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
   $uom_values = isset($user_input['uoms']) ? $user_input['uoms'] : $db_row_uoms;
   $base_uom_id = isset($user_input['uom_id']) ? $user_input['uom_id'] : (isset($row->uom_id) ? $row->uom_id : 0);
 
-  if ($clicked_button)
+  if ($clicked_button) {
     switch ($clicked_button['#name']) {
       case 'uom_delete':
         $remove_uom_key = isset($clicked_button['#remove_uom_key']) ? $clicked_button['#remove_uom_key'] : NULL;
@@ -261,8 +261,8 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       case 'uom_add_more':
         $uom_values = empty($user_input['uoms']) ? array() : $user_input['uoms'];
         $uom_values[] = array();
-        $adding_empty_uom = TRUE;
         break;
+    }
   }
 
 
@@ -375,6 +375,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
   }
 
   $group['uom_group']['add_btn'] = array(
+    '#id' => 'uom-add-btn',
     '#type' => 'submit',
     '#name' =>'uom_add_more',
     '#value' => t('Add another UOM'),

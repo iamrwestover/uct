@@ -54,17 +54,15 @@ function avvendors_autocomplete($string = '') {
     $db_or->condition('avv.first_name', '%' . db_like($string) . '%', 'LIKE');
     $db_or->condition('avv.last_name', '%' . db_like($string) . '%', 'LIKE');
 
-    $query = db_select('avtbl_vendors', 'avv')->fields('avv', array('display_name', 'company'));
-    $query->leftJoin('avtbl_categories', 'avc', 'avc.id = avv.agent_id');
-    $query->addField('avc', 'title', 'agent_name');
+    $query = db_select('avtbl_vendors', 'avv')->fields('avv', array('display_name', 'company', 'email'));
     $query->condition($db_or);
     $query->range(0, 15);
     $result = $query->execute();
 
     foreach ($result as $row) {
       $row->display_name = check_plain($row->display_name);
-      $row_html = $row->agent_name . '-' . $row->display_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
-      //$row_html .= '<div style="display: none;" id="a-vendor-text">' . $row->display_name . '</div>';
+      $row_html = $row->display_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
+      $row_html .= '<div style="display: none;" id="avvendor-email">' . check_plain($row->email) . '</div>';
       $matches[$row->display_name] = $row_html;
     }
   }

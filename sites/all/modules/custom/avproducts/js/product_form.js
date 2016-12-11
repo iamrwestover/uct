@@ -68,7 +68,6 @@
         $(this).change(function(e, UOMIndex) {
           var amount = $(this).val();
 
-          // @todo compute based on child UOM
           var fieldId = $(this).attr('id');
           var $uomIDs;
           if (typeof(UOMIndex) != 'undefined' && UOMIndex !== null) {
@@ -80,12 +79,12 @@
           $uomIDs.each(function() {
             var uomIndex = $(this).data('uom-index');
             var $qtyEl = $('#uom-qty-' + uomIndex);
-            var $childAmtEl = $('#' + fieldId + '-' + (uomIndex - 1));
+            //var $childAmtEl = $('#' + fieldId + '-' + (uomIndex - 1));
             var $amountEl = $('#' + fieldId + '-' + uomIndex);
             var qty = Drupal.checkPlain($qtyEl.val());
-            if ($childAmtEl.length) {
-              amount = $childAmtEl.val();
-            }
+            //if ($childAmtEl.length) {
+            //  amount = $childAmtEl.val();
+            //}
 
             amount = Drupal.checkPlain(amount);
             if (!$.isNumeric(amount) || !$.isNumeric(qty)) {

@@ -33,7 +33,8 @@ function avproducts_schema() {
       ),
       'description' => array(
         'description' => 'Product description',
-        'type' => 'text',
+        'type' => 'varchar',
+        'length' => '255',
         'not null' => FALSE,
       ),
       'qty' => array(

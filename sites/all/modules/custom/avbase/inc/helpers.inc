@@ -187,17 +187,17 @@ function avbase_element_validate_display_name($element, &$form_state, $form) {
  */
 function avbase_element_validate_display_name_exists($element, &$form_state, $form) {
   $values = isset($form_state['values']) ? $form_state['values'] : array();
-  $record_id = isset($values['id']) ? $values['id'] : 0;
+  //$record_id = isset($values['id']) ? $values['id'] : 0;
 
   $table_name = $element['#table_name'];
   $display_name = $element['#value'];
-  $row = db_query("SELECT id, agent_id FROM {{$table_name}} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+  $row = db_query("SELECT id FROM {{$table_name}} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
   if (!$row) {
     form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
-  elseif (!empty($row->agent_id) && $record_id != $row->agent_id) {
-    form_error($element, t('Another agent has already been assigned to this @field_title.', array('@field_title' => $element['#title'])));
-  }
+  //elseif (!empty($row->agent_id) && $record_id != $row->agent_id) {
+  //  form_error($element, t('Another agent has already been assigned to this @field_title.', array('@field_title' => $element['#title'])));
+  //}
   else {
     // Set this element's value as matching row id.
     $form_state['values'][$element['#name']] = $row->id;
@@ -217,6 +217,19 @@ function avbase_element_validate_category_title_unique($element, &$form_state, $
   $exists = db_query("SELECT id FROM {avtbl_categories} WHERE title = :title AND id <> :id", array(':title' => $title, ':id' => $record_id))->fetch();
   if ($exists) {
     form_error($element, t('@field_title already exists.', array('@field_title' => $element['#title'])));
+  }
+}
+
+/**
+ * Check if element value is a valid email.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_email($element, &$form_state, $form) {
+  $mail = $element['#value'];
+  if (trim($mail) != '' && $error = user_validate_mail($mail)) {
+    form_error($element, $error);
   }
 }
 

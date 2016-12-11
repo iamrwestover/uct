@@ -21,16 +21,16 @@ function avexpenses_menu() {
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
-  //$items['av/purchase-order/new'] = array(
-  //  'title' => 'New Purchase Order',
-  //  'page callback' => 'avproducts_product_form_load',
-  //  'page arguments' => array(NULL),
-  //  'access callback' => 'user_is_logged_in',
-  //  //'type' => MENU_LOCAL_TASK,
-  //  'file' => 'inc/crud.inc',
-  //  'menu_name' => 'av',
-  //  'expanded' => TRUE,
-  //);
+  $items['av/expenses/purchase-order/new'] = array(
+    'title' => 'New Purchase Order',
+    'page callback' => 'avexpenses_po_form_load',
+    'page arguments' => array(NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/po.inc',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+  );
   return $items;
 }
 
