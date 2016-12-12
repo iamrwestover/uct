@@ -63,6 +63,7 @@ $icons = array(
   'admin/people' => 'user-plus',
   'av/categories' => 'folder',
   'av/expenses' => 'money',
+  'av/settings' => 'cog',
 );
 //foreach (element_children($menu_tree) as $v) {
 //  dpm($v . '=' . $menu_tree[$v]['#title'] . '=' . $menu_tree[$v]['#href']);

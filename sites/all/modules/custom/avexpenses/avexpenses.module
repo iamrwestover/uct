@@ -35,6 +35,33 @@ function avexpenses_menu() {
 }
 
 /**
+ * Implementation of hook_theme().
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function avexpenses_theme($existing, $type, $theme, $path) {
+  $themes = array();
+
+  $forms_template_path = $path . '/templates/forms';
+  $theme_names = array(
+    'avexpenses_po_form',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'render element' => 'form',
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $forms_template_path,
+    );
+  }
+
+  return $themes;
+}
+
+/**
  * Expenses List page.
  * @param $form
  * @param $form_state

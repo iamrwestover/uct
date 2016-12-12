@@ -66,3 +66,33 @@ function element_validate_av_group_uom($element, &$form_state, $form) {
     }
   }
 }
+
+/**
+ * Menu callback - retrieve a JSON object containing autocomplete suggestions for existing products.
+ * @param string $string
+ */
+function avproducts_autocomplete($string = '') {
+  $matches = array();
+  $string = trim($string);
+  if ($string) {
+    $db_or = db_or();
+    $db_or->condition('avprod.title', '%' . db_like($string) . '%', 'LIKE');
+    $db_or->condition('avprod.code', '%' . db_like($string) . '%', 'LIKE');
+
+    $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('title', 'code', 'data'));
+    $query->condition($db_or);
+    $query->range(0, 15);
+    $result = $query->execute();
+
+    foreach ($result as $row) {
+      $code = check_plain($row->code);
+      $title = check_plain($row->title);
+      $row_html = $title . '<div class="uk-text-muted uk-text-break">' . $code .  '</div>' ;
+      $row_html .= '<div style="display: none;" id="av-prod-code">' . $code . '</div>';
+      $matches[$title] = $row_html;
+    }
+  }
+
+  drupal_json_output($matches);
+}
+

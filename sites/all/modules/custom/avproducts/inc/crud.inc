@@ -121,12 +121,14 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#default_value' => isset($row->title) ? check_plain($row->title) : '',
     '#maxlength' => 255,
     '#required' => TRUE,
+    '#element_validate' => array('avbase_element_validate_unique_field'),
   );
   $info['code'] = array(
     '#type' => 'textfield',
-    '#title' => 'Product keyword',
+    '#title' => 'Product code',
     '#default_value' => isset($row->code) ? check_plain($row->code) : '',
     '#maxlength' => 32,
+    '#element_validate' => array('avbase_element_validate_unique_field'),
   );
   $info['category_id'] = array(
     '#type' => 'select',

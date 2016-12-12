@@ -161,7 +161,36 @@ html.js input.form-autocomplete {
 #autocomplete li.selected {
   background: #f5fbfe;
 }
-
+.av-nestable-form,
+.av-nestable-form-header {
+  border-bottom: solid 1px #ddd;
+}
+.av-nestable-form .uk-nestable-handle,
+.av-nestable-row-num {
+  position: relative;
+  top: 5px;
+}
+.av-nestable-cell {
+  padding: 5px;
+}
+.av-nestable-form .uk-nestable-item+.uk-nestable-item {
+  margin-top: 0;
+}
+.av-nestable-form .uk-nestable-item {
+  border-bottom: solid 1px #ddd;
+}
+.av-nestable-form input,
+.av-nestable-form select {
+  border: none !important;
+}
+.uk-nestable-moving .uk-nestable-item input,
+.uk-nestable-moving .uk-nestable-item input.form-autocomplete,
+.uk-nestable-moving .uk-nestable-item select {
+  border: none;
+}
+.av-nestable-form .uk-nestable-placeholder {
+  background: #fafafa;
+}
 /* Tables */
 th > a > img {
   position: relative;

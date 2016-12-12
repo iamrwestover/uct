@@ -69,4 +69,3 @@ function avvendors_autocomplete($string = '') {
 
   drupal_json_output($matches);
 }
-

@@ -292,3 +292,105 @@ function avbase_element_validate_category_exists($element, &$form_state, $form) 
     $form_state['values'][$element['#name']] = $category->id;
   }
 }
+
+/**
+ * Check if element contains a unique field.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_unique_field($element, &$form_state, $form) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  $record_id = isset($values['id']) ? $values['id'] : 0;
+  $table_name = $values['table_name'];
+  $element_value = $element['#value'];
+  $element_name = $element['#name'];
+  $exists = db_query("SELECT id FROM {{$table_name}} WHERE $element_name = :element_value AND id <> :id", array(':element_value' => $element_value, ':id' => $record_id))->fetch();
+  if ($exists) {
+    form_error($element, t('Another record is already using this @field_title', array('@field_title' => $element['#title'])));
+  }
+}
+
+/**
+ * Check if element contains an existing product name.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_product_name_exists($element, &$form_state, $form) {
+  $save_value = &drupal_array_get_nested_value($form_state['values'], $element['#parents']);
+  $element_value = $element['#value'];
+  if (trim($element_value) == '') {
+    return;
+  }
+  $row = db_query("SELECT id FROM {avtbl_products} WHERE title = :title", array(':title' => $element_value))->fetch();
+  if (!$row) {
+    $save_value = '';
+    form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
+  }
+  //elseif (!empty($row->agent_id) && $record_id != $row->agent_id) {
+  //  form_error($element, t('Another agent has already been assigned to this @field_title.', array('@field_title' => $element['#title'])));
+  //}
+  else {
+    // Set this element's value as matching row id.
+
+    $save_value = $row->id;
+  }
+}
+
+/**
+ * Only validate a po product row element if a product is actually selected.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_po_element($element, &$form_state, $form) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+
+  // Get product user inputted id value.
+  $product_id_parents = $element['#parents'];
+  end($product_id_parents);
+  $product_id_parents[key($product_id_parents)] = 'product_id';
+  $product_id_value = drupal_array_get_nested_value($values, $product_id_parents);
+
+  //if (!empty($element['#av_prod_element_required'])) {
+  //  $element_value = $element['#value'];
+  //  if (trim($element_value) == '') {
+  //    form_error($element, t('@field_title is required.', array('@field_title' => $element['#title'])));;
+  //  }
+  //}
+
+  // User selected a product. Do validate this element.
+  if (!empty($product_id_value)) {
+    $element_value = $element['#value'];
+    if (trim($element_value) == '') {
+      form_error($element, t('@field_title is required.', array('@field_title' => $element['#title'])));
+    }
+
+    if (!empty($element['#av_prod_element_validate'])) {
+      foreach ($element['#av_prod_element_validate'] as $func) {
+        $func($element, $form_state);
+      }
+    }
+  }
+}
+
+/**
+ * General validation for po product list fields.
+ * @param $form
+ * @param $form_state
+ */
+function avexpenses_po_product_fields_validate($form, &$form_state) {
+  // Make sure at least one product is added.
+  $product_rows = $form_state['values']['product_rows'];
+  $product_added= FALSE;
+  foreach ($product_rows as $row) {
+    $product_added = !empty($row['product_id']);
+    if ($product_added) {
+      break;
+    }
+  }
+  if (!$product_added) {
+    form_set_error('', t('Please add at least one valid product.'));
+  }
+}

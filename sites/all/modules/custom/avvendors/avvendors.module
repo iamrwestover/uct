@@ -24,7 +24,6 @@ function avvendors_menu() {
   $items['av/vendors/autocomplete'] = array(
     'title' => 'Vendors Autocomplete',
     'page callback' => 'avvendors_autocomplete',
-    //'page arguments' => array('avvendors_home_form'),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_CALLBACK,
     'file' => 'inc/helpers.inc',

@@ -26,7 +26,8 @@ function avbase_theme($existing, $type, $theme, $path) {
   $theme_names = array(
     //'avcustomers_customer_form',
     //'avcustomers_home_form',
-    'avbase_form_table',
+    'avbase_nestable_form',
+    'avbase_nestable_form_row',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -125,6 +126,15 @@ function avbase_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'inc/categories.inc',
   );
+
+  $items['av/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'System settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avbase_general_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'menu_name' => 'av',
+  );
   return $items;
 }
 
@@ -193,4 +203,36 @@ function avbase_category_groups($category_id = '') {
     return $groups[$category_id];
   }
   return $groups;
+}
+
+/**
+ * General system settings form.
+ * @return mixed
+ */
+function avbase_general_settings_form() {
+  $form['company_information'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Site details'),
+  );
+  $form['company_information']['site_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Company name'),
+    '#default_value' => variable_get('site_name', 'Drupal'),
+    '#required' => TRUE
+  );
+  $form['company_information']['site_mail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('E-mail address'),
+    '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
+    '#required' => TRUE,
+    '#element_validate' => array('avbase_element_validate_email'),
+  );
+  $form['company_information']['av_company_address'] = array(
+    '#type' => 'textarea',
+    '#maxlength' => 255,
+    '#title' => 'Address',
+    '#default_value' => variable_get('av_company_address', ''),
+  );
+
+  return system_settings_form($form);
 }

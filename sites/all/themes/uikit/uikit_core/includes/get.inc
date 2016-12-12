@@ -90,4 +90,18 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
+
+  // Nestable.
+  drupal_add_css(UIKIT_SRC . "/css/components/nestable." . $css_extension, array(
+    'type' => 'external',
+    'group' => CSS_THEME,
+    'every_page' => TRUE,
+    'version' => $uikit_version,
+  ));
+  drupal_add_js(UIKIT_SRC . "/js/components/nestable.min.js", array(
+    'type' => 'external',
+    'group' => JS_THEME,
+    'every_page' => TRUE,
+    'version' => $uikit_version,
+  ));
 }
