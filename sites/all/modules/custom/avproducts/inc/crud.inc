@@ -47,6 +47,7 @@ function avproducts_product_form($form, &$form_state, $row) {
   // UOM group.
   avproducts_product_form_uom_fields($form, $form_state, $row);
 
+  $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -491,7 +492,7 @@ function avproducts_uom_multiple_js($form, $form_state) {
 
 /**
  * Perform actions depending on the kind of change that will be made
- * on the database for UOM categories.
+ * on the database for Products.
  * @param $op
  * @param $row
  * @param $form_state

@@ -5,10 +5,6 @@
 $form['info']['#access'] = FALSE;
 $form['uom']['#access'] = FALSE;
 
-// Wrap buttons.
-//$form['buttons']['#prefix'] = '<div class="uk-margin-top">';
-//$form['buttons']['#suffix'] = '</div>';
-
 // Calendar settings.
 $form['info']['initial_qty_date']['#icon_key'] = 'calendar';
 $form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
@@ -41,7 +37,7 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <div class="uk-width-1-6 uk-margin-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
       <div class="uk-width-1-6 uk-margin-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
 
-      <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['info']['description']); ?></div>
+      <div class="uk-width-1-1"><?php print drupal_render($form['info']['description']); ?></div>
     </div>
   </div>
 
@@ -72,7 +68,7 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
 
 
 <?php
-$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
+//$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
 $close_btn_label = empty($form['id']['#value']) ? 'Cancel' : 'Close';
 $form['buttons']['cancel']['#markup'] = l($close_btn_label, 'av/products', array('attributes' => array('class' => array('uk-button'))));
 print drupal_render_children($form);

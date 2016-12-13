@@ -79,7 +79,7 @@ function avproducts_autocomplete($string = '') {
     $db_or->condition('avprod.title', '%' . db_like($string) . '%', 'LIKE');
     $db_or->condition('avprod.code', '%' . db_like($string) . '%', 'LIKE');
 
-    $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'price', 'data'));
+    $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'cost', 'price', 'data'));
     $query->condition($db_or);
     $query->range(0, 15);
     $result = $query->execute();

@@ -3,6 +3,7 @@ description = A theme for AV AIS using UIkit as base.
 core = 7.x
 base theme = uikit
 
+stylesheets[all][] = css/preloader.css
 stylesheets[all][] = css/av.css
 stylesheets[all][] = css/uikit_overrides.css
 scripts[] = js/drupal_overrides.js

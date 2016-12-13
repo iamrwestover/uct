@@ -2,6 +2,9 @@
 foreach (element_children($form) as $key) {
   $form[$key]['#title_display'] = 'invisible';
 }
+
+//$form['product_id']['#attributes']['placeholder'] = 'product code or name';
+
 $form['qty']['#attributes']['class'][] = 'uk-text-right';
 $form['price']['#attributes']['class'][] = 'uk-text-right';
 $form['amount']['#attributes']['class'][] = 'uk-text-right';

@@ -40,6 +40,11 @@ function avexpenses_po_form($form, &$form_state, $row) {
   // Product list.
   avexpenses_po_product_fields($form, $form_state, $row);
 
+  $form['buttons']['#theme'] = 'avbase_crud_button_group';
+  $form['buttons']['submit_and_send'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save and send'),
+  );
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -67,9 +72,11 @@ function avexpenses_po_form_settings(&$form) {
 
   // Set field names to save.
   $save_field_ids = array(
+    'created',
     'vendor_id',
     'message',
     'po_date',
+    'email',
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',
@@ -118,10 +125,10 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
     '#markup' => format_date(time(), 'custom', 'F d, Y'),
   );
   $form['address'] = array(
-    '#type' => 'textarea',
+    '#type' => 'item',
     '#title' => 'Shipping address',
-    '#default_value' => variable_get('av_company_address', ''),
-    '#maxlength' => 65000,
+    '#markup' => nl2br(check_plain(variable_get('av_company_address', ''))),
+    //'#maxlength' => 65000,
   );
   $form['message'] = array(
     '#type' => 'textarea',
@@ -138,6 +145,8 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
  * @param $row
  */
 function avexpenses_po_product_fields(&$form, &$form_state, $row) {
+  $form['#attached']['js'][] = AVEXPENSES_MODULE_PATH . '/js/nestable_product_form.js';
+
   // Set extra form validation for product list.
   $form['#validate'][] = 'avexpenses_po_product_fields_validate';
   // Get user input.
@@ -187,8 +196,8 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#autocomplete_path' => 'av/products/autocomplete',
       '#element_validate' => array('avbase_element_validate_product_name_exists'),
       '#attributes' => array(
-        'data-prod-key' => $prod_key,
-        'class' => array('prod-group-id'),
+        'data-column-name' => 'id',
+        'class' => array('prod-column-id'),
       ),
     );
 
@@ -201,8 +210,7 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#empty_value' => 0,
       '#empty_option' => '',
       '#attributes' => array(
-        'data-prod-key' => $prod_key,
-        'class' => array('prod-group-uom-id'),
+        'class' => array('prod-column-uom-id'),
       ),
       //'#required' => TRUE,
     );
@@ -220,8 +228,8 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       //'#av_prod_element_required' => TRUE,
       //'#required' => TRUE,
       '#attributes' => array(
-        'data-prod-key' => $prod_key,
-        'class' => array('prod-group-qty'),
+        'data-column-name' => 'qty',
+        'class' => array('prod-column-qty'),
       ),
     );
 
@@ -236,8 +244,8 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#av_prod_element_validate' => array('element_validate_number'),
       //'#required' => TRUE,
       '#attributes' => array(
-        //'data-prod-key' => $prod_key,
-        'class' => array('prod-group-price'),
+        'data-column-name' => 'price',
+        'class' => array('prod-column-price'),
       ),
     );
 
@@ -252,8 +260,8 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#av_prod_element_validate' => array('element_validate_number'),
       //'#required' => TRUE,
       '#attributes' => array(
-        //'data-prod-key' => $prod_key,
-        'class' => array('prod-group-amt'),
+        'data-column-name' => 'amt',
+        'class' => array('prod-column-amt'),
       ),
     );
 
@@ -265,7 +273,8 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#limit_validation_errors' => array(),
       '#submit' => array('avexpenses_po_prod_submit'),
       '#attributes' => array(
-        'class' => array('prod-group-delete-btn'),
+        'class' => array('prod-column-delete-btn'),
+        'tabindex' => -1,
       ),
       '#ajax' => array(
         'callback' => 'avexpenses_po_prod_js',
@@ -300,7 +309,10 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
     ),
   );
   $form['header_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1>0.00</h1></div></div>',
+    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
+  );
+  $form['footer_total'] = array(
+    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
   );
 }
 
@@ -360,4 +372,39 @@ function avexpenses_po_prod_js($form, $form_state) {
   }
 
   return $output;
+}
+
+/**
+ * Perform actions depending on the kind of change that will be made
+ * on the database for POs.
+ * @param $op
+ * @param $row
+ * @param $form_state
+ */
+function avexpenses_avbase_crud_dbchange_po($op, $row, $form_state) {
+  switch ($op) {
+    case 'pre-save':
+      $row['po_date'] = time();
+      return $row;
+      break;
+
+    case 'after-save':
+      $values = empty($form_state['values']) ? array() : $form_state['values'];
+      $product_rows = empty($values['product_rows']) ? array() : $values['product_rows'];
+
+      // Save po items.
+      $query = db_insert('avtbl_po_items')->fields(array('po_id', 'product_id', 'uom_id', 'qty', 'cost'));
+      $insert_rows = array();
+      foreach ($product_rows as $prod_row) {
+        if (empty($prod_row['product_id'])) {
+          continue;
+        }
+        $prod_row['po_id'] = $row['id'];
+        $prod_row['cost'] = $prod_row['price'];
+        $query->values($prod_row);
+      }
+      $query->execute();
+      break;
+  }
+  return NULL;
 }

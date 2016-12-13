@@ -14,9 +14,6 @@ $form['misc']['#access'] = FALSE;
 //$form['contact']['contact_number']['#attributes']['placeholder'] = 'contact number';
 //$form['contact']['website']['#attributes']['placeholder'] = 'website';
 
-// Wrap buttons.
-$form['buttons']['#prefix'] = '<div class="uk-margin-top">';
-$form['buttons']['#suffix'] = '</div>';
 
 // Remove resize handle from textareas.
 //$form['misc']['notes']['#resizable'] = FALSE;
@@ -96,6 +93,6 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 
 <?php
 $close_btn_label = empty($form['id']['#value']) ? 'Cancel' : 'Close';
-$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
+//$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
 $form['buttons']['cancel']['#markup'] = l($close_btn_label, 'av/vendors', array('attributes' => array('class' => array('uk-button'))));
 print drupal_render_children($form);

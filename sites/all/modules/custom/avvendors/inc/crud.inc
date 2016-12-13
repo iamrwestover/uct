@@ -40,6 +40,7 @@ function avvendors_vendor_form($form, &$form_state, $row) {
     '#maxlength' => 255,
   );
 
+  $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),

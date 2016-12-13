@@ -1,4 +1,3 @@
-
 /* Off canvas */
 body {
   margin-left: 50px;
@@ -75,7 +74,7 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 }
 #header-bar {
   background: #fff;
-  padding: 11px 15px;
+  padding: 5px 15px 6px;
   border-bottom: solid 1px #e7ecf1;
 }
 #breadcrumbs .uk-breadcrumb {
@@ -196,7 +195,7 @@ html.js input.form-autocomplete {
 .av-nestable-form .uk-nestable-placeholder {
   background: #fafafa;
 }
-.av-nestable-form .prod-group-delete-btn {
+.av-nestable-form .prod-column-delete-btn {
   position: relative;
   top: 4px;
 }

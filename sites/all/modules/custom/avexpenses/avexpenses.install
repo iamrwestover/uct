@@ -21,6 +21,12 @@ function avexpenses_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'email' => array(
+        'description' => 'Email',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
       'created' => array(
         'description' => 'Date created',
         'type' => 'int',
@@ -60,11 +66,17 @@ function avexpenses_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'prod_id' => array(
+      'product_id' => array(
         'description' => 'Product ID',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
       ),
       'description' => array(
         'description' => 'Product description',
@@ -78,7 +90,7 @@ function avexpenses_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'price' => array(
+      'cost' => array(
         'description' => 'TODO: please describe this field!',
         'type' => 'numeric',
         'unsigned' => TRUE,
@@ -89,9 +101,11 @@ function avexpenses_schema() {
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'po_id' => array('po_id', 'prod_id'),
+      'po_id' => array('po_id'),
+      'product_id' => array('product_id'),
     ),
   );
+
 
   return $schema;
 }
