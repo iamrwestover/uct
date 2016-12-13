@@ -62,7 +62,9 @@ function avbase_crud_form_submit($form, &$form_state) {
     if (!empty($row) && !empty($table_name)) {
       // Let other modules perform pre-save processes.
       if (!empty($entity_name)) {
-        module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'pre-save', $row, $form_state);
+        if ($returned_row = module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'pre-save', $row, $form_state)) {
+          $row = $returned_row;
+        }
       }
 
       // Do save.

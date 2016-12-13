@@ -256,13 +256,13 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
 
   if ($clicked_button) {
     switch ($clicked_button['#name']) {
-      case 'uom_delete':
-        $remove_uom_key = isset($clicked_button['#remove_uom_key']) ? $clicked_button['#remove_uom_key'] : NULL;
-        unset($uom_values[$remove_uom_key]);
-        break;
       case 'uom_add_more':
         $uom_values = empty($user_input['uoms']) ? array() : $user_input['uoms'];
         $uom_values[] = array();
+        break;
+      default:
+        $remove_uom_key = isset($clicked_button['#remove_uom_key']) ? $clicked_button['#remove_uom_key'] : NULL;
+        unset($uom_values[$remove_uom_key]);
         break;
     }
   }
@@ -362,8 +362,8 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
     $fields['delete_btn'] = array(
       '#remove_uom_key' => $uom_key,
       '#type' => 'submit',
-      '#name' =>'uom_delete',
-      '#value' => t('Delete') . $uom_key,
+      '#name' =>'uom_delete_' . $uom_key,
+      '#value' => t('Delete'),
       '#limit_validation_errors' => array(),
       '#submit' => array('avproducts_uom_multiple_submit'),
       '#ajax' => array(
@@ -487,4 +487,34 @@ function avproducts_uom_multiple_js($form, $form_state) {
       break;
   }
   return $element;
+}
+
+/**
+ * Perform actions depending on the kind of change that will be made
+ * on the database for UOM categories.
+ * @param $op
+ * @param $row
+ * @param $form_state
+ */
+function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
+  $values = $form_state['values'];
+  switch ($op) {
+    case 'pre-save':
+      // Make sure uoms uses uom_id as their key on $row['data'];
+      $data = unserialize($row['data']);
+      $uoms = empty($data['uoms']) ? array() : $data['uoms'];
+      $rekeyed_uoms = array();
+      foreach ($uoms as $k => $uom) {
+        unset($uom['cost']);
+        unset($uom['delete_btn']);
+        $rekeyed_uoms[$uom['uom_id']] = $uom;
+      }
+
+      if ($rekeyed_uoms) {
+        $data['uoms'] = $rekeyed_uoms;
+        $row['data'] = serialize($data);
+      }
+      return $row;
+      break;
+  }
 }

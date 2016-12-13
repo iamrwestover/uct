@@ -57,7 +57,7 @@
         this.progress.object.stopMonitoring();
       }
       $(this.element).removeClass('progress-disabled').removeAttr('disabled');
-      console.log($(this.element).find('i').remove());
+      $(this.element).find('i').remove();
 
       Drupal.freezeHeight();
 

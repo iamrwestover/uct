@@ -179,17 +179,26 @@ html.js input.form-autocomplete {
 .av-nestable-form .uk-nestable-item {
   border-bottom: solid 1px #ddd;
 }
-.av-nestable-form input,
-.av-nestable-form select {
-  border: none !important;
+.av-nestable-form input:not(.error),
+.av-nestable-form select:not(.error) {
+  border-color: transparent;
 }
+.av-nestable-form input:focus,
+ .av-nestable-form select:focus {
+   border-color: #99baca;
+ }
 .uk-nestable-moving .uk-nestable-item input,
 .uk-nestable-moving .uk-nestable-item input.form-autocomplete,
 .uk-nestable-moving .uk-nestable-item select {
-  border: none;
+  border-color: transparent;
+  background: transparent;
 }
 .av-nestable-form .uk-nestable-placeholder {
   background: #fafafa;
+}
+.av-nestable-form .prod-group-delete-btn {
+  position: relative;
+  top: 4px;
 }
 /* Tables */
 th > a > img {

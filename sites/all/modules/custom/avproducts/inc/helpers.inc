@@ -79,7 +79,7 @@ function avproducts_autocomplete($string = '') {
     $db_or->condition('avprod.title', '%' . db_like($string) . '%', 'LIKE');
     $db_or->condition('avprod.code', '%' . db_like($string) . '%', 'LIKE');
 
-    $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('title', 'code', 'data'));
+    $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'price', 'data'));
     $query->condition($db_or);
     $query->range(0, 15);
     $result = $query->execute();
@@ -87,8 +87,11 @@ function avproducts_autocomplete($string = '') {
     foreach ($result as $row) {
       $code = check_plain($row->code);
       $title = check_plain($row->title);
+      $row->data = unserialize($row->data);
+      //$uoms = empty($data['uoms']) ? array() : $data['uoms'];
       $row_html = $title . '<div class="uk-text-muted uk-text-break">' . $code .  '</div>' ;
-      $row_html .= '<div style="display: none;" id="av-prod-code">' . $code . '</div>';
+      $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
+      $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
       $matches[$title] = $row_html;
     }
   }

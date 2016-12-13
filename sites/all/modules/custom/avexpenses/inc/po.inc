@@ -153,19 +153,22 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
     }
   }
 
-  $clicked_button = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
-  if ($clicked_button) {
-    switch ($clicked_button['#id']) {
-      case 'prod_delete':
-        $remove_prod_key = isset($clicked_button['#remove_prod_key']) ? $clicked_button['#remove_prod_key'] : NULL;
-        unset($prod_rows[$remove_prod_key]);
-        break;
-      case 'prod-add-btn':
+  $triggering_button = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
+  if ($triggering_button) {
+    switch ($triggering_button['#name']) {
+      case 'prod_add_btn':
         $prod_rows = empty($user_input['product_rows']) ? array() : $user_input['product_rows'];
         $prod_rows[] = array();
         break;
+      default:
+        $remove_prod_key = isset($triggering_button['#remove_prod_key']) ? $triggering_button['#remove_prod_key'] : NULL;
+        unset($prod_rows[$remove_prod_key]);
+        break;
     }
   }
+  //dpm($user_input);
+  //dpm($remove_prod_key);
+  //dpm($prod_rows);
 
   $form['product_rows'] = array(
     '#tree' => TRUE,
@@ -176,37 +179,21 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
     $prod_index++;
     $fields = array();
     $fields['product_id'] = array(
-      '#id' => 'product-id-' . $prod_index,
+      '#id' => 'product-id-' . $prod_key,
       '#type' => 'textfield',
       '#title' => 'Product',
       '#maxlength' => 255,
-      //'#required' => TRUE,
+      //'#default_value' => $prod_key,
       '#autocomplete_path' => 'av/products/autocomplete',
       '#element_validate' => array('avbase_element_validate_product_name_exists'),
       '#attributes' => array(
-        'data-row-index' => $prod_index,
+        'data-prod-key' => $prod_key,
         'class' => array('prod-group-id'),
       ),
     );
 
-    $fields['code'] = array(
-      '#type' => 'item',
-      '#markup' => '<div id="prod-code-' . $prod_index . '"></div>',
-      '#title' => 'Code',
-      //'#title_display' => 'invisible',
-      //'#description' => t('@uom1 per @uom2', array('@uom1' => $plural_form, '@uom2' => $current_uom_name)),
-      //'#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
-      //'#maxlength' => 255,
-      ////'#element_validate' => array('element_validate_integer_positive'),
-      //'#required' => TRUE,
-      //'#attributes' => array(
-      //  //'data-prod-index' => $prod_index,
-      //  'class' => array('prod-group-id'),
-      //),
-    );
-
     $fields['uom_id'] = array(
-      '#id' => 'uom-id-' . $prod_index,
+      '#id' => 'uom-id-' . $prod_key,
       '#type' => 'select',
       '#title' => 'UOM',
       '#options' => avbase_get_category_options_array('uom'),
@@ -214,14 +201,14 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#empty_value' => 0,
       '#empty_option' => '',
       '#attributes' => array(
-        'data-prod-index' => $prod_index,
+        'data-prod-key' => $prod_key,
         'class' => array('prod-group-uom-id'),
       ),
       //'#required' => TRUE,
     );
 
     $fields['qty'] = array(
-      '#id' => 'prod-qty-' . $prod_index,
+      '#id' => 'product-qty-' . $prod_key,
       '#type' => 'textfield',
       '#title' => 'Qty.',
       //'#title_display' => 'invisible',
@@ -233,38 +220,57 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       //'#av_prod_element_required' => TRUE,
       //'#required' => TRUE,
       '#attributes' => array(
-        'data-prod-index' => $prod_index,
+        'data-prod-key' => $prod_key,
         'class' => array('prod-group-qty'),
       ),
     );
 
     $fields['price'] = array(
-      '#id' => 'prod-price-' . $prod_index,
+      '#id' => 'product-price-' . $prod_key,
       '#type' => 'textfield',
       '#title' => 'Price',
       //'#title_display' => 'invisible',
       //'#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
       '#maxlength' => 19,
-      '#element_validate' => array('element_validate_number'),
+      '#element_validate' => array('avbase_element_validate_po_element'),
+      '#av_prod_element_validate' => array('element_validate_number'),
       //'#required' => TRUE,
       '#attributes' => array(
-        //'data-prod-index' => $prod_index,
+        //'data-prod-key' => $prod_key,
         'class' => array('prod-group-price'),
       ),
     );
 
     $fields['amount'] = array(
-      '#id' => 'prod-amt-' . $prod_index,
+      '#id' => 'product-amt-' . $prod_key,
       '#type' => 'textfield',
       '#title' => 'Amount',
       //'#title_display' => 'invisible',
       //'#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
       '#maxlength' => 19,
-      '#element_validate' => array('element_validate_number'),
+      '#element_validate' => array('avbase_element_validate_po_element'),
+      '#av_prod_element_validate' => array('element_validate_number'),
       //'#required' => TRUE,
       '#attributes' => array(
-        //'data-prod-index' => $prod_index,
+        //'data-prod-key' => $prod_key,
         'class' => array('prod-group-amt'),
+      ),
+    );
+
+    $fields['prod_delete_btn'] = array(
+      '#name' => 'prod_delete_btn_' . $prod_key,
+      '#remove_prod_key' => $prod_key,
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#limit_validation_errors' => array(),
+      '#submit' => array('avexpenses_po_prod_submit'),
+      '#attributes' => array(
+        'class' => array('prod-group-delete-btn'),
+      ),
+      '#ajax' => array(
+        'callback' => 'avexpenses_po_prod_js',
+        'wrapper' => 'po-product-row-' . $prod_key . '-wrapper',
+        'effect' => 'none',
       ),
     );
 
@@ -273,19 +279,22 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
     $form['product_rows'][$prod_key] = $fields;
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
     $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
-    if (count($prod_rows) == ($prod_index + 1)) {
-      $form['product_rows'][$prod_key]['#suffix'] = '<div id="po-new-product-wrapper"></div>';
-    }
+    $form['product_rows'][$prod_key]['#prefix'] = '<div id="po-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
+    $form['product_rows'][$prod_key]['#suffix'] = '</div>';
+    //if (count($prod_rows) == ($prod_index + 1)) {
+    //  $form['product_rows'][$prod_key]['#suffix'] .= '<div id="po-new-product-wrapper"></div>';
+    //}
   }
 
   $form['prod_add_btn'] = array(
     '#id' => 'prod-add-btn',
+    '#name' => 'prod_add_btn',
     '#type' => 'submit',
     '#value' => t('Add new row'),
     '#limit_validation_errors' => array(),
-    '#submit' => array('avexpenses_po_prod_add_submit'),
+    '#submit' => array('avexpenses_po_prod_submit'),
     '#ajax' => array(
-      'callback' => 'avexpenses_po_prod_add_js',
+      'callback' => 'avexpenses_po_prod_js',
       'wrapper' => 'po-new-product-wrapper',
       'effect' => 'none',
     ),
@@ -296,9 +305,9 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
 }
 
 /**
- * Submit handler when adding products on a PO form.
+ * Submit handler when adding or removing products on a PO form.
  */
-function avexpenses_po_prod_add_submit($form, &$form_state) {
+function avexpenses_po_prod_submit($form, &$form_state) {
   //dpm($form);
   //$button = $form_state['triggering_element'];
   //switch ($button['#name']) {
@@ -306,25 +315,49 @@ function avexpenses_po_prod_add_submit($form, &$form_state) {
   //    //$form_state['uoms']['uom_count']++;
   //    break;
   //}
-
+  //$button = $form_state['triggering_element'];
+  //$product_elements = $form['product_rows'];
+  //$keys = element_children($product_elements);
+  //$last_key = array_pop($keys);
+  //$last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
+  //$output = $last_element;
+  //dpm($button);
   $form_state['rebuild'] = TRUE;
 }
 
 /**
- * Ajax callback  when adding products on a PO form.
+ * Ajax callback  when adding products or removing on a PO form.
  */
-function avexpenses_po_prod_add_js($form, $form_state) {
-  //$button = $form_state['triggering_element'];
-  $product_elements = $form['product_rows'];
+function avexpenses_po_prod_js($form, $form_state) {
+  $button = $form_state['triggering_element'];
+  $output = array();
+  switch ($button['#name']) {
+    case 'prod_add_btn':
+      $product_elements = $form['product_rows'];
+      $keys = element_children($product_elements);
+      $last_key = array_pop($keys);
+      $last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
+      $last_element['#suffix'] .= '<div id="po-new-product-wrapper"></div>';
+      $js_settings = array('avNestableProductForm' => arraY('ajaxAction' => 'add'));
+      $last_element['#attached']['js'] = array(
+        array(
+          'data' => $js_settings,
+          'type' => 'setting',
+        ),
+      );
 
-  $keys = element_children($product_elements);
-  $last_key = array_pop($keys);
-  $last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
-  //switch ($button['#id']) {
-  //  case 'prod-add-btn':
-  //    $last_element['#prefix'] = '<div  class="uk-nestable-item">' . (isset($last_element['#prefix']) ? $last_element['#prefix'] : '');
-  //    $last_element['#suffix'] = '</div>' . (isset($last_element['#suffix']) ? $last_element['#suffix'] : '') ;
-  //    break;
-  //}
-  return $last_element;
+      $output = $last_element;
+      break;
+    default:
+      $js_settings = array('avNestableProductForm' => arraY('ajaxAction' => 'remove'));
+      $output['#attached']['js'] = array(
+        array(
+          'data' => $js_settings,
+          'type' => 'setting',
+        ),
+      );
+      break;
+  }
+
+  return $output;
 }

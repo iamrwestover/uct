@@ -21,7 +21,7 @@ $form['add_btn']['#attributes']['class'][] = 'av-ajax-button';
         $form['uoms'][$uom_key]['auto_compute_price']['#attributes']['style'][] = 'margin-top: 33px;';
       }
       // Style delete btn.
-      $form['uoms'][$uom_key]['delete_btn']['#value'] = '<i class="uk-icon-remove"></i>';
+      $form['uoms'][$uom_key]['delete_btn']['#button_label'] = '<i class="uk-icon-remove"></i>';
       $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'av-ajax-button';
       $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'av-ajax-button-icon-only';
       $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'uk-button-danger';
