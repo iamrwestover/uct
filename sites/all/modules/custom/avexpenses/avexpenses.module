@@ -68,5 +68,6 @@ function avexpenses_theme($existing, $type, $theme, $path) {
  * @return array
  */
 function avexpenses_home_form($form, &$form_state) {
-  return array();
+  $form['new_po'] = array('#markup' => l('New purchase order', 'av/expenses/purchase-order/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
+  return $form;
 }
