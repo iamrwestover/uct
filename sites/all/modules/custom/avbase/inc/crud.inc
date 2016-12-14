@@ -32,7 +32,7 @@ function avbase_crud_form_submit($form, &$form_state) {
         continue;
       }
       settype($values[$field_id], $field_type);
-      $row[$field_id] = $values[$field_id];
+      $row[$field_id] = $field_type == 'string' ? trim($values[$field_id]) : $values[$field_id];
     }
 
     // Get values for "data" field.
@@ -52,7 +52,7 @@ function avbase_crud_form_submit($form, &$form_state) {
           continue;
         }
         settype($values[$data_id], $data_type);
-        $row['data'][$data_id] = $values[$data_id];
+        $row['data'][$data_id] = $data_type == 'string' ? trim($values[$data_id]) : $values[$data_id];
       }
       $row['data'] = serialize($row['data']);
     }

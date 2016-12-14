@@ -60,6 +60,31 @@ function avcustomers_customer_form($form, &$form_state, $row) {
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/customers'),
   );
+  if (!empty($row->id)) {
+    if ($row->status != AVCUSTOMER_STATUS_SUSPENDED) {
+      $form['buttons']['suspend'] = array(
+        '#markup' => l('Suspend', 'av/customers/' . $row->id . '/2/change-status', array(
+          'attributes' => array('class' => 'uk-button'),
+          'query' => drupal_get_destination(),
+        )),
+        '#avposition' => 'opposite',
+      );
+    }
+    else {
+      drupal_set_message('This account is currently suspended.', 'error', FALSE);
+      $form['buttons']['activate'] = array(
+        '#markup' => l('Activate', 'av/customers/' . $row->id . '/1/change-status', array(
+          'attributes' => array('class' => 'uk-button uk-button-primary'),
+          'query' => drupal_get_destination(),
+        )),
+        '#avposition' => 'opposite',
+      );
+    }
+  }
+
+  // Convert form to non-edit mode if we are on View page.
+  $form['#av_view_mode'] = (arg(3) == 'view');
+  avbase_allow_form_view_mode($form);
   return $form;
 }
 
@@ -75,6 +100,10 @@ function avcustomers_customer_form_settings(&$form) {
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'customer');
 
+  $form['#attached']['js'] = array(
+    AVCUSTOMERS_MODULE_PATH . '/js/customer_form.js',
+  );
+
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
 
@@ -86,6 +115,7 @@ function avcustomers_customer_form_settings(&$form) {
     'middle_name',
     'company',
     'display_name',
+    'code',
     'agent_id' => array('type' => 'int'),
     'email',
     'address',
@@ -94,6 +124,10 @@ function avcustomers_customer_form_settings(&$form) {
     'zip_code',
     'same_addr',
     'payment_method_id' => array('type' => 'int'),
+    'term_id' => array('type' => 'int'),
+    'discount_type' => array('type' => 'int'),
+    'discount_value' => array('type' => 'float'),
+    'category_id' => array('type' => 'int'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',
@@ -152,6 +186,34 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#default_value' => isset($row->company) ? check_plain($row->company) : '',
     '#maxlength' => 255,
   );
+  $info['_created'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Date added',
+    '#default_value' => empty($row->id) ? '' : format_date($row->created, 'custom', 'F d, Y'),
+    //'#input' => FALSE,
+    '#attributes' => array(
+      'disabled' => TRUE,
+    ),
+    '#access' => !empty($row->id),
+  );
+  $info['category_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Category',
+    '#options' => avbase_get_category_options_array('customer_cat'),
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->category_id) ? $row->category_id : 0,
+  );
+  $info['code'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Customer code',
+    '#default_value' => isset($row->code) ? check_plain($row->code) : '',
+    '#maxlength' => 32,
+    '#element_validate' => array('avbase_element_validate_unique_field'),
+    '#attributes' => array(
+      'class' => array('uk-text-uppercase'),
+    ),
+  );
   $info['display_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Display name',
@@ -178,6 +240,47 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#default_value' => isset($row->credit_limit) ? avbase_money_format('%01.2f', $row->credit_limit) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
+  );
+  $term_options = avbase_get_category_options_array('payment_term');
+  asort($term_options);
+  $info['term_id'] = array(
+    '#id' => 'term-id',
+    '#type' => 'select',
+    '#title' => 'Payment term',
+    '#options' => $term_options,
+    '#default_value' => isset($row->term_id) ? $row->term_id : 0,
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+  );
+
+  $terms = avbase_get_categories('payment_term');
+  $terms_js_settings = array('avbasePaymentTerms' => $terms);
+  $info['term_id']['#attached']['js'] = array(
+    AVVENDORS_MODULE_PATH . '/js/payment_terms.js',
+    array(
+      'data' => $terms_js_settings,
+      'type' => 'setting',
+    ),
+  );
+  $info['discount_type'] = array(
+    '#id' => 'discount-type',
+    '#type' => 'select',
+    '#title' => 'Discount type',
+    '#options' => avbase_get_discount_types(),
+    '#default_value' => isset($row->discount_type) ? $row->discount_type : 1,
+  );
+  $info['discount_value'] = array(
+    '#id' => 'discount-value',
+    '#type' => 'textfield',
+    '#title' => 'Discount value',
+    '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+    '#special_element_type' => 'number',
+    '#attributes' => array(
+      //'class' => array(''),
+      'step' => 0.01,
+    ),
   );
   $form['info'] += $info;
 }
@@ -268,6 +371,7 @@ function avcustomers_customer_form_payment_fields(&$form, $row) {
     '#type' => 'select',
     '#title' => 'Preferred payment method',
     '#options' => avbase_get_category_options_array('payment_method'),
+    '#default_value' => isset($row->payment_method_id) ? $row->payment_method_id : 0,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
   );
@@ -304,6 +408,69 @@ function avcustomers_customer_delete_confirm_form_submit($form, &$form_state) {
   if (isset($form_state['row']->id)) {
     if (avcustomers_customer_delete($form_state['row']->id)) {
       drupal_set_message('Record deleted.');
+    }
+  }
+  $form_state['redirect'] = '';
+}
+
+/**
+ * Menu callback: confirm customer status change.
+ * @param $form
+ * @param $form_state
+ * @param object $row
+ * @param $status
+ *
+ * @return array
+ */
+function avcustomers_customer_change_status_confirm_form($form, &$form_state, $row, $status) {
+  switch ($status) {
+    case AVCUSTOMER_STATUS_DISABLED:
+      $prompt = 'Are you sure you want to disable this customer\'s account?';
+      break;
+    case AVCUSTOMER_STATUS_SUSPENDED:
+      $prompt = 'Are you sure you want to suspend this customer\'s account?';
+      break;
+    case AVCUSTOMER_STATUS_ACTIVE:
+      $prompt = 'Are you sure you want to activate this customer\'s account?';
+      break;
+    default:
+      $prompt = 'Are you sure?';
+      break;
+  }
+
+  $display_name = check_plain($row->display_name);
+  $company = check_plain($row->company);
+  $description = <<<HTML
+  <h1 class="uk-article-title">$display_name</h1>$company
+HTML;
+  $form_state['row'] = $row;
+  $form_state['status'] = $status;
+  return confirm_form(array(), $prompt, '', $description);
+}
+
+/**
+ * Handler for customer status change.
+ *
+ * @see avcustomers_customer_change_status_confirm_form()
+ */
+function avcustomers_customer_change_status_confirm_form_submit($form, &$form_state) {
+  if (isset($form_state['row']->id)) {
+    $status = isset($form_state['status']) ? $form_state['status'] : '';
+    if (avcustomers_customer_change_status($form_state['row']->id, $status)) {
+
+      switch ($status) {
+        case AVCUSTOMER_STATUS_DISABLED:
+          //drupal_set_message('Customer\'s account has been disabled.');
+          break;
+        case AVCUSTOMER_STATUS_SUSPENDED:
+          //drupal_set_message('Customer\'s account has been suspended.');
+          break;
+        case AVCUSTOMER_STATUS_ACTIVE:
+          drupal_set_message('Customer\'s account has been activated.');
+          break;
+        default:
+          break;
+      }
     }
   }
   $form_state['redirect'] = '';

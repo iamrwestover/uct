@@ -25,12 +25,11 @@ function avbase_categories_agent_cust_list_alter(&$table_options, $db_rows) {
   // Rename title header.
   $header['title'] = t('Agent name');
 
-  $column_vendor_key = $prefix . '_vendor';
-
-  //$header[$column_vendor_key] = array(
-  //  'data' => 'Vendor',
-  //  '#weight' => 1.1,
-  //);
+  $column_contact_key = $prefix . 'contact_number';
+  $header[$column_contact_key] = array(
+    'data' => 'Contact',
+    '#weight' => 1.1,
+  );
 
   foreach ($rows as $k => &$row) {
     $db_row = isset($db_rows[$k]) ? $db_rows[$k] : array();
@@ -39,9 +38,9 @@ function avbase_categories_agent_cust_list_alter(&$table_options, $db_rows) {
     // Remove description column.
     unset($row['data']['description']);
 
-    // Add 'Vendor' column.
-    //$row['data'][$column_vendor_key] = array(
-    //  'data' => empty($db_row->vendor_name) ? '' : check_plain($db_row->vendor_name),
-    //);
+    // Add 'Contact' column.
+    $row['data'][$column_contact_key] = array(
+      'data' => empty($data['contact_number']) ? '' : $data['contact_number'],
+    );
   }
 }

@@ -55,6 +55,10 @@ function avproducts_product_form($form, &$form_state, $row) {
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/products'),
   );
+
+  // Convert form to non-edit mode if we are on View page.
+  $form['#av_view_mode'] = (arg(3) == 'view');
+  avbase_allow_form_view_mode($form);
   return $form;
 }
 
@@ -85,6 +89,12 @@ function avproducts_product_form_settings(&$form) {
     'eoq' => array('type' => 'int'),
     'cost' => array('type' => 'float'),
     'price' => array('type' => 'float'),
+    'expiry_date' => array('type' => 'int'),
+    'lot_no',
+    'vendor_id' => array('type' => 'int'),
+    'account_type_id' => array('type' => 'int'),
+    'shelf_id' => array('type' => 'int'),
+    'principal_id' => array('type' => 'int'),
   );
   if (empty($form['id']['#value'])) {
     $save_field_ids[] = 'qty';
@@ -130,6 +140,9 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#default_value' => isset($row->code) ? check_plain($row->code) : '',
     '#maxlength' => 32,
     '#element_validate' => array('avbase_element_validate_unique_field'),
+    '#attributes' => array(
+      'class' => array('uk-text-uppercase'),
+    ),
   );
   $info['category_id'] = array(
     '#type' => 'select',
@@ -155,7 +168,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#disabled' => !empty($row->id)
   );
   if (!empty($row->id)) {
-    $info['qty']['#suffix'] = l('adjust quantity', '#');
+    $info['qty']['#suffix'] = '<div class="uk-text-center">' . l('adjust quantity', '#') . '</div>';
   }
   $info['initial_qty'] = array(
     '#type' => 'textfield',
@@ -232,11 +245,65 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number'),
     '#attributes' => array(
-      'autocomplete' => 'off',
       'step' => '0.01',
     ),
     '#special_element_type' => 'number',
   );
+
+  $date_format = 'M. d, Y';
+  $info['expiry_date'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Expiration date',
+    '#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
+    '#element_validate' => array('avbase_element_validate_date'),
+    '#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMM. DD, YYYY', minDate: '" . format_date(time(), 'custom', $date_format) . "'}",
+    ),
+  );
+
+  $info['lot_no'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Lot no.',
+    '#default_value' => isset($row->lot_no) ? check_plain($row->lot_no) : '',
+    '#maxlength' => 32,
+  );
+  $info['vendor_id'] = array(
+    '#id' => 'vendor-id',
+    '#type' => 'textfield',
+    '#title' => t('Vendor'),
+    '#maxlength' => 255,
+    '#autocomplete_path' => 'av/vendors/autocomplete',
+    '#element_validate' => array('avbase_element_validate_display_name_exists'),
+    '#table_name' => 'avtbl_vendors',
+    '#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
+  );
+  $info['account_type_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Account type',
+    '#options' => avbase_get_category_options_array('account_type'),
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->account_type_id) ? $row->account_type_id : 0,
+  );
+  $info['shelf_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Shelf location',
+    '#options' => avbase_get_category_options_array('shelf'),
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->shelf_id) ? $row->shelf_id : 0,
+  );
+  $info['principal_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Principal manufacturer',
+    '#options' => avbase_get_category_options_array('principal'),
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->principal_id) ? $row->principal_id : 0,
+  );
+
   $form['info'] += $info;
 }
 

@@ -70,3 +70,13 @@ function avvendors_autocomplete($string = '') {
 
   drupal_json_output($matches);
 }
+
+/**
+ * Return list of vendor categories.
+ */
+function avvendors_get_vendor_categories() {
+  return array(
+    AVVENDORS_CATEGORY_SUPPLIER => 'Supplier',
+    AVVENDORS_CATEGORY_EXPENSES => 'Expenses',
+  );
+}

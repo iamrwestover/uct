@@ -138,6 +138,10 @@ function avbase_category_delete($id) {
  */
 function avbase_element_validate_date($element, &$form_state, $form) {
   $date = $element['#value'];
+  if (trim($date) == '') {
+    return;
+  }
+
   $date_format = isset($element['#av_date_format']) ? $element['#av_date_format'] : 'M. d, Y';
   $date_info = date_parse_from_format($date_format, $date);
 
@@ -191,6 +195,9 @@ function avbase_element_validate_display_name_exists($element, &$form_state, $fo
 
   $table_name = $element['#table_name'];
   $display_name = $element['#value'];
+  if (trim($display_name) == '') {
+    return;
+  }
   $row = db_query("SELECT id FROM {{$table_name}} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
   if (!$row) {
     form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
@@ -423,4 +430,54 @@ function avexpenses_po_product_fields_validate($form, &$form_state) {
  */
 function avbase_get_discount_types() {
   return array(1 => 'Percent', 2 => 'Fixed amount');
+}
+
+/**
+ * Turn form edit form into view only mode.
+ * @param $form
+ */
+function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
+  if (!$ignore_mode_check && empty($form['#av_view_mode'])) {
+    return;
+  }
+  foreach (element_children($form) as $k) {
+    $element = &$form[$k];
+    if ($k == 'buttons') {
+      $element['#access'] = FALSE;
+    }
+
+    if (isset($element['#type'])) {
+      switch ($element['#type']) {
+        case 'textfield':
+        case 'textarea':
+          $element['#type'] = 'item';
+          $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
+          $element['#markup'] = trim($default_value) == '' ? '-' : $default_value;
+          break;
+        case 'select':
+          $options = isset($element['#options']) ? $element['#options'] : array();
+          $default_value = isset($element['#default_value']) ? $element['#default_value'] : NULL;
+          $empty_value = isset($element['#empty_value']) ? $element['#empty_value'] : '';
+          $default_value = is_null($default_value) ? $empty_value : $default_value;
+          $element['#type'] = 'item';
+          $default_option_value = isset($options[$default_value]) ? $options[$default_value] : '';
+          $default_option_value = trim($default_option_value) == '' ? '-' : $default_option_value;
+          $element['#markup'] = $default_option_value;
+          break;
+        case 'checkbox':
+          $default_value = isset($element['#default_value']) ? $element['#default_value'] : 0;
+          $icon_class = $default_value ? 'check-square-o' : 'square-o';
+          $element['#type'] = 'markup';
+          $element['#markup'] = '<span><i class="uk-icon-small uk-icon-' . $icon_class . '"></i> ' . $element['#title'] . '</span>';
+          break;
+        case 'submit':
+        case 'button':
+          $element['#access'] = FALSE;
+          break;
+      }
+    }
+    if (element_children($element)) {
+      avbase_allow_form_view_mode($element, TRUE);
+    }
+  }
 }

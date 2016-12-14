@@ -48,6 +48,10 @@ function avvendors_vendor_form($form, &$form_state, $row) {
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/vendors'),
   );
+
+  // Convert form to non-edit mode if we are on View page.
+  $form['#av_view_mode'] = (arg(3) == 'view');
+  avbase_allow_form_view_mode($form);
   return $form;
 }
 
@@ -87,6 +91,7 @@ function avvendors_vendor_form_settings(&$form) {
     'term_id' => array('type' => 'int'),
     'discount_type' => array('type' => 'int'),
     'discount_value' => array('type' => 'float'),
+    'category_id' => array('type' => 'int'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',
@@ -137,6 +142,14 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
     '#title' => 'Company',
     '#default_value' => isset($row->company) ? check_plain($row->company) : '',
     '#maxlength' => 255,
+  );
+  $info['category_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Category',
+    '#options' => avvendors_get_vendor_categories(),
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->category_id) ? $row->category_id : 0,
   );
   $info['display_name'] = array(
     '#type' => 'textfield',

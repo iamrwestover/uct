@@ -38,4 +38,37 @@ function avcustomers_customer_delete($id) {
       return TRUE;
     }
   }
+  return FALSE;
+}
+
+/**
+ * Change customer status.
+ * @param $id
+ * @param $status
+ *
+ * @return bool
+ */
+function avcustomers_customer_change_status($id, $status) {
+  if (empty($id) || !is_numeric($id)) {
+    return FALSE;
+  }
+  if (!array_key_exists($status, avcustomers_statuses())) {
+    return FALSE;
+  }
+
+  if (db_query("UPDATE {avtbl_customers} SET status = :status WHERE id = :customer_id", array(':customer_id' => $id, ':status' => $status))) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Return list of customer statuses.
+ */
+function avcustomers_statuses() {
+  return array(
+    AVCUSTOMER_STATUS_DISABLED => 'Disabled',
+    AVCUSTOMER_STATUS_ACTIVE => 'Active',
+    AVCUSTOMER_STATUS_SUSPENDED => 'Suspended',
+  );
 }

@@ -1,25 +1,14 @@
 <?php
-// Remove fieldset titles.
-//unset($form['info']['#title']);
-//unset($form['uom']['#title']);
+//
 $form['info']['#access'] = FALSE;
 $form['uom']['#access'] = FALSE;
 
-// Calendar settings.
-$form['info']['initial_qty_date']['#icon_key'] = 'calendar';
-$form['info']['initial_qty_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
+
 
 // Misc.
-//$form['info']['initial_qty']['#attributes']['class'][] = 'uk-text-right';
-//$form['info']['initial_qty']['#attributes']['data-uk-tooltip'] = "{pos:'top'}";
-//$form['info']['initial_qty']['#attributes']['title'] = $form['info']['initial_qty']['#description'];
-//$form['info']['initial_qty']['#description'] = '';
-
 $form['info']['cost']['#attributes']['class'][] = 'uk-text-right';
 $form['info']['price']['#attributes']['class'][] = 'uk-text-right';
 $form['info']['qty']['#attributes']['class'][] = 'uk-text-right';
-//$form['info']['uom_id']['#attributes']['style'] = 'width: 100%;';
-//$form['info']['category_id']['#attributes']['style'] = 'width: 100%;';
 
 $qty_html = drupal_render($form['info']['qty']);
 $initial_qty_html = drupal_render($form['info']['initial_qty']);
@@ -32,10 +21,16 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <div class="uk-width-2-3 uk-margin-bottom"><?php print drupal_render($form['info']['title']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['code']); ?></div>
 
-      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['category_id']); ?></div>
+      <div class="uk-width-2-3 uk-margin-bottom"><?php print drupal_render($form['info']['vendor_id']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['principal_id']); ?></div>
 
-      <div class="uk-width-1-6 uk-margin-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
-      <div class="uk-width-1-6 uk-margin-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['category_id']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['account_type_id']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['shelf_id']); ?></div>
+
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['expiry_date']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
 
       <div class="uk-width-1-1"><?php print drupal_render($form['info']['description']); ?></div>
     </div>

@@ -12,7 +12,10 @@ function avproduct_load($product_id) {
     return $data[$product_id];
   }
 
-  $query = "SELECT * FROM {avtbl_products} WHERE id = :product_id";
+  $query = "SELECT avprod.*, avvendor.display_name AS vendor_name
+    FROM {avtbl_products} avprod
+    LEFT JOIN {avtbl_vendors} avvendor ON avvendor.id = avprod.vendor_id
+    WHERE avprod.id = :product_id";
   $args = array(':product_id' => $product_id);
   $row = db_query($query, $args)->fetchObject();
   if (isset($row->data)) {

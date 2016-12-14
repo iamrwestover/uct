@@ -8,7 +8,7 @@
 
     init: function() {
       var superParent = this;
-      if (superParent.$termEl.val() == 0) {
+      if (superParent.$termEl.val() === 0) {
         superParent.toggleChildrenVisibility();
       }
 
@@ -19,7 +19,8 @@
       var superParent = this;
       superParent.$termEl.change(function() {
         var paymentTerms = Drupal.settings.avbasePaymentTerms || {};
-        var vendors = Drupal.settings.avbase.vendors || {};
+        var avbase = Drupal.settings.avbase || {};
+        var vendors = avbase.vendors || {};
         var selectedVendorID = $(this).data('selectedVendorID');
         var vendor = vendors[selectedVendorID] || {};
 

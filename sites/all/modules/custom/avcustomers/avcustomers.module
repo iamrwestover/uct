@@ -6,6 +6,9 @@
  */
 
 define('AVCUSTOMERS_MODULE_PATH', drupal_get_path('module', 'avcustomers'));
+define('AVCUSTOMER_STATUS_DISABLED', 0);
+define('AVCUSTOMER_STATUS_ACTIVE', 1);
+define('AVCUSTOMER_STATUS_SUSPENDED', 2);
 
 require_once 'inc/helpers.inc';
 
@@ -22,12 +25,22 @@ function avcustomers_menu() {
     'expanded' => TRUE,
   );
   $items['av/customers/add'] = array(
-    'title' => 'New Customer',
+    'title' => 'New customer',
     'page callback' => 'avcustomers_customer_form_load',
     'page arguments' => array(NULL),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
+    'weight' => 10,
+  );
+  $items['av/customers/%avcustomer/view'] = array(
+    'title' => 'View',
+    'page callback' => 'avcustomers_customer_form_load',
+    'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/crud.inc',
+    'weight' => 0,
   );
   $items['av/customers/%avcustomer/edit'] = array(
     'title' => 'Edit',
@@ -36,6 +49,7 @@ function avcustomers_menu() {
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
+    'weight' => 1,
   );
   $items['av/customers/%avcustomer/delete'] = array(
     'title' => 'Delete',
@@ -43,6 +57,15 @@ function avcustomers_menu() {
     'page arguments' => array('avcustomers_customer_delete_confirm_form', 2),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/crud.inc',
+    'weight' => 2,
+  );
+  $items['av/customers/%avcustomer/%/change-status'] = array(
+    'title' => 'Suspend',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avcustomers_customer_change_status_confirm_form', 2, 3),
+    'access callback' => 'user_is_logged_in',
+    //'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
   );
   return $items;
@@ -93,7 +116,9 @@ function avcustomers_home_form($form, &$form_state) {
   $header = array(
     array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
     array('data' => 'Customer / Company', 'field' => 'display_name'),
-    array('data' => 'Name', 'field' => 'first_name'),
+    array('data' => 'Address', 'field' => 'address'),
+    array('data' => 'City', 'field' => 'city'),
+    array('data' => 'Province', 'field' => 'province'),
     array('data' => 'Contact', 'field' => ''),
     '&nbsp;',
   );
@@ -110,26 +135,40 @@ function avcustomers_home_form($form, &$form_state) {
   $action_links_all = array();
   foreach ($result as $row) {
     $row_data = unserialize($row->data);
-    $action_links = array('links' => array(
-      'edit' => array('title' => 'edit', 'href' => 'av/customers/' . $row->id . '/edit', 'icon_kedy' => 'edit'),
-      'delete' => array('title' => 'delete', 'href' => 'av/customers/' . $row->id . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
-    ));
+    $menu_prefix = 'av/customers/' . $row->id;
 
+    // Set row status class.
+    switch ($row->status) {
+      case AVCUSTOMER_STATUS_SUSPENDED:
+        $row_status_class = ' uk-alert-danger';
+        break;
+      default:
+        $row_status_class = '';
+        break;
+    }
+
+    $action_links = array('links' => array(
+      'edit' => array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'icon_kedy' => 'edit', 'query' => drupal_get_destination()),
+      'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
+    ));
     $action_links_all[] = $action_links;
     $actions_html = theme('links__bare', $action_links);
+    $linked_name = l($row->display_name, $menu_prefix . '/view');
     $rows[] = array(
-    'data' => array(
-      'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
-      'display_name' => check_plain($row->display_name) . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>',
-      'first_name' => check_plain($row->first_name),
-      'contact' => isset($row_data['contact_number']) ? $row_data['contact_number'] : '',
-      'actions' => $actions_html,
-    ),
-    'class' => array('uk-table-middle'),
+      'data' => array(
+        'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
+        'display_name' => $linked_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>',
+        'address' => truncate_utf8(check_plain($row->address), 30, FALSE, TRUE),
+        'city' => truncate_utf8(check_plain($row->city), 30, FALSE, TRUE),
+        'province' => truncate_utf8(check_plain($row->province), 30, FALSE, TRUE),
+        'contact' => isset($row_data['contact_number']) ? $row_data['contact_number'] : '',
+        'actions' => $actions_html,
+      ),
+      'class' => array('uk-table-middle' . $row_status_class),
     );
   }
 
-  $table_attributes = array('id' => 'customers-list-table');
+  $table_attributes = array('id' => 'customers-list-table', 'class' => array('usk-table-condensed'));
   if (empty($rows)) {
     $table_markup = '<p>Nothing recorded yet.</p>';
   }

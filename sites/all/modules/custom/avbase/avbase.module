@@ -213,12 +213,28 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
  */
 function avbase_category_groups($category_id = '') {
   $groups = array();
+  $groups['customer_cat'] = array(
+    'name' => 'Customer Category',
+    'plural_name' => 'Customer Categories',
+  );
   $groups['product_cat'] = array(
     'name' => 'Product Category',
     'plural_name' => 'Product Categories',
   );
   $groups['uom'] = array(
     'name' => 'Unit of Measure',
+  );
+  $groups['account_type'] = array(
+    'name' => 'Account type',
+    'plural_name' => 'Account types',
+  );
+  $groups['shelf'] = array(
+    'name' => 'Shelf',
+    'plural_name' => 'Shelves',
+  );
+  $groups['principal'] = array(
+    'name' => 'Principal Manufacturer',
+    'plural_name' => 'Principal Manufacturers',
   );
   $groups['payment_method'] = array(
     'name' => 'Payment Method',

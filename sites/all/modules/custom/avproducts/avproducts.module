@@ -22,12 +22,22 @@ function avproducts_menu() {
     'expanded' => TRUE,
   );
   $items['av/products/add'] = array(
-    'title' => 'New Product',
+    'title' => 'New product',
     'page callback' => 'avproducts_product_form_load',
     'page arguments' => array(NULL),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
+    'weight' => 10,
+  );
+  $items['av/products/%avproduct/view'] = array(
+    'title' => 'View',
+    'page callback' => 'avproducts_product_form_load',
+    'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/crud.inc',
+    'weight' => 0,
   );
   $items['av/products/%avproduct/edit'] = array(
     'title' => 'Edit',
@@ -36,6 +46,7 @@ function avproducts_menu() {
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
+    'weight' => 1,
   );
   $items['av/products/%avproduct/delete'] = array(
     'title' => 'Delete',
@@ -44,6 +55,7 @@ function avproducts_menu() {
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
+    'weight' => 2,
   );
   $items['av/products/autocomplete'] = array(
     'title' => 'Products Autocomplete',
@@ -119,26 +131,28 @@ function avproducts_home_form($form, &$form_state) {
   $action_links_all = array();
   $categories = avbase_get_categories_multiple(array('product_cat', 'uom'));
   foreach ($result as $row) {
+    $menu_prefix = 'av/products/' . $row->id;
     $action_links = array('links' => array(
-      'edit' => array('title' => 'edit', 'href' => 'av/products/' . $row->id . '/edit', 'icon_kedy' => 'edit'),
-      'delete' => array('title' => 'delete', 'href' => 'av/products/' . $row->id . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
+      'edit' => array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'icon_kedy' => 'edit', 'query' => drupal_get_destination()),
+      'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
     ));
 
     $action_links_all[] = $action_links;
     $actions_html = theme('links__bare', $action_links);
+    $linked_name = l($row->title, $menu_prefix . '/view');
     $rows[] = array(
-    'data' => array(
-      'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
-      'display_name' => check_plain($row->title),
-      'category' => isset($categories[$row->category_id]) ? check_plain($categories[$row->category_id]->title) : '',
-      'uom' => isset($categories[$row->uom_id]) ? check_plain($categories[$row->uom_id]->title) : '',
-      'description' => check_plain($row->description),
-      'price' => array('data' => avbase_money_format('%01.2f', $row->price), 'style' => 'text-align: right'),
-      'cost' => array('data' => avbase_money_format('%01.2f', $row->cost), 'style' => 'text-align: right'),
-      'qty' => array('data' => $row->qty, 'style' => 'text-align: right'),
-      'actions' => $actions_html,
-    ),
-    'class' => array('uk-table-middle'),
+      'data' => array(
+        'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
+        'display_name' => $linked_name,
+        'category' => isset($categories[$row->category_id]) ? check_plain($categories[$row->category_id]->title) : '',
+        'uom' => isset($categories[$row->uom_id]) ? check_plain($categories[$row->uom_id]->title) : '',
+        'description' => truncate_utf8(check_plain($row->description), 90, FALSE, TRUE),
+        'price' => array('data' => avbase_money_format('%01.2f', $row->price), 'style' => 'text-align: right'),
+        'cost' => array('data' => avbase_money_format('%01.2f', $row->cost), 'style' => 'text-align: right'),
+        'qty' => array('data' => $row->qty, 'style' => 'text-align: right'),
+        'actions' => $actions_html,
+      ),
+      'class' => array('uk-table-middle'),
     );
   }
 

@@ -29,6 +29,7 @@ function avproducts_schema() {
       'category_id' => array(
         'description' => 'Category ID',
         'type' => 'int',
+        'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'description' => array(
@@ -90,6 +91,42 @@ function avproducts_schema() {
         'precision' => '12',
         'scale' => '6',
       ),
+      'expiry_date' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'lot_no' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => FALSE,
+      ),
+      'vendor_id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'account_type_id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'shelf_id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'principal_id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'data' => array(
         'description' => 'Miscellaneous product info',
         'type' => 'text',
@@ -109,6 +146,8 @@ function avproducts_schema() {
     ),
     'indexes' => array(
       'category_id' => array('category_id'),
+      'expiry_date' => array('expiry_date'),
+      'supplier_id' => array('vendor_id'),
     ),
   );
 

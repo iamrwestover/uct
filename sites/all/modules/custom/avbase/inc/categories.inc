@@ -23,8 +23,9 @@ function avbase_categories_form($form, &$form_state, $category_id) {
   $form['group_id'] = array('#type' => 'value', '#value' => $category_id);
   $category = avbase_category_groups($category_id);
   $category_menu_path = 'av/categories/' . $category_id;
-  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
-  $form['new_button'] = array('#markup' => l('New ' . strtolower($category['name']), $category_menu_path . '/add', $btn_options));
+  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' uk-button-primary'), 'icon_key' => 'file', 'icon_classes' => array('uk-margin-small-right'));
+  $form['top_buttons']['new_button'] = array('#markup' => l(' New ' . strtolower($category['name']), $category_menu_path . '/add', $btn_options));
+  //$form['top_buttons']['#theme'] = 'avbase_crud_button_group';
 
   $header = array(
     'id' => array('data' => 'ID', 'field' => 'id', 'sort' => 'asc', 'class' => array('uk-hidden'), '#weight' => 0),
@@ -248,40 +249,29 @@ function avbase_category_agent_form_alter(&$form, $db_row) {
   $form['#attached']['js'] = array(
     AVBASE_MODULE_PATH . '/js/agents.js',
   );
-  $form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
+
   switch ($entity_name) {
     case 'agent_vend':
-      //$form['vendor_id'] = array(
-      //  '#id' => 'vendor-id',
-      //  '#type' => 'textfield',
-      //  '#title' => t('Vendor'),
-      //  '#size' => 30,
-      //  '#maxlength' => 60,
-      //  '#autocomplete_path' => 'av/vendors/autocomplete',
-      //  '#weight' => 1.2,
-      //  '#required' => TRUE,
-      //  '#element_validate' => array('avbase_element_validate_display_name_exists'),
-      //  '#table_name' => 'avtbl_vendors',
-      //  '#default_value' => empty($db_row->vendor_name) ? '' : check_plain($db_row->vendor_name),
-      //  //'#prefix' => '<div id="multiple-vendor-wrapper">',
-      //  //'#suffix' => '</div>',
-      //);
-
-      //$group['add_btn'] = array(
-      //  '#type' => 'submit',
-      //  '#name' =>'vendor_add_more',
-      //  '#value' => t('Add another vendor'),
-      //  //'#attributes' => array('class' => array('field-add-more-submit')),
-      //  '#limit_validation_errors' => array(array('uoms'), array('uom_id')),
-      //  '#submit' => array('avproducts_uom_multiple_submit'),
-      //  '#ajax' => array(
-      //    'callback' => 'avproducts_uom_multiple_js',
-      //    'wrapper' => 'multiple-uom-wrapper',
-      //    'effect' => 'none',
-      //  ),
-      //);
       break;
   }
+
+  $form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
+  $form['contact_number'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Contact number',
+    '#default_value' => isset($db_row->data['contact_number']) ? check_plain($db_row->data['contact_number']) : '',
+    '#maxlength' => 32,
+    '#weight' => 1.1,
+  );
+  $form['address'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Address',
+    '#default_value' => isset($db_row->data['address']) ? check_plain($db_row->data['address']) : '',
+    '#maxlength' => 255,
+    '#weight' => 1.2,
+  );
+  $form['data_ids']['#value'][] = 'contact_number';
+  $form['data_ids']['#value'][] = 'address';
 }
 
 /**
