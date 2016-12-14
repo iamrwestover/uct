@@ -184,19 +184,19 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     ),
     '#special_element_type' => 'number',
   );
-  $initial_qty_date_format = 'M. d, Y';
-  $info['initial_qty_date'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Beginning qty. date',
-    '#default_value' => isset($row->initial_qty_date) ? date($initial_qty_date_format, $row->initial_qty_date) : '',
-    '#access' => empty($row->id),
-    '#required' => TRUE,
-    '#element_validate' => array('avbase_element_validate_date'),
-    '#av_date_format' => $initial_qty_date_format,
-    '#attributes' => array(
-      'autocomplete' => 'off',
-    ),
-  );
+  //$initial_qty_date_format = 'M. d, Y';
+  //$info['initial_qty_date'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Beginning qty. date',
+  //  '#default_value' => isset($row->initial_qty_date) ? date($initial_qty_date_format, $row->initial_qty_date) : '',
+  //  '#access' => empty($row->id),
+  //  '#required' => TRUE,
+  //  '#element_validate' => array('avbase_element_validate_date'),
+  //  '#av_date_format' => $initial_qty_date_format,
+  //  '#attributes' => array(
+  //    'autocomplete' => 'off',
+  //  ),
+  //);
 
   $default_uom = avbase_get_category(array('group_id' => 'uom', 'system_default' => 1));
   $default_uom_id = isset($default_uom->id) ? $default_uom->id : 0;
@@ -582,6 +582,11 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
         $data['uoms'] = $rekeyed_uoms;
         $row['data'] = serialize($data);
       }
+
+      if (empty($row['id'])) {
+        $row['initial_qty_date'] = time();
+      }
+
       return $row;
       break;
   }

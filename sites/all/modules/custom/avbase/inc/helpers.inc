@@ -447,6 +447,7 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
     }
 
     if (isset($element['#type'])) {
+      $element['#required'] = FALSE;
       switch ($element['#type']) {
         case 'textfield':
         case 'textarea':
