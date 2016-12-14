@@ -245,6 +245,28 @@ function avbase_money_format($format, $number) {
 }
 
 /**
+ * Load user extra details.
+ * @param object $account
+ * @return
+ */
+function avbase_avuser_load($account = NULL) {
+  if (empty($account->uid)) {
+    return NULL;
+  }
+
+  $data = &drupal_static(__FUNCTION__, array());
+  if (isset($data[$account->uid])) {
+    return $data[$account->uid];
+  }
+
+  $query = "SELECT * FROM {avtbl_users} WHERE uid = :uid";
+  $rs = db_query($query, array(':uid' => $account->uid));
+  $row = $rs->fetchObject();
+  $data[$account->uid] = $row;
+  return $row;
+}
+
+/**
  * Load category group details.
  *
  * @param $row_id

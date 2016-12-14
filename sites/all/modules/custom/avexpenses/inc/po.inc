@@ -89,6 +89,9 @@ function avexpenses_po_form_settings(&$form, $row) {
     'message',
     'po_date',
     'email',
+    'term_id' => array('type' => 'int'),
+    'discount_type' => array('type' => 'int'),
+    'discount_value' => array('type' => 'float'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',

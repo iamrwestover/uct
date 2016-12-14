@@ -14,6 +14,7 @@ function avbase_crud_form_submit($form, &$form_state) {
     $values = $form_state['values'];
     $record_id = isset($values['id']) ? $values['id'] : NULL;
     $save_field_ids = isset($values['save_field_ids']) ? $values['save_field_ids'] : array();
+    $hide_crud_messages = !empty($form['#hide_crud_messages']);
 
     // Get $form_state values and store them on $row array.
     $row = array();
@@ -75,12 +76,16 @@ function avbase_crud_form_submit($form, &$form_state) {
           $row['created'] = time();
         }
         if ($row['id'] = db_insert($table_name)->fields($row)->execute()) {
-          drupal_set_message('New record saved.');
+          if (!$hide_crud_messages) {
+            drupal_set_message('New record saved.');
+          }
         }
       } else {
         // Update record.
         if (db_update($table_name)->fields($row)->condition('id', $record_id)->execute()) {
-          drupal_set_message('Changes saved.');
+          if (!$hide_crud_messages) {
+            drupal_set_message('Changes saved.');
+          }
         }
         $row['id'] = $record_id;
       }

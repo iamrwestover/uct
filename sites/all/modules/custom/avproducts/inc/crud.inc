@@ -155,7 +155,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#disabled' => !empty($row->id)
   );
   if (!empty($row->id)) {
-    $info['qty']['#suffix'] = l('( adjust quantity )', '#');
+    $info['qty']['#suffix'] = l('adjust quantity', '#');
   }
   $info['initial_qty'] = array(
     '#type' => 'textfield',
@@ -199,7 +199,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   );
   $info['rop'] = array(
     '#type' => 'textfield',
-    '#title' => 'Reorder point',
+    '#title' => 'ROP',
     '#default_value' => isset($row->rop) ? $row->rop : '',
     '#maxlength' => 10,
     '#element_validate' => array('element_validate_integer_positive'),

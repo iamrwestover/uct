@@ -29,7 +29,7 @@
       });
 
       self.bindEvents();
-      self.refreshGrandTotalText();
+      self.refreshSubTotalText();
     },
 
     refreshRowNumbers: function() {
@@ -44,11 +44,13 @@
       // Trigger actions for discount fields.
       self.$discountValEl.once('avPODiscountVal', function() {
         $(this).change(function() {
-          //self.refreshDiscountTotalText();
+          self.refreshDiscountTotalText();
         });
       });
       self.$discountTypeEl.once('avPODiscountType', function() {
-        self.$discountValEl.trigger('change');
+        $(this).change(function() {
+          self.$discountValEl.trigger('change');
+        });
       });
 
       this.$productRows = self.$nestableEl.find('.uk-nestable-item');
@@ -132,9 +134,9 @@
         $priceEl.once('avNestableProdGroupPrice', function() {
           $(this).change(function() {
             var amount = self.getRowAmount($thisRow);
-            if (amount) {
+            if (amount != '') {
               $amountEl.val(amount.toFixed(2));
-              self.refreshGrandTotalText();
+              self.refreshSubTotalText();
             }
           });
           $(this).keydown(function(e) {
@@ -157,12 +159,16 @@
         $amountEl.once('avNestableProdGroupAmount', function() {
           $(this).change(function() {
             var price = self.getRowPrice($thisRow);
-            if (price) {
+            if (price != '') {
               $priceEl.val(parseFloat(price.toFixed(6)));
             }
             //console.log($(this).val().toFixed(2));
-            $(this).val(parseFloat($(this).val()).toFixed(2));
-            self.refreshGrandTotalText();
+            var thisAmount = $(this).val();
+            if ($.isNumeric(thisAmount)) {
+              thisAmount = parseFloat(thisAmount).toFixed(2);
+              $(this).val(thisAmount);
+            }
+            self.refreshSubTotalText();
           });
 
           $(this).keydown(function(e) {
@@ -233,15 +239,17 @@
     },
 
     refreshSubTotalText: function() {
-      this.$subTotalEl.html(this.moneyFormat(this.getSubTotal()));
+      this.$subTotalEl.text(this.moneyFormat(this.getSubTotal()));
+      this.refreshDiscountTotalText();
     },
 
     refreshDiscountTotalText: function() {
-      this.$discountTotalEl.html(this.moneyFormat(this.getDiscountTotal()));
+      this.$discountTotalEl.text(this.moneyFormat(this.getDiscountTotal()));
+      this.refreshGrandTotalText();
     },
 
     refreshGrandTotalText: function() {
-      this.$grandTotalEl.html(this.moneyFormat(this.getGrandTotal()));
+      this.$grandTotalEl.text(this.moneyFormat(this.getGrandTotal()));
     },
 
     getSubTotal: function() {
@@ -260,16 +268,16 @@
     },
 
     getDiscountTotal: function() {
-      var subTotal = this.getSubTotal();
       var discountType = this.$discountTypeEl.val();
       var discountValue = $('#discount-value').val();
       var discountTotal = 0;
       if (discountType && discountValue && $.isNumeric(discountValue)) {
         if (discountType == 1) {
-          discountTotal = (subTotal * discountValue) / 100;
+          var subTotal = this.getSubTotal();
+          discountTotal = (discountValue * subTotal) / 100;
         }
         else if(discountType == 2) {
-          discountTotal = subTotal - discountValue;
+          discountTotal = discountValue;
         }
       }
       return parseFloat(discountTotal).toFixed(2);
@@ -278,9 +286,8 @@
     getGrandTotal: function() {
       var subTotal = this.getSubTotal();
       var discountTotal = this.getDiscountTotal();
-      console.log(subTotal);
-      console.log(discountTotal);
       var grandTotal = subTotal - discountTotal;
+      grandTotal = grandTotal < 0 ? 0 : grandTotal;
       return parseFloat(grandTotal).toFixed(2);
     },
 

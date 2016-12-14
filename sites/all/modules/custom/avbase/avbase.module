@@ -26,6 +26,7 @@ function avbase_theme($existing, $type, $theme, $path) {
   $theme_names = array(
     //'avcustomers_customer_form',
     //'avcustomers_home_form',
+    'avbase_user_form',
     'avbase_nestable_form',
     'avbase_nestable_form_row',
     'avbase_crud_button_group',
@@ -136,6 +137,43 @@ function avbase_menu() {
     'access arguments' => array('administer site configuration'),
     'menu_name' => 'av',
   );
+
+  $items['av/users'] = array(
+    'title' => 'Users',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avbase_users_home_form'),
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+    'file' => 'inc/users.inc',
+  );
+  $items['av/users/add'] = array(
+    'title' => 'New user',
+    'page callback' => 'avbase_user_form_load',
+    'page arguments' => array(NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/users.inc',
+  );
+  $items['av/users/%user/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'avbase_user_form_load',
+    'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/users.inc',
+  );
+  $items['av/users/%user/view'] = array(
+    'title' => 'My account',
+    'title callback' => 'user_page_title',
+    'title arguments' => array(2),
+    'page callback' => 'user_view_page',
+    'page arguments' => array(2),
+    'access callback' => 'user_view_access',
+    'access arguments' => array(2),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/users.inc',
+  );
   return $items;
 }
 
@@ -161,9 +199,9 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
     //case 'avbase_categories_form':
     //  avbase_categories_form_alter($form, $form_state);
     //  break;
-    //case 'avbase_category_form':
-    //  avbase_category_form_alter($form, $form_state);
-    //  break;
+    case 'avbase_general_settings_form':
+      $form['actions']['#theme'] = 'avbase_crud_button_group';
+      break;
   }
 }
 

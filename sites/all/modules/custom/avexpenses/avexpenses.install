@@ -49,6 +49,20 @@ function avexpenses_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'discount_type' => array(
+        'description' => 'Discount type',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+        'default' => 1,
+      ),
+      'discount_value' => array(
+        'description' => 'Discount value',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '12',
+        'scale' => '6',
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(

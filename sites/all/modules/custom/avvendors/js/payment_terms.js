@@ -44,6 +44,7 @@
           }
           superParent.$discountTypeEl.val(type);
           superParent.$discountValEl.val(val);
+          superParent.$discountValEl.trigger('change');
           superParent.toggleChildrenVisibility(true);
         }
         else {
