@@ -63,6 +63,10 @@ function avvendors_vendor_form_settings(&$form) {
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'vendor');
 
+  $form['#attached']['js'] = array(
+    AVVENDORS_MODULE_PATH . '/js/vendor_form.js',
+  );
+
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
 
@@ -80,6 +84,9 @@ function avvendors_vendor_form_settings(&$form) {
     'city',
     'province',
     'zip_code',
+    'term_id' => array('type' => 'int'),
+    'discount_type' => array('type' => 'int'),
+    'discount_value' => array('type' => 'float'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',
@@ -149,6 +156,47 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
     '#element_validate' => array('avbase_element_validate_category_exists'),
     '#element_validate_conditions' => array('group_id' => 'agent_vend'),
     '#default_value' => empty($row->agent_name) ? '' : check_plain($row->agent_name),
+  );
+
+  $term_options = avbase_get_category_options_array('payment_term');
+  asort($term_options);
+  $info['term_id'] = array(
+    '#id' => 'term-id',
+    '#type' => 'select',
+    '#title' => 'Payment term',
+    '#options' => $term_options,
+    '#default_value' => isset($row->term_id) ? $row->term_id : 0,
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+  );
+  $terms = avbase_get_categories('payment_term');
+  $terms_js_settings = array('avbasePaymentTerms' => $terms);
+  $info['term_id']['#attached']['js'] = array(
+    AVVENDORS_MODULE_PATH . '/js/payment_terms.js',
+    array(
+      'data' => $terms_js_settings,
+      'type' => 'setting',
+    ),
+  );
+  $info['discount_type'] = array(
+    '#id' => 'discount-type',
+    '#type' => 'select',
+    '#title' => 'Discount type',
+    '#options' => avbase_get_discount_types(),
+    '#default_value' => isset($row->discount_type) ? $row->discount_type : 1,
+  );
+  $info['discount_value'] = array(
+    '#id' => 'discount-value',
+    '#type' => 'textfield',
+    '#title' => 'Discount value',
+    '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+    '#special_element_type' => 'number',
+    '#attributes' => array(
+      //'class' => array(''),
+      'step' => 0.01,
+    ),
   );
   $form['info'] += $info;
 }

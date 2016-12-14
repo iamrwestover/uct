@@ -20,25 +20,25 @@ function avexpenses_po_form_load($row) {
  * @return array
  */
 function avexpenses_po_form($form, &$form_state, $row) {
-  $form['#attached']['js'] = array(
-    AVEXPENSES_MODULE_PATH . '/js/po_form.js',
-  );
-  $form['#attached']['css'] = array(
-    //AVBASE_LIBRARIES_PATH . '/select2/select2.min.css',
-  );
-
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New Purchase Order' : 'Edit Purchase Order';
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avexpenses_po_form_settings($form);
+  avexpenses_po_form_settings($form, $row);
 
   // Info group.
   avexpenses_po_form_fields($form, $form_state, $row);
 
   // Product list.
   avexpenses_po_product_fields($form, $form_state, $row);
+
+  $form['header_total'] = array(
+    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
+  );
+  $form['footer_total'] = array(
+    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
+  );
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit_and_send'] = array(
@@ -59,13 +59,25 @@ function avexpenses_po_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avexpenses_po_form_settings(&$form) {
+function avexpenses_po_form_settings(&$form, $row) {
   $table_name = 'avtbl_po';
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');
+
+  $po_js_settings = array('avexpensesPODetails' => $row);
+  $form['#attached']['js'] = array(
+    AVEXPENSES_MODULE_PATH . '/js/po_form.js',
+    array(
+      'data' => $po_js_settings,
+      'type' => 'setting',
+    ),
+  );
+  $form['#attached']['css'] = array(
+    //AVBASE_LIBRARIES_PATH . '/select2/select2.min.css',
+  );
 
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
@@ -111,6 +123,9 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
     '#table_name' => 'avtbl_vendors',
     '#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
   );
+  $form['vendor_id']['#attached']['js'] = array(
+    AVVENDORS_MODULE_PATH . '/js/autocomplete.js',
+  );
   $form['email'] = array(
     '#id' => 'vendor-email',
     '#type' => 'textfield',
@@ -118,6 +133,49 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
     '#default_value' => isset($row->email) ? check_plain($row->email) : '',
     '#maxlength' => 255,
     '#element_validate' => array('avbase_element_validate_email'),
+  );
+
+  $term_options = avbase_get_category_options_array('payment_term');
+  asort($term_options);
+  $form['term_id'] = array(
+    '#id' => 'term-id',
+    '#type' => 'select',
+    '#title' => 'Payment term',
+    '#options' => $term_options,
+    '#default_value' => isset($row->term_id) ? $row->term_id : 0,
+    '#empty_value' => 0,
+    '#empty_option' => '',
+  );
+  $terms = avbase_get_categories('payment_term');
+  $terms_js_settings = array('avbasePaymentTerms' => $terms);
+  $form['term_id']['#attached']['js'] = array(
+    AVVENDORS_MODULE_PATH . '/js/payment_terms.js',
+    array(
+      'data' => $terms_js_settings,
+      'type' => 'setting',
+    ),
+  );
+  $form['discount_type'] = array(
+    '#id' => 'discount-type',
+    '#title_display' => 'invisible',
+    '#type' => 'select',
+    '#title' => 'Discount type',
+    '#options' => avbase_get_discount_types(),
+    '#default_value' => isset($row->discount_type) ? $row->discount_type : 1,
+  );
+  $form['discount_value'] = array(
+    '#id' => 'discount-value',
+    '#title_display' => 'invisible',
+    '#type' => 'textfield',
+    '#title' => 'Discount value',
+    '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+    //'#special_element_type' => 'number',
+    '#attributes' => array(
+      //'class' => array(''),
+      //'step' => 0.01,
+    ),
   );
   $form['po_date'] = array(
     '#type' => 'item',
@@ -308,12 +366,8 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       'effect' => 'none',
     ),
   );
-  $form['header_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
-  );
-  $form['footer_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
-  );
+
+
 }
 
 /**

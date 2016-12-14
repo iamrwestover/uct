@@ -1,8 +1,6 @@
 (function ($) {
 
-  $('#vendor-id').on('autocompleteSelect', function(e, node) {
-    $('#vendor-email').val($(node).find('div#avvendor-email').html());
-  });
+
 }(jQuery));
 
 
@@ -11,8 +9,31 @@ jQuery(document).ready(function ($) {
   Drupal.settings.avNestableProductForm.products = Drupal.settings.avNestableProductForm.products || {};
 
   var nestableProdForm = Object.create(avNestableProductForm);
-  nestableProdForm.init($('.av-nestable-product-list-form'), {handleClass:'uk-nestable-handle', maxDepth: 5});
+  nestableProdForm.$nestableEl = $('.av-nestable-product-list-form');
+  nestableProdForm.init({handleClass:'uk-nestable-handle', maxDepth: 5});
 
+  var termActions = Object.create(window.avPaymentTermActions);
+  termActions.preventChildrenHide = true;
+  termActions.init();
+
+  var vendorAutocomplete = Object.create(avbaseAutocompleteActions);
+  vendorAutocomplete.$autocompleteEl = $('#vendor-id');
+  vendorAutocomplete.rowGroupName = 'vendors';
+  vendorAutocomplete.init();
+
+  var $termEl = $('#term-id');
+  vendorAutocomplete.$autocompleteEl.on('autocompleteSelect', function(e, node) {
+    var vendorID = $(node).find('#av-row-id').html();
+    var vendor = Drupal.settings.avbase.vendors[vendorID] || {};
+    var email = vendor.email || '';
+
+    if (vendor.id) {
+      $('#vendor-email').val(Drupal.checkPlain(email));
+      $termEl.val((vendor.term_id || 0));
+      $termEl.data('selectedVendorID', vendorID);
+      $termEl.trigger('change');
+    }
+  });
   /**
    * Behaviors of nestable product form.
    * @type {{attach: Function}}

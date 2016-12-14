@@ -3,10 +3,17 @@
     $nestableEl: null,
     $productRows: {},
     $grandTotalEl: null,
-    init: function($el, options) {
+    $subTotalEl: null,
+    $discountTotalEl: null,
+    $discountTypeEl: null,
+    $discountValEl: null,
+    init: function(options) {
       var self = this;
-      self.$nestableEl = $el;
       self.$grandTotalEl = $('.product-form-grand-total');
+      self.$subTotalEl = $('.product-form-sub-total');
+      self.$discountTotalEl = $('.product-form-discount-total');
+      self.$discountTypeEl = $('#discount-type');
+      self.$discountValEl = $('#discount-value');
 
       // Initialize uikit nestable component.
       UIkit.nestable(self.$nestableEl, options);
@@ -33,6 +40,17 @@
 
     bindEvents: function() {
       var self = this;
+
+      // Trigger actions for discount fields.
+      self.$discountValEl.once('avPODiscountVal', function() {
+        $(this).change(function() {
+          //self.refreshDiscountTotalText();
+        });
+      });
+      self.$discountTypeEl.once('avPODiscountType', function() {
+        self.$discountValEl.trigger('change');
+      });
+
       this.$productRows = self.$nestableEl.find('.uk-nestable-item');
       this.$productRows.each(function() {
         var $thisRow = $(this);
@@ -214,22 +232,55 @@
       return price;
     },
 
+    refreshSubTotalText: function() {
+      this.$subTotalEl.html(this.moneyFormat(this.getSubTotal()));
+    },
+
+    refreshDiscountTotalText: function() {
+      this.$discountTotalEl.html(this.moneyFormat(this.getDiscountTotal()));
+    },
+
     refreshGrandTotalText: function() {
       this.$grandTotalEl.html(this.moneyFormat(this.getGrandTotal()));
     },
 
-    getGrandTotal: function() {
-      var $rows = this.$productRows;
-      var $amountEls = $rows.find('.prod-column-amt');
-      var grandTotal = 0;
+    getSubTotal: function() {
+      var $amountEls = this.$productRows.find('.prod-column-amt');
+      var rowTotal = 0;
       var subTotal = 0;
       $amountEls.each(function() {
-        subTotal = $(this).val();
-        if (!$.isNumeric(subTotal)) {
+        rowTotal = $(this).val();
+        if (!$.isNumeric(rowTotal)) {
           return;
         }
-        grandTotal += parseFloat(subTotal);
+        subTotal += parseFloat(rowTotal);
       });
+
+      return parseFloat(subTotal).toFixed(2);
+    },
+
+    getDiscountTotal: function() {
+      var subTotal = this.getSubTotal();
+      var discountType = this.$discountTypeEl.val();
+      var discountValue = $('#discount-value').val();
+      var discountTotal = 0;
+      if (discountType && discountValue && $.isNumeric(discountValue)) {
+        if (discountType == 1) {
+          discountTotal = (subTotal * discountValue) / 100;
+        }
+        else if(discountType == 2) {
+          discountTotal = subTotal - discountValue;
+        }
+      }
+      return parseFloat(discountTotal).toFixed(2);
+    },
+
+    getGrandTotal: function() {
+      var subTotal = this.getSubTotal();
+      var discountTotal = this.getDiscountTotal();
+      console.log(subTotal);
+      console.log(discountTotal);
+      var grandTotal = subTotal - discountTotal;
       return parseFloat(grandTotal).toFixed(2);
     },
 

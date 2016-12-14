@@ -6,6 +6,7 @@ $form['prod_add_btn']['#attributes']['class'][] = 'av-ajax-button';
 //$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
 $form['buttons']['submit_and_send']['#attributes']['class'][] = 'uk-button-primary';
 $form['buttons']['submit_and_send']['#attributes']['disabled'] = TRUE;
+$form['discount_value']['#attributes']['class'][] = 'uk-text-right';
 
 $form['message']['#attributes']['rows'] = 2;
 //$form['vendor_id']['#attributes']['placeholder'] = 'Enter vendor name or company name';
@@ -16,8 +17,9 @@ $form['message']['#attributes']['rows'] = 2;
     <div class="uk-grid uk-grid-small">
       <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['po_date']); ?></div>
 
-      <div class="uk-width-1-2"><?php print drupal_render($form['vendor_id']); ?></div>
-      <div class="uk-width-1-2"><?php print drupal_render($form['email']); ?></div>
+      <div class="uk-width-2-4"><?php print drupal_render($form['vendor_id']); ?></div>
+      <div class="uk-width-1-4"><?php print drupal_render($form['email']); ?></div>
+      <div class="uk-width-1-4"><?php print drupal_render($form['term_id']); ?></div>
     </div>
 
   </div>
@@ -32,23 +34,39 @@ $form['message']['#attributes']['rows'] = 2;
 
 
 
-  <div class="uk-width-1-1 uk-margin-large">
+  <div class="uk-width-1-1 uk-margin-large-top">
     <?php print drupal_render($form['product_rows']); ?>
 
     <div class="uk-grid uk-grid-collapse uk-margin-small-top">
       <div class="uk-width-7-10">
-        <?php print drupal_render($form['prod_add_btn']); ?>
+
+        <div class="uk-grid">
+          <div class="uk-width-1-1"><?php print drupal_render($form['prod_add_btn']); ?></div>
+          <div class="uk-width-3-6 uk-margin-top"><?php print drupal_render($form['message']); ?></div>
+          <div class="uk-width-2-6 uk-margin-top"><?php print drupal_render($form['address']); ?></div>
+          <div class="uk-width-1-6 uk-margin-small-top uk-text-right"><div class="uk-margin-right uk-margin-small-top">Discount</div></div>
+          <!--<div class="uk-width-1-2"></div>-->
+        </div>
       </div>
 
-      <div class="uk-width-3-10 uk-text-right uk-text-bold">
+      <div class="uk-width-3-10 uk-text-right">
 
-        <div class="uk-grid uk-grid-collapse uk-margin-small-top">
-          <div class="uk-width-2-6"></div>
-          <div class="uk-width-1-6"><h3>Total:</h3></div>
-          <div class="uk-width-2-6"><h3 class="product-form-grand-total">0.00</h3></div>
+        <div class="uk-grid uk-grid-small uk-margin-small-top">
+          <div class="uk-width-3-6"><h5>Subtotal</h5></div>
+          <div class="uk-width-2-6"><h3 class="product-form-sub-total">0.00</h3></div>
           <div class="uk-width-1-6"></div>
+        <!--</div>-->
+        <!--<div class="uk-grid uk-grid-small uk-margin-small-top">-->
+          <div class="uk-width-2-6 uk-margin-small-top"><?php print drupal_render($form['discount_type']); ?></div>
+          <div class="uk-width-1-6 uk-margin-small-top"><?php print drupal_render($form['discount_value']); ?></div>
+          <div class="uk-width-2-6 uk-margin-small-top"><h3 class="product-form-discount-total">0.00</h3></div>
+          <div class="uk-width-1-6 uk-margin-small-top"></div>
+        <!--</div>-->
+        <!--<div class="uk-grid uk-grid-collapse uk-margin-small-top">-->
+          <div class="uk-width-3-6 uk-margin-small-top"><h3>Total</h3></div>
+          <div class="uk-width-2-6 uk-margin-small-top"><h3 class="product-form-grand-total">0.00</h3></div>
+          <div class="uk-width-1-6 uk-margin-small-top"></div>
         </div>
-
       </div>
 
       <!--<div class="uk-width-1-10 uk-text-right uk-text-bold">-->
@@ -60,7 +78,7 @@ $form['message']['#attributes']['rows'] = 2;
 
 
   <div class="uk-width-3-5"><?php print drupal_render($form['message']); ?></div>
-  <div class="uk-width-2-5 uk-text-right"><?php print drupal_render($form['address']); ?></div>
+  <div class="uk-width-2-5"><div style="padding-right: 24px;"><?php print drupal_render($form['address']); ?></div></div>
 </div>
 <?php
 

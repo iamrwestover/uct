@@ -43,6 +43,12 @@ function avexpenses_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(

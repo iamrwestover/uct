@@ -175,27 +175,26 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
  */
 function avbase_category_groups($category_id = '') {
   $groups = array();
-  $groups['payment_method'] = array(
-    //'menu_path' => 'av/categories/payment-methods',
-    'name' => 'Payment Method',
-    'plural_name' => 'Payment Methods',
-  );
   $groups['product_cat'] = array(
-    //'menu_path' => 'av/categories/product-categories',
     'name' => 'Product Category',
     'plural_name' => 'Product Categories',
   );
   $groups['uom'] = array(
-    //'menu_path' => 'av/categories/uom',
     'name' => 'Unit of Measure',
   );
+  $groups['payment_method'] = array(
+    'name' => 'Payment Method',
+    'plural_name' => 'Payment Methods',
+  );
+  $groups['payment_term'] = array(
+    'name' => 'Payment Term',
+    'plural_name' => 'Payment Terms',
+  );
   $groups['agent_vend'] = array(
-    //'menu_path' => 'av/categories/vendor-agents',
     'name' => 'Vendor Agent',
     'plural_name' => 'Vendor Agents',
   );
   $groups['agent_cust'] = array(
-    //'menu_path' => 'av/categories/customer-agents',
     'name' => 'Customer Agent',
     'plural_name' => 'Customer Agents',
   );

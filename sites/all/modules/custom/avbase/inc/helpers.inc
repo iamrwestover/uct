@@ -394,3 +394,11 @@ function avexpenses_po_product_fields_validate($form, &$form_state) {
     form_set_error('', t('Please add at least one valid product.'));
   }
 }
+
+/**
+ * Return discount types.
+ * @return array
+ */
+function avbase_get_discount_types() {
+  return array(1 => 'Percent', 2 => 'Fixed amount');
+}

@@ -1,12 +1,12 @@
 (function ($) {
-  //$(window).on('load', function() {
-  //    // Pre-loader.
-  //    //$('#status').fadeOut();
-  //    //$('#loading').hide();
-  //    $('#loading').delay(350).fadeOut();
-  //    //$('body').delay(350).css({'overflow':'visible'});
-  //
-  //});
+  $(window).on('load', function() {
+    $('#loading').delay(0).fadeOut('fast');
+  });
+
+  $(window).on('beforeunload', function() {
+    $('#loading-center').hide();
+    $('#loading').fadeIn('fast');
+  });
 
   // Here we immediately call the function with jQuery as the parameter.
   Drupal.behaviors.uikitAvGeneral = {

@@ -1,32 +1,5 @@
-/*body {*/
-  /*/!*overflow: hidden;*!/*/
-/*}*/
-
-/*/!* Preloader *!/*/
-
-/*#preloader {*/
-  /*position:fixed;*/
-  /*top:0;*/
-  /*left:0;*/
-  /*right:0;*/
-  /*bottom:0;*/
-  /*background-color:#fff; /!* change if the mask should have another color then white *!/*/
-  /*z-index:99; /!* makes sure it stays on top *!/*/
-/*}*/
-
-/*#status {*/
-  /*width:200px;*/
-  /*height:200px;*/
-  /*position:absolute;*/
-  /*left:50%; /!* centers the loading animation horizontally one the screen *!/*/
-  /*top:50%; /!* centers the loading animation vertically one the screen *!/*/
-  /*background-image:url(../images/status.gif); /!* path to your loading animation *!/*/
-  /*background-repeat:no-repeat;*/
-  /*background-position:center;*/
-  /*margin:-100px 0 0 -100px; /!* is width and height divided by two *!/*/
-/*}*/
 #loading{
-  background-color: #1f2a37;
+  background-color: #eef1f5;
   height: 100%;
   width: 100%;
   position: fixed;
@@ -43,61 +16,92 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  height: 20px;
-  width: 100px;
-  margin-top: -10px;
-  margin-left: -50px;
-
+  height: 150px;
+  width: 150px;
+  margin-top: -75px;
+  margin-left: -75px;
 }
 .object{
   width: 20px;
   height: 20px;
   background-color: #FFF;
+  float: left;
+  margin-right: 20px;
+  margin-top: 65px;
   -moz-border-radius: 50% 50% 50% 50%;
   -webkit-border-radius: 50% 50% 50% 50%;
   border-radius: 50% 50% 50% 50%;
-  margin-right: 20px;
-  margin-bottom: 20px;
-  position: absolute;
+}
+
+#object_one {
+  -webkit-animation: object_one 1.5s infinite;
+  animation: object_one 1.5s infinite;
+}
+#object_two {
+  -webkit-animation: object_two 1.5s infinite;
+  animation: object_two 1.5s infinite;
+  -webkit-animation-delay: 0.25s;
+  animation-delay: 0.25s;
+}
+#object_three {
+  -webkit-animation: object_three 1.5s infinite;
+  animation: object_three 1.5s infinite;
+  -webkit-animation-delay: 0.5s;
+  animation-delay: 0.5s;
+
 }
 
 
-#object_one{
-  -webkit-animation: object 2s linear infinite;
-  animation: object 2s linear infinite;
+
+
+
+
+
+
+@-webkit-keyframes object_one {
+  75% { -webkit-transform: scale(0); }
 }
-#object_two{
-  -webkit-animation: object 2s linear infinite -.4s;
-  animation: object 2s linear infinite -.4s;
-}
-#object_three{
-  -webkit-animation: object 2s linear infinite -.8s;
-  animation: object 2s linear infinite -.8s;
-}
-#object_four{
-  -webkit-animation: object 2s linear infinite -1.2s;
-  animation: object 2s linear infinite -1.2s;
-}
-#object_five{
-  -webkit-animation: object 2s linear infinite -1.6s;
-  animation: object 2s linear infinite -1.6s;
+
+@keyframes object_one {
+
+  75% {
+    transform: scale(0);
+    -webkit-transform: scale(0);
+  }
+
 }
 
 
-@-webkit-keyframes object{
-  0% { left: 100px; top:0}
-  80% { left: 0; top:0;}
-  85% { left: 0; top: -20px; width: 20px; height: 20px;}
-  90% { width: 40px; height: 15px; }
-  95% { left: 100px; top: -20px; width: 20px; height: 20px;}
-  100% { left: 100px; top:0; }
+
+
+
+@-webkit-keyframes object_two {
+
+
+  75% { -webkit-transform: scale(0); }
+
 
 }
-@keyframes object{
-  0% { left: 100px; top:0}
-  80% { left: 0; top:0;}
-  85% { left: 0; top: -20px; width: 20px; height: 20px;}
-  90% { width: 40px; height: 15px; }
-  95% { left: 100px; top: -20px; width: 20px; height: 20px;}
-  100% { left: 100px; top:0; }
+
+@keyframes object_two {
+  75% {
+    transform: scale(0);
+    -webkit-transform:  scale(0);
+  }
+
+}
+
+@-webkit-keyframes object_three {
+
+  75% { -webkit-transform: scale(0); }
+
+}
+
+@keyframes object_three {
+
+  75% {
+    transform: scale(0);
+    -webkit-transform: scale(0);
+  }
+
 }

@@ -67,6 +67,12 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
       <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['contact']['contact_number']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['contact']['website']); ?></div>
+
+      <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['toggle_me']); ?></div>
+      <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['info']['settings']); ?></div>
+      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['term_id']); ?></div>
+      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['discount_type']); ?></div>
+      <div class="uk-width-1-3 uk-margin-small-bottom"><?php print drupal_render($form['info']['discount_value']); ?></div>
     </div>
   </div>
 
