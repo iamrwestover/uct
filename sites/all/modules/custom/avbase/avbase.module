@@ -90,7 +90,7 @@ function avbase_menu() {
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_categories_form', $k),
       'access callback' => 'user_is_logged_in',
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
       'weight' => $x,
     );
@@ -99,7 +99,7 @@ function avbase_menu() {
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, NULL),
       'access callback' => 'user_is_logged_in',
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
     );
     $items['av/categories/' . $k . '/%avcategory/edit'] = array(
@@ -107,7 +107,7 @@ function avbase_menu() {
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, 3),
       'access callback' => 'user_is_logged_in',
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
     );
     $items['av/categories/' . $k . '/%avcategory/delete'] = array(
@@ -115,7 +115,7 @@ function avbase_menu() {
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_category_delete_confirm_form', $k, 3),
       'access callback' => 'user_is_logged_in',
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
     );
   }

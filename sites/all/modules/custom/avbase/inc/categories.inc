@@ -8,7 +8,23 @@ module_load_include('inc', 'avbase', 'inc/categories/' . arg(2));
  * @return string
  */
 function avbase_categories_home() {
-  return 'Categories Maintenance';
+  $output = '<div class="uk-grid uk-grid-small uk-margin-top">';
+
+  $categories = avbase_category_groups();
+  $x = -1;
+  foreach ($categories as $k => $v) {
+    $category_title = isset($v['plural_name']) ? $v['plural_name'] : $v['name'];
+
+    $output .= '<div class="uk-width-1-4 uk-margin-bottom">';
+    //$output .= '<li>';
+    $output .= l(/*'<i class="uk-icon-envelope-o"></i>' . */$category_title, 'av/categories/' . $k, array('html' => TRUE,
+      'attributes' => array('class' => array('uk-button', 'uk-width-1-1', 'uk-button-large', 'uk-button-primary'))));
+    //$output .= '</li>';
+    $output .= '</div>';
+  }
+  $output .= '</div>';
+
+  return $output;
 }
 
 /**
