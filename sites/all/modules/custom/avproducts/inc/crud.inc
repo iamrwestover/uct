@@ -172,15 +172,15 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   }
   $info['initial_qty'] = array(
     '#type' => 'textfield',
-    '#title' => 'Beginning Qty.',
-    //'#description' => 'On-hand quantity',
+    '#title' => 'Qty.',
     '#default_value' => isset($row->qty) ? $row->qty : '',
     '#maxlength' => 10,
     '#access' => empty($row->id),
     '#required' => TRUE,
     '#element_validate' => array('element_validate_integer_positive'),
     '#attributes' => array(
-      'autocomplete' => 'off',
+      'data-uk-tooltip' => "{pos:'bottom'}",
+      'title' => 'Beginning quantity',
     ),
     '#special_element_type' => 'number',
   );
@@ -203,12 +203,16 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   $info['uom_id'] = array(
     '#id' => 'uom-id',
     '#type' => 'select',
-    '#title' => 'Base UOM',
+    '#title' => 'UOM',
     '#options' => avbase_get_category_options_array('uom'),
     '#default_value' => isset($row->uom_id) ? $row->uom_id : $default_uom_id,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
     //'#required' => TRUE,
+    '#attributes' => array(
+      'data-uk-tooltip' => "{pos:'top'}",
+      'title' => 'Base UOM',
+    ),
   );
   $info['rop'] = array(
     '#type' => 'textfield',
@@ -377,7 +381,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
     $fields['qty'] = array(
       '#id' => 'uom-qty-' . $uom_index,
       '#type' => 'textfield',
-      '#title' => 'Contains',
+      '#title' => 'Qty.',
       '#description' => t('@uom1 per @uom2', array('@uom1' => $plural_form, '@uom2' => $current_uom_name)),
       '#default_value' => isset($uom_row['qty']) ? $uom_row['qty'] : '',
       '#maxlength' => 10,
@@ -583,7 +587,7 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
         $row['data'] = serialize($data);
       }
 
-      if (empty($row['id'])) {
+      if (empty($row['id']) && empty($row['initial_qty_date'])) {
         $row['initial_qty_date'] = time();
       }
 
