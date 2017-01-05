@@ -148,6 +148,20 @@ function avcustomers_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'credit_limit' => array(
+        'description' => 'Credit limit',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '12',
+        'scale' => '6',
+      ),
+      'opening_balance' => array(
+        'description' => 'Opening balance',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '12',
+        'scale' => '6',
+      ),
       'created' => array(
         'description' => 'Timestamp when the record is created',
         'type' => 'int',

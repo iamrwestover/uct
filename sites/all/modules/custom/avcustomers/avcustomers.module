@@ -154,6 +154,11 @@ function avcustomers_home_form($form, &$form_state) {
     $action_links_all[] = $action_links;
     $actions_html = theme('links__bare', $action_links);
     $linked_name = l($row->display_name, $menu_prefix . '/view');
+    $contact_numbers = array();
+    $contact_numbers[] = isset($row_data['phone1']) ? $row_data['phone1'] : '';
+    $contact_numbers[] = isset($row_data['phone2']) ? $row_data['phone2'] : '';
+    $contact_numbers[] = isset($row_data['phone3']) ? $row_data['phone3'] : '';
+    $contact_numbers = array_filter($contact_numbers);
     $rows[] = array(
       'data' => array(
         'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
@@ -161,7 +166,7 @@ function avcustomers_home_form($form, &$form_state) {
         'address' => truncate_utf8(check_plain($row->address), 30, FALSE, TRUE),
         'city' => truncate_utf8(check_plain($row->city), 30, FALSE, TRUE),
         'province' => truncate_utf8(check_plain($row->province), 30, FALSE, TRUE),
-        'contact' => isset($row_data['contact_number']) ? $row_data['contact_number'] : '',
+        'contact' => array_shift($contact_numbers),
         'actions' => $actions_html,
       ),
       'class' => array('uk-table-middle' . $row_status_class),

@@ -84,7 +84,7 @@ function avproducts_product_form_settings(&$form) {
     'title',
     'category_id' => array('type' => 'int'),
     'uom_id' => array('type' => 'int'),
-    'description',
+    //'description',
     'rop' => array('type' => 'int'),
     'eoq' => array('type' => 'int'),
     'cost' => array('type' => 'float'),
@@ -152,12 +152,12 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->category_id) ? $row->category_id : 0,
   );
-  $info['description'] = array(
-    '#type' => 'textarea',
-    '#title' => 'Description',
-    '#default_value' => isset($row->description) ? check_plain($row->description) : '',
-    '#maxlength' => 255,
-  );
+  //$info['description'] = array(
+  //  '#type' => 'textarea',
+  //  '#title' => 'Description',
+  //  '#default_value' => isset($row->description) ? check_plain($row->description) : '',
+  //  '#maxlength' => 255,
+  //);
   $info['qty'] = array(
     '#type' => 'textfield',
     '#title' => 'Qty.',
@@ -168,7 +168,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#disabled' => !empty($row->id)
   );
   if (!empty($row->id)) {
-    $info['qty']['#suffix'] = '<div class="uk-text-center">' . l('adjust quantity', '#') . '</div>';
+    $info['qty']['#suffix'] = '<div class="">' . l('adjust quantity', '#') . '</div>';
   }
   $info['initial_qty'] = array(
     '#type' => 'textfield',

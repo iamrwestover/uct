@@ -22,7 +22,17 @@ function avcustomers_customer_form_load($row) {
  */
 function avcustomers_customer_form($form, &$form_state, $row) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  $page_title = empty($form['id']['#value']) ? 'New customer' : 'Edit customer';
+  switch (arg(3)) {
+    case 'view':
+      $page_title = $row->display_name;
+      break;
+    case 'edit':
+      $page_title = $row->display_name . ' - ' . t('Edit');
+      break;
+    default:
+      $page_title = t('New customer');
+      break;
+  }
   drupal_set_title($page_title);
 
   // Set crud settings.
@@ -45,12 +55,12 @@ function avcustomers_customer_form($form, &$form_state, $row) {
     '#type' => 'fieldset',
     '#title' => 'Miscellaneous',
   );
-  $form['misc']['notes'] = array(
-    '#type' => 'textarea',
-    '#title' => 'Miscellaneous',
-    '#default_value' => isset($row->data['notes']) ? check_plain($row->data['notes']) : '',
-    '#maxlength' => 255,
-  );
+  //$form['misc']['notes'] = array(
+  //  '#type' => 'textarea',
+  //  '#title' => 'Miscellaneous',
+  //  '#default_value' => isset($row->data['notes']) ? check_plain($row->data['notes']) : '',
+  //  '#maxlength' => 255,
+  //);
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
@@ -115,20 +125,24 @@ function avcustomers_customer_form_settings(&$form) {
     'middle_name',
     'company',
     'display_name',
-    'code',
+    //'code',
     'agent_id' => array('type' => 'int'),
     'email',
     'address',
     'city',
     'province',
     'zip_code',
-    'same_addr',
+    //'same_addr',
     'payment_method_id' => array('type' => 'int'),
     'term_id' => array('type' => 'int'),
     'discount_type' => array('type' => 'int'),
     'discount_value' => array('type' => 'float'),
     'category_id' => array('type' => 'int'),
+    'credit_limit' => array('type' => 'float'),
   );
+  if (empty($form['id']['#value'])) {
+    $save_field_ids['opening_balance'] = array('type' => 'float');
+  }
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,
@@ -137,9 +151,11 @@ function avcustomers_customer_form_settings(&$form) {
   // Set which fields belong to data field.
   $data_ids = array(
     //'title',
-    'contact_number',
-    'website',
-    'notes',
+    'phone1',
+    'phone2',
+    'phone3',
+    //'website',
+    //'notes',
   );
   $form['data_ids'] = array(
     '#type' => 'value',
@@ -190,10 +206,7 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#type' => 'textfield',
     '#title' => 'Date added',
     '#default_value' => empty($row->id) ? '' : format_date($row->created, 'custom', 'F d, Y'),
-    //'#input' => FALSE,
-    '#attributes' => array(
-      'disabled' => TRUE,
-    ),
+    '#disabled' => TRUE,
     '#access' => !empty($row->id),
   );
   $info['category_id'] = array(
@@ -204,16 +217,16 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->category_id) ? $row->category_id : 0,
   );
-  $info['code'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Customer code',
-    '#default_value' => isset($row->code) ? check_plain($row->code) : '',
-    '#maxlength' => 32,
-    '#element_validate' => array('avbase_element_validate_unique_field'),
-    '#attributes' => array(
-      'class' => array('uk-text-uppercase'),
-    ),
-  );
+  //$info['code'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Customer code',
+  //  '#default_value' => isset($row->code) ? check_plain($row->code) : '',
+  //  '#maxlength' => 32,
+  //  '#element_validate' => array('avbase_element_validate_unique_field'),
+  //  '#attributes' => array(
+  //    'class' => array('uk-text-uppercase'),
+  //  ),
+  //);
   $info['display_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Display name',
@@ -234,13 +247,7 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#element_validate_conditions' => array('group_id' => 'agent_cust'),
     '#default_value' => empty($row->agent_name) ? '' : check_plain($row->agent_name),
   );
-  $info['credit_limit'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Credit limit',
-    '#default_value' => isset($row->credit_limit) ? avbase_money_format('%01.2f', $row->credit_limit) : '',
-    '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
-  );
+
   $term_options = avbase_get_category_options_array('payment_term');
   asort($term_options);
   $info['term_id'] = array(
@@ -301,18 +308,30 @@ function avcustomers_customer_form_contact_fields(&$form, $row) {
     '#maxlength' => 255,
     '#element_validate' => array('avbase_element_validate_email'),
   );
-  $contact['contact_number'] = array(
+  $contact['phone1'] = array(
     '#type' => 'textfield',
-    '#title' => 'Contact number',
-    '#default_value' => isset($row->data['contact_number']) ? check_plain($row->data['contact_number']) : '',
+    '#title' => 'Phone 1',
+    '#default_value' => isset($row->data['phone1']) ? check_plain($row->data['phone1']) : '',
     '#maxlength' => 32,
   );
-  $contact['website'] = array(
+  $contact['phone2'] = array(
     '#type' => 'textfield',
-    '#title' => 'Website',
-    '#default_value' => isset($row->data['website']) ? check_plain($row->data['website']) : '',
-    '#maxlength' => 255,
+    '#title' => 'Phone 2',
+    '#default_value' => isset($row->data['phone2']) ? check_plain($row->data['phone2']) : '',
+    '#maxlength' => 32,
   );
+  $contact['phone3'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Phone 3',
+    '#default_value' => isset($row->data['phone3']) ? check_plain($row->data['phone3']) : '',
+    '#maxlength' => 32,
+  );
+  //$contact['website'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Website',
+  //  '#default_value' => isset($row->data['website']) ? check_plain($row->data['website']) : '',
+  //  '#maxlength' => 255,
+  //);
   $form['contact'] += $contact;
 }
 
@@ -349,11 +368,11 @@ function avcustomers_customer_form_address_fields(&$form, $row) {
     '#default_value' => isset($row->zip_code) ? check_plain($row->zip_code) : '',
     '#maxlength' => 16,
   );
-  $address['same_addr'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Billing address same as shipping address',
-    '#default_value' => isset($row->same_addr) ? (empty($row->same_addr) ? 0 : 1) : '',
-  );
+  //$address['same_addr'] = array(
+  //  '#type' => 'checkbox',
+  //  '#title' => 'Billing address same as shipping address',
+  //  '#default_value' => isset($row->same_addr) ? (empty($row->same_addr) ? 0 : 1) : '',
+  //);
   $form['address'] += $address;
 }
 
@@ -375,6 +394,23 @@ function avcustomers_customer_form_payment_fields(&$form, $row) {
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
   );
+  $payment['credit_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Credit limit',
+    '#default_value' => isset($row->credit_limit) ? round($row->credit_limit, 6) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+  );
+  $payment['opening_balance'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Opening balance',
+    '#default_value' => isset($row->opening_balance) ? round($row->opening_balance, 6) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number'),
+  );
+  if (!empty($row->id)) {
+    $payment['opening_balance']['#disabled'] = TRUE;
+  }
   $form['payment'] += $payment;
 }
 
