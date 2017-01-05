@@ -7,17 +7,6 @@
     $('#loading-center').hide();
     $('#loading').fadeIn('fast');
   });
-
-  // Here we immediately call the function with jQuery as the parameter.
-  Drupal.behaviors.uikitAvGeneral = {
-    attach: function (context, settings) {
-      ////console.log($(context).find('.av-ajax-button'));
-      //$(context).find('.av-ajax-button:not(.av-button-processed)').mouseup(function(e) {
-      //  console.log('rs');
-      //  e.preventDefault();
-      //}).addClass('av-button-processed');
-    }
-  };
 }(jQuery));
 
 jQuery(document).ready(function ($) {

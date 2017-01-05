@@ -63,7 +63,7 @@ function avbase_modules_installed($modules) {
  * Implementation of hook_init().
  */
 function avbase_init() {
-
+  drupal_add_js(AVBASE_MODULE_PATH . '/js/avbase.js');
 }
 
 /**

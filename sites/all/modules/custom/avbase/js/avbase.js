@@ -5,10 +5,13 @@
 
 jQuery(document).ready(function ($) {
 
+  // Prevent double submission of forms.
+  $('form').submit(function(e) {
+    if( $(this).hasClass('form-submitted') ){
+      e.preventDefault();
+      return;
+    }
+    $(this).addClass('form-submitted');
+  });
 });
 
-
-jQuery(document).load(function ($) {
-  // Here we will call the function with jQuery as the parameter once the entire
-  // page (images or iframes), not just the DOM, is ready.
-});
