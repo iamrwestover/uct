@@ -5,7 +5,7 @@ $form['prod_add_btn']['#attributes']['class'][] = 'av-ajax-button';
 //$form['po_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
 //$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
 $form['buttons']['submit_and_send']['#attributes']['class'][] = 'uk-button-primary';
-$form['buttons']['submit_and_send']['#attributes']['disabled'] = TRUE;
+//$form['buttons']['submit_and_send']['#attributes']['disabled'] = TRUE;
 $form['discount_value']['#attributes']['class'][] = 'uk-text-right';
 
 $form['message']['#attributes']['rows'] = 2;

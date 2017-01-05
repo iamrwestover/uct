@@ -8,6 +8,7 @@
 define('AVEXPENSES_MODULE_PATH', drupal_get_path('module', 'avexpenses'));
 
 //require_once 'inc/helpers.inc';
+module_load_include('inc', 'avexpenses', 'inc/helpers');
 
 /**
  * Implementation of hook_menu().
@@ -46,7 +47,7 @@ function avexpenses_menu() {
 function avexpenses_theme($existing, $type, $theme, $path) {
   $themes = array();
 
-  $forms_template_path = $path . '/templates/forms';
+  $template_path = $path . '/templates';
   $theme_names = array(
     'avexpenses_po_form',
   );
@@ -54,9 +55,15 @@ function avexpenses_theme($existing, $type, $theme, $path) {
     $themes[$theme_name] = array(
       'render element' => 'form',
       'template' => str_replace('_', '-', $theme_name),
-      'path' => $forms_template_path,
+      'path' => $template_path,
     );
   }
+
+  $themes['avexpenses_po_mail'] = array(
+    'variables' => array(),
+    'template' => 'avexpenses-po-mail',
+    'path' => $template_path,
+  );
 
   return $themes;
 }
@@ -70,4 +77,19 @@ function avexpenses_theme($existing, $type, $theme, $path) {
 function avexpenses_home_form($form, &$form_state) {
   $form['new_po'] = array('#markup' => l('New purchase order', 'av/expenses/purchase-order/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
   return $form;
+}
+
+/**
+ * Implementation of hook_mail().
+ * @param $key
+ * @param $message
+ * @param $params
+ */
+function avexpenses_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'po':
+      $message['subject'] = t('Purchase order from @site_name', array('@site_name' => variable_get('site_name', 'UCT')));
+      $message['body'] = theme('avexpenses_po_mail', $params);
+      break;
+  }
 }

@@ -20,6 +20,7 @@ function avexpenses_po_form_load($row) {
  * @return array
  */
 function avexpenses_po_form($form, &$form_state, $row) {
+  avexpenses_po_send_to_email(7);
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New Purchase Order' : 'Edit Purchase Order';
   drupal_set_title($page_title);
@@ -42,6 +43,7 @@ function avexpenses_po_form($form, &$form_state, $row) {
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit_and_send'] = array(
+    '#id' => 'submit_and_send',
     '#type' => 'submit',
     '#value' => t('Save and send'),
   );
@@ -63,7 +65,7 @@ function avexpenses_po_form_settings(&$form, $row) {
   $table_name = 'avtbl_po';
 
   // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit');
+  $form['#submit'] = array('avbase_crud_form_submit', 'avexpenses_po_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');
 
@@ -437,6 +439,7 @@ function avexpenses_po_prod_js($form, $form_state) {
  * @param $op
  * @param $row
  * @param $form_state
+ * @return object|NULL
  */
 function avexpenses_avbase_crud_dbchange_po($op, $row, $form_state) {
   switch ($op) {
@@ -464,4 +467,20 @@ function avexpenses_avbase_crud_dbchange_po($op, $row, $form_state) {
       break;
   }
   return NULL;
+}
+
+/**
+ * Extra submit handler for purchase order form.
+ * @param $form
+ * @param $form_state
+ */
+function avexpenses_po_form_submit($form, &$form_state) {
+  $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
+  switch ($triggering_element['#id']) {
+    case 'submit_and_send':
+      $po_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
+      //$mail_to = empty($form_state['values']['email']) ? '' : $form_state['values']['email'];
+      avexpenses_po_send_to_email($po_id);
+      break;
+  }
 }

@@ -235,7 +235,9 @@ function avbase_element_validate_category_title_unique($element, &$form_state, $
  */
 function avbase_element_validate_email($element, &$form_state, $form) {
   $mail = $element['#value'];
-  if (trim($mail) != '' && $error = user_validate_mail($mail)) {
+  $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
+  $do_validate = $triggering_element['#id'] == 'submit_and_send' ? TRUE : (trim($mail) != '');
+  if ($do_validate && $error = user_validate_mail($mail)) {
     form_error($element, $error);
   }
 }

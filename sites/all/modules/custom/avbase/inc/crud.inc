@@ -8,7 +8,6 @@
  * @throws
  */
 function avbase_crud_form_submit($form, &$form_state) {
-  //dpm($form_state);return;
   $transaction = db_transaction();
   try {
     $values = $form_state['values'];
@@ -76,6 +75,7 @@ function avbase_crud_form_submit($form, &$form_state) {
           $row['created'] = time();
         }
         if ($row['id'] = db_insert($table_name)->fields($row)->execute()) {
+          $form_state['values']['id'] = $row['id'];
           if (!$hide_crud_messages) {
             drupal_set_message('New record saved.');
           }
