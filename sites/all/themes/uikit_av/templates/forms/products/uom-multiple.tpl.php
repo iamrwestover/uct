@@ -7,8 +7,8 @@ $form['add_btn']['#attributes']['class'][] = 'av-ajax-button';
 <div class="uk-grid uk-grid-collapse">
   <?php foreach ($uom_keys as $uom_key): ?>
     <?php
-      //if ($uom_keys[0] != $uom_key) {
-      if (1) {
+      if ($uom_keys[0] != $uom_key) {
+      //if (1) {
         // Hide titles except of the first UOM.
         foreach (element_children($form['uoms'][$uom_key]) as $field_name) {
           $form['uoms'][$uom_key][$field_name]['#title_display'] = 'none';

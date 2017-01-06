@@ -41,18 +41,18 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
     <div class="uk-grid uk-grid-small">
 
       <?php if ($initial_qty_date_html): ?>
-        <div class="uk-width-7-10 uk-margin-small-bottom"><?php print $initial_qty_date_html; ?></div>
+        <div class="uk-width-7-10 uk-margin-bottom"><?php print $initial_qty_date_html; ?></div>
       <?php endif; ?>
-      <div class="uk-width-3-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['uom_id']); ?></div>
+      <div class="uk-width-3-10 uk-margin-bottom"><?php print drupal_render($form['info']['uom_id']); ?></div>
       <?php if ($initial_qty_html): ?>
-        <div class="uk-width-2-10 uk-margin-small-bottom"><?php print $initial_qty_html; ?></div>
+        <div class="uk-width-2-10 uk-margin-bottom"><?php print $initial_qty_html; ?></div>
       <?php endif; ?>
       <?php if ($qty_html): ?>
-        <div class="uk-width-2-10 uk-margin-small-bottom"><?php print $qty_html; ?></div>
+        <div class="uk-width-2-10 uk-margin-bottom"><?php print $qty_html; ?></div>
       <?php endif; ?>
 
-      <div class="uk-width-2-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
-      <div class="uk-width-2-10 uk-margin-small-bottom"><?php print drupal_render($form['info']['price']); ?></div>
+      <div class="uk-width-2-10 uk-margin-bottom"><?php print drupal_render($form['info']['cost']); ?></div>
+      <div class="uk-width-2-10 uk-margin-bottom"><?php print drupal_render($form['info']['price']); ?></div>
 
       <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['uom']['uom_group']); ?></div>
     </div>
