@@ -4,7 +4,7 @@
  * Load purchase order details.
  * @param $id
  */
-function avexpenses_po_load($id) {
+function avpurchase_po_load($id) {
   $id = (int) $id;
   if (empty($id)) {
     return NULL;
@@ -61,12 +61,12 @@ function avexpenses_po_load($id) {
  *
  * @return bool
  */
-function avexpenses_po_send_to_email($po_id, $email = '') {
+function avpurchase_po_send_to_email($po_id, $email = '') {
   if (empty($po_id)) {
     return FALSE;
   }
 
-  $po = avexpenses_po_load($po_id);
+  $po = avpurchase_po_load($po_id);
   $email = $po->email;
   if ($error = user_validate_mail($email)) {
     drupal_set_message($error, 'error');
@@ -84,8 +84,8 @@ function avexpenses_po_send_to_email($po_id, $email = '') {
     'payment_term_title' => check_plain($po->payment_term_title),
   );
 
-  $params['po_table'] = theme('avexpenses_po_mail_table', $params);
-  $message = drupal_mail('avexpenses', 'po', $email, language_default(), $params);
+  $params['po_table'] = theme('avpurchase_po_mail_table', $params);
+  $message = drupal_mail('avpurchase', 'po', $email, language_default(), $params);
   if (!empty($message['result'])) {
     drupal_set_message(t('Purchase order sent successfully to %mail.', array('%mail' => $email)));
     return TRUE;

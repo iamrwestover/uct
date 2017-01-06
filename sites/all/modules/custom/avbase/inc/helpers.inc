@@ -411,7 +411,7 @@ function avbase_element_validate_po_element($element, &$form_state, $form) {
  * @param $form
  * @param $form_state
  */
-function avexpenses_po_product_fields_validate($form, &$form_state) {
+function avpurchase_po_product_fields_validate($form, &$form_state) {
   // Make sure at least one product is added.
   $product_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
   $product_added= FALSE;

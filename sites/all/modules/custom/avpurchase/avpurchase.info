@@ -1,0 +1,5 @@
+name = Purchase Modules
+description = Purchase module for AV AIS such as purchase orders, bills, expenses, etc.
+core = 7.x
+package = AV
+dependencies[] = avvendors

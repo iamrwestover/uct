@@ -4,7 +4,7 @@
  * Implementation of hook_schema().
  * @return mixed
  */
-function avexpenses_schema() {
+function avpurchase_schema() {
   // Purchase orders table.
   $schema['avtbl_po'] = array(
     'description' => 'TODO: please describe this table!',

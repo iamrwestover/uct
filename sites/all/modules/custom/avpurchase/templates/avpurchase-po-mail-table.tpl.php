@@ -2,13 +2,13 @@
   <tbody>
   <tr>
     <td>
-      <strong>Ship To:</strong><br />
-      <?php print $shipping_address; ?>
-    </td>
-    <td class="uk-text-right">
       <strong>P.O. No.:</strong> <?php print $po_num; ?><br />
       <strong>Date:</strong> <?php print $po_date; ?><br />
       <strong>Payment term:</strong> <?php print $payment_term_title; ?>
+    </td>
+    <td class="uk-text-right">
+      <strong>Ship To:</strong><br />
+      <?php print $shipping_address; ?>
     </td>
   </tr>
   </tbody>

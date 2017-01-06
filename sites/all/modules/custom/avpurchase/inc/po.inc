@@ -7,8 +7,8 @@
  *
  * @return string
  */
-function avexpenses_po_form_load($row) {
-  return drupal_get_form('avexpenses_po_form', $row);
+function avpurchase_po_form_load($row) {
+  return drupal_get_form('avpurchase_po_form', $row);
 }
 
 /**
@@ -19,7 +19,8 @@ function avexpenses_po_form_load($row) {
  * @param $row
  * @return array
  */
-function avexpenses_po_form($form, &$form_state, $row) {
+function avpurchase_po_form($form, &$form_state, $row) {
+  //avpurchase_po_send_to_email(1);
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   switch (arg(4)) {
     case 'view':
@@ -35,13 +36,13 @@ function avexpenses_po_form($form, &$form_state, $row) {
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avexpenses_po_form_settings($form, $row);
+  avpurchase_po_form_settings($form, $row);
 
   // Info group.
-  avexpenses_po_form_fields($form, $form_state, $row);
+  avpurchase_po_form_fields($form, $form_state, $row);
 
   // Product list.
-  avexpenses_po_product_fields($form, $form_state, $row);
+  avpurchase_po_product_fields($form, $form_state, $row);
 
   $form['header_total'] = array(
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
@@ -61,7 +62,7 @@ function avexpenses_po_form($form, &$form_state, $row) {
     '#value' => t('Save'),
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/expenses'),
+    '#markup' => l('Cancel', 'av/purchase'),
   );
 
   // Convert form to non-edit mode if we are on View page.
@@ -73,20 +74,20 @@ function avexpenses_po_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avexpenses_po_form_settings(&$form, $row) {
+function avpurchase_po_form_settings(&$form, $row) {
   $table_name = 'avtbl_po';
 
   // Set flag if this is view mode.
   $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit', 'avexpenses_po_form_submit');
+  $form['#submit'] = array('avbase_crud_form_submit', 'avpurchase_po_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');
 
-  $po_js_settings = array('avexpensesPODetails' => $row);
+  $po_js_settings = array('avpurchasePODetails' => $row);
   $form['#attached']['js'] = array(
-    AVEXPENSES_MODULE_PATH . '/js/po_form.js',
+    AVPURCHASE_MODULE_PATH . '/js/po_form.js',
     array(
       'data' => $po_js_settings,
       'type' => 'setting',
@@ -131,7 +132,7 @@ function avexpenses_po_form_settings(&$form, $row) {
  * @param $form_state
  * @param $row
  */
-function avexpenses_po_form_fields(&$form, &$form_state, $row) {
+function avpurchase_po_form_fields(&$form, &$form_state, $row) {
   //dpm($row);
   $form['vendor_id'] = array(
     '#id' => 'vendor-id',
@@ -228,11 +229,11 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avexpenses_po_product_fields(&$form, &$form_state, $row) {
-  $form['#attached']['js'][] = AVEXPENSES_MODULE_PATH . '/js/nestable_product_form.js';
+function avpurchase_po_product_fields(&$form, &$form_state, $row) {
+  $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/nestable_product_form.js';
 
   // Set extra form validation for product list.
-  $form['#validate'][] = 'avexpenses_po_product_fields_validate';
+  $form['#validate'][] = 'avpurchase_po_product_fields_validate';
   // Get user input.
   $user_input = isset($form_state['input']) ? $form_state['input'] : array();
   // Get saved product rows.
@@ -355,13 +356,13 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#limit_validation_errors' => array(),
-      '#submit' => array('avexpenses_po_prod_submit'),
+      '#submit' => array('avpurchase_po_prod_submit'),
       '#attributes' => array(
         'class' => array('prod-column-delete-btn'),
         'tabindex' => -1,
       ),
       '#ajax' => array(
-        'callback' => 'avexpenses_po_prod_js',
+        'callback' => 'avpurchase_po_prod_js',
         'wrapper' => 'po-product-row-' . $prod_key . '-wrapper',
         'effect' => 'none',
       ),
@@ -385,9 +386,9 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
     '#type' => 'submit',
     '#value' => t('Add new row'),
     '#limit_validation_errors' => array(),
-    '#submit' => array('avexpenses_po_prod_submit'),
+    '#submit' => array('avpurchase_po_prod_submit'),
     '#ajax' => array(
-      'callback' => 'avexpenses_po_prod_js',
+      'callback' => 'avpurchase_po_prod_js',
       'wrapper' => 'po-new-product-wrapper',
       'effect' => 'none',
     ),
@@ -399,7 +400,7 @@ function avexpenses_po_product_fields(&$form, &$form_state, $row) {
 /**
  * Submit handler when adding or removing products on a PO form.
  */
-function avexpenses_po_prod_submit($form, &$form_state) {
+function avpurchase_po_prod_submit($form, &$form_state) {
   //dpm($form);
   //$button = $form_state['triggering_element'];
   //switch ($button['#name']) {
@@ -420,7 +421,7 @@ function avexpenses_po_prod_submit($form, &$form_state) {
 /**
  * Ajax callback  when adding products or removing on a PO form.
  */
-function avexpenses_po_prod_js($form, $form_state) {
+function avpurchase_po_prod_js($form, $form_state) {
   $button = $form_state['triggering_element'];
   $output = array();
   switch ($button['#name']) {
@@ -462,7 +463,7 @@ function avexpenses_po_prod_js($form, $form_state) {
  * @param $form_state
  * @return object|NULL
  */
-function avexpenses_avbase_crud_dbchange_po($op, $row, $form_state) {
+function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
   switch ($op) {
     case 'pre-save':
       $row['po_date'] = time();
@@ -495,13 +496,13 @@ function avexpenses_avbase_crud_dbchange_po($op, $row, $form_state) {
  * @param $form
  * @param $form_state
  */
-function avexpenses_po_form_submit($form, &$form_state) {
+function avpurchase_po_form_submit($form, &$form_state) {
   $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
   switch ($triggering_element['#id']) {
     case 'submit_and_send':
       $po_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
       //$mail_to = empty($form_state['values']['email']) ? '' : $form_state['values']['email'];
-      avexpenses_po_send_to_email($po_id);
+      avpurchase_po_send_to_email($po_id);
       break;
   }
 }
