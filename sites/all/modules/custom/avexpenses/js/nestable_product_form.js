@@ -2,11 +2,6 @@
   window.avNestableProductForm = {
     $nestableEl: null,
     $productRows: {},
-    $grandTotalEl: null,
-    $subTotalEl: null,
-    $discountTotalEl: null,
-    $discountTypeEl: null,
-    $discountValEl: null,
     init: function(options) {
       var self = this;
       self.$grandTotalEl = $('.product-form-grand-total');
@@ -115,12 +110,12 @@
             else if (uomID == productDetails.uom_id) {
               // Selected UOM is the same as base UOM.
               price = parseFloat(productDetails.cost);
-              $priceEl.val(parseFloat(price.toFixed(2)));
+              $priceEl.val(price.toFixed(2));
             }
             else if (uoms[uomID]) {
               // Selected UOM is a data UOM.
               price = parseFloat(productDetails.cost) * parseFloat(uoms[uomID]['qty']);
-              $priceEl.val(parseFloat(price.toFixed(2)));
+              $priceEl.val(price.toFixed(2));
             }
             else {
               $priceEl.val('');
@@ -244,7 +239,7 @@
     },
 
     refreshDiscountTotalText: function() {
-      this.$discountTotalEl.text(this.moneyFormat(this.getDiscountTotal()));
+      this.$discountTotalEl.text('- ' + this.moneyFormat(this.getDiscountTotal()));
       this.refreshGrandTotalText();
     },
 

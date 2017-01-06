@@ -431,7 +431,7 @@ function avexpenses_po_product_fields_validate($form, &$form_state) {
  * @return array
  */
 function avbase_get_discount_types() {
-  return array(1 => 'Percent', 2 => 'Fixed amount');
+  return array(AVBASE_DISCOUNT_PERCENT => 'Percent', AVBASE_DISCOUNT_FIXED => 'Fixed amount');
 }
 
 /**
@@ -452,10 +452,14 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
       $element['#required'] = FALSE;
       switch ($element['#type']) {
         case 'textfield':
-        case 'textarea':
           $element['#type'] = 'item';
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
           $element['#markup'] = trim($default_value) == '' ? '-' : $default_value;
+          break;
+        case 'textarea':
+          $element['#type'] = 'item';
+          $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
+          $element['#markup'] = trim($default_value) == '' ? '-' : check_markup($default_value);
           break;
         case 'select':
           $options = isset($element['#options']) ? $element['#options'] : array();
@@ -483,4 +487,18 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
       avbase_allow_form_view_mode($element, TRUE);
     }
   }
+}
+
+/**
+ * Format a number to minimum decimal precision.
+ * @param $x
+ *  The number to format
+ * @param $p
+ *  The number of minimum decimal places.
+ *
+ * @return string
+ */
+function avbase_min_decimal_precision($x, $p = 2) {
+  $e = pow(10,$p);
+  return floor($x*$e)==$x*$e?sprintf("%.${p}f",$x):$x;
 }

@@ -6,7 +6,7 @@
   $(window).on('beforeunload', function() {
     $('#loading-center').hide();
     $('#loading').fadeIn('fast');
-    setTimeout (function() {$('#loading-center').fadeIn('fast')}, 1000);
+    setTimeout (function() {$('#loading-center').fadeIn()}, 1000);
   });
 }(jQuery));
 

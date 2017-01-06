@@ -41,10 +41,10 @@ $form['message']['#attributes']['rows'] = 2;
       <div class="uk-width-7-10">
 
         <div class="uk-grid">
-          <div class="uk-width-1-1"><?php print drupal_render($form['prod_add_btn']); ?></div>
+          <div class="uk-width-1-1 uk-text-large"><?php print drupal_render($form['prod_add_btn']); ?>&nbsp;</div>
           <div class="uk-width-3-6 uk-margin-top"><?php print drupal_render($form['message']); ?></div>
           <div class="uk-width-2-6 uk-margin-top"><?php print drupal_render($form['address']); ?></div>
-          <div class="uk-width-1-6 uk-margin-small-top uk-text-right"><div class="uk-margin-right uk-margin-small-top">Discount</div></div>
+          <div class="uk-width-1-6 uk-margin-small-top uk-text-right"><div class="uk-margin-right uk-margin-small-top">Discount:</div></div>
           <!--<div class="uk-width-1-2"></div>-->
         </div>
       </div>

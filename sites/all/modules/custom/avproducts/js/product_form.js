@@ -93,7 +93,7 @@
             }
 
             var computedAmount = amount * qty;
-            $amountEl.val(parseFloat(computedAmount.toFixed(2)));
+            $amountEl.val(computedAmount.toFixed(2));
           });
         });
 

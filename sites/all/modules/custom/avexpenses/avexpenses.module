@@ -27,11 +27,19 @@ function avexpenses_menu() {
     'page callback' => 'avexpenses_po_form_load',
     'page arguments' => array(NULL),
     'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
+    //'type' => MENU_LOCAL_TASK,
     'file' => 'inc/po.inc',
-    'menu_name' => 'av',
-    'expanded' => TRUE,
+    'weight' => 10,
   );
+  //$items['av/expenses/purchase-order/%avexpenses_po/view'] = array(
+  //  'title' => 'View Purchase Order',
+  //  'page callback' => 'avexpenses_po_form_load',
+  //  'page arguments' => array(3),
+  //  'access callback' => 'user_is_logged_in',
+  //  //'type' => MENU_LOCAL_TASK,
+  //  'file' => 'inc/po.inc',
+  //  'weight' => 0,
+  //);
   return $items;
 }
 
@@ -48,6 +56,8 @@ function avexpenses_theme($existing, $type, $theme, $path) {
   $themes = array();
 
   $template_path = $path . '/templates';
+
+  // FORMS.
   $theme_names = array(
     'avexpenses_po_form',
   );
@@ -59,11 +69,18 @@ function avexpenses_theme($existing, $type, $theme, $path) {
     );
   }
 
-  $themes['avexpenses_po_mail'] = array(
-    'variables' => array(),
-    'template' => 'avexpenses-po-mail',
-    'path' => $template_path,
+  // OTHERS.
+  $theme_names = array(
+    'avexpenses_po_mail',
+    'avexpenses_po_mail_table',
   );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'variables' => array(),
+      'template' => str_replace('avexpenses-', '', str_replace('_', '-', $theme_name)),
+      'path' => $template_path,
+    );
+  }
 
   return $themes;
 }
@@ -88,8 +105,10 @@ function avexpenses_home_form($form, &$form_state) {
 function avexpenses_mail($key, &$message, $params) {
   switch ($key) {
     case 'po':
-      $message['subject'] = t('Purchase order from @site_name', array('@site_name' => variable_get('site_name', 'UCT')));
+      $message['subject'] = t('Purchase Order from @site_name - P.O.# @po_num', array('@po_num' => $params['po_num'], '@site_name' => variable_get('site_name', 'UCT')));
       $message['body'] = theme('avexpenses_po_mail', $params);
+      // Save a copy.
+      //$message['headers']['CC'] = 'ucaretrading@gmail.com';
       break;
   }
 }

@@ -20,9 +20,18 @@ function avexpenses_po_form_load($row) {
  * @return array
  */
 function avexpenses_po_form($form, &$form_state, $row) {
-  avexpenses_po_send_to_email(7);
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  $page_title = empty($form['id']['#value']) ? 'New Purchase Order' : 'Edit Purchase Order';
+  switch (arg(4)) {
+    case 'view':
+      $page_title = t('Purchase order details');
+      break;
+    case 'edit':
+      $page_title = t('Edit purchase order');
+      break;
+    default:
+      $page_title = t('New purchase order');
+      break;
+  }
   drupal_set_title($page_title);
 
   // Set crud settings.
@@ -54,6 +63,9 @@ function avexpenses_po_form($form, &$form_state, $row) {
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/expenses'),
   );
+
+  // Convert form to non-edit mode if we are on View page.
+  avbase_allow_form_view_mode($form);
   return $form;
 }
 
@@ -63,6 +75,9 @@ function avexpenses_po_form($form, &$form_state, $row) {
  */
 function avexpenses_po_form_settings(&$form, $row) {
   $table_name = 'avtbl_po';
+
+  // Set flag if this is view mode.
+  $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit', 'avexpenses_po_form_submit');
@@ -117,6 +132,7 @@ function avexpenses_po_form_settings(&$form, $row) {
  * @param $row
  */
 function avexpenses_po_form_fields(&$form, &$form_state, $row) {
+  //dpm($row);
   $form['vendor_id'] = array(
     '#id' => 'vendor-id',
     '#type' => 'textfield',
@@ -166,7 +182,7 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
     '#type' => 'select',
     '#title' => 'Discount type',
     '#options' => avbase_get_discount_types(),
-    '#default_value' => isset($row->discount_type) ? $row->discount_type : 1,
+    '#default_value' => isset($row->discount_type) ? $row->discount_type : AVBASE_DISCOUNT_PERCENT,
   );
   $form['discount_value'] = array(
     '#id' => 'discount-value',
@@ -182,6 +198,11 @@ function avexpenses_po_form_fields(&$form, &$form_state, $row) {
       //'step' => 0.01,
     ),
   );
+  if (!empty($form['#av_view_mode']) && $form['discount_type']['#default_value'] == AVBASE_DISCOUNT_PERCENT) {
+    $form['discount_value']['#field_suffix'] = '%';
+    $form['discount_type']['#default_value'] = '';
+  }
+
   $form['po_date'] = array(
     '#type' => 'item',
     '#title' => 'P.O. Date',

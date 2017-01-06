@@ -1,6 +1,110 @@
-h1 {
-  color: red;
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
 }
 table {
-  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+h1,
+.uk-h1 {
+  font-size: 36px;
+  line-height: 42px;
+}
+h2,
+.uk-h2 {
+  font-size: 24px;
+  line-height: 30px;
+}
+h3,
+.uk-h3 {
+  font-size: 18px;
+  line-height: 24px;
+}
+h4,
+.uk-h4 {
+  font-size: 16px;
+  line-height: 22px;
+}
+h5,
+.uk-h5 {
+  font-size: 14px;
+  line-height: 20px;
+}
+h6,
+.uk-h6 {
+  font-size: 12px;
+  line-height: 18px;
+}
+/* CSS Reset Ends */
+
+p {
+  margin-bottom: 1em;
+}
+strong {
+  font-weight: bold;
+}
+table {
+  /*background: #fafafa;*/
+  margin: 0 auto 1.5em;
+  width: 1024px;
+}
+th, td {
+  color: #1b1b1b;
+  padding: 5px;
+  vertical-align: top;
+}
+th {
+  font-weight: bold;
+}
+td {
+  border-bottom: solid 1px #d7d7d7;
+  border-top: solid 1px #d7d7d7;
+}
+.uk-text-right {
+  text-align: right;
+}
+.uk-text-left {
+  text-align: left;
+}
+.uk-text-center {
+  text-align: center;
+}
+.uk-text-bold {
+  font-weight: bold;
 }
