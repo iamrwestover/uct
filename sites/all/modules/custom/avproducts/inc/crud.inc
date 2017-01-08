@@ -208,11 +208,6 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#default_value' => isset($row->uom_id) ? $row->uom_id : $default_uom_id,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
-    //'#required' => TRUE,
-    '#attributes' => array(
-      'data-uk-tooltip' => "{pos:'top'}",
-      'title' => 'Base UOM',
-    ),
   );
   $info['rop'] = array(
     '#type' => 'textfield',
@@ -276,7 +271,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
   $info['vendor_id'] = array(
     '#id' => 'vendor-id',
     '#type' => 'textfield',
-    '#title' => t('Vendor'),
+    '#title' => t('Preferred vendor'),
     '#maxlength' => 255,
     '#autocomplete_path' => 'av/vendors/autocomplete',
     '#element_validate' => array('avbase_element_validate_display_name_exists'),

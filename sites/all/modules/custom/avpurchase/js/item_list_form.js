@@ -5,16 +5,27 @@
 
 
 jQuery(document).ready(function ($) {
+  var xxauto = $.UIkit.autocomplete($('#xxaa'), {});
+  var data = [
+    {"value":"Piece", "title":"Piece", "text":"base uom"},
+    {"value":"Box", "title":"Box"},
+    {"value":"Dozen", "title":"Dozen", "text":"12 pieces per box"}
+  ];
+  xxauto.render(data);
+
+  var $x = $('#xxaa').find('input');
+  $x.attr('readonly', true);
+  $x.click(function(e) {
+    e.preventDefault();
+    xxauto.render(data);
+  });
+
   Drupal.settings.avNestableProductForm = Drupal.settings.avNestableProductForm || {};
   Drupal.settings.avNestableProductForm.products = Drupal.settings.avNestableProductForm.products || {};
 
   var nestableProdForm = Object.create(avNestableProductForm);
   nestableProdForm.$nestableEl = $('.av-nestable-product-list-form');
   nestableProdForm.init({handleClass:'uk-nestable-handle', maxDepth: 5});
-
-  var termActions = Object.create(window.avPaymentTermActions);
-  termActions.preventChildrenHide = true;
-  termActions.init();
 
   var vendorAutocomplete = Object.create(avbaseAutocompleteActions);
   vendorAutocomplete.$autocompleteEl = $('#vendor-id');

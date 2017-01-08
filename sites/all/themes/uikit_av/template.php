@@ -100,11 +100,35 @@ function uikit_av_textfield($variables) {
     $extra = '<input' . drupal_attributes($attributes) . ' />';
   }
 
+  if (!empty($element['#av_dropdown'])) {
+    $element['#attributes']['readonly'] = 'readonly';
+  }
   $output = '<input' . drupal_attributes($element['#attributes']) . ' />';
 
   // Add element icon if set.
   if (isset($element['#icon_key'])) {
     $output = '<div class="uk-form-icon uk-width-1-1"><i class="uk-icon-' . $element['#icon_key'] . '"></i>' . $output . '</div>';
+  }
+
+  if (!empty($element['#av_dropdown'])) {
+    $wrapper_id = $element['#id'] . '-wrapper';
+    $output = <<<HTML
+<div id="$wrapper_id" class="uk-autocomplete uk-form">
+    <div class="uk-form-icon uk-form-icon-flip"><i class="uk-icon-caret-down"></i>$output</div>
+    <script type="text/autocomplete">
+        <ul class="uk-nav uk-nav-autocomplete uk-autocomplete-results">
+            {{~items}}
+            <li data-value="{{ \$item.value }}">
+                <a>
+                    {{ \$item.title }}
+                    <div class="uk-text-muted">{{{ \$item.text }}}</div>
+                </a>
+            </li>
+            {{/items}}
+        </ul>
+    </script>
+</div>
+HTML;
   }
   return $output . $extra;
 }

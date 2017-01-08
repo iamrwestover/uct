@@ -292,6 +292,7 @@ function avbase_category_agent_form_alter(&$form, $db_row) {
 
 /**
  * Menu callback - retrieve a JSON object containing autocomplete suggestions for existing categories.
+ * @param $category_id
  * @param string $string
  */
 function avbase_category_autocomplete($category_id, $string = '') {

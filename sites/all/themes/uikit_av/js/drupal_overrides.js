@@ -27,7 +27,7 @@
         $(this.element).after(this.progress.element);
       }
       else if (this.progress.type == 'throbber') {
-        if (!$(this.element).hasClass('av-ajax-button')) {
+        if (!$(this.element).hasClass('av-ajax-trigger')) {
           this.progress.element = $('<div class="ajax-progress ajax-progress-throbber"><div class="throbber">&nbsp;</div></div>');
           if (this.progress.message) {
             $('.throbber', this.progress.element).after('<div class="message">' + this.progress.message + '</div>');
@@ -36,7 +36,7 @@
         }
         else {
           var marginClass = ' uk-margin-small-left';
-          if ($(this.element).hasClass('av-ajax-button-icon-only')) {
+          if ($(this.element).hasClass('av-ajax-trigger-icon-only')) {
             marginClass = '';
             $(this.element).html('');
           }
@@ -93,7 +93,6 @@
     Drupal.jsAC.prototype.setStatus = function (status) {
       switch (status) {
         case 'begin':
-          console.log('autocomplete-begin');
           //$(this.input).addClass('throbbing');
           $(this.input).siblings('i').addClass('uk-icon-spin uk-text-primary');
           $(this.ariaLive).html(Drupal.t('Searching for matches...'));

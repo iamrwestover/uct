@@ -11,8 +11,8 @@ $form['amount']['#attributes']['class'][] = 'uk-text-right';
 
 // Style delete btn.
 $form['prod_delete_btn']['#button_label'] = '<i class="uk-icon-remove"></i>';
-$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-button';
-$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-button-icon-only';
+$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-trigger';
+$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-trigger-icon-only';
 $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-danger';
 $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
 //$form['prod_delete_btn']['#attributes']['class'][] = 'uk-text-muted';
@@ -52,15 +52,15 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
   <div class="uk-width-3-10">
 
     <div class="uk-grid uk-grid-collapse">
-      <div class="uk-width-2-6">
-        <div class="av-nestable-cell">
-          <?php print drupal_render($form['price']); ?>
-        </div>
-      </div>
-
       <div class="uk-width-1-6">
         <div class="av-nestable-cell">
           <?php print drupal_render($form['qty']); ?>
+        </div>
+      </div>
+
+      <div class="uk-width-2-6">
+        <div class="av-nestable-cell">
+          <?php print drupal_render($form['price']); ?>
         </div>
       </div>
 

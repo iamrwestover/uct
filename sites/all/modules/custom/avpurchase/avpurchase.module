@@ -27,7 +27,7 @@ function avpurchase_menu() {
     'page callback' => 'avpurchase_po_form_load',
     'page arguments' => array(NULL),
     'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_CALLBACK,
     'file' => 'inc/po.inc',
     'weight' => 10,
   );
@@ -40,6 +40,15 @@ function avpurchase_menu() {
   //  'file' => 'inc/po.inc',
   //  'weight' => 0,
   //);
+  $items['av/purchase/ri/new'] = array(
+    'title' => 'Receive items',
+    'page callback' => 'avpurchase_ri_form_load',
+    'page arguments' => array(NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/ri.inc',
+    'weight' => 10,
+  );
   return $items;
 }
 
@@ -59,7 +68,7 @@ function avpurchase_theme($existing, $type, $theme, $path) {
 
   // FORMS.
   $theme_names = array(
-    'avpurchase_po_form',
+    'avpurchase_item_list_form',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -93,6 +102,7 @@ function avpurchase_theme($existing, $type, $theme, $path) {
  */
 function avpurchase_home_form($form, &$form_state) {
   $form['new_po'] = array('#markup' => l('New purchase order', 'av/purchase/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
+  $form['new_ri'] = array('#markup' => l('Receive items', 'av/purchase/ri/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-left')))));
   return $form;
 }
 

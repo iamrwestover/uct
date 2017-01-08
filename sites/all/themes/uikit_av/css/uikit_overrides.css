@@ -22,6 +22,20 @@ body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
   margin-top: 10px;
 }
 
+/* Autocomplete */
+.uk-autocomplete .uk-dropdown {
+  /*background: #f5fbfe;*/
+  border-color: #99baca;
+  padding: 5px;
+  width: 100%;
+}
+.uk-dropdown .uk-nav {
+  margin: 0 -5px;
+}
+.uk-nav-autocomplete>li.uk-active>a>.uk-text-muted {
+  color: #fff !important;
+}
+
 /* Others */
 .uk-tooltip {
   word-break: normal !important;

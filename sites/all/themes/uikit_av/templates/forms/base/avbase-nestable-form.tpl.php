@@ -31,14 +31,14 @@
 
       <div class="uk-width-3-10 uk-text-right">
         <div class="uk-grid uk-grid-collapse">
-          <div class="uk-width-2-6">
-            <div class="av-nestable-cell" style="padding-right: 1em;">
-              Unit Cost
-            </div>
-          </div>
           <div class="uk-width-1-6">
             <div class="av-nestable-cell" style="padding-right: 1em;">
               Qty
+            </div>
+          </div>
+          <div class="uk-width-2-6">
+            <div class="av-nestable-cell" style="padding-right: 1em;">
+              Unit Cost
             </div>
           </div>
           <div class="uk-width-2-6">
@@ -58,5 +58,5 @@
   </div>
 
   <?php print drupal_render_children($form); ?>
-  <div id="po-new-product-wrapper"></div>
+  <div id="item-list-new-product-wrapper"></div>
 </div>

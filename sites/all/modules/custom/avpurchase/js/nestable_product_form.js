@@ -44,22 +44,23 @@
       });
       self.$discountTypeEl.once('avPODiscountType', function() {
         $(this).change(function() {
+          console.log('f');
           self.$discountValEl.trigger('change');
         });
       });
 
       this.$productRows = self.$nestableEl.find('.uk-nestable-item');
-      this.$productRows.each(function() {
-        var $thisRow = $(this);
-        var $productIDEl = $thisRow.find('.prod-column-id');
-        var $UOMEl = $thisRow.find('.prod-column-uom-id');
-        var $priceEl = $thisRow.find('.prod-column-price');
-        var $qtyEl = $thisRow.find('.prod-column-qty');
-        var $amountEl = $thisRow.find('.prod-column-amt');
+      this.$productRows.once('avNestableProductRows', function() {
+        $(this).each(function() {
+          var $thisRow = $(this);
+          var $productIDEl = $thisRow.find('.prod-column-id');
+          var $UOMEl = $thisRow.find('.prod-column-uom-id');
+          var $priceEl = $thisRow.find('.prod-column-price');
+          var $qtyEl = $thisRow.find('.prod-column-qty');
+          var $amountEl = $thisRow.find('.prod-column-amt');
 
-        // Trigger actions for autocomplete product field.
-        $productIDEl.once('avNestableProdGroupProdID', function() {
-          $(this).on('autocompleteSelect', function(e, node) {
+          // Trigger actions for autocomplete product field.
+          $productIDEl.on('autocompleteSelect', function(e, node) {
             // Get product details if not yet set.
             var productID = $(node).find('div#av-prod-id').html();
             $(this).data('selectedProductID', productID);
@@ -73,86 +74,88 @@
               $UOMEl.trigger('change');
             }
           });
-
           // Trigger adding new row when last Product field is reached.
-          $(this).focus(function() {
+          $productIDEl.focus(function() {
             if (!$(this).closest('.uk-nestable-item').next().hasClass('uk-nestable-item')) {
               $('#prod-add-btn').trigger('mousedown');
             }
             $(this).select();
           });
-        });
 
-        // Trigger actions for UOM select field.
-        $UOMEl.once('avNestableProdGroupUOMID', function() {
-          $(this).change(function() {
-            // Get current row details.
-            if (!$productIDEl.length) {
-              return;
-            }
-
-            // Get selected product details
-            var selectedProductID = $productIDEl.data('selectedProductID');
-            var productDetails = Drupal.settings.avNestableProductForm.products[selectedProductID] || {};
-            if (productDetails.title != $productIDEl.val()) {
-              return;
-            }
-
-            // Get uom details.
-            var uomID = $(this).val();
-            var uoms = productDetails.data.uoms || {};
-
-            // Auto-fill price fields.
-            var price = 0;
-            if (uomID == 0) {
-              return;
-            }
-            else if (uomID == productDetails.uom_id) {
-              // Selected UOM is the same as base UOM.
-              price = parseFloat(productDetails.cost);
-              $priceEl.val(price.toFixed(2));
-            }
-            else if (uoms[uomID]) {
-              // Selected UOM is a data UOM.
-              price = parseFloat(productDetails.cost) * parseFloat(uoms[uomID]['qty']);
-              $priceEl.val(price.toFixed(2));
-            }
-            else {
-              $priceEl.val('');
-            }
-
-            $priceEl.trigger('change');
+          // Trigger actions for UOM select field.
+          //$UOMEl.before('s');
+          var $uomWrapperEl = $('#' + ($UOMEl.attr('id') + '-wrapper'));
+          var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {});
+          var avDropdownData = [
+            {"value":"Piece Piece Piece Piece", "title":"Piece", "text":"base uom"},
+            {"value":"Box", "title":"Box"},
+            {"value":"Dozen", "title":"Dozen", "text":"12 pieces per box"}
+          ];
+          $UOMEl.click(function() {
+            //console.log(uomWrapperId);
+            avDropdown.render(avDropdownData);
           });
-        });
+          //$UOMEl.change(function() {
+          //  // Get current row details.
+          //  if (!$productIDEl.length) {
+          //    return;
+          //  }
+          //
+          //  // Get selected product details
+          //  var selectedProductID = $productIDEl.data('selectedProductID');
+          //  var productDetails = Drupal.settings.avNestableProductForm.products[selectedProductID] || {};
+          //  if (productDetails.title != $productIDEl.val()) {
+          //    return;
+          //  }
+          //
+          //  // Get uom details.
+          //  var uomID = $(this).val();
+          //  var uoms = productDetails.data.uoms || {};
+          //
+          //  // Auto-fill price fields.
+          //  var price = 0;
+          //  if (uomID == 0) {
+          //    return;
+          //  }
+          //  else if (uomID == productDetails.uom_id) {
+          //    // Selected UOM is the same as base UOM.
+          //    price = parseFloat(productDetails.cost);
+          //    $priceEl.val(price.toFixed(2));
+          //  }
+          //  else if (uoms[uomID]) {
+          //    // Selected UOM is a data UOM.
+          //    price = parseFloat(productDetails.cost) * parseFloat(uoms[uomID]['qty']);
+          //    $priceEl.val(price.toFixed(2));
+          //  }
+          //  else {
+          //    $priceEl.val('');
+          //  }
+          //
+          //  $priceEl.trigger('change');
+          //});
 
-        // Trigger actions for price field.
-        $priceEl.once('avNestableProdGroupPrice', function() {
-          $(this).change(function() {
+          // Trigger actions for price field.
+          $priceEl.change(function() {
             var amount = self.getRowAmount($thisRow);
             if (amount != '') {
               $amountEl.val(amount.toFixed(2));
               self.refreshSubTotalText();
             }
           });
-          $(this).keydown(function(e) {
+          $priceEl.keydown(function(e) {
             self.switchRowFocus(e, $thisRow);
           });
-        });
 
-        // Trigger actions for qty field.
-        $qtyEl.once('avNestableProdGroupQty', function() {
-          $(this).change(function() {
+          // Trigger actions for qty field.
+         $qtyEl.change(function() {
             $priceEl.trigger('change');
           });
-
-          $(this).keydown(function(e) {
+          $qtyEl.keydown(function(e) {
             self.switchRowFocus(e, $thisRow);
           });
-        });
 
-        // Trigger actions for amount field.
-        $amountEl.once('avNestableProdGroupAmount', function() {
-          $(this).change(function() {
+          // Trigger actions for amount field.
+            $amountEl.change(function() {
             var price = self.getRowPrice($thisRow);
             if (price != '') {
               $priceEl.val(parseFloat(price.toFixed(6)));
@@ -165,12 +168,12 @@
             }
             self.refreshSubTotalText();
           });
-
-          $(this).keydown(function(e) {
+          $amountEl.keydown(function(e) {
             self.switchRowFocus(e, $thisRow);
           });
         });
       });
+
     },
 
     getRowAmount: function($row) {

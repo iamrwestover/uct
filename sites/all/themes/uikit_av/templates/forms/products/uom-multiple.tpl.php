@@ -1,7 +1,7 @@
 <?php
 $uom_keys = empty($form['uoms']) ? array() : element_children($form['uoms']);
 $last_uom_key = end($uom_keys);
-$form['add_btn']['#attributes']['class'][] = 'av-ajax-button';
+$form['add_btn']['#attributes']['class'][] = 'av-ajax-trigger';
 ?>
 
 <div class="uk-grid uk-grid-collapse">
@@ -22,8 +22,8 @@ $form['add_btn']['#attributes']['class'][] = 'av-ajax-button';
       }
       // Style delete btn.
       $form['uoms'][$uom_key]['delete_btn']['#button_label'] = '<i class="uk-icon-remove"></i>';
-      $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'av-ajax-button';
-      $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'av-ajax-button-icon-only';
+      $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'av-ajax-trigger';
+      $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'av-ajax-trigger-icon-only';
       $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'uk-button-danger';
       $form['uoms'][$uom_key]['delete_btn']['#attributes']['class'][] = 'uk-button-mini';
       // Style qty field.

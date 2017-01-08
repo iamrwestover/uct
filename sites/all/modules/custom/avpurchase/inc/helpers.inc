@@ -17,9 +17,9 @@ function avpurchase_po_load($id) {
 
   $query = db_select('avtbl_po', 'avpo');
   $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avpo.vendor_id');
-  $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avpo.term_id AND avcat.group_id = 'payment_term'");
+  //$query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avpo.term_id AND avcat.group_id = 'payment_term'");
   $query->addField('avvendors', 'display_name', 'vendor_name');
-  $query->addField('avcat', 'title', 'payment_term_title');
+  //$query->addField('avcat', 'title', 'payment_term_title');
   $query->fields('avpo')
     //->fields('avvendors', array('display_name'))
     ->condition('avpo.id', $id)

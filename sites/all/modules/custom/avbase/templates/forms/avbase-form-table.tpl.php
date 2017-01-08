@@ -39,7 +39,7 @@ $content['#rows'][] = array(
     'colspan' => 10,
     )
   ),
-  'id' => 'po-new-product-wrapper',
+  'id' => 'item-list-new-product-wrapper',
 );
 
 print drupal_render($content);

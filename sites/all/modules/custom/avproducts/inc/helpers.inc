@@ -102,3 +102,25 @@ function avproducts_autocomplete($string = '') {
   drupal_json_output($matches);
 }
 
+/**
+ * Menu callback - retrieve a JSON object containing UOMs of specified product id.
+ * @param $product_id
+ * @param string $string
+ */
+function avproducts_product_uom_dropdown($product_id, $string = '') {
+  $matches = array();
+  $string = trim($string);
+  //if ($string) {
+  //  $query = db_select('avtbl_categories', 'avc')->fields('avc', array('title'));
+  //  //$query->condition('avc.title', '%' . db_like($string) . '%', 'LIKE');
+  //  $query->condition('avc.group_id', 'uom');
+  //  $query->range(0, 10);
+  //  $result = $query->execute();
+  //
+  //  foreach ($result as $row) {
+  //    $matches[$row->title] = check_plain($row->title);
+  //  }
+  //}
+$matches[$product_id] = $product_id.'ss';
+  drupal_json_output($matches);
+}

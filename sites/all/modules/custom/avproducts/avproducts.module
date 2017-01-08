@@ -64,6 +64,14 @@ function avproducts_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'inc/helpers.inc',
   );
+  $items['av/product-uom/autocomplete/%'] = array(
+    'title' => 'Product UOM Advanced Dropdown',
+    'page callback' => 'avproducts_product_uom_dropdown',
+    'page arguments' => array(3),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/helpers.inc',
+  );
   return $items;
 }
 
