@@ -149,19 +149,12 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#title' => 'UOM',
       '#title_display' => 'none',
       '#maxlength' => 255,
-      //'#autocomplete_path' => 'av/product-uom/autocomplete/3',
-      //'#element_validate' => array('avbase_element_validate_product_name_exists'),
+      '#element_validate' => array('avbase_element_validate_category_exists'),
+      '#element_validate_conditions' => array('group_id' => 'uom'),
       '#attributes' => array(
         'class' => array('prod-column-uom-id'),
       ),
       '#av_dropdown' => TRUE,
-      //'#limit_validation_errors' => array(),
-      //'#submit' => array('avpurchase_item_list_prod_submit'),
-      //'#ajax' => array(
-      //  'callback' => 'avpurchase_item_list_prod_js',
-      //  'wrapper' => 'uom-id-' . $prod_key,
-      //  'effect' => 'none',
-      //),
     );
 
     //$fields['uom_id'] = array(

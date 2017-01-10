@@ -112,7 +112,7 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
-  drupal_add_js(UIKIT_SRC . "/js/components/autocomplete.js", array(
+  drupal_add_js(UIKIT_SRC . "/js/components/autocomplete.min.js", array(
     'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,

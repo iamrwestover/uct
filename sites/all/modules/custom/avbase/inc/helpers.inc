@@ -348,13 +348,14 @@ function avbase_element_validate_unique_field($element, &$form_state, $form) {
  * @param $form_state
  * @param $form
  */
-function avbase_element_validate_product_name_exists($element, &$form_state, $form) {
+function avbase_element_validate_product_name_exists(&$element, &$form_state, $form) {
   $save_value = &drupal_array_get_nested_value($form_state['values'], $element['#parents']);
   $element_value = $element['#value'];
   if (trim($element_value) == '') {
     return;
   }
-  $row = db_query("SELECT id FROM {avtbl_products} WHERE title = :title", array(':title' => $element_value))->fetch();
+  $row = avproduct_load(array('title = :title'), array(':title' => $element_value));
+  //$row = db_query("SELECT id FROM {avtbl_products} WHERE title = :title", array(':title' => $element_value))->fetch();
   if (!$row) {
     $save_value = '';
     form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
@@ -364,8 +365,13 @@ function avbase_element_validate_product_name_exists($element, &$form_state, $fo
   //}
   else {
     // Set this element's value as matching row id.
-
     $save_value = $row->id;
+
+    // Make sure this product's details is available for client-side use.
+    $js_settings = array();
+    $js_settings['avNestableProductForm']['products'][$row->id] = $row;
+    drupal_add_js($js_settings, 'setting');
+    $element['#attributes']['data-selected-product-id'] = $row->id;
   }
 }
 
@@ -501,4 +507,19 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
 function avbase_min_decimal_precision($x, $p = 2) {
   $e = pow(10,$p);
   return floor($x*$e)==$x*$e?sprintf("%.${p}f",$x):$x;
+}
+
+/**
+ * Callback to return JSON encoded details of any drupal function.
+ * @param $function_name
+ * @param $id
+ *
+ * @throws Exception
+ */
+function avbase_ajax_load($function_name, $id) {
+  $data = array();
+  if (function_exists($function_name)) {
+    $data = $function_name($id);
+  }
+  drupal_json_output(array('status' => 0, 'data' => $data));
 }

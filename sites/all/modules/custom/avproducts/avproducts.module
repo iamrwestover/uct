@@ -30,7 +30,7 @@ function avproducts_menu() {
     'file' => 'inc/crud.inc',
     'weight' => 10,
   );
-  $items['av/products/%avproduct/view'] = array(
+  $items['av/products/%avproduct'] = array(
     'title' => 'View',
     'page callback' => 'avproducts_product_form_load',
     'page arguments' => array(2),
@@ -120,7 +120,7 @@ function avproducts_home_form($form, &$form_state) {
     array('data' => 'Name', 'field' => 'title'),
     array('data' => 'Category', 'field' => 'category_id'),
     array('data' => 'UOM', 'field' => 'uom_id'),
-    array('data' => 'Description', 'field' => 'description'),
+    //array('data' => 'Description', 'field' => 'description'),
     array('data' => 'Sales price', 'field' => 'price', 'style' => 'width: 100px; text-align: right'),
     array('data' => 'Cost', 'field' => 'cost', 'style' => 'width: 100px; text-align: right'),
     array('data' => 'Qty.', 'field' => 'qty', 'style' => 'width: 70px; text-align: right'),
@@ -147,14 +147,14 @@ function avproducts_home_form($form, &$form_state) {
 
     $action_links_all[] = $action_links;
     $actions_html = theme('links__bare', $action_links);
-    $linked_name = l($row->title, $menu_prefix . '/view');
+    $linked_name = l($row->title, $menu_prefix);
     $rows[] = array(
       'data' => array(
         'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
         'display_name' => $linked_name,
         'category' => isset($categories[$row->category_id]) ? check_plain($categories[$row->category_id]->title) : '',
         'uom' => isset($categories[$row->uom_id]) ? check_plain($categories[$row->uom_id]->title) : '',
-        'description' => truncate_utf8(check_plain($row->description), 90, FALSE, TRUE),
+        //'description' => truncate_utf8(check_plain($row->description), 90, FALSE, TRUE),
         'price' => array('data' => avbase_money_format('%01.2f', $row->price), 'style' => 'text-align: right'),
         'cost' => array('data' => avbase_money_format('%01.2f', $row->cost), 'style' => 'text-align: right'),
         'qty' => array('data' => $row->qty, 'style' => 'text-align: right'),

@@ -44,7 +44,6 @@
       });
       self.$discountTypeEl.once('avPODiscountType', function() {
         $(this).change(function() {
-          console.log('f');
           self.$discountValEl.trigger('change');
         });
       });
@@ -58,19 +57,21 @@
           var $priceEl = $thisRow.find('.prod-column-price');
           var $qtyEl = $thisRow.find('.prod-column-qty');
           var $amountEl = $thisRow.find('.prod-column-amt');
+          var uoms = Drupal.settings.avBase.uoms;
 
           // Trigger actions for autocomplete product field.
           $productIDEl.on('autocompleteSelect', function(e, node) {
             // Get product details if not yet set.
             var productID = $(node).find('div#av-prod-id').html();
-            $(this).data('selectedProductID', productID);
+            $(this).data('selected-product-id', productID);
             if (!Drupal.settings.avNestableProductForm.products[productID]) {
               Drupal.settings.avNestableProductForm.products[productID] = $.parseJSON($(node).find('div#av-prod-json').html());
             }
 
             var productDetails = Drupal.settings.avNestableProductForm.products[productID];
             if (productDetails.uom_id) {
-              $UOMEl.val(productDetails.uom_id);
+              var uom = uoms[productDetails.uom_id];
+              $UOMEl.val(uom.title);
               $UOMEl.trigger('change');
             }
           });
@@ -87,18 +88,17 @@
           var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {minLength: 0});
           var avDropdownData = function(productID) {
             var productDetails = Drupal.settings.avNestableProductForm.products[productID];
-            var uoms = Drupal.settings.avBase.uoms;
             var data = [];
             if (productDetails) {
               var uom = uoms[productDetails.uom_id];
               if (uom) {
                 var baseUOMPluralForm = uom.data.plural_form || uom.title;
-                data.push({"value": uom.title, "title": uom.title, "text": Drupal.t('base uom')});
+                data.push({"value": uom.title, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('base uom')});
                 var otherUOMs = productDetails.data.uoms || {};
                 $.each(otherUOMs, function(i, otherUOM) {
                   var uom = uoms[otherUOM.uom_id];
                   if (uom) {
-                    data.push({"value": uom.title, "title": uom.title, "text": Drupal.t('@qty @plural_form per @title', {'@qty': 33, '@plural_form': baseUOMPluralForm, '@title': uom.title.toLowerCase()})});
+                    data.push({"value": uom.title, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('@qty @plural_form per @title', {'@qty': otherUOM.qty, '@plural_form': baseUOMPluralForm.toLowerCase(), '@title': uom.title.toLowerCase()})});
                   }
                 });
               }
@@ -107,7 +107,7 @@
           };
           $UOMEl.click(function() {
             if (!avDropdown.visible) {
-              avDropdown.render(avDropdownData($productIDEl.data('selectedProductID')));
+              avDropdown.render(avDropdownData($productIDEl.data('selected-product-id')));
             }
             else {
               avDropdown.hide();
@@ -124,48 +124,51 @@
               avDropdown.select();
             }
           });
+          $UOMEl.change(function() {
+            // Get current row details.
+            if (!$productIDEl.length) {
+              return;
+            }
 
-          $UOMEl.focusout(function() {
-            //avDropdown.hide();
+            // Get selected product details
+            var selectedProductID = $productIDEl.data('selected-product-id');
+            var productDetails = Drupal.settings.avNestableProductForm.products[selectedProductID] || {};
+            if (productDetails.title != $productIDEl.val()) {
+              return;
+            }
+
+            // Get uom details.
+            var uomTitle = $(this).val();
+            var uomID = 0;
+            var otherUOMs = productDetails.data.uoms || {};
+            $.each(uoms, function(i, uom) {
+              if (uomTitle.toLowerCase() == uom.title.toLowerCase()) {
+                uomID = uom.id;
+                return;
+              }
+            });
+
+            // Auto-fill price fields.
+            var price = 0;
+            if (uomID == 0) {
+              return;
+            }
+            else if (uomID == productDetails.uom_id) {
+              // Selected UOM is the same as base UOM.
+              price = parseFloat(productDetails.cost);
+              $priceEl.val(price.toFixed(2));
+            }
+            else if (otherUOMs[uomID]) {
+              // Selected UOM is a data UOM.
+              price = parseFloat(productDetails.cost) * parseFloat(otherUOMs[uomID]['qty']);
+              $priceEl.val(price.toFixed(2));
+            }
+            else {
+              $priceEl.val('');
+            }
+
+            $priceEl.trigger('change');
           });
-          //$UOMEl.change(function() {
-          //  // Get current row details.
-          //  if (!$productIDEl.length) {
-          //    return;
-          //  }
-          //
-          //  // Get selected product details
-          //  var selectedProductID = $productIDEl.data('selectedProductID');
-          //  var productDetails = Drupal.settings.avNestableProductForm.products[selectedProductID] || {};
-          //  if (productDetails.title != $productIDEl.val()) {
-          //    return;
-          //  }
-          //
-          //  // Get uom details.
-          //  var uomID = $(this).val();
-          //  var uoms = productDetails.data.uoms || {};
-          //
-          //  // Auto-fill price fields.
-          //  var price = 0;
-          //  if (uomID == 0) {
-          //    return;
-          //  }
-          //  else if (uomID == productDetails.uom_id) {
-          //    // Selected UOM is the same as base UOM.
-          //    price = parseFloat(productDetails.cost);
-          //    $priceEl.val(price.toFixed(2));
-          //  }
-          //  else if (uoms[uomID]) {
-          //    // Selected UOM is a data UOM.
-          //    price = parseFloat(productDetails.cost) * parseFloat(uoms[uomID]['qty']);
-          //    $priceEl.val(price.toFixed(2));
-          //  }
-          //  else {
-          //    $priceEl.val('');
-          //  }
-          //
-          //  $priceEl.trigger('change');
-          //});
 
           // Trigger actions for price field.
           $priceEl.change(function() {
@@ -193,7 +196,7 @@
             if (price != '') {
               $priceEl.val(parseFloat(price.toFixed(6)));
             }
-            //console.log($(this).val().toFixed(2));
+
             var thisAmount = $(this).val();
             if ($.isNumeric(thisAmount)) {
               thisAmount = parseFloat(thisAmount).toFixed(2);
@@ -359,6 +362,5 @@
 }(jQuery));
 
 jQuery(document).ready(function ($) {
-  //console.log('x');
-  //console.log(avNestableForm2);
+  //console.log(Drupal.settings);
 });

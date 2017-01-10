@@ -11,6 +11,7 @@ jQuery(document).ready(function ($) {
       e.preventDefault();
       return;
     }
+    console.log('a');
     $(this).addClass('form-submitted');
   });
 });

@@ -177,6 +177,14 @@ function avbase_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/users.inc',
   );
+
+  $items['av/ajax_load/%/%'] = array(
+    'page callback' => 'avbase_ajax_load',
+    'page arguments' => array(2, 3),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+    'file' => 'inc/helpers.inc',
+  );
   return $items;
 }
 

@@ -3,26 +3,43 @@
 /**
  * Load product details.
  *
- * @param $product_id
+ * @param int|array $param_where
+ *    Accepts an integer value and will be treated as product id.
+ * @param $param_args
  * @return mixed
  */
-function avproduct_load($product_id) {
+function avproduct_load($param_where, $param_args = array()) {
+  //var_dump($param_where);
+  if (empty($param_where) || $param_where == 'add') {
+    return FALSE;
+  }
+
   $data = &drupal_static(__FUNCTION__, array());
-  if (isset($data[$product_id])) {
-    return $data[$product_id];
+  if (is_numeric($param_where)) {
+    $param_args[':product_id'] = $param_where;
+    $param_where = array('avprod.id = :product_id');
+  }
+  //dpm($param_where);
+  //sort($param_where);
+  //dpm($param_where);
+
+  $data_id = md5(json_encode($param_where) . json_encode($param_args));
+  if (isset($data[$data_id])) {
+    return $data[$data_id];
   }
 
   $query = "SELECT avprod.*, avvendor.display_name AS vendor_name
     FROM {avtbl_products} avprod
-    LEFT JOIN {avtbl_vendors} avvendor ON avvendor.id = avprod.vendor_id
-    WHERE avprod.id = :product_id";
-  $args = array(':product_id' => $product_id);
-  $row = db_query($query, $args)->fetchObject();
+    LEFT JOIN {avtbl_vendors} avvendor ON avvendor.id = avprod.vendor_id";
+  if (!empty($param_where)) {
+    $query .= " WHERE " . implode(' AND ', $param_where);
+  }
+  $row = db_query($query, $param_args)->fetchObject();
   if (isset($row->data)) {
     $row->data = unserialize($row->data);
   }
 
-  $data[$product_id] = $row;
+  $data[$data_id] = $row;
   return $row;
 }
 
