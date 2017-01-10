@@ -113,7 +113,7 @@ function uikit_av_textfield($variables) {
   if (!empty($element['#av_dropdown'])) {
     $wrapper_id = $element['#id'] . '-wrapper';
     $output = <<<HTML
-<div id="$wrapper_id" class="uk-autocomplete uk-form">
+<div id="$wrapper_id" class="uk-autocomplete uk-form av-dropdown">
     <div class="uk-form-icon uk-form-icon-flip"><i class="uk-icon-caret-down"></i>$output</div>
     <script type="text/autocomplete">
         <ul class="uk-nav uk-nav-autocomplete uk-autocomplete-results">

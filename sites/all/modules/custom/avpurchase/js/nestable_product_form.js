@@ -85,15 +85,34 @@
           // Trigger actions for UOM select field.
           //$UOMEl.before('s');
           var $uomWrapperEl = $('#' + ($UOMEl.attr('id') + '-wrapper'));
-          var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {});
+          var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {minLength: 0});
           var avDropdownData = [
-            {"value":"Piece Piece Piece Piece", "title":"Piece", "text":"base uom"},
+            {"value":"Piece Piece Piece Piece", "title":"There's beautiful and then there's you", "text":"base uom"},
             {"value":"Box", "title":"Box"},
             {"value":"Dozen", "title":"Dozen", "text":"12 pieces per box"}
           ];
           $UOMEl.click(function() {
-            //console.log(uomWrapperId);
-            avDropdown.render(avDropdownData);
+            if (!avDropdown.visible) {
+              avDropdown.render(avDropdownData);
+            }
+            else {
+              avDropdown.hide();
+            }
+          });
+          $UOMEl.keydown(function(e) {
+            if ((e.keyCode === 40) && !avDropdown.visible) {
+              // DOWN.
+              $UOMEl.trigger('click');
+              e.preventDefault();
+              e.stopPropagation();
+            }
+            else if (e.keyCode === 9) {
+              avDropdown.select();
+            }
+          });
+
+          $UOMEl.focusout(function() {
+            //avDropdown.hide();
           });
           //$UOMEl.change(function() {
           //  // Get current row details.

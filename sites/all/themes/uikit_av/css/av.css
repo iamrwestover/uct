@@ -140,10 +140,14 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 .uk-form-row.uk-form-danger {
   background: transparent !important;
 }
-/*.av-ajax-trigger {*/
-  /*-webkit-transition: width 2s, height 2s, -webkit-transform 2s; /!* Safari *!/*/
-  /*transition: width 2s, height 2s, transform 2s;*/
-/*}*/
+.av-dropdown input {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 html.js input.form-autocomplete {
   background: none;
 }
