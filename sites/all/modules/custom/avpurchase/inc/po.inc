@@ -102,7 +102,7 @@ function avpurchase_po_form_settings(&$form, $row) {
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');
   $form['#theme'] = 'avpurchase_item_list_form';
 
-  $po_js_settings = array('avpurchasePODetails' => $row);
+  $po_js_settings = array('avPurchasePODetails' => $row);
   $form['#attached']['js'][] = array(
     'data' => $po_js_settings,
     'type' => 'setting',

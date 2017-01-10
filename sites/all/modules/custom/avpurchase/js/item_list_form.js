@@ -35,7 +35,7 @@ jQuery(document).ready(function ($) {
   var $termEl = $('#term-id');
   vendorAutocomplete.$autocompleteEl.on('autocompleteSelect', function(e, node) {
     var vendorID = $(node).find('#av-row-id').html();
-    var vendor = Drupal.settings.avbase.vendors[vendorID] || {};
+    var vendor = Drupal.settings.avBase.vendors[vendorID] || {};
     var email = vendor.email || '';
 
     if (vendor.id) {

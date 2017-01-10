@@ -83,17 +83,31 @@
           });
 
           // Trigger actions for UOM select field.
-          //$UOMEl.before('s');
           var $uomWrapperEl = $('#' + ($UOMEl.attr('id') + '-wrapper'));
           var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {minLength: 0});
-          var avDropdownData = [
-            {"value":"Piece Piece Piece Piece", "title":"There's beautiful and then there's you", "text":"base uom"},
-            {"value":"Box", "title":"Box"},
-            {"value":"Dozen", "title":"Dozen", "text":"12 pieces per box"}
-          ];
+          var avDropdownData = function(productID) {
+            var productDetails = Drupal.settings.avNestableProductForm.products[productID];
+            var uoms = Drupal.settings.avBase.uoms;
+            var data = [];
+            if (productDetails) {
+              var uom = uoms[productDetails.uom_id];
+              if (uom) {
+                var baseUOMPluralForm = uom.data.plural_form || uom.title;
+                data.push({"value": uom.title, "title": uom.title, "text": Drupal.t('base uom')});
+                var otherUOMs = productDetails.data.uoms || {};
+                $.each(otherUOMs, function(i, otherUOM) {
+                  var uom = uoms[otherUOM.uom_id];
+                  if (uom) {
+                    data.push({"value": uom.title, "title": uom.title, "text": Drupal.t('@qty @plural_form per @title', {'@qty': 33, '@plural_form': baseUOMPluralForm, '@title': uom.title.toLowerCase()})});
+                  }
+                });
+              }
+            }
+            return data;
+          };
           $UOMEl.click(function() {
             if (!avDropdown.visible) {
-              avDropdown.render(avDropdownData);
+              avDropdown.render(avDropdownData($productIDEl.data('selectedProductID')));
             }
             else {
               avDropdown.hide();

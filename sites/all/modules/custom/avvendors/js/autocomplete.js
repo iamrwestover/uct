@@ -2,7 +2,7 @@
   window.avbaseAutocompleteActions = {
     $autocompleteEl: null,
     rowGroupName: null,
-    moduleName: 'avbase',
+    moduleName: 'avBase',
     rowIDSelector: '#av-row-id',
     rowJSONSelector: '#av-row-json',
 
@@ -20,7 +20,7 @@
       var $autocompleteEl = superParent.$autocompleteEl;
       var moduleName = superParent.moduleName;
       var rowGroupName = superParent.rowGroupName;
-      $autocompleteEl.once('avbaseAutocompleteActions', function() {
+      $autocompleteEl.once('avBaseAutocompleteActions', function() {
         $(this).on('autocompleteSelect', function(e, node) {
           // Get product details if not yet set.
           var rowID = $(node).find(superParent.rowIDSelector).text();

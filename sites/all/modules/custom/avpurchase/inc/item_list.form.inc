@@ -75,22 +75,12 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
  * @param $row
  */
 function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
-  $form['xx']['#markup'] = '<div id="xxaa" class="uk-autocomplete uk-form">
-    <input type="text" size="55">
-    <script type="text/autocomplete">
-        <ul class="uk-nav uk-nav-autocomplete uk-autocomplete-results">
-            {{~items}}
-            <li data-value="{{ $item.value }}">
-                <a>
-                    {{ $item.title }}
-                    <div class="uk-text-muted">{{{ $item.text }}}</div>
-                </a>
-            </li>
-            {{/items}}
-        </ul>
-    </script>
-</div>';
+  $js_settings = array('avBase' => array('uoms' => avbase_get_categories('uom')));
   $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/nestable_product_form.js';
+  $form['#attached']['js'][] = array(
+    'data' => $js_settings,
+    'type' => 'setting',
+  );
 
   // Set extra form validation for product list.
   $form['#validate'][] = 'avpurchase_po_product_fields_validate';
@@ -339,7 +329,7 @@ function avpurchase_item_list_prod_js($form, $form_state) {
     //$output = '<div>' . $x['#name'] . '</div>';
   }
   else {
-    $js_settings = array('avNestableProductForm' => arraY('ajaxAction' => 'remove'));
+    $js_settings = array('avNestableProductForm' => array('ajaxAction' => 'remove'));
     $output['#attached']['js'] = array(
       array(
         'data' => $js_settings,
