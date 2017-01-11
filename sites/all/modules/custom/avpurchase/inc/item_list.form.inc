@@ -23,14 +23,6 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
   $form['vendor_id']['#attached']['js'] = array(
     AVVENDORS_MODULE_PATH . '/js/autocomplete.js',
   );
-  $form['email'] = array(
-    '#id' => 'vendor-email',
-    '#type' => 'textfield',
-    '#title' => 'E-mail address',
-    '#default_value' => isset($row->email) ? check_plain($row->email) : '',
-    '#maxlength' => 255,
-    '#element_validate' => array('avbase_element_validate_email'),
-  );
 
   $form['discount_type'] = array(
     '#id' => 'discount-type',
@@ -47,6 +39,7 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
     '#title' => 'Discount value',
     '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
     '#maxlength' => 19,
+    '#autocomplete_path' => 'user/autocomplete',
     '#element_validate' => array('element_validate_number'),
     //'#special_element_type' => 'number',
     '#attributes' => array(

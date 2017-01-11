@@ -213,6 +213,17 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
     case 'avbase_general_settings_form':
       $form['actions']['#theme'] = 'avbase_crud_button_group';
       break;
+    case 'system_site_information_settings':
+      $form['admin']['author'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Authored by'),
+        '#size' => 30,
+        '#maxlength' => 60,
+        '#autocomplete_path' => 'user/autocomplete',
+        //'#default_value' => $author,
+        '#weight' => -1,
+      );
+      break;
   }
 }
 

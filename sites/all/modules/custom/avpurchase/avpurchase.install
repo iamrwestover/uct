@@ -67,6 +67,7 @@ function avpurchase_schema() {
     'primary key' => array('id'),
     'indexes' => array(
       'vendor_id' => array('vendor_id'),
+      'po_date' => array('po_date'),
     ),
   );
 
@@ -129,6 +130,114 @@ function avpurchase_schema() {
     'indexes' => array(
       'po_id' => array('po_id'),
       'product_id' => array('product_id'),
+    ),
+  );
+
+  $schema['avtbl_gr'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vendor_id' => array(
+        'description' => 'Vendor ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Date created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'gr_date' => array(
+        'description' => 'Purchase order date',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'vendor_id' => array('vendor_id'),
+      'gr_date' => array('gr_date'),
+    ),
+  );
+
+  $schema['avtbl_gr_items'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'gr_id' => array(
+        'description' => 'Purchase Order ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '12',
+        'scale' => '6',
+      ),
+      'po_id' => array(
+        'description' => 'Purchase Order id reference',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'gr_id' => array('gr_id'),
+      'product_id' => array('product_id'),
+      'po_id' => array('po_id'),
     ),
   );
 

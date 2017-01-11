@@ -128,6 +128,7 @@
           });
           $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data) {
             $qtyPerUOMEl.val(data.qtyperuom);
+            $qtyEl.focus().select();
           });
           $UOMEl.change(function() {
             // Get current row details.

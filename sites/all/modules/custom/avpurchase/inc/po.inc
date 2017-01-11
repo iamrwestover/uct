@@ -53,6 +53,14 @@ function avpurchase_po_form($form, &$form_state, $row) {
   );
 
   $form['item_list_date']['#title'] = t('P.O. Date');
+  $form['email'] = array(
+    '#id' => 'vendor-email',
+    '#type' => 'textfield',
+    '#title' => 'E-mail address',
+    '#default_value' => isset($row->email) ? check_plain($row->email) : '',
+    '#maxlength' => 255,
+    '#element_validate' => array('avbase_element_validate_email'),
+  );
   $form['message'] = array(
     '#type' => 'textarea',
     '#title' => 'Message to vendor',

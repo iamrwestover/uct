@@ -105,5 +105,25 @@
           break;
       }
     };
+
+    /**
+     * Override autocomplete popup hide.
+     * Hides the autocomplete suggestions.
+     */
+    Drupal.jsAC.prototype.hidePopup = function (keycode) {
+      // Hide popup.
+      var popup = this.popup;
+      if (popup) {
+        // Select item if the right key or mousebutton was pressed.
+        if (this.selected && ((keycode && keycode != 46 && keycode != 8 && keycode != 27) || !keycode)) {
+          this.select(this.selected);
+        }
+        
+        this.popup = null;
+        $(popup).fadeOut('fast', function () { $(popup).remove(); });
+      }
+      this.selected = false;
+      $(this.ariaLive).empty();
+    };
   }
 }(jQuery));
