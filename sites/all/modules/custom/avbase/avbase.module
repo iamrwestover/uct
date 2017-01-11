@@ -25,7 +25,7 @@ define('AVBASE_DISCOUNT_FIXED', 2);
 function avbase_theme($existing, $type, $theme, $path) {
   $themes = array();
 
-  $forms_template_path = $path . '/templates/forms';
+  $template_path = $path . '/templates';
   $theme_names = array(
     //'avcustomers_customer_form',
     //'avcustomers_home_form',
@@ -38,10 +38,22 @@ function avbase_theme($existing, $type, $theme, $path) {
     $themes[$theme_name] = array(
       'render element' => 'form',
       'template' => str_replace('_', '-', $theme_name),
-      'path' => $forms_template_path,
+      'path' => $template_path,
     );
   }
 
+
+  // OTHERS.
+  $theme_names = array(
+    'avbase_modal',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'variables' => array(),
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $template_path,
+    );
+  }
   return $themes;
 }
 
