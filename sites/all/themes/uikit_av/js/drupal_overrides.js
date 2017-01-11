@@ -118,7 +118,7 @@
         if (this.selected && ((keycode && keycode != 46 && keycode != 8 && keycode != 27) || !keycode)) {
           this.select(this.selected);
         }
-        
+
         this.popup = null;
         $(popup).fadeOut('fast', function () { $(popup).remove(); });
       }

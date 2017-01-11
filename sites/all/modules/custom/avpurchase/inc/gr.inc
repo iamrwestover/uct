@@ -156,10 +156,10 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
     case 'after-save':
       $values = empty($form_state['values']) ? array() : $form_state['values'];
       $product_rows = empty($values['product_rows']) ? array() : $values['product_rows'];
+      $incoming_qty = array();
 
       // Save po items.
       $query = db_insert('avtbl_gr_items')->fields(array('gr_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost'));
-      $insert_rows = array();
       foreach ($product_rows as $prod_row) {
         if (empty($prod_row['product_id'])) {
           continue;
@@ -167,8 +167,22 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
         $prod_row['gr_id'] = $row['id'];
         $prod_row['cost'] = $prod_row['price'];
         $query->values($prod_row);
+
+        $this_prod_incoming_qty = empty($incoming_qty[$prod_row['product_id']]) ? 0 : $incoming_qty[$prod_row['product_id']];
+        $incoming_qty[$prod_row['product_id']] = $this_prod_incoming_qty + ($prod_row['qty'] * $prod_row['qty_per_uom']);
       }
       $query->execute();
+
+      if (!empty($incoming_qty)) {
+        $query = "UPDATE {avtbl_products} SET qty = qty + CASE id";
+        foreach ($incoming_qty as $k => $v) {
+          $query .= " WHEN $k THEN $v";
+        }
+        $query .= " END WHERE id IN (" . implode(', ', array_keys($incoming_qty)) . ")";
+        if (db_query($query)) {
+          avbase_custom_watchdog("gr__qty_update", "ID: {$row['id']}", array('#row' => $row, '#incoming_qty' => $incoming_qty, '#entity_name' => 'gr'));
+        }
+      }
       break;
   }
   return NULL;

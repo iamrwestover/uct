@@ -69,8 +69,10 @@ function avbase_crud_form_submit($form, &$form_state) {
 
       // Do save.
       $message = '';
+      $op = '';
       if (empty($record_id) || !is_numeric($record_id)) {
         // Insert new record.
+        $op = 'insert';
         // Save timestamp when record is created.
         if (array_search('created', $save_field_ids) !== FALSE) {
           $row['created'] = time();
@@ -81,6 +83,7 @@ function avbase_crud_form_submit($form, &$form_state) {
         }
       } else {
         // Update record.
+        $op = 'update';
         if (db_update($table_name)->fields($row)->condition('id', $record_id)->execute()) {
           $message = t('Changes saved.');
         }
@@ -93,6 +96,8 @@ function avbase_crud_form_submit($form, &$form_state) {
       }
 
       if (!$hide_crud_messages) {
+        $op_text = $op == 'insert' ? 'Added' : 'Updated';
+        avbase_custom_watchdog("{$entity_name}__{$op}", "ID: {$row['id']}", array('#row' => $row, '#entity_name' => $entity_name));
         drupal_set_message($message);
       }
     }

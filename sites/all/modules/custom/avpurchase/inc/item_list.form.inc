@@ -39,7 +39,6 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
     '#title' => 'Discount value',
     '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
     '#maxlength' => 19,
-    '#autocomplete_path' => 'user/autocomplete',
     '#element_validate' => array('element_validate_number'),
     //'#special_element_type' => 'number',
     '#attributes' => array(

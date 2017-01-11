@@ -245,8 +245,10 @@ HTML;
  */
 function avbase_category_delete_confirm_form_submit($form, &$form_state) {
   if (isset($form_state['row']->id)) {
-    if (avbase_category_delete($form_state['row']->id)) {
+    $row = $form_state['row'];
+    if (avbase_category_delete($row->id)) {
       drupal_set_message('Record deleted.');
+      avbase_custom_watchdog("{$row->group_id}__delete", "ID: {$row->id}", array('#row' => $row, '#group_id' => $row->group_id));
     }
   }
   $form_state['redirect'] = '';

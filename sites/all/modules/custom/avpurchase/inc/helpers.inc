@@ -88,6 +88,9 @@ function avpurchase_po_send_to_email($po_id, $email = '') {
   $message = drupal_mail('avpurchase', 'po', $email, language_default(), $params);
   if (!empty($message['result'])) {
     drupal_set_message(t('Purchase order sent successfully to %mail.', array('%mail' => $email)));
+    avbase_custom_watchdog("crud_mail_po", "Sent Purchase Order #@po_id to @vendor_name",
+      array('@po_id' => $po->id, '@vendor_name' => $po->vendor_name , '#message' => $message)
+    );
     return TRUE;
   }
   return FALSE;

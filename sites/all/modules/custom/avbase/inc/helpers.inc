@@ -531,3 +531,35 @@ function avbase_ajax_load($function_name, $id) {
   }
   drupal_json_output(array('status' => 0, 'data' => $data));
 }
+
+/**
+ * Custom watchdog to log user actions. Made because watchdog() wipe is inevitable.
+ * @param $type
+ * @param $message
+ * @param array $variables
+ * @param int $severity
+ * @param null $link
+ */
+function avbase_custom_watchdog($type, $message, $variables = array(), $severity = WATCHDOG_INFO, $link = NULL) {
+  global $user, $base_root;
+
+  // The user object may not exist in all conditions, so 0 is substituted if needed.
+  $user_uid = isset($user->uid) ? $user->uid : 0;
+
+  // Prepare the fields to be logged
+  $log_entry = array(
+    'type' => drupal_substr($type, 0, 64),
+    'message' => $message,
+    'variables' => serialize($variables),
+    'severity' => $severity,
+    'link' => drupal_substr($link, 0, 255),
+
+    'uid' => $user_uid,
+    'location' => $base_root . request_uri(),
+    'referer' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
+    'hostname' => drupal_substr(ip_address(), 0, 128),
+    'timestamp' => time(),
+  );
+
+  db_insert('avtbl_watchdog')->fields($log_entry)->execute();
+}

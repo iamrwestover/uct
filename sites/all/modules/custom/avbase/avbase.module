@@ -213,17 +213,6 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
     case 'avbase_general_settings_form':
       $form['actions']['#theme'] = 'avbase_crud_button_group';
       break;
-    case 'system_site_information_settings':
-      $form['admin']['author'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Authored by'),
-        '#size' => 30,
-        '#maxlength' => 60,
-        '#autocomplete_path' => 'user/autocomplete',
-        //'#default_value' => $author,
-        '#weight' => -1,
-      );
-      break;
   }
 }
 
@@ -234,46 +223,48 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
  * @return array
  */
 function avbase_category_groups($category_id = '') {
-  $groups = array();
-  $groups['customer_cat'] = array(
-    'name' => 'Customer Category',
-    'plural_name' => 'Customer Categories',
-  );
-  $groups['product_cat'] = array(
-    'name' => 'Product Category',
-    'plural_name' => 'Product Categories',
-  );
-  $groups['uom'] = array(
-    'name' => 'Unit of Measure',
-  );
-  $groups['account_type'] = array(
-    'name' => 'Account type',
-    'plural_name' => 'Account types',
-  );
-  $groups['shelf'] = array(
-    'name' => 'Shelf',
-    'plural_name' => 'Shelves',
-  );
-  $groups['principal'] = array(
-    'name' => 'Principal Manufacturer',
-    'plural_name' => 'Principal Manufacturers',
-  );
-  $groups['payment_method'] = array(
-    'name' => 'Payment Method',
-    'plural_name' => 'Payment Methods',
-  );
-  $groups['payment_term'] = array(
-    'name' => 'Payment Term',
-    'plural_name' => 'Payment Terms',
-  );
-  $groups['agent_vend'] = array(
-    'name' => 'Vendor Agent',
-    'plural_name' => 'Vendor Agents',
-  );
-  $groups['agent_cust'] = array(
-    'name' => 'Customer Agent',
-    'plural_name' => 'Customer Agents',
-  );
+  $groups = &drupal_static(__FUNCTION__, array());
+  if (empty($groups)) {
+    $groups['customer_cat'] = array(
+      'name' => 'Customer Category',
+      'plural_name' => 'Customer Categories',
+    );
+    $groups['product_cat'] = array(
+      'name' => 'Product Category',
+      'plural_name' => 'Product Categories',
+    );
+    $groups['uom'] = array(
+      'name' => 'Unit of Measure',
+    );
+    $groups['account_type'] = array(
+      'name' => 'Account type',
+      'plural_name' => 'Account types',
+    );
+    $groups['shelf'] = array(
+      'name' => 'Shelf',
+      'plural_name' => 'Shelves',
+    );
+    $groups['principal'] = array(
+      'name' => 'Principal Manufacturer',
+      'plural_name' => 'Principal Manufacturers',
+    );
+    $groups['payment_method'] = array(
+      'name' => 'Payment Method',
+      'plural_name' => 'Payment Methods',
+    );
+    $groups['payment_term'] = array(
+      'name' => 'Payment Term',
+      'plural_name' => 'Payment Terms',
+    );
+    $groups['agent_vend'] = array(
+      'name' => 'Vendor Agent',
+      'plural_name' => 'Vendor Agents',
+    );
+    $groups['agent_cust'] = array(
+      'name' => 'Customer Agent',
+      'plural_name' => 'Customer Agents',
+    );
+  }
 
   if (isset($groups[$category_id])) {
     return $groups[$category_id];
