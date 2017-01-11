@@ -118,7 +118,7 @@ function uikit_av_textfield($variables) {
     <script type="text/autocomplete">
         <ul class="uk-nav uk-nav-autocomplete uk-autocomplete-results">
             {{~items}}
-            <li data-value="{{ \$item.value }}">
+            <li data-value="{{ \$item.value }}" data-qtyperuom="{{ \$item.qtyPerUOM }}">
                 <a>
                     {{ \$item.title }}
                     <div class="uk-text-muted">{{{ \$item.text }}}</div>

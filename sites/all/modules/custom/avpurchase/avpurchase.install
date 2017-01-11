@@ -98,6 +98,12 @@ function avpurchase_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'description' => array(
         'description' => 'Product description',
         'type' => 'varchar',
@@ -125,7 +131,6 @@ function avpurchase_schema() {
       'product_id' => array('product_id'),
     ),
   );
-
 
   return $schema;
 }

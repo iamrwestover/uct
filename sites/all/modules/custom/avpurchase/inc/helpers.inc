@@ -81,7 +81,7 @@ function avpurchase_po_send_to_email($po_id, $email = '') {
     'site_name' => variable_get('site_name', 'UCT'),
     'shipping_address' => variable_get('av_company_address', '-'),
     'vendor_name' => check_plain($po->vendor_name),
-    'payment_term_title' => check_plain($po->payment_term_title),
+    //'payment_term_title' => check_plain($po->payment_term_title),
   );
 
   $params['po_table'] = theme('avpurchase_po_mail_table', $params);

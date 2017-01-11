@@ -160,7 +160,7 @@ function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
       $product_rows = empty($values['product_rows']) ? array() : $values['product_rows'];
 
       // Save po items.
-      $query = db_insert('avtbl_po_items')->fields(array('po_id', 'product_id', 'uom_id', 'qty', 'cost'));
+      $query = db_insert('avtbl_po_items')->fields(array('po_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost'));
       $insert_rows = array();
       foreach ($product_rows as $prod_row) {
         if (empty($prod_row['product_id'])) {

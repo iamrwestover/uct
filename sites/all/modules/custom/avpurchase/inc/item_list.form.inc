@@ -157,6 +157,19 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#av_dropdown' => TRUE,
     );
 
+    $fields['qty_per_uom'] = array(
+      '#id' => 'qty-per-uom-' . $prod_key,
+      '#type' => 'hidden',
+      '#title' => 'Qty per UOM',
+      '#title_display' => 'none',
+      '#maxlength' => 255,
+      '#element_validate' => array('avbase_element_validate_po_element'),
+      '#av_prod_element_validate' => array('element_validate_integer_positive'),
+      '#attributes' => array(
+        'class' => array('prod-column-qty-per-uom'),
+      ),
+    );
+
     //$fields['uom_id'] = array(
     //  '#id' => 'uom-id-' . $prod_key,
     //  '#type' => 'select',

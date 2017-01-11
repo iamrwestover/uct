@@ -54,6 +54,7 @@
           var $thisRow = $(this);
           var $productIDEl = $thisRow.find('.prod-column-id');
           var $UOMEl = $thisRow.find('.prod-column-uom-id');
+          var $qtyPerUOMEl = $thisRow.find('.prod-column-qty-per-uom');
           var $priceEl = $thisRow.find('.prod-column-price');
           var $qtyEl = $thisRow.find('.prod-column-qty');
           var $amountEl = $thisRow.find('.prod-column-amt');
@@ -71,6 +72,7 @@
             var productDetails = Drupal.settings.avNestableProductForm.products[productID];
             if (productDetails.uom_id) {
               var uom = uoms[productDetails.uom_id];
+              $qtyPerUOMEl.val(1);
               $UOMEl.val(uom.title);
               $UOMEl.trigger('change');
             }
@@ -93,12 +95,12 @@
               var uom = uoms[productDetails.uom_id];
               if (uom) {
                 var baseUOMPluralForm = uom.data.plural_form || uom.title;
-                data.push({"value": uom.title, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('base uom')});
+                data.push({"value": uom.title, 'qtyPerUOM': 1, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('base uom')});
                 var otherUOMs = productDetails.data.uoms || {};
                 $.each(otherUOMs, function(i, otherUOM) {
                   var uom = uoms[otherUOM.uom_id];
                   if (uom) {
-                    data.push({"value": uom.title, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('@qty @plural_form per @title', {'@qty': otherUOM.qty, '@plural_form': baseUOMPluralForm.toLowerCase(), '@title': uom.title.toLowerCase()})});
+                    data.push({"value": uom.title, 'qtyPerUOM': otherUOM.qty, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('@qty @plural_form per @title', {'@qty': otherUOM.qty, '@plural_form': baseUOMPluralForm.toLowerCase(), '@title': uom.title.toLowerCase()})});
                   }
                 });
               }
@@ -123,6 +125,9 @@
             else if (e.keyCode === 9) {
               avDropdown.select();
             }
+          });
+          $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data) {
+            $qtyPerUOMEl.val(data.qtyperuom);
           });
           $UOMEl.change(function() {
             // Get current row details.

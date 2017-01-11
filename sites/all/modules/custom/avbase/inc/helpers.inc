@@ -313,6 +313,7 @@ function avbase_element_validate_category_exists($element, &$form_state, $form) 
   if (trim($element['#value']) == '') {
     return;
   }
+  $save_value = &drupal_array_get_nested_value($form_state['values'], $element['#parents']);
   $conditions = $element['#element_validate_conditions'];
   $conditions['title'] = check_plain($element['#value']);
   $category = avbase_get_category($conditions);
@@ -320,7 +321,8 @@ function avbase_element_validate_category_exists($element, &$form_state, $form) 
     form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
   else {
-    $form_state['values'][$element['#name']] = $category->id;
+    //$form_state['values'][$element['#name']] = $category->id;
+    $save_value = $category->id;
   }
 }
 
@@ -349,6 +351,7 @@ function avbase_element_validate_unique_field($element, &$form_state, $form) {
  * @param $form
  */
 function avbase_element_validate_product_name_exists(&$element, &$form_state, $form) {
+  $js_settings = &drupal_static(__FUNCTION__, array());
   $save_value = &drupal_array_get_nested_value($form_state['values'], $element['#parents']);
   $element_value = $element['#value'];
   if (trim($element_value) == '') {
@@ -368,10 +371,15 @@ function avbase_element_validate_product_name_exists(&$element, &$form_state, $f
     $save_value = $row->id;
 
     // Make sure this product's details is available for client-side use.
-    $js_settings = array();
-    $js_settings['avNestableProductForm']['products'][$row->id] = $row;
-    drupal_add_js($js_settings, 'setting');
-    $element['#attributes']['data-selected-product-id'] = $row->id;
+    if (empty($js_settings)) {
+      $js_settings = array('avNestableProductForm' => array('products' => new stdClass()));
+    }
+    $js_settings['avNestableProductForm']['products']->$save_value = $row;
+    $element['#attached']['js'][] = array(
+      'data' => $js_settings,
+      'type' => 'setting',
+    );
+    $element['#attributes']['data-selected-product-id'] = $save_value;
   }
 }
 

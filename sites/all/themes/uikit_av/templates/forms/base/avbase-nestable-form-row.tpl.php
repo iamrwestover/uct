@@ -44,6 +44,7 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
       <div class="uk-width-1-5">
         <div class="av-nestable-cell">
           <?php print drupal_render($form['uom_id']); ?>
+          <?php print drupal_render($form['qty_per_uom']); ?>
         </div>
       </div>
     </div>
