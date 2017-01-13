@@ -3,7 +3,7 @@
   $onclick_script = isset($onclick_script) ? $onclick_script : '';
   $modal_classes = isset($modal_classes) ? (' ' . implode(' ', $modal_classes)) : '';
 ?>
-<a id="uk-modal-toggle-<?php print $modal_id; ?>" class="uk-hidden">Modal toggle</a>
+<!--<a id="uk-modal-toggle---><?php //print $modal_id; ?><!--" class="suk-hidden">Modal toggle</a>-->
 <div id="uk-modal-<?php print $modal_id; ?>" class="uk-modal">
   <div class="uk-modal-dialog<?php print $modal_classes; ?>">
     <?php if (!empty($show_close_button)): ?>

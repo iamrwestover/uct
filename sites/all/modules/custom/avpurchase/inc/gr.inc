@@ -21,6 +21,55 @@ function avpurchase_gr_form_load($row) {
  * @return array
  */
 function avpurchase_gr_form($form, &$form_state, $row) {
+  $form['#id'] = 'avpurchase-gr-form';
+  $form['#prefix'] = '<div id="avpurchase-gr-form-wrapper"> <div id="avpurchase-gr-form-wrapper2"></div>';
+  $form['#suffix'] = '</div>';
+
+  // Set crud settings.
+  avpurchase_gr_form_settings($form, $row);
+
+  //$form['default'] = array(
+  //  '#type' => 'container',
+  //  '#attributes' => array(
+  //    'id' => 'gr-form-default',
+  //  ),
+  //);
+  $form = avpurchase_gr_form_default($form, $form_state, $row);
+  $form['cost_changes'] = avpurchase_gr_form_cost_changes_fields($form_state, $row);
+  $form['cost_changes']['#type'] = 'container';
+  $form['cost_changes']['#attributes']['id'] = 'avpurchase-gr-cost-changed-wrapper';
+  $form['cost_changes']['#theme'] = 'avbase_modal_form';
+  $form['cost_changes']['#modal_options'] = array(
+    'modal_id' => 'cost-changed',
+    'modal_title' => t('Product cost changes'),
+    'modal_classes' => array('uk-modal-dialog-large'),
+  );
+
+  //switch ($form_page) {
+  //  case 'default':
+  //    return avpurchase_gr_form_default_fields($form, $form_state, $row);
+  //    break;
+  //  case 'cost_changes':
+  //    return avpurchase_gr_form_cost_changes_fields($form, $form_state, $row);
+  //    //return $form;
+  //    break;
+  //}
+
+//dpm($form);
+  // Convert form to non-edit mode if we are on View page.
+  //avbase_allow_form_view_mode($form);
+  return $form;
+}
+
+/**
+ * Default Goods Received form fields.
+ * @param $form
+ * @param $form_state
+ * @param $row
+ *
+ * @return array
+ */
+function avpurchase_gr_form_default(&$form, &$form_state, $row) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   switch (arg(4)) {
     case 'view':
@@ -35,8 +84,9 @@ function avpurchase_gr_form($form, &$form_state, $row) {
   }
   drupal_set_title($page_title);
 
-  // Set crud settings.
-  avpurchase_gr_form_settings($form, $row);
+  $form['#theme'] = 'avpurchase_item_list_form';
+
+
 
   // Goods Received fields.
   avpurchase_gr_form_fields($form, $form_state, $row);
@@ -51,23 +101,14 @@ function avpurchase_gr_form($form, &$form_state, $row) {
   $form['buttons']['submit'] = array(
     '#id' => 'submit-btn',
     '#type' => 'submit',
-    '#value' => t('Save'),
-    '#attributes' => array(
-      'class' => array('uk-hidden'),
-    ),
-  );
-
-  $form['buttons']['ajax_submit'] = array(
-    '#id' => 'ajax-submit-btn',
-    '#type' => 'submit',
     '#value' => t('Receive these items'),
     '#attributes' => array(
-      'class' => array('av-ajax-trigger uk-button-primary'),
+      'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),
-    '#submit' => array(),
     '#ajax' => array(
       'callback' => 'avpurchase_gr_form_ajax',
-      'wrapper' => 'uk-modal-cost-changed-body',
+      //'wrapper' => 'avpurchase-gr-cost-changed-wrapper',
+      'wrapper' => 'avpurchase-gr-form-wrapper',
       'effect' => 'none',
       'event' => 'click',
     ),
@@ -76,11 +117,53 @@ function avpurchase_gr_form($form, &$form_state, $row) {
     '#markup' => l('Cancel', 'av/purchase'),
   );
 
-  $form['#suffix'] = theme('avbase_modal', array('modal_id' => 'cost-changed', 'modal_title' => t('Product cost changes'), 'modal_classes' => array('uk-modal-dialog-large')));
-
-  // Convert form to non-edit mode if we are on View page.
-  avbase_allow_form_view_mode($form);
+  //$form['#suffix'] = theme('avbase_modal', array('modal_id' => 'cost-changed', 'modal_title' => t('Product cost changes'), 'modal_classes' => array('uk-modal-dialog-large')));
   return $form;
+}
+
+/**
+ * Product Cost Changes form fields.
+ * @param $form_state
+ * @param $row
+ *
+ * @return mixed
+ */
+function avpurchase_gr_form_cost_changes_fields(&$form_state, $row) {
+  $fields = array();
+  //$fields['x11111'] = array('#type' => 'textfield', '#title' => 'Sana akoy mapagod na.', '#required' => TRUE);
+  //dpm($form_state);
+  $fields['buttons']['submit'] = array(
+    '#id' => 'cost-changed-submit-btn',
+    '#type' => 'submit',
+    '#value' => t('Continue'),
+    '#attributes' => array(
+      'class' => array('av-ajax-trigger', 'uk-button-primary'),
+    ),
+    '#ajax' => array(
+      'callback' => 'avpurchase_gr_form_ajax',
+      //'wrapper' => 'avpurchase-gr-cost-changed-wrapper',
+      'wrapper' => 'avpurchase-gr-form-wrapper',
+      'effect' => 'none',
+      'event' => 'click',
+    ),
+  );
+  $fields['buttons']['cancel'] = array(
+    '#id' => 'cost-changed-cancel-btn',
+    '#type' => 'submit',
+    '#submit' => array('avpurchase_gr_form_ajax_submit'),
+    '#value' => t('Cancel'),
+    //'#validate' => array('avx'),
+    '#attributes' => array(
+      'class' => array('uk-modal-close'),
+    ),
+    //'#ajax' => array(
+    //  'callback' => 'avpurchase_gr_form_ajax',
+    //  'wrapper' => 'avpurchase-gr-form-wrapper',
+    //  'effect' => 'none',
+    //  'event' => 'click',
+    //),
+  );
+  return $fields;
 }
 
 /**
@@ -94,11 +177,10 @@ function avpurchase_gr_form_settings(&$form, $row) {
   $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit');
+  //$form['#submit'] = array('avbase_crud_form_submit');
 
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'gr');
-  $form['#theme'] = 'avpurchase_item_list_form';
 
   $po_js_settings = array('avpurchaseRIDetails' => $row);
   $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/gr_form.js';
@@ -142,13 +224,6 @@ function avpurchase_gr_form_settings(&$form, $row) {
  * @param $row
  */
 function avpurchase_gr_form_fields(&$form, &$form_state, $row) {
-  $form['header_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
-  );
-  $form['footer_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
-  );
-
   $term_options = avbase_get_category_options_array('payment_term');
   asort($term_options);
   $form['term_id'] = array(
@@ -159,16 +234,17 @@ function avpurchase_gr_form_fields(&$form, &$form_state, $row) {
     '#default_value' => isset($row->term_id) ? $row->term_id : 0,
     '#empty_value' => 0,
     '#empty_option' => '',
+    '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
   );
-  $terms = avbase_get_categories('payment_term');
-  $terms_js_settings = array('avbasePaymentTerms' => $terms);
-  $form['term_id']['#attached']['js'] = array(
-    AVVENDORS_MODULE_PATH . '/js/payment_terms.js',
-    array(
-      'data' => $terms_js_settings,
-      'type' => 'setting',
-    ),
-  );
+  //$terms = avbase_get_categories('payment_term');
+  //$terms_js_settings = array('avbasePaymentTerms' => $terms);
+  //$form['term_id']['#attached']['js'] = array(
+  //  AVVENDORS_MODULE_PATH . '/js/payment_terms.js',
+  //  array(
+  //    'data' => $terms_js_settings,
+  //    'type' => 'setting',
+  //  ),
+  //);
 }
 
 /**
@@ -225,23 +301,22 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
  * Ajax callback before submitting a Receive Items form.
  */
 function avpurchase_gr_form_ajax($form, $form_state) {
-  $trigger = $form_state['triggering_element'];
-  $output = array();
+  return $form;
+}
 
-  //$messages = theme('status_messages');
-  $params = array();
-  $output = array(
-    '#type' => 'container',
-    '#attributes' => array(
-      'id' => 'uk-modal-cost-changed-body',
-    ),
-  );
-  $output['test'] = array('#type' => 'textarea');
-  if (form_get_errors()) {
-    $output['test']['#suffix'] = '<script type="text/javascript">jQuery("#submit-btn").trigger("click");</script>';
+/**
+ * Submit handler for Goods Received form.
+ * @param $form
+ * @param $form_state
+ */
+function avpurchase_gr_form_submit($form, &$form_state) {
+  $trigger = $form_state['triggering_element'];
+  dpm($trigger);
+  if (0) {
   }
   else {
-    $output['test']['#suffix'] = '<script type="text/javascript">jQuery("#uk-modal-toggle-cost-changed").trigger("click");</script>';
+    avbase_crud_form_submit($form, $form_state);
+    unset($form_state['input']);
   }
-  return $output;
+  $form_state['rebuild'] = TRUE;
 }

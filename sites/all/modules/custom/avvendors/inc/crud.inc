@@ -181,15 +181,7 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
     '#default_value' => isset($row->term_id) ? $row->term_id : 0,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
-  );
-  $terms = avbase_get_categories('payment_term');
-  $terms_js_settings = array('avbasePaymentTerms' => $terms);
-  $info['term_id']['#attached']['js'] = array(
-    AVVENDORS_MODULE_PATH . '/js/payment_terms.js',
-    array(
-      'data' => $terms_js_settings,
-      'type' => 'setting',
-    ),
+    '#avbase_payment_terms_js' => array('preventChildrenHide' => FALSE),
   );
   $info['discount_type'] = array(
     '#id' => 'discount-type',

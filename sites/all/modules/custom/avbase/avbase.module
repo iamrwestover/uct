@@ -33,6 +33,7 @@ function avbase_theme($existing, $type, $theme, $path) {
     'avbase_nestable_form',
     'avbase_nestable_form_row',
     'avbase_crud_button_group',
+    'avbase_modal_form',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -314,4 +315,33 @@ function avbase_general_settings_form() {
   );
 
   return system_settings_form($form);
+}
+
+/**
+ * Implements hook_library().
+ */
+function avbase_library() {
+  $libraries['avbase.autocompleteActions'] = array(
+    'title' => 'Supplementary Autocomplete actions for AV module',
+    'version' => VERSION,
+    'js' => array(
+      AVBASE_MODULE_PATH . '/js/autocomplete.js' => array('group' => JS_DEFAULT),
+    ),
+  );
+
+  $terms = avbase_get_categories('payment_term');
+  $terms_js_settings = array('avbase' => array('paymentTerms' => $terms));
+  $libraries['avbase.paymentTerms'] = array(
+    'title' => 'Payment terms and discounts',
+    'version' => VERSION,
+    'js' => array(
+      AVBASE_MODULE_PATH . '/js/payment_terms.js' => array('group' => JS_DEFAULT),
+      array(
+        'data' => $terms_js_settings,
+        'type' => 'setting',
+      ),
+    ),
+  );
+
+  return $libraries;
 }

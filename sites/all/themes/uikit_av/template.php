@@ -100,6 +100,12 @@ function uikit_av_textfield($variables) {
     $extra = '<input' . drupal_attributes($attributes) . ' />';
   }
 
+  if (!empty($element['#avbase_autocomplete'])) {
+    drupal_add_library('avbase', 'avbase.autocompleteActions');
+    $element['#attributes']['class'][] = 'avbase-autocomplete-actions';
+    $element['#attributes']['data-avbase-entity-group'] = $element['#avbase_autocomplete']['entity_group'];
+  }
+
   if (!empty($element['#av_dropdown'])) {
     $element['#attributes']['readonly'] = 'readonly';
   }
@@ -144,6 +150,12 @@ function uikit_av_select($variables) {
     $classes[] = 'uk-form-danger';
   }
   _form_set_class($element, $classes);
+
+  if (!empty($element['#avbase_payment_terms_js'])) {
+    drupal_add_library('avbase', 'avbase.paymentTerms');
+    $element['#attributes']['class'][] = 'avbase-payment-terms-js';
+    $element['#attributes']['data-prevent-children-hide'] = $element['#avbase_payment_terms_js']['preventChildrenHide'];
+  }
 
   return '<select' . drupal_attributes($element['#attributes']) . '>' . form_select_options($element) . '</select>';
 }

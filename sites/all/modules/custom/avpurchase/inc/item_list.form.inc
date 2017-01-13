@@ -19,9 +19,9 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
     '#element_validate' => array('avbase_element_validate_display_name_exists'),
     '#table_name' => 'avtbl_vendors',
     '#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
-  );
-  $form['vendor_id']['#attached']['js'] = array(
-    AVVENDORS_MODULE_PATH . '/js/autocomplete.js',
+    '#avbase_autocomplete' => array(
+      'entity_group' => 'vendors'
+    ),
   );
 
   $form['discount_type'] = array(
@@ -67,7 +67,7 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
  * @param $row
  */
 function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
-  $js_settings = array('avBase' => array('uoms' => avbase_get_categories('uom')));
+  $js_settings = array('avbase' => array('uoms' => avbase_get_categories('uom')));
   $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/nestable_product_form.js';
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
