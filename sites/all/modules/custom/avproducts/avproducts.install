@@ -80,7 +80,7 @@ function avproducts_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
       'price' => array(
@@ -88,7 +88,7 @@ function avproducts_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
       'expiry_date' => array(

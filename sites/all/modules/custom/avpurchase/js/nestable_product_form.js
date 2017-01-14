@@ -12,7 +12,8 @@
       // Initialize uikit nestable component.
       UIkit.nestable($wrapper, {handleClass:'uk-nestable-handle', maxDepth: 1});
       Drupal.settings.avNestableProductForm = Drupal.settings.avNestableProductForm || {};
-      Drupal.settings.avNestableProductForm.products = Drupal.settings.avNestableProductForm.products || {};
+      Drupal.settings.avbase = Drupal.settings.avbase || {};
+      Drupal.settings.avbase.products = Drupal.settings.avbase.products || {};
 
 
       // Do stuff when nestable form is changed.
@@ -77,11 +78,11 @@
         // Get product details if not yet set.
         var productID = $(node).find('div#av-prod-id').html();
         $(this).data('selected-product-id', productID);
-        if (!Drupal.settings.avNestableProductForm.products[productID]) {
-          Drupal.settings.avNestableProductForm.products[productID] = $.parseJSON($(node).find('div#av-prod-json').html());
+        if (!Drupal.settings.avbase.products[productID]) {
+          Drupal.settings.avbase.products[productID] = $.parseJSON($(node).find('div#av-prod-json').html());
         }
 
-        var productDetails = Drupal.settings.avNestableProductForm.products[productID];
+        var productDetails = Drupal.settings.avbase.products[productID];
         if (productDetails.uom_id) {
           var uom = uoms[productDetails.uom_id];
           $qtyPerUOMEl.val(1);
@@ -101,7 +102,7 @@
       var $uomWrapperEl = $('#' + ($UOMEl.attr('id') + '-wrapper'));
       var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {minLength: 0});
       var avDropdownData = function(productID) {
-        var productDetails = Drupal.settings.avNestableProductForm.products[productID];
+        var productDetails = Drupal.settings.avbase.products[productID];
         var data = [];
         if (productDetails) {
           var uom = uoms[productDetails.uom_id];
@@ -150,7 +151,7 @@
 
         // Get selected product details
         var selectedProductID = $productIDEl.data('selected-product-id');
-        var productDetails = Drupal.settings.avNestableProductForm.products[selectedProductID] || {};
+        var productDetails = Drupal.settings.avbase.products[selectedProductID] || {};
         if (productDetails.title != $productIDEl.val()) {
           return;
         }
@@ -488,11 +489,11 @@
   //          // Get product details if not yet set.
   //          var productID = $(node).find('div#av-prod-id').html();
   //          $(this).data('selected-product-id', productID);
-  //          if (!Drupal.settings.avNestableProductForm.products[productID]) {
-  //            Drupal.settings.avNestableProductForm.products[productID] = $.parseJSON($(node).find('div#av-prod-json').html());
+  //          if (!Drupal.settings.avbase.products[productID]) {
+  //            Drupal.settings.avbase.products[productID] = $.parseJSON($(node).find('div#av-prod-json').html());
   //          }
   //
-  //          var productDetails = Drupal.settings.avNestableProductForm.products[productID];
+  //          var productDetails = Drupal.settings.avbase.products[productID];
   //          if (productDetails.uom_id) {
   //            var uom = uoms[productDetails.uom_id];
   //            $qtyPerUOMEl.val(1);
@@ -512,7 +513,7 @@
   //        var $uomWrapperEl = $('#' + ($UOMEl.attr('id') + '-wrapper'));
   //        var avDropdown = $.UIkit.autocomplete($uomWrapperEl, {minLength: 0});
   //        var avDropdownData = function(productID) {
-  //          var productDetails = Drupal.settings.avNestableProductForm.products[productID];
+  //          var productDetails = Drupal.settings.avbase.products[productID];
   //          var data = [];
   //          if (productDetails) {
   //            var uom = uoms[productDetails.uom_id];
@@ -561,7 +562,7 @@
   //
   //          // Get selected product details
   //          var selectedProductID = $productIDEl.data('selected-product-id');
-  //          var productDetails = Drupal.settings.avNestableProductForm.products[selectedProductID] || {};
+  //          var productDetails = Drupal.settings.avbase.products[selectedProductID] || {};
   //          if (productDetails.title != $productIDEl.val()) {
   //            return;
   //          }

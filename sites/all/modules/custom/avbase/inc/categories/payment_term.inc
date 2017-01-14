@@ -33,7 +33,7 @@ function avbase_category_payment_term_form_alter(&$form, $db_row) {
     '#title' => 'Default discount value',
     '#default_value' => isset($db_row->data['discount_value']) ? check_plain($db_row->data['discount_value']) : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#special_element_type' => 'number',
     '#weight' => 1.3,
     '#attributes' => array(

@@ -57,7 +57,7 @@ function avproducts_product_form($form, &$form_state, $row) {
   );
 
   // Convert form to non-edit mode if we are on View page.
-  $form['#av_view_mode'] = (arg(3) == 'view');
+  $form['#av_view_mode'] = arg(3) == 'view' && arg(2) != '';
   avbase_allow_form_view_mode($form);
   return $form;
 }
@@ -229,7 +229,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#title' => 'Sales price',
     '#default_value' => isset($row->price) ? number_format($row->price, 2, '.', '') : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#attributes' => array(
       'autocomplete' => 'off',
       'step' => '0.01',
@@ -242,7 +242,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#title' => 'Unit cost',
     '#default_value' => isset($row->cost) ? number_format($row->cost, 2, '.', '') : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#attributes' => array(
       'step' => '0.01',
     ),
@@ -396,7 +396,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       '#title' => 'Unit cost',
       '#default_value' => isset($uom_row['cost']) ? number_format($uom_row['cost'], 2, '.', '') : '',
       '#maxlength' => 19,
-      '#element_validate' => array('element_validate_number'),
+      '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'autocomplete' => 'off',
         'class' => array('uom-group-cost'),
@@ -412,7 +412,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       '#title' => 'Sales price',
       '#default_value' => !empty($uom_row['price']) ? number_format($uom_row['price'], 2, '.', '') : '',
       '#maxlength' => 19,
-      '#element_validate' => array('element_validate_number'),
+      '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'autocomplete' => 'off',
         'class' => array('uom-group-price'),

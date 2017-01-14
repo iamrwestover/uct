@@ -21,10 +21,12 @@
             $termEl.data('selectedVendorID', vendorID);
             $termEl.trigger('change');
           }
+
+          $(this).trigger('change');
         });
       });
 
-      new Drupal.avbaseNestableProductForm($('.av-nestable-product-list-form', context), settings);
+      new Drupal.avbaseNestableProductForm($('.av-nestable-product-list-form'), settings);
 
 
       //$('.avpurchase-gr-form').once('avpurchaseGRNestableProductForm', function() {

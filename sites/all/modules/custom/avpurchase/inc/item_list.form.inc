@@ -76,11 +76,35 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
 
   // Set extra form validation for product list.
   $form['#validate'][] = 'avpurchase_po_product_fields_validate';
+
+  // Get selected pos from pending vendor pos.
+  //$selected_pos = empty($form_state['values']['selected_pos']['table']['rows']) ? array() : $form_state['values']['selected_pos']['table']['rows'];
+  //$receive_pos = array();
+  //foreach ($selected_pos as $k => $v) {
+  //  $v_values = empty($v['values']) ? array() : $v['values'];
+  //  $will_receive = empty($v_values['action']) ? FALSE : ($v_values['action'] == 'receive');
+  //  if (!$will_receive || empty($v_values['po']->id)) {
+  //    continue;
+  //  }
+  //  $receive_pos[$k] = $v_values['po'];
+  //}
+
   // Get user input.
   $user_input = isset($form_state['input']) ? $form_state['input'] : array();
   // Get saved product rows.
   $db_row_products = empty($row->products) ? array() : $row->products;
   $prod_rows = isset($user_input['product_rows']) ? $user_input['product_rows'] : $db_row_products;
+
+  // Add received po items into product rows.
+  //foreach ($receive_pos as $v) {
+  //  $v_items = empty($v->items) ? array() : $v->items;
+  //  foreach ($v_items as $v_item) {
+  //    $v_item_arr = (array) $v_item;
+  //    $v_item_arr['price'] = $v_item->cost;
+  //    $prod_rows[] = $v_item_arr;
+  //  }
+  //}
+//dpm($prod_rows);
 
   // Pre-load empty product rows.
   if (empty($prod_rows)) {
@@ -105,6 +129,8 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
   //dpm($user_input);
   //dpm($remove_prod_key);
   //dpm($prod_rows);
+  //dpm('a');
+  $product_user_values = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
 
   $form['product_rows'] = array(
     '#tree' => TRUE,
@@ -126,6 +152,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
         'data-column-name' => 'id',
         'class' => array('prod-column-id'),
       ),
+
       //'#limit_validation_errors' => array(),
       //'#submit' => array('avpurchase_item_list_prod_submit'),
       //'#ajax' => array(
@@ -134,6 +161,9 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       //  'effect' => 'none',
       //),
     );
+    if (!empty($product_user_values[$prod_key]['product_id'])) {
+      $fields['product_id']['#attributes']['data-selected-product-id'] = $product_user_values[$prod_key]['product_id'];
+    }
 
     $fields['uom_id'] = array(
       '#id' => 'uom-id-' . $prod_key,
@@ -154,7 +184,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#type' => 'hidden',
       '#title' => 'Qty per UOM',
       '#title_display' => 'none',
-      '#maxlength' => 255,
+      '#maxlength' => 10,
       '#element_validate' => array('avbase_element_validate_po_element'),
       '#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
@@ -203,7 +233,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       //'#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
       '#maxlength' => 19,
       '#element_validate' => array('avbase_element_validate_po_element'),
-      '#av_prod_element_validate' => array('element_validate_number'),
+      '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       //'#required' => TRUE,
       '#attributes' => array(
         'data-column-name' => 'price',
@@ -219,7 +249,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       //'#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
       '#maxlength' => 19,
       '#element_validate' => array('avbase_element_validate_po_element'),
-      '#av_prod_element_validate' => array('element_validate_number'),
+      '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       //'#required' => TRUE,
       '#attributes' => array(
         'data-column-name' => 'amt',

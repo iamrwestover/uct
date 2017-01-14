@@ -1,12 +1,14 @@
 <?php
-$rows = $form['product_rows'];
+$rows = $form['rows'];
 $header = $form['#header'];
+$table_attributes = isset($form['#attributes']) ? $form['#attributes'] : array();
 
 // Setup the structure to be rendered and returned.
 $content = array(
   '#theme' => 'table',
   '#header' => $header,
   '#rows' => array(),
+  '#attributes' => $table_attributes,
 );
 
 // Traverse each row.  @see element_chidren().
@@ -31,16 +33,6 @@ foreach (element_children($rows) as $row_index) {
   }
   $content['#rows'][] = $table_row;
 }
-
-$content['#rows'][] = array(
-  'data' => array(
-    array(
-    'data' => '&nbsp;',
-    'colspan' => 10,
-    )
-  ),
-  'id' => 'item-list-new-product-wrapper',
-);
 
 print drupal_render($content);
 

@@ -1,29 +1,94 @@
 <?php
 
 /**
- * Load product details.
+ * Load product details by product_id.
  *
- * @param int|array $param_where
- *    Accepts an integer value and will be treated as product id.
- * @param $param_args
- * @return mixed
+ * @param int $product_id
+ * @return object
  */
-function avproduct_load($param_where, $param_args = array()) {
-  //var_dump($param_where);
-  if (empty($param_where) || $param_where == 'add') {
+function avproduct_load($product_id) {
+  if (empty($product_id) || $product_id == 'add') {
     return FALSE;
   }
 
-  $data = &drupal_static(__FUNCTION__, array());
-  if (is_numeric($param_where)) {
-    $param_args[':product_id'] = $param_where;
-    $param_where = array('avprod.id = :product_id');
+  $data = &drupal_static('avbase', array());
+  $products = &$data['products'];
+  if (isset($products[$product_id])) {
+    return $products[$product_id];
   }
-  //dpm($param_where);
-  //sort($param_where);
-  //dpm($param_where);
 
-  $data_id = md5(json_encode($param_where) . json_encode($param_args));
+  $where = array('avprod.id = :product_id');
+  $args = array(':product_id' => $product_id);
+  $rows = avproduct_query_load($where, $args);
+  $row = empty($rows[$product_id]) ? FALSE : $rows[$product_id];
+
+  // Update static variable.
+  $products[$product_id] = $row;
+  return $row;
+}
+
+/**
+ * Load products by ids.
+ * @param array $ids
+ *
+ * @return array
+ */
+function avproduct_load_ids($ids) {
+  if (empty($ids)) {
+    return FALSE;
+  }
+
+  $data = &drupal_static('avbase', array());
+  $products = &$data['products'];
+
+  $return = array();
+  $query_ids = array();
+  foreach ($ids as $id) {
+    if (!empty($id)) {
+      if (isset($products[$id])) {
+        $return[$id] = $products[$id];
+      }
+      else {
+        $query_ids[] = $id;
+      }
+    }
+  }
+
+  if (!empty($query_ids)) {
+    $where = array('avprod.id IN(:product_ids)');
+    $args = array(':product_ids' => $query_ids);
+    $rows = avproduct_query_load($where, $args);
+    if (!empty($rows)) {
+      $return += $rows;
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Advanced product load.
+ * @param array $param_where
+ * @param array $param_args
+ *
+ * @return array
+ */
+function avproduct_query_load($param_where, $param_args = array()) {
+  if (empty($param_where)) {
+    return array();
+  }
+
+  // Load products static variable.
+  $avbase = &drupal_static('avbase', array());
+  $avbase['products'] = empty($avbase['products']) ? array() : $avbase['products'];
+  $products = &$avbase['products'];
+
+  // Set/load static variable for this query.
+  $data = &drupal_static(__FUNCTION__, array());
+  $_data_id = $param_where;
+  sort($_data_id);
+  $data_id = md5(json_encode($_data_id) . json_encode($param_args));
+
   if (isset($data[$data_id])) {
     return $data[$data_id];
   }
@@ -34,13 +99,21 @@ function avproduct_load($param_where, $param_args = array()) {
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
-  $row = db_query($query, $param_args)->fetchObject();
-  if (isset($row->data)) {
-    $row->data = unserialize($row->data);
+
+  $rs = db_query($query, $param_args);
+  $rows = array();
+  foreach ($rs as $row) {
+    if (isset($row->data)) {
+      $row->data = unserialize($row->data);
+    }
+    $rows[$row->id] = $row;
   }
 
-  $data[$data_id] = $row;
-  return $row;
+  // Update static variables.
+  $data[$data_id] = $rows;
+  $products += $rows;
+
+  return $rows;
 }
 
 /**

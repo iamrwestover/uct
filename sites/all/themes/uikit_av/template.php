@@ -208,3 +208,144 @@ function uikit_av_preprocess_user_picture(&$variables) {
     }
   }
 }
+
+/**
+ * Override theme_radios().
+ * @param $variables
+ *
+ * @return string
+ */
+function uikit_av_radios($variables) {
+  $element = $variables['element'];
+  $attributes = array();
+  if (isset($element['#id'])) {
+    $attributes['id'] = $element['#id'];
+  }
+
+
+  $element_classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
+  if (is_numeric($k = array_search('uk-button-group', $element_classes))) {
+    unset($element['#attributes']['class'][$k]);
+    $attributes['class'] = 'uk-button-group';
+    $attributes['data-uk-button-radio'] = "{activeClass: 'uk-button-success'}";
+  }
+  else {
+    $attributes['class'] = 'form-radios';
+  }
+
+  if (!empty($element['#attributes']['class'])) {
+    $attributes['class'] .= ' ' . implode(' ', $element['#attributes']['class']);
+  }
+  if (isset($element['#attributes']['title'])) {
+    $attributes['title'] = $element['#attributes']['title'];
+  }
+  return '<div' . drupal_attributes($attributes) . '>' . (!empty($element['#children']) ? $element['#children'] : '') . '</div>';
+
+  //<div class="uk-button-group" data-uk-button-radio="{activeClass: 'uk-button-success'}">
+  //  <label class="uk-button">
+  //    <input type="radio" name="gender" value="0" style="display:none;"/>
+  //    Leave unchanged
+  //</label>
+  //  <label class="uk-button">
+  //    <input type="radio" name="gender" value="1" style="display:none;"/>
+  //    Update <strong>cost</strong>
+  //  </label>
+  //  <label class="uk-button">
+  //    <input type="radio" name="gender" value="1" style="display:none;"/>
+  //    Update both <strong>cost and sales price</strong>
+  //  </label>
+  //</div>
+}
+
+/**
+ * Override theme_radio().
+ * @param $variables
+ *
+ * @return string
+ */
+function uikit_av_radio($variables) {
+  $element = $variables['element'];
+  $element['#attributes']['type'] = 'radio';
+  element_set_attributes($element, array('id', 'name', '#return_value' => 'value'));
+
+  if (isset($element['#return_value']) && $element['#value'] !== FALSE && $element['#value'] == $element['#return_value']) {
+    $element['#attributes']['checked'] = 'checked';
+  }
+
+  $element_classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
+  if (is_numeric($k = array_search('uk-button-group', $element_classes))) {
+    unset($element['#attributes']['class'][$k]);
+    $element['#attributes']['class'][] = 'uk-hidden';
+  }
+
+  _form_set_class($element, array('form-radio'));
+
+  return '<input' . drupal_attributes($element['#attributes']) . ' />';
+}
+
+
+//function uikit_av_form_element($variables) {
+//  $element = &$variables['element'];
+//  $type = !empty($element['#type']) ? $element['#type'] : FALSE;
+//  if ($type == 'radios') {
+//    dpm($element);
+//  }
+//
+//  // This function is invoked as theme wrapper, but the rendered form element
+//  // may not necessarily have been processed by form_builder().
+//  $element += array(
+//    '#title_display' => 'before',
+//  );
+//
+//  // Add element #id for #type 'item'.
+//  if (isset($element['#markup']) && !empty($element['#id'])) {
+//    $attributes['id'] = $element['#id'];
+//  }
+//  // Add element's #type and #name as class to aid with JS/CSS selectors.
+//  $attributes['class'] = array('form-item');
+//  if (!empty($element['#type'])) {
+//    $attributes['class'][] = 'form-type-' . strtr($element['#type'], '_', '-');
+//  }
+//  if (!empty($element['#name'])) {
+//    $attributes['class'][] = 'form-item-' . strtr($element['#name'], array(' ' => '-', '_' => '-', '[' => '-', ']' => ''));
+//  }
+//  // Add a class for disabled elements to facilitate cross-browser styling.
+//  if (!empty($element['#attributes']['disabled'])) {
+//    $attributes['class'][] = 'form-disabled';
+//  }
+//  $output = '<div' . drupal_attributes($attributes) . '>' . "\n";
+//
+//  // If #title is not set, we don't display any label or required marker.
+//  if (!isset($element['#title'])) {
+//    $element['#title_display'] = 'none';
+//  }
+//  $prefix = isset($element['#field_prefix']) ? '<span class="field-prefix">' . $element['#field_prefix'] . '</span> ' : '';
+//  $suffix = isset($element['#field_suffix']) ? ' <span class="field-suffix">' . $element['#field_suffix'] . '</span>' : '';
+//
+//  switch ($element['#title_display']) {
+//    case 'before':
+//    case 'invisible':
+//      $output .= ' ' . theme('form_element_label', $variables);
+//      $output .= ' ' . $prefix . $element['#children'] . $suffix . "\n";
+//      break;
+//
+//    case 'after':
+//      $output .= ' ' . $prefix . $element['#children'] . $suffix;
+//      $output .= ' ' . theme('form_element_label', $variables) . "\n";
+//      break;
+//
+//    case 'none':
+//    case 'attribute':
+//      // Output no label and no required marker, only the children.
+//      $output .= ' ' . $prefix . $element['#children'] . $suffix . "\n";
+//      break;
+//  }
+//
+//  if (!empty($element['#description'])) {
+//    $output .= '<div class="description">' . $element['#description'] . "</div>\n";
+//  }
+//
+//  $output .= "</div>\n";
+//
+//  return $output;
+//}

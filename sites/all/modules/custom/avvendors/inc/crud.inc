@@ -196,7 +196,7 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
     '#title' => 'Discount value',
     '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#special_element_type' => 'number',
     '#attributes' => array(
       //'class' => array(''),

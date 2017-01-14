@@ -79,7 +79,7 @@ function avvendors_schema() {
         'description' => 'Discount value',
         'type' => 'numeric',
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
       'address' => array(

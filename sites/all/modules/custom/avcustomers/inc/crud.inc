@@ -273,7 +273,7 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#title' => 'Discount value',
     '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#special_element_type' => 'number',
     '#attributes' => array(
       //'class' => array(''),
@@ -390,14 +390,14 @@ function avcustomers_customer_form_payment_fields(&$form, $row) {
     '#title' => 'Credit limit',
     '#default_value' => isset($row->credit_limit) ? round($row->credit_limit, 6) : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
   );
   $payment['opening_balance'] = array(
     '#type' => 'textfield',
     '#title' => 'Opening balance',
     '#default_value' => isset($row->opening_balance) ? round($row->opening_balance, 6) : '',
     '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
   );
   if (!empty($row->id)) {
     $payment['opening_balance']['#disabled'] = TRUE;

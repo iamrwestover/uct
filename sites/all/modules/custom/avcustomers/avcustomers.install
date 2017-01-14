@@ -139,7 +139,7 @@ function avcustomers_schema() {
         'description' => 'TODO: please describe this field!',
         'type' => 'numeric',
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
       'category_id' => array(
@@ -152,14 +152,14 @@ function avcustomers_schema() {
         'description' => 'Credit limit',
         'type' => 'numeric',
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
       'opening_balance' => array(
         'description' => 'Opening balance',
         'type' => 'numeric',
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
       'created' => array(

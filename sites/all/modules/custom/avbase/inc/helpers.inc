@@ -357,9 +357,10 @@ function avbase_element_validate_product_name_exists(&$element, &$form_state, $f
   if (trim($element_value) == '') {
     return;
   }
-  $row = avproduct_load(array('title = :title'), array(':title' => $element_value));
-  //$row = db_query("SELECT id FROM {avtbl_products} WHERE title = :title", array(':title' => $element_value))->fetch();
-  if (!$row) {
+
+  $rows = avproduct_query_load(array('title = :title'), array(':title' => $element_value));
+  $row = array_shift($rows);
+  if (empty($row->id)) {
     $save_value = '';
     form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
@@ -372,14 +373,17 @@ function avbase_element_validate_product_name_exists(&$element, &$form_state, $f
 
     // Make sure this product's details is available for client-side use.
     if (empty($js_settings)) {
-      $js_settings = array('avNestableProductForm' => array('products' => new stdClass()));
+      $js_settings = array('avbase' => array('products' => new stdClass()));
     }
-    $js_settings['avNestableProductForm']['products']->$save_value = $row;
+
+    $js_settings['avbase']['products']->$save_value = $row;
     $element['#attached']['js'][] = array(
       'data' => $js_settings,
       'type' => 'setting',
     );
+
     $element['#attributes']['data-selected-product-id'] = $save_value;
+    //dpm($element);
   }
 }
 
@@ -562,4 +566,16 @@ function avbase_custom_watchdog($type, $message, $variables = array(), $severity
   );
 
   db_insert('avtbl_watchdog')->fields($log_entry)->execute();
+}
+
+/**
+ * Check if element value does not exceed AVBASE_MONEY_DIGITS_MAX.
+ * @param $element
+ * @param $form_state
+ */
+function avbase_element_validate_money_length($element, &$form_state) {
+  $element_value = round((float) $element['#value'], 0);
+  if (strlen($element_value) > AVBASE_MONEY_DIGITS_MAX) {
+    form_error($element, t('Number of digits (excluding decimal places) for %element_title must not exceed %digits.', array('%element_title' => $element['#title'], '%digits' => AVBASE_MONEY_DIGITS_MAX)));
+  }
 }

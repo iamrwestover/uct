@@ -13,6 +13,9 @@ define('AVBASE_LIBRARIES_PATH', 'sites/all/libraries');
 define('AVBASE_DISCOUNT_PERCENT', 1);
 define('AVBASE_DISCOUNT_FIXED', 2);
 
+define('AVBASE_MONEY_DECIMAL_MAX', 6);
+define('AVBASE_MONEY_DIGITS_MAX', 12);
+
 /**
  * Implementation of hook_theme().
  *
@@ -34,6 +37,7 @@ function avbase_theme($existing, $type, $theme, $path) {
     'avbase_nestable_form_row',
     'avbase_crud_button_group',
     'avbase_modal_form',
+    'avbase_form_table',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -42,7 +46,6 @@ function avbase_theme($existing, $type, $theme, $path) {
       'path' => $template_path,
     );
   }
-
 
   // OTHERS.
   $theme_names = array(
@@ -344,4 +347,12 @@ function avbase_library() {
   );
 
   return $libraries;
+}
+
+/**
+ * Implementation of hook_js_alter().
+ * @param $js
+ */
+function avbase_js_alter(&$js) {
+  unset($js['misc/tableheader.js']);
 }

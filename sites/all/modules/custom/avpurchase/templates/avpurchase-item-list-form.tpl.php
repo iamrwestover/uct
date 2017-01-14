@@ -13,10 +13,8 @@ $form['message']['#attributes']['rows'] = 2;
 
 $email_html = drupal_render($form['email']);
 $term_html = drupal_render($form['term_id']);
-
-//print drupal_render($form['products_changed_modal']);
 ?>
-<div id="zzz"></div>
+
 <div class="uk-grid">
   <div class="uk-width-2-4">
 

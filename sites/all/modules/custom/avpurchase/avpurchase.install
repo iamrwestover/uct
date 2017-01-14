@@ -60,14 +60,22 @@ function avpurchase_schema() {
         'description' => 'Discount value',
         'type' => 'numeric',
         'not null' => FALSE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
+      ),
+      'status' => array(
+        'description' => 'PO Status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
       ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'vendor_id' => array('vendor_id'),
       'po_date' => array('po_date'),
+      'vendor_id' => array('vendor_id'),
     ),
   );
 
@@ -122,7 +130,7 @@ function avpurchase_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
     ),
@@ -165,11 +173,18 @@ function avpurchase_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'status' => array(
+        'description' => 'Goods Received status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'vendor_id' => array('vendor_id'),
       'gr_date' => array('gr_date'),
+      'vendor_id' => array('vendor_id'),
     ),
   );
 
@@ -223,11 +238,11 @@ function avpurchase_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'precision' => '12',
+        'precision' => '18',
         'scale' => '6',
       ),
-      'po_id' => array(
-        'description' => 'Purchase Order id reference',
+      'po_item_id' => array(
+        'description' => 'Purchase Order details reference',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,
@@ -237,7 +252,7 @@ function avpurchase_schema() {
     'indexes' => array(
       'gr_id' => array('gr_id'),
       'product_id' => array('product_id'),
-      'po_id' => array('po_id'),
+      'po_item_id' => array('po_item_id'),
     ),
   );
 
