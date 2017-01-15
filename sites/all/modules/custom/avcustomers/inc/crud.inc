@@ -235,8 +235,8 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_display_name'),
   );
-  $info['agent_id'] = array(
-    '#id' => 'agent-id',
+  $info['agent_name'] = array(
+    '#id' => 'agent-name',
     '#type' => 'textfield',
     '#title' => t('Agent'),
     '#maxlength' => 255,
@@ -245,6 +245,7 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
     //'#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_category_exists'),
     '#element_validate_conditions' => array('group_id' => 'agent_cust'),
+    '#element_save_id' => 'agent_id',
     '#default_value' => empty($row->agent_name) ? '' : check_plain($row->agent_name),
   );
 

@@ -1,4 +1,5 @@
 <?php
+module_load_include('inc', 'avpurchase', 'inc/po.handlers');
 module_load_include('inc', 'avpurchase', 'inc/item_list.form');
 
 /**
@@ -21,7 +22,6 @@ function avpurchase_po_form_load($row) {
  * @return array
  */
 function avpurchase_po_form($form, &$form_state, $row) {
-  //avpurchase_po_send_to_email(1);
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   switch (arg(4)) {
     case 'view':
@@ -146,56 +146,4 @@ function avpurchase_po_form_settings(&$form, $row) {
     '#type' => 'value',
     '#value' => $data_ids,
   );
-}
-
-/**
- * Perform actions depending on the kind of change that will be made
- * on the database for POs.
- * @param $op
- * @param $row
- * @param $form_state
- * @return object|NULL
- */
-function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
-  switch ($op) {
-    case 'pre-save':
-      $row['po_date'] = time();
-      return $row;
-      break;
-
-    case 'after-save':
-      $values = empty($form_state['values']) ? array() : $form_state['values'];
-      $product_rows = empty($values['product_rows']) ? array() : $values['product_rows'];
-
-      // Save po items.
-      $query = db_insert('avtbl_po_items')->fields(array('po_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost'));
-      $insert_rows = array();
-      foreach ($product_rows as $prod_row) {
-        if (empty($prod_row['product_id'])) {
-          continue;
-        }
-        $prod_row['po_id'] = $row['id'];
-        $prod_row['cost'] = $prod_row['price'];
-        $query->values($prod_row);
-      }
-      $query->execute();
-      break;
-  }
-  return NULL;
-}
-
-/**
- * Extra submit handler for purchase order form.
- * @param $form
- * @param $form_state
- */
-function avpurchase_po_form_submit($form, &$form_state) {
-  $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
-  switch ($triggering_element['#id']) {
-    case 'submit_and_send':
-      $po_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
-      //$mail_to = empty($form_state['values']['email']) ? '' : $form_state['values']['email'];
-      avpurchase_po_send_to_email($po_id);
-      break;
-  }
 }

@@ -3,7 +3,7 @@ foreach (element_children($form) as $key) {
   $form[$key]['#title_display'] = 'invisible';
 }
 
-//$form['product_id']['#attributes']['placeholder'] = 'product code or name';
+//$form['product_title']['#attributes']['placeholder'] = 'product code or name';
 
 $form['qty']['#attributes']['class'][] = 'uk-text-right';
 $form['price']['#attributes']['class'][] = 'uk-text-right';
@@ -36,14 +36,14 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
 
               </div>
 
-              <div class="uk-width-9-10"><?php print drupal_render($form['product_id']); ?></div>
+              <div class="uk-width-9-10"><?php print drupal_render($form['product_title']); ?></div>
             </div>
 
         </div>
       </div>
       <div class="uk-width-1-5">
         <div class="av-nestable-cell">
-          <?php print drupal_render($form['uom_id']); ?>
+          <?php print drupal_render($form['uom_title']); ?>
           <?php print drupal_render($form['qty_per_uom']); ?>
         </div>
       </div>

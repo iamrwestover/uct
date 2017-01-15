@@ -28,7 +28,7 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
       <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['last_name']); ?></div>
 
       <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['display_name']); ?></div>
-      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['agent_id']); ?></div>
+      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['agent_name']); ?></div>
     </div>
   </div>
 

@@ -1,0 +1,5 @@
+name = Sales Modules
+description = Sales module for AV AIS such as sales orders, bills, expenses, etc.
+core = 7.x
+package = AV
+dependencies[] = avvendors

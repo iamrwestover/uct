@@ -83,12 +83,11 @@ function avproduct_query_load($param_where, $param_args = array()) {
   $avbase['products'] = empty($avbase['products']) ? array() : $avbase['products'];
   $products = &$avbase['products'];
 
-  // Set/load static variable for this query.
+  // Set / load static variable for this query.
   $data = &drupal_static(__FUNCTION__, array());
   $_data_id = $param_where;
   sort($_data_id);
   $data_id = md5(json_encode($_data_id) . json_encode($param_args));
-
   if (isset($data[$data_id])) {
     return $data[$data_id];
   }
