@@ -5,7 +5,7 @@
  * @param $form
  * @param $form_state
  */
-function avpurchase_item_list_fields_validate(&$form, &$form_state) {
+function avtrans_item_list_fields_validate(&$form, &$form_state) {
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
@@ -54,7 +54,7 @@ function avpurchase_item_list_fields_validate(&$form, &$form_state) {
  * @param $form_state
  * @param $form
  */
-function avpurchase_item_list_row_element_validate($element, &$form_state, $form) {
+function avtrans_item_list_row_element_validate($element, &$form_state, $form) {
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];

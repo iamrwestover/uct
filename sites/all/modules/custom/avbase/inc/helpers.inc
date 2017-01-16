@@ -190,9 +190,6 @@ function avbase_element_validate_display_name($element, &$form_state, $form) {
  * @param $form
  */
 function avbase_element_validate_display_name_exists($element, &$form_state, $form) {
-  $values = isset($form_state['values']) ? $form_state['values'] : array();
-  //$record_id = isset($values['id']) ? $values['id'] : 0;
-
   $table_name = $element['#table_name'];
   $display_name = $element['#value'];
   if (trim($display_name) == '') {
@@ -202,12 +199,9 @@ function avbase_element_validate_display_name_exists($element, &$form_state, $fo
   if (!$row) {
     form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
-  //elseif (!empty($row->agent_id) && $record_id != $row->agent_id) {
-  //  form_error($element, t('Another agent has already been assigned to this @field_title.', array('@field_title' => $element['#title'])));
-  //}
   else {
-    // Set this element's value as matching row id.
-    $form_state['values'][$element['#name']] = $row->id;
+    // Set extra form state value for this element.
+    avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
   }
 }
 
@@ -240,17 +234,6 @@ function avbase_element_validate_email($element, &$form_state, $form) {
   if ($do_validate && $error = user_validate_mail($mail)) {
     form_error($element, $error);
   }
-}
-
-/**
- * Custom money format.
- * @param $format
- * @param $number
- *
- * @return string
- */
-function avbase_money_format($format, $number) {
-  return sprintf($format, $number);
 }
 
 /**
@@ -321,16 +304,11 @@ function avbase_element_validate_category_exists($element, &$form_state, $form) 
     form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
   else {
-    $parents = $element['#parents'];
-    array_pop($parents);
-    $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : $element['#name'];
-    $parents[] = $save_id;
-
-    // Update form_state values.
-    drupal_array_set_nested_value($form_state['values'], $parents, $category->id);
+    // Set extra form state value for this element.
+    avbase_element_set_form_state_extra_value($form_state, $element, $category->id);
 
     // Update form_state storage item_rows.
-    avpurchase_item_list_update_item_row($form_state, $element, $save_id, $category->id);
+    avtrans_item_list_update_item_row($form_state, $element, $category->id);
   }
 }
 
@@ -370,15 +348,11 @@ function avbase_element_validate_product_name_exists(&$element, &$form_state, $f
     form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
   else {
-    // Update relevant item row with this product id.
-    $parents = $element['#parents'];
-    array_pop($parents);
-    $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : $element['#name'];
-    $parents[] = $save_id;
-    drupal_array_set_nested_value($form_state['values'], $parents, $row->id);
+    // Set extra form state value for this element.
+    avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
 
     // Update form_state storage item_rows.
-    avpurchase_item_list_update_item_row($form_state, $element, $save_id, $row->id);
+    avtrans_item_list_update_item_row($form_state, $element, $row->id);
   }
 }
 
@@ -446,17 +420,20 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
 }
 
 /**
- * Format a number to minimum decimal precision.
+ * Format a number to minimum and maximum decimal precision.
+ *
  * @param $x
  *  The number to format
- * @param $p
+ * @param $max
+ *  The maximum number of decimal places. If empty, no limit.
+ * @param $min
  *  The number of minimum decimal places.
  *
  * @return string
  */
-function avbase_min_decimal_precision($x, $p = 2) {
-  $e = pow(10,$p);
-  return (float) (floor($x*$e)==$x*$e?sprintf("%.${p}f",$x):$x);
+function avbase_number_format($x, $max = AVBASE_DECIMAL_FORMAT_MAX, $min = 2) {
+  $e = pow(10, $min);
+  return (floor($x * $e) == $x * $e) ? sprintf("%.${min}f", $x) : (empty($max) ? $x : round($x, $max));
 }
 
 /**
@@ -507,13 +484,29 @@ function avbase_custom_watchdog($type, $message, $variables = array(), $severity
 }
 
 /**
- * Check if element value does not exceed AVBASE_MONEY_DIGITS_MAX.
+ * Check if element value does not exceed AVBASE_DIGITS_MAX.
  * @param $element
  * @param $form_state
  */
 function avbase_element_validate_money_length($element, &$form_state) {
   $element_value = round((float) $element['#value'], 0);
-  if (strlen($element_value) > AVBASE_MONEY_DIGITS_MAX) {
-    form_error($element, t('Number of digits (excluding decimal places) for %element_title must not exceed %digits.', array('%element_title' => $element['#title'], '%digits' => AVBASE_MONEY_DIGITS_MAX)));
+  if (strlen($element_value) > AVBASE_DIGITS_MAX) {
+    form_error($element, t('Number of digits (excluding decimal places) for %element_title must not exceed %digits.', array('%element_title' => $element['#title'], '%digits' => AVBASE_DIGITS_MAX)));
   }
+}
+
+/**
+ * Copy element value to a separate form state entry.
+ * @param $form_state
+ * @param $element
+ * @param $value
+ */
+function avbase_element_set_form_state_extra_value(&$form_state, $element, $value) {
+  $parents = $element['#parents'];
+  array_pop($parents);
+  $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : $element['#name'];
+  $parents[] = $save_id;
+
+  // Update form_state values.
+  drupal_array_set_nested_value($form_state['values'], $parents, $value);
 }

@@ -1,6 +1,6 @@
 <?php
-module_load_include('inc', 'avpurchase', 'inc/item_list.handlers');
-module_load_include('inc', 'avpurchase', 'inc/item_list.form.validate');
+module_load_include('inc', 'avtrans', 'inc/item_list.handlers');
+module_load_include('inc', 'avtrans', 'inc/item_list.form.validate');
 
 /**
  * Item List form - generate info fields.
@@ -8,21 +8,17 @@ module_load_include('inc', 'avpurchase', 'inc/item_list.form.validate');
  * @param $form_state
  * @param $row
  */
-function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
-  $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/item_list_form.js';
-  $form['vendor_id'] = array(
-    '#id' => 'vendor-id',
+function avtrans_item_list_form_fields(&$form, &$form_state, $row) {
+  $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/item_list.form.js';
+  $form['client_name'] = array(
     '#type' => 'textfield',
-    '#title' => t('Vendor'),
     '#maxlength' => 255,
-    '#autocomplete_path' => 'av/vendors/autocomplete',
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_display_name_exists'),
-    '#table_name' => 'avtbl_vendors',
-    '#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
-    '#avbase_autocomplete' => array(
-      'entity_group' => 'vendors'
-    ),
+    //'#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
+    '#title' => t('Client'),
+    '#id' => 'client-id',
+    '#element_save_id' => 'client_id',
   );
 
   $form['discount_type'] = array(
@@ -59,7 +55,7 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
   );
 
   // Product list.
-  avpurchase_item_list_product_fields($form, $form_state, $row);
+  avtrans_item_list_product_fields($form, $form_state, $row);
 }
 
 /**
@@ -68,16 +64,19 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
+function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
   // Initialize to-attached js settings.
   $js_settings = array('avbase' => array());
 
   // Set extra form validation for product list.
-  $form['#validate'][] = 'avpurchase_item_list_fields_validate';
+  $form['#validate'][] = 'avtrans_item_list_fields_validate';
 
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
+
+  // Get transaction type.
+  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
 
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
@@ -103,8 +102,12 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
     $fields = array();
-    if (!empty($prod_row['po_id'])) {
-      $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-success" style="position: absolute; top: -9px; left: 0;">PO# ' . $prod_row['po_id'] . '</span>');
+    $order_key = $transaction_type == 'gr' ? 'po_id' : 'so_id';
+    $order_id = empty($prod_row[$order_key]) ? NULL : $prod_row[$order_key];
+    if (!empty($order_id)) {
+      $badge_title = $transaction_type == 'gr' ? 'PO# ' : 'SO# ';
+      $badge_title .= $order_id;
+      $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-success" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
     }
     $fields['product_title'] = array(
       '#id' => 'product-title-' . $prod_key,
@@ -145,7 +148,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#title' => 'Qty per UOM',
       '#title_display' => 'none',
       '#maxlength' => 10,
-      '#element_validate' => array('avpurchase_item_list_row_element_validate'),
+      '#element_validate' => array('avtrans_item_list_row_element_validate'),
       '#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
         'class' => array('prod-column-qty-per-uom'),
@@ -158,8 +161,8 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#type' => 'textfield',
       '#title' => 'Qty.',
       '#maxlength' => 10,
-      '#element_validate' => array('avpurchase_item_list_row_element_validate'),
-      '#av_prod_element_validate' => array('element_validate_integer_positive'),
+      '#element_validate' => array('avtrans_item_list_row_element_validate'),
+      '#av_prod_element_validate' => array('element_validate_integer_positive', 'avtrans_element_validate_enough_qty'),
       '#attributes' => array(
         'data-column-name' => 'qty',
         'class' => array('prod-column-qty'),
@@ -172,7 +175,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#type' => 'textfield',
       '#title' => 'Unit Cost',
       '#maxlength' => 19,
-      '#element_validate' => array('avpurchase_item_list_row_element_validate'),
+      '#element_validate' => array('avtrans_item_list_row_element_validate'),
       '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'data-column-name' => 'cost',
@@ -186,7 +189,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#type' => 'textfield',
       '#title' => 'Total',
       '#maxlength' => 19,
-      '#element_validate' => array('avpurchase_item_list_row_element_validate'),
+      '#element_validate' => array('avtrans_item_list_row_element_validate'),
       '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'data-column-name' => 'total',
@@ -200,13 +203,13 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#limit_validation_errors' => array(),
-      '#submit' => array('avpurchase_item_list_prod_submit'),
+      '#submit' => array('avtrans_item_list_prod_submit'),
       '#attributes' => array(
         'class' => array('prod-column-delete-btn'),
         'tabindex' => -1,
       ),
       '#ajax' => array(
-        'callback' => 'avpurchase_item_list_prod_js',
+        'callback' => 'avtrans_item_list_prod_js',
         'wrapper' => 'item-list-product-row-' . $prod_key . '-wrapper',
         'effect' => 'none',
         'event' => 'click',
@@ -237,9 +240,9 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
     '#type' => 'submit',
     '#value' => t('Add new row'),
     '#limit_validation_errors' => array(),
-    '#submit' => array('avpurchase_item_list_prod_submit'),
+    '#submit' => array('avtrans_item_list_prod_submit'),
     '#ajax' => array(
-      'callback' => 'avpurchase_item_list_prod_js',
+      'callback' => 'avtrans_item_list_prod_js',
       'wrapper' => 'item-list-new-product-wrapper',
       'effect' => 'none',
       'event' => 'click',
@@ -247,7 +250,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
   );
 
   $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
-  $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/nestable_product_form.js';
+  $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/nestable_product_form.js';
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
     'type' => 'setting',

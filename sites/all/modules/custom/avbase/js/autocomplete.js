@@ -15,7 +15,7 @@
   Drupal.avbaseAutocompleteActions = function ($input, entityGroup) {
     $input.on('autocompleteSelect', function(e, node) {
       var rowID = $(node).find('#av-row-id').text();
-      $(this).data('selectedRowID', rowID);
+      $(this).data('selected-row-id', rowID);
       if (!entityGroup[rowID]) {
         entityGroup[rowID] = $.parseJSON($(node).find('#av-row-json').text());
       }

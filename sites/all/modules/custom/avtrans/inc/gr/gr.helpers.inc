@@ -6,7 +6,7 @@
  *
  * @return object
  */
-function avpurchase_gr_load($id) {
+function avtrans_gr_load($id) {
   $id = (int) $id;
   if (empty($id)) {
     return NULL;
@@ -20,7 +20,7 @@ function avpurchase_gr_load($id) {
 
   $conditions = array();
   $conditions[] = array('avgr.id', $id);
-  $rows = avpurchase_gr_query_load($conditions);
+  $rows = avtrans_gr_query_load($conditions);
   $row = empty($rows[$id]) ? FALSE : $rows[$id];
 
   // Update static variable.
@@ -34,7 +34,7 @@ function avpurchase_gr_load($id) {
  *
  * @return array
  */
-function avpurchase_gr_load_ids($ids) {
+function avtrans_gr_load_ids($ids) {
   if (empty($ids)) {
     return FALSE;
   }
@@ -59,7 +59,7 @@ function avpurchase_gr_load_ids($ids) {
   if (!empty($query_ids)) {
     $conditions = array();
     $conditions[] = array('avgr.id', $query_ids, 'IN');
-    $rows = avpurchase_gr_query_load($conditions);
+    $rows = avtrans_gr_query_load($conditions);
     if (!empty($rows)) {
       $return += $rows;
     }
@@ -74,7 +74,7 @@ function avpurchase_gr_load_ids($ids) {
  *
  * @return array
  */
-function avpurchase_gr_query_load($conditions = array()) {
+function avtrans_gr_query_load($conditions = array()) {
   if (empty($conditions)) {
     return array();
   }
@@ -94,9 +94,9 @@ function avpurchase_gr_query_load($conditions = array()) {
   }
 
   $query = db_select('avtbl_gr', 'avgr');
-  $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avgr.vendor_id');
+  $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avgr.client_id');
   $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avgr.term_id AND avcat.group_id = 'payment_term'");
-  $query->addField('avvendors', 'display_name', 'vendor_name');
+  $query->addField('avvendors', 'display_name', 'client_name');
   $query->addField('avcat', 'title', 'payment_term_title');
   $query->fields('avgr');
   foreach ($conditions as $condition) {
@@ -106,7 +106,7 @@ function avpurchase_gr_query_load($conditions = array()) {
     $query->condition($field_name, $field_value, $field_operator);
   }
 
-  $query->orderBy('gr_date', 'DESC');
+  $query->orderBy('transaction_date', 'DESC');
   $rs = $query->execute();
   $rows = array();
   foreach ($rs as $row) {

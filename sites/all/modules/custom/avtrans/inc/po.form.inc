@@ -1,6 +1,6 @@
 <?php
-module_load_include('inc', 'avpurchase', 'inc/po.handlers');
-module_load_include('inc', 'avpurchase', 'inc/item_list.form');
+module_load_include('inc', 'avtrans', 'inc/po.handlers');
+module_load_include('inc', 'avtrans', 'inc/item_list.form');
 
 /**
  * Load po form.
@@ -9,8 +9,8 @@ module_load_include('inc', 'avpurchase', 'inc/item_list.form');
  *
  * @return string
  */
-function avpurchase_po_form_load($row) {
-  return drupal_get_form('avpurchase_po_form', $row);
+function avtrans_po_form_load($row) {
+  return drupal_get_form('avtrans_po_form', $row);
 }
 
 /**
@@ -21,7 +21,7 @@ function avpurchase_po_form_load($row) {
  * @param $row
  * @return array
  */
-function avpurchase_po_form($form, &$form_state, $row) {
+function avtrans_po_form($form, &$form_state, $row) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   switch (arg(4)) {
     case 'view':
@@ -37,10 +37,10 @@ function avpurchase_po_form($form, &$form_state, $row) {
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avpurchase_po_form_settings($form, $row);
+  avtrans_po_form_settings($form, $row);
 
   // Item List form fields.
-  avpurchase_item_list_form_fields($form, $form_state, $row);
+  avtrans_item_list_form_fields($form, $form_state, $row);
 
   $form['header_total'] = array(
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
@@ -48,6 +48,9 @@ function avpurchase_po_form($form, &$form_state, $row) {
   $form['footer_total'] = array(
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
   );
+
+  // Set common fields when purchasing items.
+  avtrans_purchase_fields($form, $form_state, $row);
 
   $form['item_list_date']['#title'] = t('P.O. Date');
   $form['email'] = array(
@@ -82,7 +85,7 @@ function avpurchase_po_form($form, &$form_state, $row) {
     '#value' => t('Save'),
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/purchase'),
+    '#markup' => l('Cancel', 'av/transactions'),
   );
 
   // Convert form to non-edit mode if we are on View page.
@@ -94,28 +97,28 @@ function avpurchase_po_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avpurchase_po_form_settings(&$form, $row) {
+function avtrans_po_form_settings(&$form, $row) {
   $table_name = 'avtbl_po';
 
   // Set flag if this is view mode.
   $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit', 'avpurchase_po_form_submit');
+  $form['#submit'] = array('avbase_crud_form_submit', 'avtrans_po_form_submit');
 
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');
   $form['#success_message'] = t('Purchase order details saved.');
-  $form['#theme'] = 'avpurchase_item_list_form';
+  $form['#theme'] = 'avtrans_item_list_form';
 
-  $po_js_settings = array('avPurchasePODetails' => $row);
-  $form['#attached']['js'][] = array(
-    'data' => $po_js_settings,
-    'type' => 'setting',
-  );
-  $form['#attached']['css'] = array(
-    //AVBASE_LIBRARIES_PATH . '/select2/select2.min.css',
-  );
+  //$po_js_settings = array('avTransactionPODetails' => $row);
+  //$form['#attached']['js'][] = array(
+  //  'data' => $po_js_settings,
+  //  'type' => 'setting',
+  //);
+  //$form['#attached']['css'] = array(
+  //  //AVBASE_LIBRARIES_PATH . '/select2/select2.min.css',
+  //);
 
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
@@ -123,7 +126,7 @@ function avpurchase_po_form_settings(&$form, $row) {
   // Set field names to save.
   $save_field_ids = array(
     'created',
-    'vendor_id',
+    'client_id',
     'message',
     'email',
     //'term_id' => array('type' => 'int'),
@@ -131,7 +134,7 @@ function avpurchase_po_form_settings(&$form, $row) {
     'discount_value' => array('type' => 'float'),
   );
   if (empty($form['id']['#value'])) {
-    $save_field_ids[] = 'po_date';
+    $save_field_ids[] = 'transaction_date';
   }
 
   $form['save_field_ids'] = array(

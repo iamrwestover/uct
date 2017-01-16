@@ -5,7 +5,7 @@
  * @param $form
  * @param $form_state
  */
-function avpurchase_item_list_prod_submit($form, &$form_state) {
+function avtrans_item_list_prod_submit($form, &$form_state) {
   // Rebuild form.
   $form_state['rebuild'] = TRUE;
 
@@ -43,7 +43,7 @@ function avpurchase_item_list_prod_submit($form, &$form_state) {
 /**
  * Ajax callback  when adding products or removing on a PO form.
  */
-function avpurchase_item_list_prod_js($form, $form_state) {
+function avtrans_item_list_prod_js($form, $form_state) {
   $trigger = $form_state['triggering_element'];
   $output = array();
   if ($trigger['#name'] == 'prod_add_btn') {
@@ -90,14 +90,16 @@ function avpurchase_item_list_prod_js($form, $form_state) {
  * Update $form_state['storage']['item_rows'] based on the given $element.
  * @param $form_state
  * @param $element
- * @param $key
  * @param $value
  */
-function avpurchase_item_list_update_item_row(&$form_state, $element, $key, $value) {
+function avtrans_item_list_update_item_row(&$form_state, $element, $value) {
   $item_row_key = isset($element['#item_row_key']) ? $element['#item_row_key'] : '';
   if (empty($item_row_key)) {
     return;
   }
+
+  // Get save id.
+  $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : $element['#name'];
 
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
@@ -108,6 +110,6 @@ function avpurchase_item_list_update_item_row(&$form_state, $element, $key, $val
   $_item_rows = &$_storage['item_rows'];
 
   if (isset($_item_rows[$item_row_key])) {
-    $_item_rows[$item_row_key][$key] = $value;
+    $_item_rows[$item_row_key][$save_id] = $value;
   }
 }

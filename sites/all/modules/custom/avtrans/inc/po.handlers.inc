@@ -8,10 +8,10 @@
  * @param $form_state
  * @return object|NULL
  */
-function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
+function avtrans_avbase_crud_dbchange_po($op, $row, $form_state) {
   switch ($op) {
     case 'pre-save':
-      $row['po_date'] = time();
+      $row['transaction_date'] = time();
       return $row;
       break;
 
@@ -39,13 +39,13 @@ function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
  * @param $form
  * @param $form_state
  */
-function avpurchase_po_form_submit($form, &$form_state) {
+function avtrans_po_form_submit($form, &$form_state) {
   $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
   switch ($triggering_element['#id']) {
     case 'submit_and_send':
       $po_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
       //$mail_to = empty($form_state['values']['email']) ? '' : $form_state['values']['email'];
-      avpurchase_po_send_to_email($po_id);
+      avtrans_po_send_to_email($po_id);
       break;
   }
 }

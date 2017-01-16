@@ -17,30 +17,37 @@
     self.$termEl = $input;
     self.$discountTypeEl = $('#discount-type');
     self.$discountValEl = $('#discount-value');
+    self.$clientEl = $('#client-id');
+    self.client = {a:'a'};
 
     if (self.$termEl.val() === 0) {
       self.toggleChildrenVisibility();
     }
-
     self.bindEvents(avbase);
   };
 
   Drupal.avbasePaymentTermsJS.prototype.bindEvents = function (avbase) {
     var self = this;
+    self.$clientEl.on('autocompleteSelect', function(e, node) {
+      var entityGroupName = $(this).data('avbase-entity-group') || '';
+      var clientID = $(this).data('selected-row-id') || '';
+      var clients = Drupal.settings.avbase[entityGroupName] || {};
+      self.client = clients[clientID] || {};
+
+      self.$termEl.val((self.client.term_id || 0));
+      self.$termEl.trigger('change');
+    });
+
     self.$termEl.change(function() {
       var paymentTerms = avbase.paymentTerms || {};
-      var vendors = avbase.vendors || {};
-      var selectedVendorID = $(this).data('selectedVendorID');
-      var vendor = vendors[selectedVendorID] || {};
-
       var termID = $(this).val();
       var term = paymentTerms[termID] || {};
       if (term.id) {
         var type;
         var val;
-        if (term.id == (vendor.term_id)) {
-          type = vendor.discount_type || 1;
-          val = vendor.discount_value || '';
+        if (term.id == (self.client.term_id)) {
+          type = self.client.discount_type || 1;
+          val = self.client.discount_value || '';
         }
         else {
           var term_data = term['data'] || {};
@@ -94,18 +101,18 @@
   //    superParent.$termEl.change(function() {
   //      var paymentTerms = Drupal.settings.avbasePaymentTerms || {};
   //      var avbase = Drupal.settings.avbase || {};
-  //      var vendors = avbase.vendors || {};
-  //      var selectedVendorID = $(this).data('selectedVendorID');
-  //      var vendor = vendors[selectedVendorID] || {};
+  //      var clients = avbase.clients || {};
+  //      var selectedClientID = $(this).data('selectedClientID');
+  //      var client = clients[selectedClientID] || {};
   //
   //      var termID = $(this).val();
   //      var term = paymentTerms[termID] || {};
   //      if (term.id) {
   //        var type;
   //        var val;
-  //        if (term.id == (vendor.term_id)) {
-  //          type = vendor.discount_type || 1;
-  //          val = vendor.discount_value || '';
+  //        if (term.id == (client.term_id)) {
+  //          type = client.discount_type || 1;
+  //          val = client.discount_value || '';
   //        }
   //        else {
   //          var term_data = term['data'] || {};

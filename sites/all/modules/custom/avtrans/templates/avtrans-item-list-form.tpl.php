@@ -2,14 +2,14 @@
 hide($form['header_total']);
 hide($form['footer_total']);
 $form['prod_add_btn']['#attributes']['class'][] = 'av-ajax-trigger';
-//$form['po_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
+//$form['transaction_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
 //$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
 $form['buttons']['submit_and_send']['#attributes']['class'][] = 'uk-button-primary';
 //$form['buttons']['submit_and_send']['#attributes']['disabled'] = TRUE;
 $form['discount_value']['#attributes']['class'][] = 'uk-text-right';
 
 $form['message']['#attributes']['rows'] = 2;
-//$form['vendor_id']['#attributes']['placeholder'] = 'Enter vendor name or company name';
+//$form['client_id']['#attributes']['placeholder'] = 'Enter vendor name or company name';
 
 $email_html = drupal_render($form['email']);
 $term_html = drupal_render($form['term_id']);
@@ -21,7 +21,7 @@ $term_html = drupal_render($form['term_id']);
     <div class="uk-grid uk-grid-small">
       <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['item_list_date']); ?></div>
 
-      <div class="uk-width-3-5"><?php print drupal_render($form['vendor_id']); ?></div>
+      <div class="uk-width-3-5"><?php print drupal_render($form['client_name']); ?></div>
       <?php if ($email_html): ?>
         <div class="uk-width-2-5"><?php print $email_html; ?></div>
       <?php endif; ?>

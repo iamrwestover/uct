@@ -13,8 +13,10 @@ define('AVBASE_LIBRARIES_PATH', 'sites/all/libraries');
 define('AVBASE_DISCOUNT_PERCENT', 1);
 define('AVBASE_DISCOUNT_FIXED', 2);
 
-define('AVBASE_MONEY_DECIMAL_MAX', 6);
-define('AVBASE_MONEY_DIGITS_MAX', 12);
+define('AVBASE_DECIMAL_MAX', 6);
+define('AVBASE_DIGITS_MAX', 12);
+
+define('AVBASE_DECIMAL_FORMAT_MAX', 4);
 
 /**
  * Implementation of hook_theme().
@@ -329,7 +331,7 @@ function avbase_library() {
     'title' => 'Supplementary Autocomplete actions for AV module',
     'version' => VERSION,
     'js' => array(
-      AVBASE_MODULE_PATH . '/js/autocomplete.js' => array('group' => JS_DEFAULT),
+      AVBASE_MODULE_PATH . '/js/autocomplete.js' => array('group' => JS_DEFAULT, 'weight' => -1),
     ),
   );
 
@@ -350,10 +352,10 @@ function avbase_library() {
   return $libraries;
 }
 
-/**
- * Implementation of hook_js_alter().
- * @param $js
- */
-function avbase_js_alter(&$js) {
-  unset($js['misc/tableheader.js']);
-}
+///**
+// * Implementation of hook_js_alter().
+// * @param $js
+// */
+//function avbase_js_alter(&$js) {
+//  unset($js['misc/tableheader.js']);
+//}

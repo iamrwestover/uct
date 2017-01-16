@@ -1,0 +1,548 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ * @return mixed
+ */
+function avtrans_schema() {
+  $schema = array();
+  // Purchase Order schema.
+  $schema += avtrans_purchase_order_schema();
+  // Goods Received schema.
+  $schema += avtrans_goods_received_schema();
+  // Sales Order schema.
+  $schema += avtrans_sales_order_schema();
+  // Delivery schema.
+  $schema += avtrans_delivery_schema();
+  return $schema;
+}
+
+/**
+ * Return schema for Goods Received transactions.
+ */
+function avtrans_goods_received_schema() {
+  $schema = array();
+  $schema['avtbl_gr'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'client_id' => array(
+        'description' => 'Vendor ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Date created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'transaction_date' => array(
+        'description' => 'Purchase order date',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'status' => array(
+        'description' => 'Goods Received status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'transaction_date' => array('transaction_date'),
+      'client_id' => array('client_id'),
+    ),
+  );
+
+  $schema['avtbl_gr_items'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'gr_id' => array(
+        'description' => 'Purchase Order ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'reference_id' => array(
+        'description' => 'Purchase Order details reference',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'gr_id' => array('gr_id'),
+      'product_id' => array('product_id'),
+      'reference_id' => array('reference_id'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Return schema for Purchase Order transactions.
+ */
+function avtrans_purchase_order_schema() {
+  $schema = array();
+  // Purchase orders table.
+  $schema['avtbl_po'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'client_id' => array(
+        'description' => 'Vendor ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'email' => array(
+        'description' => 'Email',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Date created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'message' => array(
+        'description' => 'Message to vendor',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'transaction_date' => array(
+        'description' => 'Purchase order date',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'discount_type' => array(
+        'description' => 'Discount type',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+        'default' => 1,
+      ),
+      'discount_value' => array(
+        'description' => 'Discount value',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'status' => array(
+        'description' => 'PO Status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'transaction_date' => array('transaction_date'),
+      'client_id' => array('client_id'),
+    ),
+  );
+
+  // Purchase order item details.
+  $schema['avtbl_po_items'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'po_id' => array(
+        'description' => 'Purchase Order ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'po_id' => array('po_id'),
+      'product_id' => array('product_id'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Return schema for Sales Order transactions.
+ */
+function avtrans_sales_order_schema() {
+  $schema = array();
+  $schema['avtbl_so'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'client_id' => array(
+        'description' => 'Customer ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'email' => array(
+        'description' => 'Email',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Date created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'message' => array(
+        'description' => 'Message to vendor',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'transaction_date' => array(
+        'description' => 'Purchase order date',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'discount_type' => array(
+        'description' => 'Discount type',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+        'default' => 1,
+      ),
+      'discount_value' => array(
+        'description' => 'Discount value',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'status' => array(
+        'description' => 'PO Status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'client_id' => array('client_id'),
+      'transaction_date' => array('transaction_date'),
+    ),
+  );
+
+  $schema['avtbl_so_items'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'so_id' => array(
+        'description' => 'Sales Order ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'so_id' => array('so_id'),
+      'product_id' => array('product_id'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Return schema for Delivery transactions.
+ */
+function avtrans_delivery_schema() {
+  $schema = array();
+  $schema['avtbl_dr'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'client_id' => array(
+        'description' => 'Vendor ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Date created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'transaction_date' => array(
+        'description' => 'Purchase order date',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'status' => array(
+        'description' => 'Goods Received status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'transaction_date' => array('transaction_date'),
+      'client_id' => array('client_id'),
+    ),
+  );
+
+  $schema['avtbl_dr_items'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'dr_id' => array(
+        'description' => 'Purchase Order ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'reference_id' => array(
+        'description' => 'Sales Order details reference',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'dr_id' => array('dr_id'),
+      'product_id' => array('product_id'),
+      'reference_id' => array('reference_id'),
+    ),
+  );
+
+  return $schema;
+}

@@ -227,7 +227,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#id' => 'uom-price',
     '#type' => 'textfield',
     '#title' => 'Sales price',
-    '#default_value' => isset($row->price) ? number_format($row->price, 2, '.', '') : '',
+    '#default_value' => isset($row->price) ? avbase_number_format($row->price) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#attributes' => array(
@@ -240,7 +240,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#id' => 'uom-cost',
     '#type' => 'textfield',
     '#title' => 'Unit cost',
-    '#default_value' => isset($row->cost) ? number_format($row->cost, 2, '.', '') : '',
+    '#default_value' => isset($row->cost) ? avbase_number_format($row->cost) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#attributes' => array(
@@ -394,7 +394,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       '#id' => 'uom-cost-' . $uom_index,
       '#type' => 'textfield',
       '#title' => 'Unit cost',
-      '#default_value' => isset($uom_row['cost']) ? number_format($uom_row['cost'], 2, '.', '') : '',
+      '#default_value' => isset($uom_row['cost']) ? avbase_number_format($uom_row['cost']) : '',
       '#maxlength' => 19,
       '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
@@ -410,7 +410,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
       '#id' => 'uom-price-' . $uom_index,
       '#type' => 'textfield',
       '#title' => 'Sales price',
-      '#default_value' => !empty($uom_row['price']) ? number_format($uom_row['price'], 2, '.', '') : '',
+      '#default_value' => !empty($uom_row['price']) ? avbase_number_format($uom_row['price']) : '',
       '#maxlength' => 19,
       '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(

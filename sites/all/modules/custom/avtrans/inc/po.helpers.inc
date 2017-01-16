@@ -1,5 +1,4 @@
 <?php
-module_load_include('inc', 'avpurchase', 'inc/gr.helpers');
 
 /**
  * Load purchase order details.
@@ -7,7 +6,7 @@ module_load_include('inc', 'avpurchase', 'inc/gr.helpers');
  *
  * @return object
  */
-function avpurchase_po_load($id) {
+function avtrans_po_load($id) {
   $id = (int) $id;
   if (empty($id)) {
     return NULL;
@@ -21,7 +20,7 @@ function avpurchase_po_load($id) {
 
   $conditions = array();
   $conditions[] = array('avpo.id', $id);
-  $rows = avpurchase_po_query_load($conditions);
+  $rows = avtrans_po_query_load($conditions);
   $row = empty($rows[$id]) ? FALSE : $rows[$id];
 
   // Update static variable.
@@ -35,7 +34,7 @@ function avpurchase_po_load($id) {
  *
  * @return array
  */
-function avpurchase_po_load_ids($ids) {
+function avtrans_po_load_ids($ids) {
   if (empty($ids)) {
     return FALSE;
   }
@@ -60,7 +59,7 @@ function avpurchase_po_load_ids($ids) {
   if (!empty($query_ids)) {
     $conditions = array();
     $conditions[] = array('avpo.id', $query_ids, 'IN');
-    $rows = avpurchase_po_query_load($conditions);
+    $rows = avtrans_po_query_load($conditions);
     if (!empty($rows)) {
       $return += $rows;
     }
@@ -75,7 +74,7 @@ function avpurchase_po_load_ids($ids) {
  *
  * @return array
  */
-function avpurchase_po_query_load($conditions = array()) {
+function avtrans_po_query_load($conditions = array()) {
   if (empty($conditions)) {
     return array();
   }
@@ -95,14 +94,14 @@ function avpurchase_po_query_load($conditions = array()) {
   }
 
   $query = db_select('avtbl_po', 'avpo');
-  $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avpo.vendor_id');
+  $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avpo.client_id');
   //$query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avpo.term_id AND avcat.group_id = 'payment_term'");
-  $query->addField('avvendors', 'display_name', 'vendor_name');
+  $query->addField('avvendors', 'display_name', 'client_name');
   //$query->addField('avcat', 'title', 'payment_term_title');
   $query->fields('avpo');
-    //->fields('avvendors', array('display_name'))
-    //->condition('avpo.id', $id)
-    //->execute();
+  //->fields('avvendors', array('display_name'))
+  //->condition('avpo.id', $id)
+  //->execute();
   foreach ($conditions as $condition) {
     $field_name = $condition[0];
     $field_value = isset($condition[1]) ? $condition[1] : NULL;
@@ -110,7 +109,7 @@ function avpurchase_po_query_load($conditions = array()) {
     $query->condition($field_name, $field_value, $field_operator);
   }
 
-  $query->orderBy('po_date', 'DESC');
+  $query->orderBy('transaction_date', 'DESC');
   $rs = $query->execute();
   $rows = array();
   foreach ($rs as $row) {
@@ -143,7 +142,7 @@ function avpurchase_po_query_load($conditions = array()) {
     $row->grand_total = $subtotal - $row->discounted_value;
 
     // Attach received items.
-    avpurchase_po_attach_received_items($row);
+    avtrans_po_attach_received_items($row);
 
     $rows[$row->id] = $row;
   }
@@ -163,12 +162,12 @@ function avpurchase_po_query_load($conditions = array()) {
  *
  * @return bool
  */
-function avpurchase_po_send_to_email($po_id, $email = '') {
+function avtrans_po_send_to_email($po_id, $email = '') {
   if (empty($po_id)) {
     return FALSE;
   }
 
-  $po = avpurchase_po_load($po_id);
+  $po = avtrans_po_load($po_id);
   $email = $po->email;
   if ($error = user_validate_mail($email)) {
     drupal_set_message($error, 'error');
@@ -179,79 +178,45 @@ function avpurchase_po_send_to_email($po_id, $email = '') {
   $params = array(
     'po' => $po,
     'po_num' => $po->id,
-    'po_date' => format_date($po->created, 'custom', 'F d, Y'),
+    'transaction_date' => format_date($po->created, 'custom', 'F d, Y'),
     'site_name' => variable_get('site_name', 'UCT'),
     'shipping_address' => variable_get('av_company_address', '-'),
-    'vendor_name' => check_plain($po->vendor_name),
+    'vendor_name' => check_plain($po->client_name),
     //'payment_term_title' => check_plain($po->payment_term_title),
   );
 
-  $params['po_table'] = theme('avpurchase_po_mail_table', $params);
-  $message = drupal_mail('avpurchase', 'po', $email, language_default(), $params);
+  $params['po_table'] = theme('avtrans_po_mail_table', $params);
+  $message = drupal_mail('avtrans', 'po', $email, language_default(), $params);
   if (!empty($message['result'])) {
     drupal_set_message(t('Purchase order sent successfully to %mail.', array('%mail' => $email)));
     avbase_custom_watchdog("crud_mail_po", "Sent Purchase Order #@po_id to @vendor_name",
-      array('@po_id' => $po->id, '@vendor_name' => $po->vendor_name , '#message' => $message)
+      array('@po_id' => $po->id, '@vendor_name' => $po->client_name , '#message' => $message)
     );
     return TRUE;
   }
   return FALSE;
 }
 
-/**
- * Compute new product cost.
- * @param float $current_cost
- * @param $onhand_qty
- * @param float $new_cost
- * @param $incoming_base_qty
- *
- * @return float
- */
-function avpurchase_compute_product_cost($current_cost, $onhand_qty, $new_cost, $incoming_base_qty) {
-  $current_cost = empty($current_cost) ? $new_cost : $current_cost;
-  return ((($current_cost * $onhand_qty) + ($new_cost * $incoming_base_qty)) / ($onhand_qty + $incoming_base_qty));
-}
-
-/**
- * Compute new sales price by using the markup difference of current sales price
- * and current cost and adding it to the new cost.
- * @param float $current_sales_price
- * @param float $current_cost
- * @param float $new_cost
- *
- * @return float
- */
-function avpurchase_compute_sales_price($current_sales_price, $current_cost, $new_cost) {
-  if ($current_sales_price <= $current_cost) {
-    $markup = 0.2;
-  }
-  else {
-    $markup = ($current_sales_price - $current_cost) / $current_cost;
-  }
-
-  return array('markup' => $markup, 'price' => ($new_cost + ($new_cost * $markup)));
-}
-
-function avpurchase_po_attach_received_items(&$po) {
+function avtrans_po_attach_received_items(&$po) {
   if (empty($po->id) || empty($po->items)) {
     return;
   }
 
   $po_items = &$po->items;
-  $po_item_ids = array_keys($po_items);
+  $reference_ids = array_keys($po_items);
   $query = db_select('avtbl_gr_items', 'avgr_items');
-  //$query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avpo.vendor_id');
+  //$query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avpo.client_id');
   //$query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avpo.term_id AND avcat.group_id = 'payment_term'");
   //$query->addField('avvendors', 'display_name', 'vendor_name');
   //$query->addField('avcat', 'title', 'payment_term_title');
   $query->fields('avgr_items');
   //->fields('avvendors', array('display_name'))
-  $query->condition('avgr_items.po_item_id', $po_item_ids, 'IN');
+  $query->condition('avgr_items.reference_id', $reference_ids, 'IN');
   $rs = $query->execute();
   $received_items = array();
   foreach ($rs as $received_item) {
-    $po_item_id = $received_item->po_item_id;
-    if (empty($po_items[$po_item_id])) {
+    $reference_id = $received_item->reference_id;
+    if (empty($po_items[$reference_id])) {
       continue;
     }
     $gr_item_id = $received_item->id;
@@ -260,14 +225,14 @@ function avpurchase_po_attach_received_items(&$po) {
     $received_item->received_base_qty = $received_item->qty * $received_item->qty_per_uom;
 
     // Compute for total base qty received from this po_item.
-    $po_items[$po_item_id]->received_base_qty = empty($po_items[$po_item_id]->received_base_qty) ? 0 : $po_items[$po_item_id]->received_base_qty;
-    $po_items[$po_item_id]->received_base_qty += $received_item->received_base_qty;
+    $po_items[$reference_id]->received_base_qty = empty($po_items[$reference_id]->received_base_qty) ? 0 : $po_items[$reference_id]->received_base_qty;
+    $po_items[$reference_id]->received_base_qty += $received_item->received_base_qty;
 
     // Set remaining qty to be received.
-    $po_items[$po_item_id]->remaining_base_qty -= $received_item->received_base_qty;
+    $po_items[$reference_id]->remaining_base_qty -= $received_item->received_base_qty;
 
     //$grand_received_base_qty += $received_item->received_base_qty;
-    $received_items[$po_item_id][$gr_item_id] = $received_item;
+    $received_items[$reference_id][$gr_item_id] = $received_item;
   }
 
   //dpm($grand_received_base_qty)l

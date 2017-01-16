@@ -177,7 +177,7 @@ function avsales_schema() {
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'gr_date' => array('gr_date'),
+      'transaction_date' => array('transaction_date'),
       'customer_id' => array('customer_id'),
     ),
   );
@@ -235,7 +235,7 @@ function avsales_schema() {
         'precision' => '18',
         'scale' => '6',
       ),
-      'so_item_id' => array(
+      'reference_id' => array(
         'description' => 'Sales Order details reference',
         'type' => 'int',
         'unsigned' => TRUE,
@@ -246,7 +246,7 @@ function avsales_schema() {
     'indexes' => array(
       'gr_id' => array('gr_id'),
       'product_id' => array('product_id'),
-      'so_item_id' => array('so_item_id'),
+      'reference_id' => array('reference_id'),
     ),
   );
 

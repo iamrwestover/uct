@@ -7,6 +7,8 @@ $table_attributes = isset($form['#attributes']) ? $form['#attributes'] : array()
 $content = array(
   '#theme' => 'table',
   '#header' => $header,
+  '#sticky' => FALSE,
+  '#caption' => empty($form['#caption']) ? '' : $form['#caption'],
   '#rows' => array(),
   '#attributes' => $table_attributes,
 );

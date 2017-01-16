@@ -1,9 +1,8 @@
 <?php
-module_load_include('inc', 'avpurchase', 'inc/gr.handlers');
-module_load_include('inc', 'avpurchase', 'inc/gr.form.validate');
-module_load_include('inc', 'avpurchase', 'inc/gr.form.ch');
-module_load_include('inc', 'avpurchase', 'inc/gr.form.vp');
-module_load_include('inc', 'avpurchase', 'inc/item_list.form');
+module_load_include('inc', 'avtrans', 'inc/item_list.form');
+module_load_include('inc', 'avtrans', 'inc/trans.cost_changes.form');
+module_load_include('inc', 'avtrans', 'inc/trans.pending_orders.form');
+module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
 
 /**
  * Load "Receive items" form.
@@ -12,8 +11,8 @@ module_load_include('inc', 'avpurchase', 'inc/item_list.form');
  *
  * @return string
  */
-function avpurchase_gr_form_load($row) {
-  return drupal_get_form('avpurchase_gr_form', $row);
+function avtrans_gr_form_load($row) {
+  return drupal_get_form('avtrans_gr_form', $row);
 }
 
 /**
@@ -24,22 +23,22 @@ function avpurchase_gr_form_load($row) {
  * @param $row
  * @return array
  */
-function avpurchase_gr_form($form, &$form_state, $row) {
-  $form['#id'] = 'avpurchase-gr-form';
-  $form['#prefix'] = '<div id="avpurchase-gr-form-wrapper"> <div id="avpurchase-gr-form-wrapper2"></div>';
+function avtrans_gr_form($form, &$form_state, $row) {
+  $form['#id'] = 'avtrans-gr-form';
+  $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';
   $form['#suffix'] = '</div>';
 
   // Set crud settings.
-  avpurchase_gr_form_settings($form, $row);
+  avtrans_gr_form_settings($form, $form_state, $row);
 
   // Add generic Goods Received form fields.
-  $form = avpurchase_gr_form_default($form, $form_state, $row);
+  avtrans_gr_form_default($form, $form_state, $row);
 
   // Add fields for Cost Changes popup.
-  avpurchase_gr_form_cost_changes_fields($form, $form_state, $row);
+  avtrans_cost_changes_form_fields($form, $form_state, $row);
 
   // Add fields for Vendor POs popup.
-  avpurchase_gr_form_vendor_pos_fields($form, $form_state, $row);
+  avtrans_pending_orders_form_fields($form, $form_state, $row);
 
   return $form;
 }
@@ -52,7 +51,7 @@ function avpurchase_gr_form($form, &$form_state, $row) {
  *
  * @return array
  */
-function avpurchase_gr_form_default(&$form, &$form_state, $row) {
+function avtrans_gr_form_default(&$form, &$form_state, $row) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   switch (arg(4)) {
     case 'view':
@@ -67,26 +66,32 @@ function avpurchase_gr_form_default(&$form, &$form_state, $row) {
   }
   drupal_set_title($page_title);
 
-  $form['#theme'] = 'avpurchase_item_list_form';
+  $form['#theme'] = 'avtrans_item_list_form';
 
   // Goods Received fields.
-  avpurchase_gr_form_fields($form, $form_state, $row);
+  avtrans_gr_form_fields($form, $form_state, $row);
 
   // Item List form fields.
-  avpurchase_item_list_form_fields($form, $form_state, $row);
+  avtrans_item_list_form_fields($form, $form_state, $row);
+
+  // Set common fields when purchasing items.
+  avtrans_purchase_fields($form, $form_state, $row);
 
   // Buttons.
-  avpurchase_gr_form_buttons($form, $form_state, $row);
-
-  return $form;
+  avtrans_gr_form_buttons($form, $form_state, $row);
 }
 
 /**
  * Set crud form settings.
  * @param $form
+ * @param $form_state
+ * @param $row
  */
-function avpurchase_gr_form_settings(&$form, $row) {
-  $table_name = 'avtbl_gr';
+function avtrans_gr_form_settings(&$form, &$form_state, $row) {
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+  $_storage['transaction_type'] = 'gr';
 
   // Set flag if this is view mode.
   $form['#av_view_mode'] = (arg(4) == 'view');
@@ -94,19 +99,10 @@ function avpurchase_gr_form_settings(&$form, $row) {
   // Set generic submit handler.
   //$form['#submit'] = array('avbase_crud_form_submit');
 
+  $table_name = 'avtbl_gr';
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'gr');
   $form['#success_message'] = t('Item receipt details saved.');
-
-  $po_js_settings = array('avpurchaseRIDetails' => $row);
-  $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/gr_form.js';
-  $form['#attached']['js'][] = array(
-    'data' => $po_js_settings,
-    'type' => 'setting',
-  );
-  $form['#attached']['css'] = array(
-    //AVBASE_LIBRARIES_PATH . '/select2/select2.min.css',
-  );
 
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
@@ -114,12 +110,9 @@ function avpurchase_gr_form_settings(&$form, $row) {
   // Set field names to save.
   $save_field_ids = array(
     'created',
-    'vendor_id',
+    'client_id',
     'term_id' => array('type' => 'int'),
   );
-  if (empty($form['id']['#value'])) {
-    $save_field_ids[] = 'gr_date';
-  }
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,
@@ -141,7 +134,7 @@ function avpurchase_gr_form_settings(&$form, $row) {
  * @param $form_state
  * @param $row
  */
-function avpurchase_gr_form_fields(&$form, &$form_state, $row) {
+function avtrans_gr_form_fields(&$form, &$form_state, $row) {
   $term_options = avbase_get_category_options_array('payment_term');
   asort($term_options);
   $form['term_id'] = array(
@@ -162,7 +155,7 @@ function avpurchase_gr_form_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avpurchase_gr_form_buttons(&$form, $form_state, $row) {
+function avtrans_gr_form_buttons(&$form, $form_state, $row) {
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
     '#id' => 'detect-cost-change-btn',
@@ -172,14 +165,14 @@ function avpurchase_gr_form_buttons(&$form, $form_state, $row) {
       'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),
     '#ajax' => array(
-      'callback' => 'avpurchase_gr_form_ajax',
-      //'wrapper' => 'avpurchase-gr-cost-changed-wrapper',
-      'wrapper' => 'avpurchase-gr-form-wrapper',
+      'callback' => 'avtrans_transaction_form_ajax',
+      //'wrapper' => 'avtrans-gr-cost-changed-wrapper',
+      'wrapper' => 'avtrans-transaction-form-wrapper',
       'effect' => 'none',
       'event' => 'click',
     ),
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/purchase'),
+    '#markup' => l('Cancel', 'av/transactions'),
   );
 }

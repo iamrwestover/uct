@@ -3,7 +3,7 @@
   <tr>
     <td>
       <strong>P.O. No.:</strong> <?php print $po_num; ?><br />
-      <strong>Date:</strong> <?php print $po_date; ?><br />
+      <strong>Date:</strong> <?php print $transaction_date; ?><br />
     </td>
     <td class="uk-text-right">
       <strong>Ship To:</strong><br />

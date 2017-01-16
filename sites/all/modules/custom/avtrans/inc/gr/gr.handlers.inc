@@ -8,10 +8,12 @@
  * @param $form_state
  * @return object|NULL
  */
-function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
+function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
   switch ($op) {
     case 'pre-save':
-      $row['gr_date'] = time();
+      if (empty($row['id'])) {
+        $row['transaction_date'] = time();
+      }
       return $row;
       break;
 
@@ -20,18 +22,18 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
       $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
       $_storage = &$form_state['storage'];
 
+      // Get transaction type.
+      $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+
       // Get item rows.
       $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
       $_item_rows = &$_storage['item_rows'];
-
-      // Get form values.
-      $values = empty($form_state['values']) ? array() : $form_state['values'];
 
       //$product_rows = empty($values['product_rows']) ? array() : $values['product_rows'];
       $incoming_base_qty = array();
 
       // Save po items.
-      $query = db_insert('avtbl_gr_items')->fields(array('gr_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'po_item_id'));
+      $query = db_insert("avtbl_{$transaction_type}_items")->fields(array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id'));
       foreach ($_item_rows as $item_row) {
         if (empty($item_row['product_id'])) {
           continue;
@@ -39,21 +41,20 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
 
         if (!empty($item_row['po_id'])) {
           // Make sure only item rows owned by this owner get saved.
-          if ($item_row['vendor_id'] != $row['vendor_id']) {
+          if ($item_row['client_id'] != $row['client_id']) {
             continue;
           }
-          // Close this PO if all incoming base qty have already been receieved.'
+          // Close this PO if all incoming base qty have already been received.'
           //$received_base_qty = $item_row['qty_per_uom'] * $item_row['qty'];
           //if (isset($item_row['remaining_base_qty']) && ($item_row['remaining_base_qty'] <= $received_base_qty)) {
           //  // Yay close it!
-          //  dpm('closed!' . $item_row['po_id']);
           //  db_query("UPDATE {avtbl_po} SET status = 0 WHERE id = :id", array(':id' => $item_row['po_id']));
           //}
         }
 
         // Do save this item row.
-        $item_row['gr_id'] = $row['id'];
-        $item_row['po_item_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
+        $item_row["{$transaction_type}_id"] = $row['id'];
+        $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
         $query->values($item_row);
 
         $this_prod_incoming_base_qty = empty($incoming_base_qty[$item_row['product_id']]) ? 0 : $incoming_base_qty[$item_row['product_id']];
@@ -63,63 +64,31 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
 
       // Update product on-hand qty.
       if (!empty($incoming_base_qty)) {
-        $query = "UPDATE {avtbl_products} SET qty = qty + CASE id";
-        foreach ($incoming_base_qty as $k => $v) {
-          $query .= " WHEN $k THEN $v";
+        $qty_update_query = '';
+        switch ($transaction_type) {
+          case 'gr':
+            $qty_update_query = "UPDATE {avtbl_products} SET qty = qty + CASE id";
+            break;
+          case 'dr':
+            $qty_update_query = "UPDATE {avtbl_products} SET qty = qty - CASE id";
+            break;
         }
-        $query .= " END WHERE id IN (" . implode(', ', array_keys($incoming_base_qty)) . ")";
-        if (db_query($query)) {
-          avbase_custom_watchdog("gr__qty_update", "ID: {$row['id']}", array('#row' => $row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => 'gr'));
+
+        if (!empty($qty_update_query)) {
+          foreach ($incoming_base_qty as $k => $v) {
+            $qty_update_query .= " WHEN $k THEN $v";
+          }
+          $qty_update_query .= " END WHERE id IN (" . implode(', ', array_keys($incoming_base_qty)) . ")";
+          if (db_query($qty_update_query)) {
+            avbase_custom_watchdog("{$transaction_type}__qty_update", "ID: {$row['id']}", array('#row' => $row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
+          }
+        }
+        else {
+          drupal_set_message('Product quantities were not updated', 'warning');
         }
 
         // Update cost and price.
-        $cost_changes = empty($values['product_cost_changes']) ? array() : $values['product_cost_changes'];
-        if (!empty($cost_changes)) {
-          $cost_set = array();
-          $price_set = array();
-          $cost_args = array();
-          $price_args = array();
-          foreach ($cost_changes['rows'] as $cost_change) {
-            $changes = empty($cost_change['values']) ? array() : $cost_change['values'];
-            if (empty($changes)) {
-              continue;
-            }
-            $product_id = empty($changes['product_id']) ? 'none' : $changes['product_id'];
-            if (!array_key_exists($product_id, $incoming_base_qty)) {
-              continue;
-            }
-
-            switch ($changes['action']) {
-              case 'cost':
-              case 'cost_and_price':
-                $cost_set[$product_id] = "WHEN $product_id THEN :cost{$product_id}";
-                $cost_args[":cost{$product_id}"] = $changes['new_cost'];
-                if ($changes['action'] == 'cost_and_price') {
-                  $price_set[$product_id] = "WHEN $product_id THEN :price{$product_id}";
-                  $price_args[":price{$product_id}"] = $changes['new_sales_price'];
-                }
-                break;
-              default:
-                continue;
-                break;
-            }
-          }
-
-          if (!empty($cost_set)) {
-            $query = "UPDATE {avtbl_products} SET cost = CASE id " . implode(' ', $cost_set) . " END WHERE ID IN(:product_ids)";
-            $cost_args[':product_ids'] = array_keys($cost_set);
-            if (db_query($query, $cost_args)) {
-              avbase_custom_watchdog("gr__cost_update", "ID: {$row['id']}", array('#row' => $row, '#cost_changes' => $cost_changes, '#cost_set' => $cost_set, '#args' => $cost_args));
-            }
-          }
-          if (!empty($price_set)) {
-            $query = "UPDATE {avtbl_products} SET price = CASE id " . implode(' ', $price_set) . " END WHERE ID IN(:product_ids)";
-            $price_args[':product_ids'] = array_keys($price_set);
-            if (db_query($query, $price_args)) {
-              avbase_custom_watchdog("gr__price_update", "ID: {$row['id']}", array('#row' => $row, '#cost_changes' => $cost_changes, '#price_set' => $price_set, '#args' => $price_args));
-            }
-          }
-        }
+        avtrans_cost_changes_db_update($form_state, $row, array_keys($incoming_base_qty), $transaction_type);
       }
       break;
   }
@@ -127,22 +96,11 @@ function avpurchase_avbase_crud_dbchange_gr($op, $row, $form_state) {
 }
 
 /**
- * Ajax callback before submitting a Receive Items form.
- */
-function avpurchase_gr_form_ajax($form, $form_state) {
-  if (form_get_errors()) {
-    // Prevent modal from popping out.
-    unset($form['cost_changes']['product_cost_changes']);
-  }
-  return $form;
-}
-
-/**
  * Submit handler for Goods Received form.
  * @param $form
  * @param $form_state
  */
-function avpurchase_gr_form_submit($form, &$form_state) {
+function avtrans_gr_form_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
   $trigger = $form_state['triggering_element'];
   switch ($trigger['#id']) {
@@ -179,14 +137,14 @@ function avpurchase_gr_form_submit($form, &$form_state) {
         $current_cost = (float) $product_row->cost;
         $current_sales_price = (float) $product_row->price;
         $new_cost = $entered_product['cost'] / $entered_product['qty_per_uom'];
-        $new_cost = round((float) $new_cost, AVBASE_MONEY_DECIMAL_MAX);
+        $new_cost = round((float) $new_cost, AVBASE_DECIMAL_MAX);
 
-        $proposed_cost = avpurchase_compute_product_cost($current_cost, $product_row->qty, $new_cost, $incoming_base_qty);
+        $proposed_cost = avtrans_compute_product_cost($current_cost, $product_row->qty, $new_cost, $incoming_base_qty);
         if (round($current_cost, 2) == round($proposed_cost, 2)) {
           continue;
         }
 
-        $price = avpurchase_compute_sales_price($current_sales_price, $current_cost, $proposed_cost);
+        $price = avtrans_compute_sales_price($current_sales_price, $current_cost, $proposed_cost);
         $price_markup = $price['markup'] * 100;
         $proposed_sales_price = $price['price'];
         $cost_changes[$k] = array(
@@ -209,6 +167,7 @@ function avpurchase_gr_form_submit($form, &$form_state) {
 
   //$form_state['rebuild'] = FALSE;
   avbase_crud_form_submit($form, $form_state);
+
   // Reset form.
   unset($form_state['input']);
   unset($form_state['storage']);

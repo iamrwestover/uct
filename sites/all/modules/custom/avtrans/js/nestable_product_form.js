@@ -45,6 +45,7 @@
       var triggerName = extraData._triggering_element_name || '';
       if (triggerName == 'prod_add_btn') {
         self.bindEvents();
+        self.refreshRowNumbers();
       }
       else if (~triggerName.indexOf('prod_delete_btn')) {
         //self.$productRows = self.$wrapper.find('.uk-nestable-item');

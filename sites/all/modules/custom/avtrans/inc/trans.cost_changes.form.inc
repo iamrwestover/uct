@@ -8,7 +8,7 @@
  *
  * @return mixed
  */
-function avpurchase_gr_form_cost_changes_fields(&$form, &$form_state, $row) {
+function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
   $detected_cost_changes = empty($form_state['values']['detected_cost_changes']) ? array() : $form_state['values']['detected_cost_changes'];
   $fields = array();
   $fields['product_cost_changes'] = array('#tree' => TRUE);
@@ -105,9 +105,9 @@ function avpurchase_gr_form_cost_changes_fields(&$form, &$form_state, $row) {
       'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),
     '#ajax' => array(
-      'callback' => 'avpurchase_gr_form_ajax',
-      //'wrapper' => 'avpurchase-gr-cost-changed-wrapper',
-      'wrapper' => 'avpurchase-gr-form-wrapper',
+      'callback' => 'avtrans_transaction_form_ajax',
+      //'wrapper' => 'avtrans-gr-cost-changed-wrapper',
+      'wrapper' => 'avtrans-transaction-form-wrapper',
       'effect' => 'none',
       'event' => 'click',
     ),
@@ -131,5 +131,66 @@ function avpurchase_gr_form_cost_changes_fields(&$form, &$form_state, $row) {
   );
   $form['cost_changes'] = $cost_changes_form;
 
+  // Attachments.
+  $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/trans.cost_changes.form.js';
+}
 
+/**
+ * Update products record with changes to cost and price.
+ * @param $form_state
+ * @param $row
+ * @param $product_ids
+ * @param $transaction_type
+ */
+function avtrans_cost_changes_db_update($form_state, $row, $product_ids, $transaction_type =' ') {
+  // Get form values.
+  $values = empty($form_state['values']) ? array() : $form_state['values'];
+
+  $cost_changes = empty($values['product_cost_changes']) ? array() : $values['product_cost_changes'];
+  if (!empty($cost_changes)) {
+    $cost_set = array();
+    $price_set = array();
+    $cost_args = array();
+    $price_args = array();
+    foreach ($cost_changes['rows'] as $cost_change) {
+      $changes = empty($cost_change['values']) ? array() : $cost_change['values'];
+      if (empty($changes)) {
+        continue;
+      }
+      $product_id = empty($changes['product_id']) ? 'none' : $changes['product_id'];
+      if (!in_array($product_id, $product_ids)) {
+        continue;
+      }
+
+      switch ($changes['action']) {
+        case 'cost':
+        case 'cost_and_price':
+          $cost_set[$product_id] = "WHEN $product_id THEN :cost{$product_id}";
+          $cost_args[":cost{$product_id}"] = $changes['new_cost'];
+          if ($changes['action'] == 'cost_and_price') {
+            $price_set[$product_id] = "WHEN $product_id THEN :price{$product_id}";
+            $price_args[":price{$product_id}"] = $changes['new_sales_price'];
+          }
+          break;
+        default:
+          continue;
+          break;
+      }
+    }
+
+    if (!empty($cost_set)) {
+      $query = "UPDATE {avtbl_products} SET cost = CASE id " . implode(' ', $cost_set) . " END WHERE ID IN(:product_ids)";
+      $cost_args[':product_ids'] = array_keys($cost_set);
+      if (db_query($query, $cost_args)) {
+        avbase_custom_watchdog("{$transaction_type}__cost_update", "ID: {$row['id']}", array('#row' => $row, '#cost_changes' => $cost_changes, '#cost_set' => $cost_set, '#args' => $cost_args));
+      }
+    }
+    if (!empty($price_set)) {
+      $query = "UPDATE {avtbl_products} SET price = CASE id " . implode(' ', $price_set) . " END WHERE ID IN(:product_ids)";
+      $price_args[':product_ids'] = array_keys($price_set);
+      if (db_query($query, $price_args)) {
+        avbase_custom_watchdog("{$transaction_type}__price_update", "ID: {$row['id']}", array('#row' => $row, '#cost_changes' => $cost_changes, '#price_set' => $price_set, '#args' => $price_args));
+      }
+    }
+  }
 }

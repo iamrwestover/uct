@@ -1,33 +1,40 @@
 <?php
 
 /**
- * Fields for Vendor Pending purchase orders.
+ * Fields for Client's Pending Orders.
  * @param $form
  * @param $form_state
  * @param $row
  *
  * @return array
  */
-function avpurchase_gr_form_vendor_pos_fields(&$form, &$form_state, $row) {
+function avtrans_pending_orders_form_fields(&$form, &$form_state, $row) {
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get transaction type.
+  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+
   $fields = array();
   $fields['selected_pos'] = array(
     '#type' => 'container',
     '#attributes' => array(
-      'id' => 'avpurchase-gr-form-vendor-pos-wrapper',
+      'id' => 'avtrans-pending-orders-form-wrapper',
     ),
     '#tree' => TRUE,
   );
-  $vendor_id = empty($form_state['values']['vendor_id']) ? NULL : $form_state['values']['vendor_id'];
-  $vendor_open_pos = empty($form_state['values']['vendor_open_pos']) ? array() : $form_state['values']['vendor_open_pos'];
+
+  $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
   $table_rows = array();
-  foreach ($vendor_open_pos as $k => $v) {
+  foreach ($client_pending_pos as $k => $v) {
     $table_cols = array();
-    $table_cols['po_date'] = array(
-      '#title' => 'PO Date',
+    $table_cols['transaction_date'] = array(
+      '#title' => 'Date',
       '#title_display' => 'none',
       '#type' => 'item',
-      '#markup' => format_date($v->po_date, 'custom', 'Y M d, h:i a'),
-      '#column_attributes' => array('class' => array('uk-width-4-10')),
+      '#markup' => format_date($v->transaction_date, 'custom', 'Y M d, h:i a'),
+      '#column_attributes' => array('class' => array('uk-width-3-10')),
     );
     $table_cols['total'] = array(
       '#title' => 'Total',
@@ -36,12 +43,12 @@ function avpurchase_gr_form_vendor_pos_fields(&$form, &$form_state, $row) {
       '#markup' => number_format($v->grand_total, 2),
       '#column_attributes' => array('class' => array('uk-width-3-10', 'uk-text-right')),
     );
-    $table_cols['po_num'] = array(
-      '#title' => 'PO #',
+    $table_cols['order_num'] = array(
+      '#title' => '#',
       '#title_display' => 'none',
       '#type' => 'item',
-      '#markup' => t('%po_num', array('%po_num' => $v->id)),
-      '#column_attributes' => array('class' => array('uk-width-1-10', 'uk-text-right')),
+      '#markup' => t('Order # %order_num', array('%order_num' => $v->id)),
+      '#column_attributes' => array('class' => array('uk-width-2-10', 'uk-text-right')),
     );
     $table_cols['values'] = array(
       'po' => array('#type' => 'value', '#value' => $v),
@@ -68,11 +75,12 @@ function avpurchase_gr_form_vendor_pos_fields(&$form, &$form_state, $row) {
     $table = array(
       '#theme' => 'avbase_form_table',
       '#header' => array(
-        array('data' => t('P.O. Date')),
+        array('data' => t('Order Date')),
         array('data' => t('Total'), 'class' => 'uk-text-right'),
-        array('data' => t('P.O. #'), 'class' => 'uk-text-right'),
+        array('data' => t('&nbsp;'), 'class' => 'uk-text-right'),
         '&nbsp;',
       ),
+      //'#caption' => 'Ivan Dorseys',
       //'product_rows' => array('#tree' => TRUE),
     );
     $table['rows'] = $table_rows;
@@ -87,15 +95,15 @@ function avpurchase_gr_form_vendor_pos_fields(&$form, &$form_state, $row) {
   $fields['buttons']['check_po'] = array(
     '#id' => 'check-po-btn',
     '#type' => 'submit',
-    '#value' => t('Check for floating po\'s'),
+    '#value' => t('Check for pending orders'),
     '#attributes' => array(
       'class' => array('av-ajax-trigger', 'uk-button-primary', 'uk-hidden'),
     ),
-    '#submit' => array('avpurchase_gr_vendor_pos_submit'),
-    '#limit_validation_errors' => array(array('vendor_id')),
+    '#submit' => array('avtrans_pending_orders_form_submit'),
+    '#limit_validation_errors' => array(array('client_name'), array('client_id')),
     '#ajax' => array(
-      'callback' => 'avpurchase_gr_form_ajax',
-      'wrapper' => 'avpurchase-gr-form-wrapper',
+      'callback' => 'avtrans_transaction_form_ajax',
+      'wrapper' => 'avtrans-transaction-form-wrapper',
       'effect' => 'none',
       'event' => 'click',
     ),
@@ -103,16 +111,16 @@ function avpurchase_gr_form_vendor_pos_fields(&$form, &$form_state, $row) {
   $fields['buttons']['submit'] = array(
     '#id' => 'pos-selected-submit-btn',
     '#type' => 'submit',
-    '#value' => t('Add selected PO\'s'),
+    '#value' => t('Add selected orders'),
     '#attributes' => array(
       'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),
-    '#submit' => array('avpurchase_gr_vendor_pos_submit'),
-    '#limit_validation_errors' => array(array('vendor_id'), array('selected_pos')),
+    '#submit' => array('avtrans_pending_orders_form_submit'),
+    '#limit_validation_errors' => array(array('client_name'), array('selected_pos')),
     '#ajax' => array(
-      'callback' => 'avpurchase_gr_form_ajax',
-      //'wrapper' => 'avpurchase-gr-cost-changed-wrapper',
-      'wrapper' => 'avpurchase-gr-form-wrapper',
+      'callback' => 'avtrans_transaction_form_ajax',
+      //'wrapper' => 'avtrans-gr-cost-changed-wrapper',
+      'wrapper' => 'avtrans-transaction-form-wrapper',
       'effect' => 'none',
       'event' => 'click',
     ),
@@ -126,22 +134,26 @@ function avpurchase_gr_form_vendor_pos_fields(&$form, &$form_state, $row) {
     ),
   );
 
-  $vendor_pos_form = $fields;
-  $vendor_pos_form['#type'] = 'container';
-  $vendor_pos_form['#theme'] = 'avbase_modal_form';
-  $vendor_pos_form['#modal_options'] = array(
-    'modal_id' => 'vendor-pos',
-    'modal_title' => t('Pending purchase orders to this vendor'),
+  $modal_title = $transaction_type == 'dr' ? t('Pending sales orders from this customer') : t('Pending purchase orders to this vendor');
+  $pending_orders_form = $fields;
+  $pending_orders_form['#type'] = 'container';
+  $pending_orders_form['#theme'] = 'avbase_modal_form';
+  $pending_orders_form['#modal_options'] = array(
+    'modal_id' => 'pending-orders',
+    'modal_title' => $modal_title,
   );
-  $form['vendor_pos'] = $vendor_pos_form;
+  $form['pending_orders'] = $pending_orders_form;
+
+  // Attachments.
+  $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/trans.pending_orders.form.js';
 }
 
 /**
- * Submit handler when POs has been selected and submitted.
+ * Submit handler when Pending Orders have been selected and submitted.
  * @param $form
  * @param $form_state
  */
-function avpurchase_gr_vendor_pos_submit($form, &$form_state) {
+function avtrans_pending_orders_form_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
   $trigger = $form_state['triggering_element'];
 
@@ -153,27 +165,41 @@ function avpurchase_gr_vendor_pos_submit($form, &$form_state) {
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
   $_item_rows = &$_storage['item_rows'];
 
+  // Get transaction type.
+  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+
   switch ($trigger['#id']) {
     case 'check-po-btn':
-      $vendor_id = (int) $form_state['values']['vendor_id'];
-      // Check if this item row is owned by this vendor.
-      // Remove item rows not owned by this vendor.
+      $client_id = (int) $form_state['values']['client_id'];
+      // Check if this item row is owned by this client.
+      // Remove item rows not owned by this client.
       foreach ($_item_rows as $k => $item_row) {
-        $item_vendor_id = empty($item_row['vendor_id']) ? NULL : $item_row['vendor_id'];
-        if (!empty($item_row['po_id']) && (empty($vendor_id) || $item_vendor_id != $vendor_id)) {
+        $item_client_id = empty($item_row['client_id']) ? NULL : $item_row['client_id'];
+        if (!empty($item_row['po_id']) && (empty($client_id) || $item_client_id != $client_id)) {
           unset($_item_rows[$k]);
           unset($form_state['input']['product_rows'][$k]);
         }
       }
 
       $conditions = array();
-      $conditions[] = array('avpo.vendor_id', $vendor_id);
-      $conditions[] = array('avpo.status', 1);
-      $pos = avpurchase_po_query_load($conditions);
+      $pos = array();
+      switch ($transaction_type) {
+        case 'gr':
+          $conditions[] = array('avpo.client_id', $client_id);
+          $conditions[] = array('avpo.status', 1);
+          $pos = avtrans_po_query_load($conditions);
+          break;
+        case 'dr':
+          $conditions[] = array('avso.client_id', $client_id);
+          $conditions[] = array('avso.status', 1);
+          $pos = avtrans_so_query_load($conditions);
+          break;
+      }
+
       //foreach ($pos as $k => $po) {
-      //  //avpurchase_po_attach_received_items($pos[$k]);
+      //  //avtrans_po_attach_received_items($pos[$k]);
       //  //$po_items = (array) $po->items;
-      //  //$po_item_ids[$po->id] = array_keys($po_items);
+      //  //$reference_ids[$po->id] = array_keys($po_items);
       //  dpm($po->items);
       //}
 
@@ -182,12 +208,12 @@ function avpurchase_gr_vendor_pos_submit($form, &$form_state) {
       $floating_pos = array();
       foreach ($pos as $po_id => $po) {
         $po_items = empty($po->items) ? array() : $po->items;
-        foreach ($po_items as $po_item_id => $po_item) {
+        foreach ($po_items as $reference_id => $po_item) {
           if ($po_item->remaining_base_qty < 1) {
             continue;
           }
 
-          $item_row_id = "db_item_{$po_id}_{$po_item_id}";
+          $item_row_id = "db_item_{$po_id}_{$reference_id}";
           $match = isset($_item_rows[$item_row_id]) ? $_item_rows[$item_row_id] : FALSE;
           if (empty($match)) {
             $floating_pos[$po_id] = $po;
@@ -199,7 +225,7 @@ function avpurchase_gr_vendor_pos_submit($form, &$form_state) {
           }
         }
       }
-      $form_state['values']['vendor_open_pos'] = $floating_pos;
+      $form_state['values']['client_pending_pos'] = $floating_pos;
 
 //dpm($_item_rows);
 //dpm($pos);
@@ -248,12 +274,12 @@ function avpurchase_gr_vendor_pos_submit($form, &$form_state) {
           }
 
           // Recompute total amount.
-          $item_row_arr['total'] = $item_row_arr['cost'] * $item_row_arr['qty'];
+          $item_row_arr['total'] = avbase_number_format($item_row_arr['cost'] * $item_row_arr['qty']);
 
 
           // More preparation.
-          $item_row_arr['vendor_id'] = $v_values['po']->vendor_id;
-          $item_row_arr['cost'] = avbase_min_decimal_precision($item_row_arr['cost']);
+          $item_row_arr['client_id'] = $v_values['po']->client_id;
+          $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost']);
           $receive_pos[$item_row_id] = $item_row_arr;
         }
       }

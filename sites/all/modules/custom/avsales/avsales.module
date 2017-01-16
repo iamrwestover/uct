@@ -46,7 +46,7 @@ function avsales_menu() {
     'page arguments' => array(NULL),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_CALLBACK,
-    'file' => 'inc/gr.form.inc',
+    'file' => 'inc/gr/gr.form.inc',
     'weight' => 10,
   );
   return $items;

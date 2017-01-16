@@ -41,7 +41,6 @@ function avproducts_schema() {
       'qty' => array(
         'description' => 'Actual on-hand quantity.',
         'type' => 'int',
-        'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
       ),
