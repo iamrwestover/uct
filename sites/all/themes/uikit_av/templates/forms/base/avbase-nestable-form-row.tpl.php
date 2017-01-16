@@ -6,8 +6,8 @@ foreach (element_children($form) as $key) {
 //$form['product_title']['#attributes']['placeholder'] = 'product code or name';
 
 $form['qty']['#attributes']['class'][] = 'uk-text-right';
-$form['price']['#attributes']['class'][] = 'uk-text-right';
-$form['amount']['#attributes']['class'][] = 'uk-text-right';
+$form['cost']['#attributes']['class'][] = 'uk-text-right';
+$form['total']['#attributes']['class'][] = 'uk-text-right';
 
 // Style delete btn.
 $form['prod_delete_btn']['#button_label'] = '<i class="uk-icon-remove"></i>';
@@ -19,7 +19,8 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
 
 ?>
 
-<div class="uk-grid uk-grid-collapse">
+<div class="uk-grid uk-grid-collapse" style="position: relative;">
+  <?php print drupal_render($form['badge']); ?>
   <div class="uk-width-7-10">
 
     <div class="uk-grid uk-grid-collapse">
@@ -61,13 +62,13 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
 
       <div class="uk-width-2-6">
         <div class="av-nestable-cell">
-          <?php print drupal_render($form['price']); ?>
+          <?php print drupal_render($form['cost']); ?>
         </div>
       </div>
 
       <div class="uk-width-2-6">
         <div class="av-nestable-cell">
-          <?php print drupal_render($form['amount']); ?>
+          <?php print drupal_render($form['total']); ?>
         </div>
       </div>
 

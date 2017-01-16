@@ -19,8 +19,8 @@
       <th class="uk-text-left">#</th>
       <th class="uk-text-left">Product</th>
       <th class="uk-text-left">UOM</th>
-      <th class="uk-text-right">Unit Cost</th>
       <th class="uk-text-right">Qty.</th>
+      <th class="uk-text-right">Unit Cost</th>
       <th class="uk-text-right">Total</th>
     </tr>
   </thead>
@@ -32,8 +32,8 @@
         <td><?php print $index; ?></td>
         <td><?php print check_plain($item->product_title); ?></td>
         <td><?php print check_plain($item->uom_title); ?></td>
-        <td class="uk-text-right"><?php print number_format($item->cost, 2); ?></td>
         <td class="uk-text-right"><?php print $item->qty; ?></td>
+        <td class="uk-text-right"><?php print number_format($item->cost, 2); ?></td>
         <td class="uk-text-right"><?php print number_format($item->total, 2); ?></td>
       </tr>
     <?php endforeach; ?>

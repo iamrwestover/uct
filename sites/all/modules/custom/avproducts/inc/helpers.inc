@@ -88,6 +88,7 @@ function avproduct_query_load($param_where, $param_args = array()) {
   $_data_id = $param_where;
   sort($_data_id);
   $data_id = md5(json_encode($_data_id) . json_encode($param_args));
+
   if (isset($data[$data_id])) {
     return $data[$data_id];
   }

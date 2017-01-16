@@ -53,7 +53,7 @@ function avpurchase_item_list_prod_js($form, $form_state) {
     $last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
     $last_element['#suffix'] = empty($last_element['#suffix']) ? '' : $last_element['#suffix'];
     $last_element['#suffix'] .= '<div id="item-list-new-product-wrapper"></div>';
-    $js_settings = array('avNestableProductForm' => arraY('ajaxAction' => 'add'));
+    $js_settings = array('avNestableProductForm' => array('ajaxAction' => 'add'));
     $last_element['#attached']['js'] = array(
       array(
         'data' => $js_settings,
@@ -73,13 +73,14 @@ function avpurchase_item_list_prod_js($form, $form_state) {
     //$output = '<div>' . $x['#name'] . '</div>';
   }
   else {
-    $js_settings = array('avNestableProductForm' => array('ajaxAction' => 'remove'));
-    $output['#attached']['js'] = array(
-      array(
-        'data' => $js_settings,
-        'type' => 'setting',
-      ),
-    );
+    //$js_settings = array('avNestableProductForm' => array('ajaxAction' => 'remove'));
+    //$output['#attached']['js'] = array(
+    //  array(
+    //    'data' => $js_settings,
+    //    'type' => 'setting',
+    //  ),
+    //);
+    //$output = array();
   }
 
   return $output;

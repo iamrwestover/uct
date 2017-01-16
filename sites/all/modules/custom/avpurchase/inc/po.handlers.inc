@@ -18,7 +18,7 @@ function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
     case 'after-save':
       // Get item rows.
       $item_rows = isset($form_state['storage']['item_rows']) ? $form_state['storage']['item_rows'] : array();
-      dpm($form_state);
+
       // Save po items.
       $query = db_insert('avtbl_po_items')->fields(array('po_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost'));
       foreach ($item_rows as $prod_row) {
@@ -26,7 +26,6 @@ function avpurchase_avbase_crud_dbchange_po($op, $row, $form_state) {
           continue;
         }
         $prod_row['po_id'] = $row['id'];
-        $prod_row['cost'] = $prod_row['price'];
         $query->values($prod_row);
       }
       $query->execute();

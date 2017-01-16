@@ -39,11 +39,8 @@ function avpurchase_po_form($form, &$form_state, $row) {
   // Set crud settings.
   avpurchase_po_form_settings($form, $row);
 
-  // Info group.
+  // Item List form fields.
   avpurchase_item_list_form_fields($form, $form_state, $row);
-
-  // Product list.
-  avpurchase_item_list_product_fields($form, $form_state, $row);
 
   $form['header_total'] = array(
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
@@ -108,6 +105,7 @@ function avpurchase_po_form_settings(&$form, $row) {
 
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');
+  $form['#success_message'] = t('Purchase order details saved.');
   $form['#theme'] = 'avpurchase_item_list_form';
 
   $po_js_settings = array('avPurchasePODetails' => $row);
@@ -127,12 +125,15 @@ function avpurchase_po_form_settings(&$form, $row) {
     'created',
     'vendor_id',
     'message',
-    'po_date',
     'email',
     //'term_id' => array('type' => 'int'),
     'discount_type' => array('type' => 'int'),
     'discount_value' => array('type' => 'float'),
   );
+  if (empty($form['id']['#value'])) {
+    $save_field_ids[] = 'po_date';
+  }
+
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,

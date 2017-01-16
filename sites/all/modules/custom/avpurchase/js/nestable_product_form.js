@@ -7,25 +7,26 @@
    */
   Drupal.avbaseNestableProductForm = function ($wrapper, settings) {
     var self = this;
-    $wrapper.once('avNestableProductForm', function() {
+    //$wrapper.once('avNestableProductForm', function() {
+    //
+    //
+    //});
 
-      // Initialize uikit nestable component.
-      UIkit.nestable($wrapper, {handleClass:'uk-nestable-handle', maxDepth: 1});
-      Drupal.settings.avNestableProductForm = Drupal.settings.avNestableProductForm || {};
-      Drupal.settings.avbase = Drupal.settings.avbase || {};
-      Drupal.settings.avbase.products = Drupal.settings.avbase.products || {};
-
-
-      // Do stuff when nestable form is changed.
-      $wrapper.on('change.uk.nestable', function(e, uikit, el, action) {
-        if (action == 'moved' || action == 'removed') {
-          // Recalculate row numbers.
-          self.refreshRowNumbers();
-        }
-      });
+    // Initialize uikit nestable component.
+    UIkit.nestable($wrapper, {handleClass:'uk-nestable-handle', maxDepth: 1});
+    Drupal.settings.avNestableProductForm = Drupal.settings.avNestableProductForm || {};
+    Drupal.settings.avbase = Drupal.settings.avbase || {};
+    Drupal.settings.avbase.products = Drupal.settings.avbase.products || {};
 
 
+    // Do stuff when nestable form is changed.
+    $wrapper.on('change.uk.nestable', function(e, uikit, el, action) {
+      if (action == 'moved' || action == 'removed') {
+        // Recalculate row numbers.
+        self.refreshRowNumbers();
+      }
     });
+
 
     self.$wrapper = $wrapper;
     self.$grandTotalEl = $('.product-form-grand-total');
@@ -38,11 +39,19 @@
     self.bindEvents();
     self.refreshSubTotalText();
 
-    // Trigger nestable 'removed' event.
-    if (settings.avNestableProductForm && settings.avNestableProductForm.ajaxAction == 'remove') {
-      self.refreshRowNumbers();
-      self.refreshGrandTotalText();
-    }
+    // Make sure newly added rows gets bound with events and delete btn refreshes totals.
+    $(document).ajaxComplete(function(event, xhr, settings) {
+      var extraData = settings.extraData || {};
+      var triggerName = extraData._triggering_element_name || '';
+      if (triggerName == 'prod_add_btn') {
+        self.bindEvents();
+      }
+      else if (~triggerName.indexOf('prod_delete_btn')) {
+        //self.$productRows = self.$wrapper.find('.uk-nestable-item');
+        self.refreshRowNumbers();
+        self.refreshSubTotalText();
+      }
+    });
   };
 
   /**
@@ -50,6 +59,7 @@
    */
   Drupal.avbaseNestableProductForm.prototype.bindEvents = function () {
     var self = this;
+
     // Trigger actions for discount fields.
     self.$discountValEl.once('avPODiscountVal', function() {
       $(this).change(function() {
@@ -62,15 +72,15 @@
       });
     });
 
-    self.$productRows = self.$wrapper.find('.uk-nestable-item');
+    self.$productRows = this.$wrapper.find('.uk-nestable-item');
     self.$productRows.once('avNestableProductRows', function() {
       var $thisRow = $(this);
       var $productTitleEl = $thisRow.find('.prod-column-title');
       var $UOMEl = $thisRow.find('.prod-column-uom-title');
       var $qtyPerUOMEl = $thisRow.find('.prod-column-qty-per-uom');
-      var $priceEl = $thisRow.find('.prod-column-price');
+      var $costEl = $thisRow.find('.prod-column-cost');
       var $qtyEl = $thisRow.find('.prod-column-qty');
-      var $amountEl = $thisRow.find('.prod-column-amt');
+      var $totalEl = $thisRow.find('.prod-column-total');
       var uoms = Drupal.settings.avbase.uoms;
 
       // Trigger actions for autocomplete product field.
@@ -167,63 +177,63 @@
           }
         });
 
-        // Auto-fill price fields.
-        var price = 0;
+        // Auto-fill cost fields.
+        var cost = 0;
         if (uomID == 0) {
           return;
         }
         else if (uomID == productDetails.uom_id) {
           // Selected UOM is the same as base UOM.
-          price = parseFloat(productDetails.cost);
-          $priceEl.val(price.toFixed(2));
+          cost = parseFloat(productDetails.cost);
+          $costEl.val(cost.toFixed(2));
         }
         else if (otherUOMs[uomID]) {
           // Selected UOM is a data UOM.
-          price = parseFloat(productDetails.cost) * parseFloat($qtyPerUOMEl.val());
-          $priceEl.val(price.toFixed(2));
+          cost = parseFloat(productDetails.cost) * parseFloat($qtyPerUOMEl.val());
+          $costEl.val(cost.toFixed(2));
         }
         else {
-          $priceEl.val('');
+          $costEl.val('');
         }
 
-        $priceEl.trigger('change');
+        $costEl.trigger('change');
       });
 
-      // Trigger actions for price field.
-      $priceEl.change(function() {
-        var amount = self.getRowAmount($thisRow);
-        if (amount != '') {
-          $amountEl.val(amount.toFixed(2));
+      // Trigger actions for cost field.
+      $costEl.change(function() {
+        var total = self.getRowTotal($thisRow);
+        if (total != '') {
+          $totalEl.val(total.toFixed(2));
           self.refreshSubTotalText();
         }
       });
-      $priceEl.keydown(function(e) {
+      $costEl.keydown(function(e) {
         self.switchRowFocus(e, $thisRow);
       });
 
       // Trigger actions for qty field.
       $qtyEl.change(function() {
-        $priceEl.trigger('change');
+        $costEl.trigger('change');
       });
       $qtyEl.keydown(function(e) {
         self.switchRowFocus(e, $thisRow);
       });
 
-      // Trigger actions for amount field.
-      $amountEl.change(function() {
-        var price = self.getRowPrice($thisRow);
-        if (price != '') {
-          $priceEl.val(parseFloat(price.toFixed(6)));
+      // Trigger actions for total field.
+      $totalEl.change(function() {
+        var cost = self.getRowPrice($thisRow);
+        if (cost != '') {
+          $costEl.val(parseFloat(cost.toFixed(6)));
         }
 
-        var thisAmount = $(this).val();
-        if ($.isNumeric(thisAmount)) {
-          thisAmount = parseFloat(thisAmount).toFixed(2);
-          $(this).val(thisAmount);
+        var thisTotal = $(this).val();
+        if ($.isNumeric(thisTotal)) {
+          thisTotal = parseFloat(thisTotal).toFixed(2);
+          $(this).val(thisTotal);
         }
         self.refreshSubTotalText();
       });
-      $amountEl.keydown(function(e) {
+      $totalEl.keydown(function(e) {
         self.switchRowFocus(e, $thisRow);
       });
     });
@@ -232,18 +242,18 @@
   /**
    * Compute and return row total.
    */
-  Drupal.avbaseNestableProductForm.prototype.getRowAmount = function($row) {
-    var $priceEl = $row.find('.prod-column-price');
+  Drupal.avbaseNestableProductForm.prototype.getRowTotal = function($row) {
+    var $costEl = $row.find('.prod-column-cost');
     var $qtyEl = $row.find('.prod-column-qty');
     var qty = Drupal.checkPlain($qtyEl.val());
-    var price = Drupal.checkPlain($priceEl.val());
+    var cost = Drupal.checkPlain($costEl.val());
 
     var error = false;
-    $priceEl.removeClass('uk-form-danger');
+    $costEl.removeClass('uk-form-danger');
     $qtyEl.removeClass('uk-form-danger');
-    if (!$.isNumeric(price)) {
-      if (price != '') {
-        $priceEl.addClass('uk-form-danger');
+    if (!$.isNumeric(cost)) {
+      if (cost != '') {
+        $costEl.addClass('uk-form-danger');
       }
       error = true;
     }
@@ -258,25 +268,25 @@
       return '';
     }
 
-    var amount = qty * price;
-    return amount;
+    var total = qty * cost;
+    return total;
   };
 
   /**
-   * Compute and return row price.
+   * Compute and return row cost.
    */
   Drupal.avbaseNestableProductForm.prototype.getRowPrice = function($row) {
-    var $amountEl = $row.find('.prod-column-amt');
+    var $totalEl = $row.find('.prod-column-total');
     var $qtyEl = $row.find('.prod-column-qty');
     var qty = Drupal.checkPlain($qtyEl.val());
-    var amount = Drupal.checkPlain($amountEl.val());
+    var total = Drupal.checkPlain($totalEl.val());
 
     var error = false;
-    $amountEl.removeClass('uk-form-danger');
+    $totalEl.removeClass('uk-form-danger');
     $qtyEl.removeClass('uk-form-danger');
-    if (!$.isNumeric(amount)) {
-      if (amount != '') {
-        $amountEl.addClass('uk-form-danger');
+    if (!$.isNumeric(total)) {
+      if (total != '') {
+        $totalEl.addClass('uk-form-danger');
       }
       error = true;
     }
@@ -291,15 +301,16 @@
       return '';
     }
 
-    var price = amount / qty;
-    return price;
+    var cost = total / qty;
+    return cost;
   };
 
   /**
    * Refresh row numbers on row column.
    */
   Drupal.avbaseNestableProductForm.prototype.refreshRowNumbers = function () {
-    this.$wrapper.find('.uk-nestable-item').each(function(index) {
+    this.$productRows = this.$wrapper.find('.uk-nestable-item');
+    this.$productRows.each(function(index) {
       $(this).find('.av-nestable-row-num').html(index + 1);
     });
   };
@@ -332,10 +343,10 @@
    * @returns {string}
    */
   Drupal.avbaseNestableProductForm.prototype.getSubTotal = function() {
-    var $amountEls = this.$productRows.find('.prod-column-amt');
+    var $totalEls = this.$productRows.find('.prod-column-total');
     var rowTotal = 0;
     var subTotal = 0;
-    $amountEls.each(function() {
+    $totalEls.each(function() {
       rowTotal = $(this).val();
       if (!$.isNumeric(rowTotal)) {
         return;

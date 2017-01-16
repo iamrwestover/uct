@@ -58,7 +58,8 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
     '#markup' => format_date(time(), 'custom', 'F d, Y'),
   );
 
-
+  // Product list.
+  avpurchase_item_list_product_fields($form, $form_state, $row);
 }
 
 /**
@@ -68,12 +69,8 @@ function avpurchase_item_list_form_fields(&$form, &$form_state, $row) {
  * @param $row
  */
 function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
-  $js_settings = array('avbase' => array('uoms' => avbase_get_categories('uom')));
-  $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/nestable_product_form.js';
-  $form['#attached']['js'][] = array(
-    'data' => $js_settings,
-    'type' => 'setting',
-  );
+  // Initialize to-attached js settings.
+  $js_settings = array('avbase' => array());
 
   // Set extra form validation for product list.
   $form['#validate'][] = 'avpurchase_item_list_fields_validate';
@@ -96,7 +93,7 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
   }
 
   // If there are product ids found inside $_item_rows, remember them in an array.
-  //$detected_product_ids = array();
+  $detected_product_ids = array();
 
   $prod_index = -1;
   $form['product_rows'] = array(
@@ -106,6 +103,9 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
     $fields = array();
+    if (!empty($prod_row['po_id'])) {
+      $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-success" style="position: absolute; top: -9px; left: 0;">PO# ' . $prod_row['po_id'] . '</span>');
+    }
     $fields['product_title'] = array(
       '#id' => 'product-title-' . $prod_key,
       '#item_row_key' => $prod_key,
@@ -166,31 +166,31 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       ),
     );
 
-    $fields['price'] = array(
-      '#id' => 'product-price-' . $prod_key,
+    $fields['cost'] = array(
+      '#id' => 'product-cost-' . $prod_key,
       '#item_row_key' => $prod_key,
       '#type' => 'textfield',
-      '#title' => 'Price',
+      '#title' => 'Unit Cost',
       '#maxlength' => 19,
       '#element_validate' => array('avpurchase_item_list_row_element_validate'),
       '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
-        'data-column-name' => 'price',
-        'class' => array('prod-column-price'),
+        'data-column-name' => 'cost',
+        'class' => array('prod-column-cost'),
       ),
     );
 
-    $fields['amount'] = array(
-      '#id' => 'product-amt-' . $prod_key,
+    $fields['total'] = array(
+      '#id' => 'product-total-' . $prod_key,
       '#item_row_key' => $prod_key,
       '#type' => 'textfield',
-      '#title' => 'Amount',
+      '#title' => 'Total',
       '#maxlength' => 19,
       '#element_validate' => array('avpurchase_item_list_row_element_validate'),
       '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
-        'data-column-name' => 'amt',
-        'class' => array('prod-column-amt'),
+        'data-column-name' => 'total',
+        'class' => array('prod-column-total'),
       ),
     );
 
@@ -213,22 +213,23 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
       ),
     );
 
+    if (!empty($_item_rows[$prod_key]['product_id'])) {
+      $fields['product_title']['#attributes']['data-selected-product-id'] = $_item_rows[$prod_key]['product_id'];
+      $detected_product_ids[] = $_item_rows[$prod_key]['product_id'];
+    }
+
     $form['product_rows'][$prod_key] = $fields;
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
     $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
     $form['product_rows'][$prod_key]['#suffix'] = '</div>';
-
-    //if (!empty($_item_rows[$prod_key]['product_id'])) {
-    //  //$fields['product_title']['#attributes']['data-selected-product-id'] = $_item_rows[$prod_key]['product_id'];
-    //  $detected_product_ids[] = $_item_rows[$prod_key]['product_id'];
-    //}
   }
 
   // Save product row details into drupal JS settings.
-  //if (!empty($detected_product_ids)) {
-  //  $product_rows = avproduct_load_ids($detected_product_ids);
-  //}
+  if (!empty($detected_product_ids)) {
+    $product_rows = avproduct_load_ids($detected_product_ids);
+    $js_settings['avbase']['products'] = (object) $product_rows;
+  }
 
   $form['prod_add_btn'] = array(
     '#id' => 'prod-add-btn',
@@ -237,11 +238,18 @@ function avpurchase_item_list_product_fields(&$form, &$form_state, $row) {
     '#value' => t('Add new row'),
     '#limit_validation_errors' => array(),
     '#submit' => array('avpurchase_item_list_prod_submit'),
-    //'#ajax' => array(
-    //  'callback' => 'avpurchase_item_list_prod_js',
-    //  'wrapper' => 'item-list-new-product-wrapper',
-    //  'effect' => 'none',
-    //  'event' => 'click',
-    //),
+    '#ajax' => array(
+      'callback' => 'avpurchase_item_list_prod_js',
+      'wrapper' => 'item-list-new-product-wrapper',
+      'effect' => 'none',
+      'event' => 'click',
+    ),
+  );
+
+  $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
+  $form['#attached']['js'][] = AVPURCHASE_MODULE_PATH . '/js/nestable_product_form.js';
+  $form['#attached']['js'][] = array(
+    'data' => $js_settings,
+    'type' => 'setting',
   );
 }

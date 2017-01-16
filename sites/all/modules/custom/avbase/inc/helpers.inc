@@ -456,7 +456,7 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
  */
 function avbase_min_decimal_precision($x, $p = 2) {
   $e = pow(10,$p);
-  return floor($x*$e)==$x*$e?sprintf("%.${p}f",$x):$x;
+  return (float) (floor($x*$e)==$x*$e?sprintf("%.${p}f",$x):$x);
 }
 
 /**

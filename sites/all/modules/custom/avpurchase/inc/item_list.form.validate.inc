@@ -34,11 +34,16 @@ function avpurchase_item_list_fields_validate(&$form, &$form_state) {
     drupal_add_js(array('avbase' => array('products' => $product_rows)), 'setting');
   }
 
+
+
   // Merge inputted product rows into $_item_rows.
   $inputted_rows = isset($form_state['input']['product_rows']) ? $form_state['input']['product_rows'] : array();
   $merged = array();
+  //$rearranged_input_rows = array();
   foreach ($inputted_rows as $k => $v) {
+    //$_item_rows[$k] = isset($_item_rows[$k]) ? array_merge($_item_rows[$k], $v) : $v;
     $merged[$k] = isset($_item_rows[$k]) ? array_merge($_item_rows[$k], $v) : $v;
+    //$rearranged_input_rows[$k] = $v;
   }
   $_item_rows = $merged;
 }

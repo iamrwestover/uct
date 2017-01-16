@@ -1,8 +1,11 @@
 <?php
+module_load_include('inc', 'avpurchase', 'inc/gr.helpers');
 
 /**
  * Load purchase order details.
  * @param $id
+ *
+ * @return object
  */
 function avpurchase_po_load($id) {
   $id = (int) $id;
@@ -116,8 +119,11 @@ function avpurchase_po_query_load($conditions = array()) {
       $query = db_select('avtbl_po_items', 'avpo_items');
       $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avpo_items.product_id');
       $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avpo_items.uom_id AND avcat.group_id = 'uom'");
+      $query->leftJoin('avtbl_categories', 'avcat_base', "avcat_base.id = avprod.uom_id AND avcat.group_id = 'uom'");
       $query->addField('avprod', 'title', 'product_title');
+      $query->addField('avprod', 'uom_id', 'base_uom_id');
       $query->addField('avcat', 'title', 'uom_title');
+      $query->addField('avcat_base', 'title', 'base_uom_title');
       $query->fields('avpo_items')
         ->condition('avpo_items.po_id', $row->id)
         ->execute();
@@ -125,6 +131,8 @@ function avpurchase_po_query_load($conditions = array()) {
       foreach ($rs as $item) {
         $item->total = $item->cost * $item->qty;
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
+        $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
+        $item->remaining_base_qty = $item->incoming_base_qty;
         $row->items[$item->id] = $item;
         $subtotal += $item->total;
       }
@@ -133,6 +141,9 @@ function avpurchase_po_query_load($conditions = array()) {
     $row->subtotal = $subtotal;
     $row->discounted_value = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (($row->discount_value / 100) * $subtotal) : $row->discount_value;
     $row->grand_total = $subtotal - $row->discounted_value;
+
+    // Attach received items.
+    avpurchase_po_attach_received_items($row);
 
     $rows[$row->id] = $row;
   }
@@ -192,13 +203,13 @@ function avpurchase_po_send_to_email($po_id, $email = '') {
  * @param float $current_cost
  * @param $onhand_qty
  * @param float $new_cost
- * @param $incoming_qty
+ * @param $incoming_base_qty
  *
  * @return float
  */
-function avpurchase_compute_product_cost($current_cost, $onhand_qty, $new_cost, $incoming_qty) {
+function avpurchase_compute_product_cost($current_cost, $onhand_qty, $new_cost, $incoming_base_qty) {
   $current_cost = empty($current_cost) ? $new_cost : $current_cost;
-  return ((($current_cost * $onhand_qty) + ($new_cost * $incoming_qty)) / ($onhand_qty + $incoming_qty));
+  return ((($current_cost * $onhand_qty) + ($new_cost * $incoming_base_qty)) / ($onhand_qty + $incoming_base_qty));
 }
 
 /**
@@ -239,10 +250,42 @@ function avpurchase_po_attach_received_items(&$po) {
   $rs = $query->execute();
   $received_items = array();
   foreach ($rs as $received_item) {
-    $received_items[$received_item->po_item_id] = $received_item;
+    $po_item_id = $received_item->po_item_id;
+    if (empty($po_items[$po_item_id])) {
+      continue;
+    }
+    $gr_item_id = $received_item->id;
+
+    // Compute for total base qty received from this gr_item.
+    $received_item->received_base_qty = $received_item->qty * $received_item->qty_per_uom;
+
+    // Compute for total base qty received from this po_item.
+    $po_items[$po_item_id]->received_base_qty = empty($po_items[$po_item_id]->received_base_qty) ? 0 : $po_items[$po_item_id]->received_base_qty;
+    $po_items[$po_item_id]->received_base_qty += $received_item->received_base_qty;
+
+    // Set remaining qty to be received.
+    $po_items[$po_item_id]->remaining_base_qty -= $received_item->received_base_qty;
+
+    //$grand_received_base_qty += $received_item->received_base_qty;
+    $received_items[$po_item_id][$gr_item_id] = $received_item;
   }
 
+  //dpm($grand_received_base_qty)l
+  //dpm()
+
   foreach ($received_items as $k => $v) {
-    $po_items->$k->received_items = $v;
+    $po_items[$k]->received_items = $v;
+  }
+
+  // Compute total remaining base qty for this PO.
+  $total_remaining_base_qty = 0;
+  foreach ($po_items as $po_item) {
+    $total_remaining_base_qty += $po_item->remaining_base_qty;
+  }
+
+  if (empty($total_remaining_base_qty)) {
+    // Close this PO.
+    db_query("UPDATE {avtbl_po} SET status = 0 WHERE id = :id", array(':id' => $po->id));
+    $po->status = 0;
   }
 }

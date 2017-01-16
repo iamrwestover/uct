@@ -4,7 +4,6 @@
     attach: function (context, settings) {
       $('input.avbase-autocomplete-actions', context).once('avbaseAutocompleteActions', function () {
         settings.avbase = settings.avbase || {};
-
         var $input = $(this);
         var entityGroup = $input.data('avbase-entity-group');
         settings.avbase[entityGroup] = settings.avbase[entityGroup] || {};
