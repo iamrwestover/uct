@@ -549,3 +549,35 @@ function avtrans_item_list_update_item_row(&$form_state, $element, $value) {
   }
 }
 
+/**
+ * Checks that the file is a valid excel file.
+ *
+ * @param $file
+ *   A Drupal file object.
+ *
+ * @return array
+ *   An array. If the file is not an image, it will contain an error message.
+ *
+ * @see hook_file_validate()
+ */
+function avbase_file_validate_is_excel(stdClass $file) {
+  $errors = array();
+
+  //$info = image_get_info($file->uri);
+  //if (!$info || empty($info['extension'])) {
+  //  $errors[] = t('Only JPEG, PNG and GIF images are allowed.');
+  //}
+
+  //$filename = $_POST['your_field_file'];
+  $finfo = finfo_open(FILEINFO_MIME_TYPE);
+  $file_type = finfo_file($finfo, $file->uri);
+  $valid_types = array(
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+  );
+  if (!in_array($file_type, $valid_types)) {
+    $errors[] = t('Only valid .xls and .xlsx files are allowed.');
+  }
+
+  return $errors;
+}

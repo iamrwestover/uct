@@ -1,5 +1,27 @@
 (function ($) {
 
+  if (Drupal.progressBar) {
+    /**
+     * Set the percentage and status message for the progressbar.
+     */
+    Drupal.progressBar.prototype.setProgress = function (percentage, message) {
+      if (!this.classAltered) {
+        $('div.filled', this.element).addClass('uk-progress-bar').removeClass('filled');
+        $('div.bar', this.element).addClass('uk-progress uk-progress-success uk-progress-small uk-progress-striped uk-active uk-margin-small-bottom').removeClass('bar');
+        this.classAltered = true;
+      }
+
+      if (percentage >= 0 && percentage <= 100) {
+        $('div.uk-progress-bar', this.element).css('width', percentage + '%');
+        $('div.percentage', this.element).html(percentage + '%');
+      }
+      $('div.message', this.element).html(message);
+      if (this.updateCallback) {
+        this.updateCallback(percentage, message, this);
+      }
+    };
+  }
+
   if (Drupal.ajax) {
     /**
      * Prepare the Ajax request before it is sent.

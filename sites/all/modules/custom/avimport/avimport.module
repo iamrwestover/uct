@@ -18,13 +18,135 @@ function avimport_menu() {
     'access callback' => 'user_is_logged_in',
     //'menu_name' => 'av',
     //'expanded' => TRUE,
+    'type' => MENU_CALLBACK,
   );
+
+  $items['av/import/start'] = array(
+    'title' => 'Import',
+    'page callback' => 'avimport_batch_start',
+    //'page arguments' => array('avimport_import_start'),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
 }
 
+/**
+ * Build form for Import Page.
+ * @param $form
+ * @param $form_state
+ *
+ * @return mixed
+ */
 function avimport_import_form($form, &$form_state) {
+  $form['sss'] = array(
+    //'#markup' => l('sdfsf', 'av/import/start'),
+  );
+  $form['import_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Type of data to import'),
+    //'#description' => t('Type of data to import'),
+    //'#title_display' => 'none',
+    '#options' => array(
+      'products' => t('Products'),
+      'customers' => t('Customers'),
+      'vendors' => t('Vendors'),
+    ),
+    '#default_value' => 'products',
+    '#attributes' => array('class' => array('uk-button-group')),
+  );
+  $form['file'] = array(
+    '#type' => 'file',
+    //'#title' => t('Upload'),
+    '#description' => t('Choose a valid excel file, allowed extensions: xls, xlsx'),
+    //'#attributes' => array('class' => array('uk-margin-top')),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Start import'),
+    '#attributes' => array('class' => array('uk-button-primary uk-margin-top')),
+  );
 
   return $form;
 }
+
+/**
+ * Validate handler for avimport_import_form().
+ *
+ * @ingroup form_example
+ */
+function avimport_import_form_validate($form, &$form_state) {
+  $file = file_save_upload('file', array(
+    // Validates file is really an image.
+    'avbase_file_validate_is_excel' => array(),
+    // Validate extensions.
+    'file_validate_extensions' => array('xls xlsx csv'),
+  ));
+  // If the file passed validation:
+  if ($file) {
+    // Move the file into the Drupal file system.
+    if ($file = file_move($file, 'public://')) {
+      // Save the file for use in the submit handler.
+      $form_state['storage']['file'] = $file;
+    }
+    else {
+      form_set_error('file', t("Failed to write the uploaded file to the site's file folder."));
+    }
+  }
+  else {
+    form_set_error('file', t('No file was uploaded.'));
+  }
+}
+
+/**
+ * Submit handler for avimport_import_form().
+ *
+ * @ingroup form_example
+ */
+function avimport_import_form_submit($form, &$form_state) {
+  $file = $form_state['storage']['file'];
+  // We are done with the file, remove it from storage.
+  unset($form_state['storage']['file']);
+  //// Make the storage of the file permanent.
+  //$file->status = FILE_STATUS_PERMANENT;
+  //// Save file status.
+  //file_save($file);
+  // Set a response to the user.
+  drupal_set_message(t('The form has been submitted and the image has been saved, filename: @filename.', array('@filename' => $file->filename)));
+}
+
+
+/**
+ * Start batch import.
+ */
+function avimport_batch_start() {
+  $batch = array(
+    'operations' => array(
+      array('avimport_batch_process', array('D:/deleteme.xls')),
+      //array('avimport_batch_process', array('D:/deleteme2.xlsx')),
+    ),
+    'finished' => 'avimport_batch_finished',
+    'title' => t('Processing Example Batch'),
+    'init_message' => t('Example Batch is starting.'),
+    //'progress_message' => '',
+    'error_message' => t('Example Batch has encountered an error.'),
+    //'file' => drupal_get_path('module', 'batch_example') . '/batch_example.inc',
+  );
+  batch_set($batch);
+
+  // If this function was called from a form submit handler, stop here,
+  // FAPI will handle calling batch_process().
+
+  // If not called from a submit handler, add the following,
+  // noting the url the user should be sent to once the batch
+  // is finished.
+  // IMPORTANT:
+  // If you set a blank parameter, the batch_process() will cause an infinite loop
+
+  batch_process('av/import');
+}
+
 
 /**
  * Batch process to import excel date and create nodes for each row.
@@ -34,73 +156,99 @@ function avimport_import_form($form, &$form_state) {
  * @throws Exception
  */
 function avimport_batch_process($filepath, &$context) {
+  //$wrapper = file_stream_wrapper_get_instance_by_uri('temporary://');
+  //dpm($wrapper);
+  //dpm($wrapper->realpath());
+  //return;
   module_load_include('inc', 'phpexcel');
 
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
     // We have no idea how many lines we have to load. Provide some large
     // number, and we'll adapt as we go along.
-    $context['sandbox']['max'] = 10000;
+    $context['sandbox']['max'] = 100;
+    $context['results'] = array();
   }
+
+  $_results = &$context['results'];
+  $_progress = $context['sandbox']['progress'];
 
   // We need to load the library before we can instantiate our
   // ChunkReaderFilter class.
   $library = libraries_load('PHPExcel');
   if (empty($library['loaded'])) {
-    drupal_set_message(t("Couldn't load the PHPExcel library."), 'error');
-    $context['sandbox']['finished'] = 1;
-    $context['success'] = FALSE;
+    $_results['errors'][] = t("Couldn't load the PHPExcel library.");
     return;
   }
 
-  $limit = 10;
-  // See our module's info file below.
+  $limit = 50;
   $chunk_filter = new ChunkReadFilter();
-  $chunk_filter->setRows($context['sandbox']['progress'], $limit);
+  $chunk_filter->setRows($_progress + 2, $limit + 1);
   $data = phpexcel_import($filepath, TRUE, FALSE, array(
     'setReadFilter' => array($chunk_filter),
   ));
 
   if (!is_array($data)) {
-    drupal_set_message(t("Something went wrong on pass !pass", array(
+    $_results['errors'][] = t("Something went wrong on pass !pass", array(
       '!pass' => $context['sandbox']['progress'],
-    )), 'error');
-    $context['sandbox']['finished'] = 1;
-    $context['success'] = FALSE;
+    ));
+    if ($data == PHPEXCEL_ERROR_FILE_NOT_READABLE) {
+      $_results['errors'][] = t('The file %filepath is unreadable.', array('%filepath' => $filepath));
+    }
     return;
   }
 
-  // Get rid of the worksheet.
-  $data = $data[0];
+  // Make sure file is a valid excel file.
+  $errors = avbase_file_validate_is_excel((object) array('uri' => $filepath));
+  if (!empty($errors)) {
+    $_results['errors'] = $errors;
+    return;
+  }
 
-  $i = 0;
-  while($i < $limit) {
-    if (!empty($data[$i])) {
-      // Do something with the data, like creating a node...
-      $node = (object) array(
-        'type' => 'page',
-        'title' => $data[$i]['Header 1'],
-      );
-      node_save($node);
-      $context['results'][] = $node;
-      $context['sandbox']['progress']++;
-      $i++;
+
+  $result = db_query_range("SELECT nid FROM {node} WHERE nid > :d ORDER BY nid ASC", 0, $limit, array(':d' => 0));
+  foreach ($result as $node) {
+    node_delete($node->nid);
+  }
+
+  // Get rid of the headers.
+  //$data = $data[0];
+  $data = array_splice($data[0], $_progress);
+  foreach ($data as $k => $excel_row) {
+    if ($k == $limit) {
+      // Limit reached.
+      break;
+    }
+
+    if (!empty($excel_row)) {
+      $node = new stdClass();
+      //$node = node_load(600, NULL, TRUE);
+      $node->title = $excel_row['Header 1'];
+      $node->type = 'page';
+
+      //node_save($node);
+      $_results['nodes'][] = $excel_row;
     }
     else {
-      // We have reached the end of our file. Finish now.
-      $context['sandbox']['finished'] = 1;
-      $context['success'] = TRUE;
-      return;
+      break;
     }
   }
 
+  // If last row is empty. Consider it as end of file.
+  if (empty($data[$limit])) {
+    $_results['success'] = TRUE;
+    return;
+  }
+
+  $context['sandbox']['progress'] += $limit;
+  $context['message'] = t('Now processing %node', array('%node' => $context['sandbox']['progress']));
   if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
 }
 
 /**
- * Call back when avimport_batch_process() is finished.
+ * Callback when avimport_batch_process() is finished.
  * @param $success
  * @param $results
  * @param $operations
@@ -108,15 +256,125 @@ function avimport_batch_process($filepath, &$context) {
  * @throws Exception
  */
 function avimport_batch_finished($success, $results, $operations) {
-  if ($success) {
+  dpm($results);
+  if ($success && !empty($results['success'])) {
+    $nodes = empty($results['nodes']) ? array() : $results['nodes'];
     // Here we do something meaningful with the results.
-    $message = t("!count items were processed.", array(
-      '!count' => count($results),
+    $message = t("!count rows were processed.", array(
+      '!count' => count($nodes),
     ));
     $message .= theme('item_list', array('items' => array_map(function($node) {
-      return l($node->title, "node/{$node->nid}");
-    }, $results)));
+      return l('s' . $node->title, "node/");
+    }, $nodes)));
     drupal_set_message($message);
   }
+  else {
+    drupal_set_message(t('Data import was interrupted.'), 'error');
+
+    // An error occurred.
+    if (empty($success)) {
+      // $operations contains the operations that remained unprocessed.
+      $error_operation = reset($operations);
+      $message = t('An error occurred while processing %error_operation with arguments: @arguments', array('%error_operation' => $error_operation[0], '@arguments' => print_r($error_operation[1], TRUE)));
+      drupal_set_message($message, 'error');
+    }
+
+    $errors = empty($results['errors']) ? array() : $results['errors'];
+    foreach ($errors as $err) {
+      drupal_set_message($err, 'error');
+    }
+  }
 }
+
+
+
+
+//
+///**
+// * Batch process to import excel date and create nodes for each row.
+// * @param $filepath
+// * @param $context
+// *
+// * @throws Exception
+// */
+//function avimport_batch_process($options1, &$context) {
+//  if (!isset($context['sandbox']['progress'])) {
+//    $context['sandbox']['progress'] = 0;
+//    //$context['sandbox']['current_node'] = 0;
+//    $context['sandbox']['max'] = 50;
+//  }
+//
+//  // For this example, we decide that we can safely process
+//  // 5 nodes at a time without a timeout.
+//  $limit = 5;
+//
+//  // With each pass through the callback, retrieve the next group of nids.
+//  //$result = db_query_range("SELECT nid FROM {node} WHERE nid > %d ORDER BY nid ASC", $context['sandbox']['current_node'], 0, $limit);
+//  //while ($row = db_fetch_array($result)) {
+//  //while (1) {
+//
+//  for ($x = 0; $x < 1; $x++) {
+//    $result = db_query_range("SELECT nid FROM {node} WHERE nid > :d ORDER BY nid ASC", 0, $limit, array(':d' => 0));
+//    foreach ($result as $row) {
+//
+//      // Here we actually perform our processing on the current node.
+//      $node = node_load($row->nid, NULL, TRUE);
+//      $node->title = '-' . $context['sandbox']['progress'];
+//      //$node->body = $options2;
+//      node_save($node);
+//
+//      // Store some result for post-processing in the finished callback.
+//      $context['results'][$context['sandbox']['progress']] = check_plain($node->title);
+//
+//
+//      // Update our progress information.
+//      $context['sandbox']['progress']++;
+//      $context['message'] = t('Now processing %node', array('%node' => $context['sandbox']['progress']));
+//    }
+//  }
+//
+//
+//  // Update our progress information.
+//  //$context['sandbox']['progress']++;
+//  //$context['message'] = t('Now processing %node', array('%node' => $context['sandbox']['progress']));
+//  //}
+//
+//  //if ($context['sandbox']['progress'] > 30) {
+//  //  $context['finished'] = 1;
+//  //  $context['success'] = FALSE;
+//  //}
+//
+//  // Inform the batch engine that we are not finished,
+//  // and provide an estimation of the completion level we reached.
+//
+//  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+//    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+//  }
+//}
+//
+///**
+// * Callback when avimport_batch_process() is finished.
+// * @param $success
+// * @param $results
+// * @param $operations
+// *
+// * @throws Exception
+// */
+//function avimport_batch_finished($success, $results, $operations) {
+//  dpm($results);
+//  if ($success) {
+//    // Here we do something meaningful with the results.
+//    $message = t('@count items successfully processed:', array('@count' => count($results)));
+//    // $message .= theme('item_list', $results);  // D6 syntax
+//    //$message .= theme('item_list', array('items' => $results));
+//    drupal_set_message($message);
+//  }
+//  else {
+//    // An error occurred.
+//    // $operations contains the operations that remained unprocessed.
+//    $error_operation = reset($operations);
+//    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array('%error_operation' => $error_operation[0], '@arguments' => print_r($error_operation[1], TRUE)));
+//    drupal_set_message($message, 'error');
+//  }
+//}
 
