@@ -1,0 +1,122 @@
+<?php
+/**
+ * @file
+ * Import feature.
+ */
+
+
+//module_load_include('inc', 'avbase', 'inc/entity_overview.form');
+
+/**
+ * Implementation of hook_menu().
+ */
+function avimport_menu() {
+  $items['av/import'] = array(
+    'title' => 'Import',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avimport_import_form'),
+    'access callback' => 'user_is_logged_in',
+    //'menu_name' => 'av',
+    //'expanded' => TRUE,
+  );
+}
+
+function avimport_import_form($form, &$form_state) {
+
+  return $form;
+}
+
+/**
+ * Batch process to import excel date and create nodes for each row.
+ * @param $filepath
+ * @param $context
+ *
+ * @throws Exception
+ */
+function avimport_batch_process($filepath, &$context) {
+  module_load_include('inc', 'phpexcel');
+
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    // We have no idea how many lines we have to load. Provide some large
+    // number, and we'll adapt as we go along.
+    $context['sandbox']['max'] = 10000;
+  }
+
+  // We need to load the library before we can instantiate our
+  // ChunkReaderFilter class.
+  $library = libraries_load('PHPExcel');
+  if (empty($library['loaded'])) {
+    drupal_set_message(t("Couldn't load the PHPExcel library."), 'error');
+    $context['sandbox']['finished'] = 1;
+    $context['success'] = FALSE;
+    return;
+  }
+
+  $limit = 10;
+  // See our module's info file below.
+  $chunk_filter = new ChunkReadFilter();
+  $chunk_filter->setRows($context['sandbox']['progress'], $limit);
+  $data = phpexcel_import($filepath, TRUE, FALSE, array(
+    'setReadFilter' => array($chunk_filter),
+  ));
+
+  if (!is_array($data)) {
+    drupal_set_message(t("Something went wrong on pass !pass", array(
+      '!pass' => $context['sandbox']['progress'],
+    )), 'error');
+    $context['sandbox']['finished'] = 1;
+    $context['success'] = FALSE;
+    return;
+  }
+
+  // Get rid of the worksheet.
+  $data = $data[0];
+
+  $i = 0;
+  while($i < $limit) {
+    if (!empty($data[$i])) {
+      // Do something with the data, like creating a node...
+      $node = (object) array(
+        'type' => 'page',
+        'title' => $data[$i]['Header 1'],
+      );
+      node_save($node);
+      $context['results'][] = $node;
+      $context['sandbox']['progress']++;
+      $i++;
+    }
+    else {
+      // We have reached the end of our file. Finish now.
+      $context['sandbox']['finished'] = 1;
+      $context['success'] = TRUE;
+      return;
+    }
+  }
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+}
+
+/**
+ * Call back when avimport_batch_process() is finished.
+ * @param $success
+ * @param $results
+ * @param $operations
+ *
+ * @throws Exception
+ */
+function avimport_batch_finished($success, $results, $operations) {
+  if ($success) {
+    // Here we do something meaningful with the results.
+    $message = t("!count items were processed.", array(
+      '!count' => count($results),
+    ));
+    $message .= theme('item_list', array('items' => array_map(function($node) {
+      return l($node->title, "node/{$node->nid}");
+    }, $results)));
+    drupal_set_message($message);
+  }
+}
+

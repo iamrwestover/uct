@@ -4,8 +4,8 @@
  * UCT base features and functions.
  */
 
-require_once 'inc/helpers.inc';
-require_once 'inc/crud.inc';
+module_load_include('inc', 'avbase', 'inc/helpers');
+module_load_include('inc', 'avbase', 'inc/crud');
 
 define('AVBASE_MODULE_PATH', drupal_get_path('module', 'avbase'));
 define('AVBASE_LIBRARIES_PATH', 'sites/all/libraries');

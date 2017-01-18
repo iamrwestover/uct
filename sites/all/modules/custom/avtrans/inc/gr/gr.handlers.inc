@@ -133,6 +133,9 @@ function avtrans_gr_form_submit($form, &$form_state) {
       $cost_changes = array();
       foreach ($entered_products as $k => $entered_product) {
         $product_row = empty($product_rows[$entered_product['product_id']]) ? array() : $product_rows[$entered_product['product_id']];
+        if (empty($product_row->id)) {
+          continue;
+        }
         $incoming_base_qty = $entered_product['qty'] * $entered_product['qty_per_uom'];
         $current_cost = (float) $product_row->cost;
         $current_sales_price = (float) $product_row->price;

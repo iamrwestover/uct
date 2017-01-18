@@ -84,7 +84,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
 
   // Pre-load empty product rows.
   if (empty($_item_rows)) {
-    $starting_empty_row_count = 3;
+    $starting_empty_row_count = 10;
     for ($x = 0; $x < $starting_empty_row_count; $x++) {
       $_item_rows['new_' . $x] = array();
     }

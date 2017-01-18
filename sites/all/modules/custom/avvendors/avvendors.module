@@ -62,7 +62,7 @@ function avvendors_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avvendors_vendor_delete_confirm_form', 2),
     'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_CALLBACK,
     'file' => 'inc/crud.inc',
     'weight' => 3,
   );
@@ -139,7 +139,7 @@ function avvendors_home_form($form, &$form_state) {
     $menu_prefix = 'av/vendors/' . $row->id;
     $action_links = array('links' => array(
       'edit' => array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'icon_kedy' => 'edit', 'query' => drupal_get_destination()),
-      'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
+      //'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
     ));
 
     $action_links_all[] = $action_links;

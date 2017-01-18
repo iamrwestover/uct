@@ -71,7 +71,7 @@ function avbase_categories_form($form, &$form_state, $category_id) {
 
     $action_links = array('links' => array(
       'edit' => array('title' => 'edit', 'href' => $category_menu_path . '/' . $db_row->id . '/edit', 'query' => $destination_path),
-      'delete' => array('title' => 'delete', 'href' => $category_menu_path . '/' . $db_row->id . '/delete', 'query' => $destination_path),
+      //'delete' => array('title' => 'delete', 'href' => $category_menu_path . '/' . $db_row->id . '/delete', 'query' => $destination_path),
     ));
 
     //$action_links_all[] = $action_links;
@@ -244,13 +244,14 @@ HTML;
  * Handler for category delete.
  */
 function avbase_category_delete_confirm_form_submit($form, &$form_state) {
-  if (isset($form_state['row']->id)) {
-    $row = $form_state['row'];
-    if (avbase_category_delete($row->id)) {
-      drupal_set_message('Record deleted.');
-      avbase_custom_watchdog("{$row->group_id}__delete", "ID: {$row->id}", array('#row' => $row, '#group_id' => $row->group_id));
-    }
-  }
+  //if (isset($form_state['row']->id)) {
+  //  $row = $form_state['row'];
+  //  if (avbase_category_delete($row->id)) {
+  //    drupal_set_message('Record deleted.');
+  //    avbase_custom_watchdog("{$row->group_id}__delete", "ID: {$row->id}", array('#row' => $row, '#group_id' => $row->group_id));
+  //  }
+  //}
+  drupal_set_message(t('Record delete is disabled'), 'error');
   $form_state['redirect'] = '';
 }
 

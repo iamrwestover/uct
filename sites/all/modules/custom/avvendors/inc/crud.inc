@@ -372,10 +372,11 @@ HTML;
  * @see avvendors_vendor_delete_confirm_form()
  */
 function avvendors_vendor_delete_confirm_form_submit($form, &$form_state) {
-  if (isset($form_state['row']->id)) {
-    if (avvendors_vendor_delete($form_state['row']->id)) {
-      drupal_set_message('Record deleted.');
-    }
-  }
+  //if (isset($form_state['row']->id)) {
+  //  if (avvendors_vendor_delete($form_state['row']->id)) {
+  //    drupal_set_message('Record deleted.');
+  //  }
+  //}
+  drupal_set_message(t('Record delete is disabled'), 'error');
   $form_state['redirect'] = '';
 }

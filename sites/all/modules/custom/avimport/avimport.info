@@ -1,0 +1,6 @@
+name = AV AIS Import Module
+description = Import module for AV AIS system.
+core = 7.x
+package = AV
+
+dependencies[] = phpexcel

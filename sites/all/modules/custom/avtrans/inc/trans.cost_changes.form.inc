@@ -126,7 +126,7 @@ function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
   $cost_changes_form['#theme'] = 'avbase_modal_form';
   $cost_changes_form['#modal_options'] = array(
     'modal_id' => 'cost-changed',
-    'modal_title' => t('Some product costs have been changed. Below is the recommended record updates.'),
+    'modal_title' => t('Some product costs have been changed. Do you want to update our records?'),
     'modal_classes' => array('uk-modal-dialog-large'),
   );
   $form['cost_changes'] = $cost_changes_form;
