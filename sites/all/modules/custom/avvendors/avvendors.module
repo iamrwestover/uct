@@ -18,7 +18,7 @@ function avvendors_menu() {
   $items['av/vendors'] = array(
     'title' => 'Vendors',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('avvendors_home_form'),
+    'page arguments' => array('avbase_entity_overview_form', 'vendors'),
     'access callback' => 'user_is_logged_in',
     'menu_name' => 'av',
     'expanded' => TRUE,
@@ -42,7 +42,7 @@ function avvendors_menu() {
   $items['av/vendors/%avvendor/view'] = array(
     'title' => 'View',
     'page callback' => 'avvendors_vendor_form_load',
-    'page arguments' => array(2),
+    'page arguments' => array(2, TRUE),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
@@ -79,7 +79,7 @@ function avvendors_menu() {
  * @return array
  */
 function avvendors_theme($existing, $type, $theme, $path) {
-  $forms_template_path = $path . '/templates/forms';
+  $forms_template_path = $path . '/templates';
   $form_names = array(
     'avvendors_vendor_form',
     'avvendors_home_form',
@@ -107,6 +107,9 @@ function avvendors_theme($existing, $type, $theme, $path) {
 function avvendors_home_form($form, &$form_state) {
 //  drupal_add_js('sites/all/libraries/ag-grid/ag-grid.min.js');
 //  drupal_add_js(AVVENDORS_MODULE_PATH . '/js/avvendors.js');
+
+  $form = avbase_entity_overview_form($form, $form_state);
+  return $form;
 
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array('#markup' => l('New vendor', 'av/vendors/add', $btn_options));

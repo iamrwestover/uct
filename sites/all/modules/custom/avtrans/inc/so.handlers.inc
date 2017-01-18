@@ -20,12 +20,12 @@ function avtrans_avbase_crud_dbchange_so($op, $row, $form_state) {
       $item_rows = isset($form_state['storage']['item_rows']) ? $form_state['storage']['item_rows'] : array();
 
       // Save sales order items.
-      $query = db_insert('avtbl_so_items')->fields(array('po_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost'));
+      $query = db_insert('avtbl_so_items')->fields(array('so_id', 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost'));
       foreach ($item_rows as $prod_row) {
         if (empty($prod_row['product_id'])) {
           continue;
         }
-        $prod_row['po_id'] = $row['id'];
+        $prod_row['so_id'] = $row['id'];
         $query->values($prod_row);
       }
       $query->execute();

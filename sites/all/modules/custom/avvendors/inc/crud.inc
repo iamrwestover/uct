@@ -7,26 +7,31 @@
  *
  * @return string
  */
-function avvendors_vendor_form_load($row) {
-  return drupal_get_form('avvendors_vendor_form', $row);
+function avvendors_vendor_form_load($row, $view_mode = FALSE) {
+  return drupal_get_form('avvendors_vendor_form', $row, $view_mode);
 }
 
-function avvendors_vendor_form($form, &$form_state, $row) {
+function avvendors_vendor_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   $page_title = empty($form['id']['#value']) ? 'New vendor' : 'Edit vendor';
-  drupal_set_title($page_title);
+  if (!$view_mode) {
+    drupal_set_title($page_title);
+  }
 
   // Set crud settings.
-  avvendors_vendor_form_settings($form);
+  avvendors_vendor_form_settings($form, $view_mode);
 
   // Info group.
-  avvendors_vendor_form_info_fields($form, $row);
+  avvendors_vendor_form_info_fields($form, $row, $view_mode);
 
   // Contact group.
-  avvendors_vendor_form_contact_fields($form, $row);
+  avvendors_vendor_form_contact_fields($form, $row, $view_mode);
 
   // Address group.
-  avvendors_vendor_form_address_fields($form, $row);
+  avvendors_vendor_form_address_fields($form, $row, $view_mode);
+
+  // Transaction group.
+  avvendors_vendor_form_transaction_fields($form, $row, $view_mode);
 
   // Miscellaneous.
   $form['misc'] = array(
@@ -50,7 +55,7 @@ function avvendors_vendor_form($form, &$form_state, $row) {
   );
 
   // Convert form to non-edit mode if we are on View page.
-  $form['#av_view_mode'] = (arg(3) == 'view');
+  $form['#av_view_mode'] = $view_mode;
   avbase_allow_form_view_mode($form);
   return $form;
 }
@@ -59,7 +64,7 @@ function avvendors_vendor_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avvendors_vendor_form_settings(&$form) {
+function avvendors_vendor_form_settings(&$form, $view_mode = FALSE) {
   $table_name = 'avtbl_vendors';
 
   // Set generic submit handler.
@@ -114,7 +119,7 @@ function avvendors_vendor_form_settings(&$form) {
  * New vendor - generate info fields.
  * @param $form
  */
-function avvendors_vendor_form_info_fields(&$form, $row) {
+function avvendors_vendor_form_info_fields(&$form, $row, $view_mode = FALSE) {
   $form['info'] = array(
     '#type' => 'fieldset',
     '#title' => 'Info',
@@ -154,6 +159,7 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
   $info['display_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Display name',
+    '#title_display' => $view_mode ? 'none' : 'before',
     '#default_value' => isset($row->display_name) ? check_plain($row->display_name) : '',
     '#maxlength' => 255,
     '#required' => TRUE,
@@ -211,7 +217,7 @@ function avvendors_vendor_form_info_fields(&$form, $row) {
  * New vendor - generate contact fields.
  * @param $form
  */
-function avvendors_vendor_form_contact_fields(&$form, $row) {
+function avvendors_vendor_form_contact_fields(&$form, $row, $view_mode = FALSE) {
   $form['contact'] = array(
     '#type' => 'fieldset',
     '#title' => 'Contact details',
@@ -242,7 +248,7 @@ function avvendors_vendor_form_contact_fields(&$form, $row) {
  * New vendor - generate address fields.
  * @param $form
  */
-function avvendors_vendor_form_address_fields(&$form, $row) {
+function avvendors_vendor_form_address_fields(&$form, $row, $view_mode = FALSE) {
   $form['address'] = array(
     '#type' => 'fieldset',
     '#title' => 'Address',
@@ -273,6 +279,71 @@ function avvendors_vendor_form_address_fields(&$form, $row) {
   );
   $form['address'] += $address;
 }
+
+/**
+ * New vendor - generate transaction fields.
+ * @param $form
+ */
+function avvendors_vendor_form_transaction_fields(&$form, $row, $view_mode = FALSE) {
+  if (empty($row->id) || empty($view_mode)) {
+    return;
+  }
+  $transactions = array();
+
+  $conditions = array(
+    array('avpo.client_id', $row->id)
+  );
+  $orders = avtrans_po_query_load($conditions, 0, 8);
+  $conditions = array(
+    array('avgr.client_id', $row->id)
+  );
+  $received = avtrans_gr_query_load($conditions, 0, 8);
+  //dpm($received);
+
+  $table_rows = array();
+  foreach ($orders as $k => $order) {
+    $table_cols = array();
+    $table_cols['type'] = array(
+      '#markup' => 'Purchase order',
+      '#column_attributes' => array('class' => array('uk-width-2-5')),
+    );
+    $table_cols['transaction_num'] = array(
+      '#markup' => $order->id,
+      '#column_attributes' => array('class' => array('uk-width-2-5')),
+    );
+    $table_cols['transaction_date'] = array(
+      '#markup' => format_date($order->transaction_date, 'custom', 'Y M d, h:i a'),
+      '#column_attributes' => array('class' => array('uk-width-1-5')),
+    );
+
+    $table_rows[$k] = $table_cols;
+    $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
+  }
+  if (!empty($table_rows)) {
+    $table = array(
+      '#theme' => 'avbase_form_table',
+      '#header' => array(
+        array('data' => t('Type')),
+        array('data' => t('Transaction #')),
+        array('data' => t('Date')),
+        '&nbsp;',
+      ),
+    );
+    $table['rows'] = $table_rows;
+    $table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
+
+    //$fields['product_cost_changes'] += $pcfields;
+    //$fields['intro'] = array('#weight' => -5, '#markup' => '<p>Some product costs have been changed. Do you want to update?</p>');
+    $transactions['table'] = $table;
+  }
+  else {
+    $transactions = array('#markup' => '<div class="uk-text-muted uk-text-center">No transactions yet</div>');
+  }
+
+  $form['transactions'] = array();
+  $form['transactions'] += $transactions;
+}
+
 
 /**
  * Menu callback: confirm vendor delete.

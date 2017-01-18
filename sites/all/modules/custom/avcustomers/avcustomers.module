@@ -19,7 +19,7 @@ function avcustomers_menu() {
   $items['av/customers'] = array(
     'title' => 'Customers',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('avcustomers_home_form'),
+    'page arguments' => array('avbase_entity_overview_form', 'customers'),
     'access callback' => 'user_is_logged_in',
     'menu_name' => 'av',
     'expanded' => TRUE,
@@ -36,7 +36,7 @@ function avcustomers_menu() {
   $items['av/customers/%avcustomer/view'] = array(
     'title' => 'View',
     'page callback' => 'avcustomers_customer_form_load',
-    'page arguments' => array(2),
+    'page arguments' => array(2, TRUE),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',

@@ -510,3 +510,42 @@ function avbase_element_set_form_state_extra_value(&$form_state, $element, $valu
   // Update form_state values.
   drupal_array_set_nested_value($form_state['values'], $parents, $value);
 }
+
+/**
+ * @return array
+ */
+function avbase_entity_details() {
+  return array(
+    'vendors' => array('title' => t('Vendor')),
+    'customers' =>  array('title' => t('Customer')),
+  );
+}
+
+/**
+ * Update $form_state['storage']['item_rows'] based on the given $element.
+ * @param $form_state
+ * @param $element
+ * @param $value
+ */
+function avtrans_item_list_update_item_row(&$form_state, $element, $value) {
+  $item_row_key = isset($element['#item_row_key']) ? $element['#item_row_key'] : '';
+  if (empty($item_row_key)) {
+    return;
+  }
+
+  // Get save id.
+  $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : $element['#name'];
+
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get item rows.
+  $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
+  $_item_rows = &$_storage['item_rows'];
+
+  if (isset($_item_rows[$item_row_key])) {
+    $_item_rows[$item_row_key][$save_id] = $value;
+  }
+}
+

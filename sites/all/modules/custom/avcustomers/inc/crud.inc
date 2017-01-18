@@ -7,8 +7,8 @@
  *
  * @return string
  */
-function avcustomers_customer_form_load($row) {
-  return drupal_get_form('avcustomers_customer_form', $row);
+function avcustomers_customer_form_load($row, $view_mode = FALSE) {
+  return drupal_get_form('avcustomers_customer_form', $row, $view_mode);
 }
 
 /**
@@ -20,7 +20,7 @@ function avcustomers_customer_form_load($row) {
  *
  * @return array
  */
-function avcustomers_customer_form($form, &$form_state, $row) {
+function avcustomers_customer_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   switch (arg(3)) {
     case 'view':
@@ -33,22 +33,24 @@ function avcustomers_customer_form($form, &$form_state, $row) {
       $page_title = t('New customer');
       break;
   }
-  drupal_set_title($page_title);
+  if (!$view_mode) {
+    drupal_set_title($page_title);
+  }
 
   // Set crud settings.
-  avcustomers_customer_form_settings($form);
+  avcustomers_customer_form_settings($form, $view_mode);
 
   // Info group.
-  avcustomers_customer_form_info_fields($form, $row);
+  avcustomers_customer_form_info_fields($form, $row, $view_mode);
 
   // Contact group.
-  avcustomers_customer_form_contact_fields($form, $row);
+  avcustomers_customer_form_contact_fields($form, $row, $view_mode);
 
   // Address group.
-  avcustomers_customer_form_address_fields($form, $row);
+  avcustomers_customer_form_address_fields($form, $row, $view_mode);
 
   // Payment group.
-  avcustomers_customer_form_payment_fields($form, $row);
+  avcustomers_customer_form_payment_fields($form, $row, $view_mode);
 
   // Miscellaneous.
   $form['misc'] = array(
@@ -81,7 +83,13 @@ function avcustomers_customer_form($form, &$form_state, $row) {
       );
     }
     else {
-      drupal_set_message('This account is currently suspended.', 'error', FALSE);
+      $form_prefix = empty($form['#prefix']) ? '' : $form['#prefix'];
+      $form_prefix = '<div class="uk-alert uk-alert-warning"><span class="uk-badge uk-badge-warning" style="position: absolute;top:10px;left:10px;">Suspended Account</span>' . $form_prefix;
+      $form['#prefix'] = $form_prefix;
+      $form_suffix = empty($form['#suffix']) ? '' : $form['#suffix'];
+      $form_suffix .= '</div>';
+      $form['#suffix'] = $form_suffix;
+      //drupal_set_message('This account is currently suspended.', 'error', FALSE);
       $form['buttons']['activate'] = array(
         '#markup' => l('Activate', 'av/customers/' . $row->id . '/1/change-status', array(
           'attributes' => array('class' => 'uk-button uk-button-primary'),
@@ -93,7 +101,7 @@ function avcustomers_customer_form($form, &$form_state, $row) {
   }
 
   // Convert form to non-edit mode if we are on View page.
-  $form['#av_view_mode'] = (arg(3) == 'view');
+  $form['#av_view_mode'] = $view_mode;
   avbase_allow_form_view_mode($form);
   return $form;
 }
@@ -102,7 +110,7 @@ function avcustomers_customer_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avcustomers_customer_form_settings(&$form) {
+function avcustomers_customer_form_settings(&$form, $view_mode = FALSE) {
   $table_name = 'avtbl_customers';
 
   // Set generic submit handler.
@@ -167,7 +175,7 @@ function avcustomers_customer_form_settings(&$form) {
  * New customer - generate info fields.
  * @param $form
  */
-function avcustomers_customer_form_info_fields(&$form, $row) {
+function avcustomers_customer_form_info_fields(&$form, $row, $view_mode = FALSE) {
   $form['info'] = array(
     '#type' => 'fieldset',
     '#title' => 'Info',
@@ -230,6 +238,7 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
   $info['display_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Display name',
+    '#title_display' => $view_mode ? 'none' : 'before',
     '#default_value' => isset($row->display_name) ? check_plain($row->display_name) : '',
     '#maxlength' => 255,
     '#required' => TRUE,
@@ -288,7 +297,7 @@ function avcustomers_customer_form_info_fields(&$form, $row) {
  * New customer - generate contact fields.
  * @param $form
  */
-function avcustomers_customer_form_contact_fields(&$form, $row) {
+function avcustomers_customer_form_contact_fields(&$form, $row, $view_mode = FALSE) {
   $form['contact'] = array(
     '#type' => 'fieldset',
     '#title' => 'Contact details',
@@ -331,7 +340,7 @@ function avcustomers_customer_form_contact_fields(&$form, $row) {
  * New customer - generate address fields.
  * @param $form
  */
-function avcustomers_customer_form_address_fields(&$form, $row) {
+function avcustomers_customer_form_address_fields(&$form, $row, $view_mode = FALSE) {
   $form['address'] = array(
     '#type' => 'fieldset',
     '#title' => 'Address',
@@ -372,7 +381,7 @@ function avcustomers_customer_form_address_fields(&$form, $row) {
  * New customer - generate payment fields.
  * @param $form
  */
-function avcustomers_customer_form_payment_fields(&$form, $row) {
+function avcustomers_customer_form_payment_fields(&$form, $row, $view_mode = FALSE) {
   $form['payment'] = array(
     '#type' => 'fieldset',
     '#title' => 'Payment',

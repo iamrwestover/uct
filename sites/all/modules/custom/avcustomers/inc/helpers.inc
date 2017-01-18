@@ -17,7 +17,7 @@ function avcustomer_load($customer_id) {
     return $_customers[$customer_id];
   }
 
-  $where = array('avcust.id = :customer_id');
+  $where = array('avcustomers.id = :customer_id');
   $args = array(':customer_id' => $customer_id);
   $rows = avcustomer_query_load($where, $args);
   $row = empty($rows[$customer_id]) ? FALSE : $rows[$customer_id];
@@ -55,7 +55,7 @@ function avcustomer_load_ids($ids) {
   }
 
   if (!empty($query_ids)) {
-    $where = array('avcust.id IN(:customer_ids)');
+    $where = array('avcustomers.id IN(:customer_ids)');
     $args = array(':customer_ids' => $query_ids);
     $rows = avcustomer_query_load($where, $args);
     if (!empty($rows)) {
@@ -70,10 +70,11 @@ function avcustomer_load_ids($ids) {
  * Advanced customer load.
  * @param array $param_where
  * @param array $param_args
+ * @param $limit_string
  *
  * @return array
  */
-function avcustomer_query_load($param_where, $param_args = array()) {
+function avcustomer_query_load($param_where, $param_args = array(), $limit_string = '') {
   if (empty($param_where)) {
     return array();
   }
@@ -93,9 +94,9 @@ function avcustomer_query_load($param_where, $param_args = array()) {
     return $data[$data_id];
   }
 
-  $query = "SELECT avcust.*, avcat.title as agent_name
-    FROM {avtbl_customers} avcust
-    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avcust.agent_id AND avcat.group_id = 'agent_cust'";
+  $query = "SELECT avcustomers.*, avcat.title as agent_name
+    FROM {avtbl_customers} avcustomers
+    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avcustomers.agent_id AND avcat.group_id = 'agent_cust'";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
@@ -172,17 +173,20 @@ function avcustomers_autocomplete($string = '') {
   $string = trim($string);
   if ($string) {
     //$db_or = db_or();
-    //$db_or->condition('avcust.display_name', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avcust.company', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avcust.first_name', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avcust.last_name', '%' . db_like($string) . '%', 'LIKE');
+    //$db_or->condition('avcustomers.display_name', '%' . db_like($string) . '%', 'LIKE');
+    //$db_or->condition('avcustomers.company', '%' . db_like($string) . '%', 'LIKE');
+    //$db_or->condition('avcustomers.first_name', '%' . db_like($string) . '%', 'LIKE');
+    //$db_or->condition('avcustomers.last_name', '%' . db_like($string) . '%', 'LIKE');
     //
     //$query = db_select('avtbl_customers', 'avcust')->fields('avcust', array('id', 'display_name', 'company', 'email', 'term_id', 'discount_type', 'discount_value'));
     //$query->condition($db_or);
     //$query->range(0, 15);
     //$result = $query->execute();
     $where_or = array(
-      'avcust.display_name LIKE :string',
+      'avcustomers.display_name LIKE :string',
+      'avcustomers.company LIKE :string',
+      'avcustomers.first_name LIKE :string',
+      'avcustomers.last_name LIKE :string',
     );
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where = array($where_or_str);

@@ -7,8 +7,8 @@
  *
  * @return string
  */
-function avproducts_product_form_load($row) {
-  return drupal_get_form('avproducts_product_form', $row);
+function avproducts_product_form_load($row, $view_mode = FALSE) {
+  return drupal_get_form('avproducts_product_form', $row, $view_mode);
 }
 
 /**
@@ -19,7 +19,7 @@ function avproducts_product_form_load($row) {
  * @param $row
  * @return array
  */
-function avproducts_product_form($form, &$form_state, $row) {
+function avproducts_product_form($form, &$form_state, $row, $view_mode = FALSE) {
   $uom_categories = avbase_get_categories('uom');
   $js_settings = array('avbaseUOMCategories' => $uom_categories);
   $form['#attached']['js'] = array(
@@ -40,12 +40,12 @@ function avproducts_product_form($form, &$form_state, $row) {
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avproducts_product_form_settings($form);
+  avproducts_product_form_settings($form, $view_mode);
 
   // Info group.
-  avproducts_product_form_info_fields($form, $form_state, $row);
+  avproducts_product_form_info_fields($form, $form_state, $row, $view_mode);
   // UOM group.
-  avproducts_product_form_uom_fields($form, $form_state, $row);
+  avproducts_product_form_uom_fields($form, $form_state, $row, $view_mode);
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
@@ -57,7 +57,7 @@ function avproducts_product_form($form, &$form_state, $row) {
   );
 
   // Convert form to non-edit mode if we are on View page.
-  $form['#av_view_mode'] = arg(3) == 'view' && arg(2) != '';
+  $form['#av_view_mode'] = $view_mode;
   avbase_allow_form_view_mode($form);
   return $form;
 }
@@ -66,7 +66,7 @@ function avproducts_product_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avproducts_product_form_settings(&$form) {
+function avproducts_product_form_settings(&$form, $view_mode = FALSE) {
   $table_name = 'avtbl_products';
 
   // Set generic submit handler.
@@ -121,7 +121,7 @@ function avproducts_product_form_settings(&$form) {
  * @param $form_state
  * @param $row
  */
-function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
+function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   $form['info'] = array(
     '#type' => 'fieldset',
     '#title' => 'Info',
@@ -167,9 +167,9 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
     '#element_validate' => empty($row->id) ? array('avproducts_qty_validate') : array(),
     '#disabled' => !empty($row->id)
   );
-  if (!empty($row->id)) {
-    $info['qty']['#suffix'] = '<div class="">' . l('adjust quantity', '#') . '</div>';
-  }
+  //if (!empty($row->id)) {
+  //  $info['qty']['#suffix'] = '<div class="">' . l('adjust quantity', '#') . '</div>';
+  //}
   $info['initial_qty'] = array(
     '#type' => 'textfield',
     '#title' => 'Beginning qty.',
@@ -312,7 +312,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avproducts_product_form_uom_fields(&$form, &$form_state, $row) {
+function avproducts_product_form_uom_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   $uom_categories = avbase_get_categories('uom');
   $db_row_uoms = empty($row->data['uoms']) ? array() : $row->data['uoms'];
   $user_input = isset($form_state['input']) ? $form_state['input'] : array();

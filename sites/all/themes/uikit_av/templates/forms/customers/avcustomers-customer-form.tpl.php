@@ -30,7 +30,13 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 //$form['address']['city']['#attributes']['placeholder'] = 'City';
 //$form['address']['province']['#attributes']['placeholder'] = 'Province';
 //$form['address']['zip_code']['#attributes']['placeholder'] = 'ZIP Code';
+
+$view_mode = !empty($form['#av_view_mode']);
 ?>
+
+<?php if ($view_mode): ?>
+  <h1 class="uk-text-center uk-margin-small-top"><?php print drupal_render($form['info']['display_name']); ?></h1>
+<?php endif; ?>
 
 <div class="uk-grid uk-grid-large">
   <div class="uk-width-1-2">
@@ -66,10 +72,14 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 
   <div class="uk-width-1-1 uk-margin-top">
     <ul class="uk-tab" data-uk-tab="{connect:'#more-info'}">
+      <li><a href="">Transactions</a></li>
       <li><a href="">Address</a></li>
       <li><a href="">Payment</a></li>
     </ul>
     <ul id="more-info" class="uk-switcher">
+      <li class="uk-panel uk-panel-box">
+        Transactions
+      </li>
       <li class="uk-panel uk-panel-box">
 
         <div class="uk-grid">

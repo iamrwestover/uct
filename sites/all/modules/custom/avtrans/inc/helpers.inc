@@ -89,7 +89,7 @@ function avtrans_transaction_form_ajax($form, $form_state) {
  * @param $form_state
  * @param $form
  */
-function avtrans_element_validate_enough_qty(&$element, &$form_state, $form) {
+function avtrans_element_validate_enough_qty(&$element, &$form_state) {
   $element_value = $element['#value'];
   if (is_numeric($element_value) == '') {
     return;

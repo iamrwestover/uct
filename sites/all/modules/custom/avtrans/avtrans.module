@@ -15,7 +15,7 @@ module_load_include('inc', 'avtrans', 'inc/helpers');
  */
 function avtrans_menu() {
   $items['av/transactions'] = array(
-    'title' => 'Transact',
+    'title' => 'Transaction',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_home_form'),
     'access callback' => 'user_is_logged_in',

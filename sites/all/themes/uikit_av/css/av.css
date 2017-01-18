@@ -209,3 +209,6 @@ th > a > img {
   left: 5px;
   top: -2px;
 }
+#entity-list-wrapper tr {
+  cursor: pointer;
+}

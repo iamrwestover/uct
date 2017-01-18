@@ -50,6 +50,14 @@ function uikit_av_process_node(&$variables) {
  * Implements template_preprocess_region().
  */
 function uikit_av_preprocess_region(&$variables) {
+  $path_alias = drupal_get_path_alias();
+  $paths = array(
+    'av/vendors',
+    'av/customers',
+  );
+  if (in_array($path_alias, $paths)) {
+    $variables['theme_hook_suggestions'][] = 'region__bare';
+  }
 }
 
 /**

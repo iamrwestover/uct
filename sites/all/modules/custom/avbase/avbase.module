@@ -40,6 +40,7 @@ function avbase_theme($existing, $type, $theme, $path) {
     'avbase_crud_button_group',
     'avbase_modal_form',
     'avbase_form_table',
+    'avbase_entity_overview_form',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -359,3 +360,20 @@ function avbase_library() {
 //function avbase_js_alter(&$js) {
 //  unset($js['misc/tableheader.js']);
 //}
+
+/**
+ * @param $form
+ * @param $form_state
+ */
+function avbase_entity_overview_form($form, &$form_state, $entity_name) {
+  module_load_include('inc', 'avbase', 'inc/entity_overview.form');
+  $form['#attributes']['id'] = 'entity-search-form';
+  $form['#attributes']['autocomplete'] = 'off';
+  $form['#attached']['js'][] = AVBASE_MODULE_PATH . '/js/entity_overview.form.js';
+
+  // Add Search form.
+  $form['search'] = avbase_entity_overview_search_form($form_state, $entity_name);
+  //$form['buttons'] = avbase_entity_overview_buttons_form($form_state, $entity_name);
+  $form['entity_info'] = avbase_entity_overview_info_form($form_state, $entity_name);
+  return $form;
+}

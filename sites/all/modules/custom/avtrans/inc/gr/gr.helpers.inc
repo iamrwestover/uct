@@ -74,7 +74,7 @@ function avtrans_gr_load_ids($ids) {
  *
  * @return array
  */
-function avtrans_gr_query_load($conditions = array()) {
+function avtrans_gr_query_load($conditions = array(), $offset = NULL, $limit = NULL) {
   if (empty($conditions)) {
     return array();
   }
@@ -104,6 +104,10 @@ function avtrans_gr_query_load($conditions = array()) {
     $field_value = isset($condition[1]) ? $condition[1] : NULL;
     $field_operator = isset($condition[2]) ? $condition[2] : NULL;
     $query->condition($field_name, $field_value, $field_operator);
+  }
+
+  if (isset($offset) && isset($limit)) {
+    $query->range($offset, $limit);
   }
 
   $query->orderBy('transaction_date', 'DESC');

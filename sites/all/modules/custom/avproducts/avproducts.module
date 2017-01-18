@@ -33,7 +33,7 @@ function avproducts_menu() {
   $items['av/products/%avproduct'] = array(
     'title' => 'View',
     'page callback' => 'avproducts_product_form_load',
-    'page arguments' => array(2),
+    'page arguments' => array(2, TRUE),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',

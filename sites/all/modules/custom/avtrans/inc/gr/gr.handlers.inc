@@ -39,7 +39,7 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
           continue;
         }
 
-        if (!empty($item_row['po_id'])) {
+        if (!empty($item_row["{$transaction_type}_id"])) {
           // Make sure only item rows owned by this owner get saved.
           if ($item_row['client_id'] != $row['client_id']) {
             continue;
