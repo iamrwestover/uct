@@ -78,37 +78,14 @@ function avproducts_product_form_settings(&$form, $view_mode = FALSE) {
   $form['#attributes']['autocomplete'] = 'off';
 
   // Set field names to save.
-  $save_field_ids = array(
-    'created',
-    'code',
-    'title',
-    'category_id' => array('type' => 'int'),
-    'uom_id' => array('type' => 'int'),
-    //'description',
-    'rop' => array('type' => 'int'),
-    'eoq' => array('type' => 'int'),
-    'cost' => array('type' => 'float'),
-    'price' => array('type' => 'float'),
-    'expiry_date' => array('type' => 'int'),
-    'lot_no',
-    'vendor_id' => array('type' => 'int'),
-    'account_type_id' => array('type' => 'int'),
-    'shelf_id' => array('type' => 'int'),
-    'principal_id' => array('type' => 'int'),
-  );
-  if (empty($form['id']['#value'])) {
-    $save_field_ids[] = 'qty';
-    $save_field_ids[] = 'initial_qty';
-    $save_field_ids[] = 'initial_qty_date';
-  }
+  $db_op = empty($form['id']['#value']) ? 'insert' : 'update';
+  $save_field_ids = avproducts_table_fields_to_save($db_op);
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,
   );
   // Set which fields belong to data field.
-  $data_ids = array(
-    'uoms' => array('type' => 'array'),
-  );
+  $data_ids = empty($save_field_ids['data']) ? array() : $save_field_ids['data'];
   $form['data_ids'] = array(
     '#type' => 'value',
     '#value' => $data_ids,
@@ -296,7 +273,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
   );
   $info['principal_id'] = array(
     '#type' => 'select',
-    '#title' => 'Principal manufacturer',
+    '#title' => 'Principal',
     '#options' => avbase_get_category_options_array('principal'),
     '#empty_value' => 0,
     '#empty_option' => '- Select -',

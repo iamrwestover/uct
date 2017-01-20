@@ -174,7 +174,7 @@ function avproducts_autocomplete($string = '') {
 
     $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'cost', 'price', 'data'));
     $query->condition($db_or);
-    $query->range(0, 15);
+    $query->range(0, 10);
     $result = $query->execute();
 
     foreach ($result as $row) {
@@ -213,4 +213,43 @@ function avproducts_product_uom_dropdown($product_id, $string = '') {
   //}
 $matches[$product_id] = $product_id.'ss';
   drupal_json_output($matches);
+}
+
+/**
+ * Return definition of product table fields.
+ * @param $db_op
+ * @return array
+ */
+function avproducts_table_fields_to_save($db_op = 'insert') {
+  $fields = array(
+    'created',
+    'code',
+    'title',
+    'category_id' => array('type' => 'int'),
+    'uom_id' => array('type' => 'int'),
+    'rop' => array('type' => 'int'),
+    'eoq' => array('type' => 'int'),
+    'cost' => array('type' => 'float'),
+    'price' => array('type' => 'float'),
+    'expiry_date' => array('type' => 'int'),
+    'lot_no',
+    'vendor_id' => array('type' => 'int'),
+    'account_type_id' => array('type' => 'int'),
+    'shelf_id' => array('type' => 'int'),
+    'principal_id' => array('type' => 'int'),
+    'qty' => array('type' => 'int'),
+    'initial_qty' => array('type' => 'int'),
+    'initial_qty_date',
+    'data' => array(
+      'uoms' => array('type' => 'array'),
+    ),
+  );
+
+  if ($db_op == 'update') {
+    unset($fields['created']);
+    unset($fields['qty']);
+    unset($fields['initial_qty']);
+    unset($fields['initial_qty_date']);
+  }
+  return $fields;
 }

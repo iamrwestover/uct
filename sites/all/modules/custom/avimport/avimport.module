@@ -3,9 +3,8 @@
  * @file
  * Import feature.
  */
-
-
-//module_load_include('inc', 'avbase', 'inc/entity_overview.form');
+define('AVIMPORT_MODULE_PATH', drupal_get_path('module', 'avimport'));
+module_load_include('inc', 'avimport', 'inc/helpers');
 
 /**
  * Implementation of hook_menu().
@@ -20,12 +19,13 @@ function avimport_menu() {
     //'expanded' => TRUE,
     'type' => MENU_CALLBACK,
   );
-
-  $items['av/import/start'] = array(
+  $items['av/import/prepare-data'] = array(
     'title' => 'Import',
-    'page callback' => 'avimport_batch_start',
-    //'page arguments' => array('avimport_import_start'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avimport_prepare_form'),
     'access callback' => 'user_is_logged_in',
+    //'menu_name' => 'av',
+    //'expanded' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -39,10 +39,16 @@ function avimport_menu() {
  * @return mixed
  */
 function avimport_import_form($form, &$form_state) {
-  $form['sss'] = array(
-    //'#markup' => l('sdfsf', 'av/import/start'),
+  $form['#attached']['js'][] = AVIMPORT_MODULE_PATH . '/js/avimport.js';
+  $excel_rows = empty($_SESSION['avimport']['rows']) ? array() : $_SESSION['avimport']['rows'];
+
+  // "Analyze data" Fieldset.
+  $form['analyze_data'] = array(
+    '#type' => 'fieldset',
+    //'#title' => 'Upload',
+    '#access' => empty($excel_rows),
   );
-  $form['import_type'] = array(
+  $form['analyze_data']['import_type'] = array(
     '#type' => 'radios',
     '#title' => t('Type of data to import'),
     //'#description' => t('Type of data to import'),
@@ -53,18 +59,75 @@ function avimport_import_form($form, &$form_state) {
       'vendors' => t('Vendors'),
     ),
     '#default_value' => 'products',
-    '#attributes' => array('class' => array('uk-button-group')),
+    '#attributes' => array(
+      'class' => array('uk-button-group'),
+    ),
   );
-  $form['file'] = array(
+  $form['analyze_data']['product_valid_headers'] = avimport_form_valid_header_field($form['analyze_data']['import_type']['#options']);
+  $form['analyze_data']['file'] = array(
     '#type' => 'file',
-    //'#title' => t('Upload'),
-    '#description' => t('Choose a valid excel file, allowed extensions: xls, xlsx'),
-    //'#attributes' => array('class' => array('uk-margin-top')),
+    '#description' => t('Choose a valid excel file, allowed extensions: .xls, .xlsx'),
+  );
+  $form['analyze_data']['submit'] = array(
+    '#id' => 'analyze-btn',
+    '#type' => 'submit',
+    '#value' => t('Upload and import data'),
+    '#attributes' => array('class' => array('uk-button-primary uk-margin-top')),
   );
 
-  $form['submit'] = array(
+  // "Prepare Data" Fieldset.
+  $form['pending_data'] = array(
+    '#type' => 'fieldset',
+    //'#title' => 'Prepare data',
+    '#attributes' => array('class' => array('')),
+    '#access' => !empty($excel_rows),
+  );
+
+  if (!empty($excel_rows)) {
+    $table_rows = array();
+    foreach ($excel_rows as $k => $v) {
+      if (empty($v['title'])) {
+        continue;
+      }
+
+      $table_cols = array();
+      $table_cols['product_title'] = array(
+        '#type' => 'item',
+        '#markup' => check_plain($v['title']),
+        '#column_attributes' => array('class' => array('uk-width-1-5')),
+      );
+
+      $table_rows[$k] = $table_cols;
+      $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
+    }
+
+    if (!empty($table_rows)) {
+      $table = array(
+        '#theme' => 'avbase_form_table',
+        '#header' => array(
+          array('data' => t('Product title')),
+        ),
+      );
+      $table['rows'] = $table_rows;
+      $table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
+      $form['pending_data'] += $table;
+    }
+    else {
+      $required_header_names = array('TITLE', 'INITIAL QTY', 'BASE UOM', 'COST', 'SALES PRICE', 'ROP', 'EOQ');
+      $optional_header_names = array('CODE', 'CATEGORY', 'EXTRA UOM 1', 'EXTRA UOM 2', 'EXPIRY DATE', 'LOT NO', 'SHELF LOCATION', 'PRINCIPAL');
+      $form['pending_data']['reminder'] = array(
+        '#markup' => t('There are no valid rows found. Make sure your file includes the following header names in all CAPS: %header_names', array('%header_names' => implode(', ', $required_header_names))),
+        '#prefix' => '<div class="uk-text-muted">',
+        '#suffix' => '</div>',
+      );
+      //unset($_SESSION['avimport']);
+    }
+  }
+
+  $form['pending_data']['reset'] = array(
+    '#id' => 'reset-btn',
     '#type' => 'submit',
-    '#value' => t('Start import'),
+    '#value' => t('Reset'),
     '#attributes' => array('class' => array('uk-button-primary uk-margin-top')),
   );
 
@@ -77,6 +140,11 @@ function avimport_import_form($form, &$form_state) {
  * @ingroup form_example
  */
 function avimport_import_form_validate($form, &$form_state) {
+  $trigger = $form_state['triggering_element'];
+  if ($trigger['#id'] != 'analyze-btn') {
+    return;
+  }
+
   $file = file_save_upload('file', array(
     // Validates file is really an image.
     'avbase_file_validate_is_excel' => array(),
@@ -85,18 +153,13 @@ function avimport_import_form_validate($form, &$form_state) {
   ));
   // If the file passed validation:
   if ($file) {
-    // Move the file into the Drupal file system.
-    if ($file = file_move($file, 'public://')) {
-      // Save the file for use in the submit handler.
-      $form_state['storage']['file'] = $file;
-    }
-    else {
-      form_set_error('file', t("Failed to write the uploaded file to the site's file folder."));
-    }
+    // Save the file for use in the submit handler.
+    $form_state['storage']['file'] = $file;
   }
   else {
     form_set_error('file', t('No file was uploaded.'));
   }
+
 }
 
 /**
@@ -105,92 +168,91 @@ function avimport_import_form_validate($form, &$form_state) {
  * @ingroup form_example
  */
 function avimport_import_form_submit($form, &$form_state) {
-  $file = $form_state['storage']['file'];
-  // We are done with the file, remove it from storage.
-  unset($form_state['storage']['file']);
-  //// Make the storage of the file permanent.
-  //$file->status = FILE_STATUS_PERMANENT;
-  //// Save file status.
-  //file_save($file);
-  // Set a response to the user.
-  drupal_set_message(t('The form has been submitted and the image has been saved, filename: @filename.', array('@filename' => $file->filename)));
+  $trigger = $form_state['triggering_element'];
+  switch ($trigger['#id']) {
+    case 'analyze-btn':
+      $import_type = empty($form_state['values']['import_type']) ? '' : $form_state['values']['import_type'];
+
+      $file = $form_state['storage']['file'];
+      // We are done with the file, remove it from storage.
+      unset($form_state['storage']['file']);
+
+      // Prepare the file path. The PHPExcel library doesn't handle PHP stream
+      // wrappers, so we need the real path.
+      $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri);
+      $filepath = $wrapper->realpath();
+
+      // Start import.
+      $batch = array(
+        'operations' => array(
+          array('avimport_batch_read_data', array($filepath, $import_type)),
+        ),
+        'finished' => 'avimport_batch_read_finished',
+        'title' => t('Importing excel rows'),
+        //'init_message' => t('Example Batch is starting.'),
+        //'progress_message' => '',
+        'error_message' => t('Data analysis encountered an error'),
+        'file' => drupal_get_path('module', 'phpexcel') . '/phpexcel.inc',
+      );
+      batch_set($batch);
+      break;
+
+    case 'reset-btn':
+      unset($_SESSION['avimport']);
+      break;
+  }
 }
 
-
 /**
- * Start batch import.
- */
-function avimport_batch_start() {
-  $batch = array(
-    'operations' => array(
-      array('avimport_batch_process', array('D:/deleteme.xls')),
-      //array('avimport_batch_process', array('D:/deleteme2.xlsx')),
-    ),
-    'finished' => 'avimport_batch_finished',
-    'title' => t('Processing Example Batch'),
-    'init_message' => t('Example Batch is starting.'),
-    //'progress_message' => '',
-    'error_message' => t('Example Batch has encountered an error.'),
-    //'file' => drupal_get_path('module', 'batch_example') . '/batch_example.inc',
-  );
-  batch_set($batch);
-
-  // If this function was called from a form submit handler, stop here,
-  // FAPI will handle calling batch_process().
-
-  // If not called from a submit handler, add the following,
-  // noting the url the user should be sent to once the batch
-  // is finished.
-  // IMPORTANT:
-  // If you set a blank parameter, the batch_process() will cause an infinite loop
-
-  batch_process('av/import');
-}
-
-
-/**
- * Batch process to import excel date and create nodes for each row.
+ * Batch process to analyze excel data.
  * @param $filepath
+ * @param $import_type
  * @param $context
  *
  * @throws Exception
  */
-function avimport_batch_process($filepath, &$context) {
-  //$wrapper = file_stream_wrapper_get_instance_by_uri('temporary://');
-  //dpm($wrapper);
-  //dpm($wrapper->realpath());
-  //return;
-  module_load_include('inc', 'phpexcel');
-
+function avimport_batch_read_data($filepath, $import_type, &$context) {
   if (!isset($context['sandbox']['progress'])) {
-    $context['sandbox']['progress'] = 0;
-    // We have no idea how many lines we have to load. Provide some large
-    // number, and we'll adapt as we go along.
-    $context['sandbox']['max'] = 100;
+    // We have no idea how many lines we have to load. Provide an estimate
+    // max, and we'll adapt as we go along.
+    $context['sandbox']['max'] = 1000;
     $context['results'] = array();
+    $context['sandbox']['progress'] = 0;
   }
 
+  // Pointers.
   $_results = &$context['results'];
-  $_progress = $context['sandbox']['progress'];
+  $_progress = &$context['sandbox']['progress'];
 
-  // We need to load the library before we can instantiate our
-  // ChunkReaderFilter class.
+  // Get valid headers.
+  $valid_headers = avimport_get_valid_headers($import_type);
+  $required_headers = empty($valid_headers['required']) ? array() : $valid_headers['required'];
+  $optional_headers = empty($valid_headers['optional']) ? array() : $valid_headers['optional'];
+  if (empty($required_headers)) {
+    $_results['errors'][] = t('Required headers not set for %type.', array('%type' => $import_type));
+    return;
+  }
+
+  // Set maximum number of rows to analyze per iteration.
+  $limit = 300;
+
+  // We need to load the library before we can instantiate our ChunkReaderFilter class.
   $library = libraries_load('PHPExcel');
   if (empty($library['loaded'])) {
     $_results['errors'][] = t("Couldn't load the PHPExcel library.");
     return;
   }
-
-  $limit = 50;
   $chunk_filter = new ChunkReadFilter();
+  // Excel row0 = header, and row1 = first row. PHPExcel treats row numbering starts at 1 and not 0, so we use +2.
+  // We add +1 to limit as padding, so that we can get the very first row right after the limit, which we will
+  // use to check if we already reached end of file.
   $chunk_filter->setRows($_progress + 2, $limit + 1);
   $data = phpexcel_import($filepath, TRUE, FALSE, array(
     'setReadFilter' => array($chunk_filter),
   ));
-
   if (!is_array($data)) {
     $_results['errors'][] = t("Something went wrong on pass !pass", array(
-      '!pass' => $context['sandbox']['progress'],
+      '!pass' => $_progress,
     ));
     if ($data == PHPEXCEL_ERROR_FILE_NOT_READABLE) {
       $_results['errors'][] = t('The file %filepath is unreadable.', array('%filepath' => $filepath));
@@ -198,39 +260,34 @@ function avimport_batch_process($filepath, &$context) {
     return;
   }
 
-  // Make sure file is a valid excel file.
-  $errors = avbase_file_validate_is_excel((object) array('uri' => $filepath));
-  if (!empty($errors)) {
-    $_results['errors'] = $errors;
+  // Trim $data array appropriately because ChunkReaderFilter still loads empty
+  // data from first excel row until specified row start.
+  $data = array_splice($data[0], $_progress);
+
+  // Check if required headers are present.
+  $missing_headers = array_diff_key($required_headers, $data[0]);
+  if (!empty($missing_headers)) {
+    $_results['errors'][] = t('The following required headers are not found: !required_headers', array('!required_headers' => theme('item_list', array('items' => array_keys($missing_headers)))));
     return;
   }
 
-
-  $result = db_query_range("SELECT nid FROM {node} WHERE nid > :d ORDER BY nid ASC", 0, $limit, array(':d' => 0));
-  foreach ($result as $node) {
-    node_delete($node->nid);
-  }
-
-  // Get rid of the headers.
-  //$data = $data[0];
-  $data = array_splice($data[0], $_progress);
   foreach ($data as $k => $excel_row) {
     if ($k == $limit) {
-      // Limit reached.
+      // Limit reached. This last $excel_row is the very first row on the next iteration.
       break;
     }
 
     if (!empty($excel_row)) {
-      $node = new stdClass();
-      //$node = node_load(600, NULL, TRUE);
-      $node->title = $excel_row['Header 1'];
-      $node->type = 'page';
+      // Validate and update $excel_row.
+      avimport_db_insert($_results, $excel_row, $import_type);
 
       //node_save($node);
-      $_results['nodes'][] = $excel_row;
+      $_results['rows'][] = $excel_row;
     }
     else {
-      break;
+      // Empty row detected. Consider it as end of file.
+      $_results['success'] = TRUE;
+      return;
     }
   }
 
@@ -240,11 +297,22 @@ function avimport_batch_process($filepath, &$context) {
     return;
   }
 
-  $context['sandbox']['progress'] += $limit;
-  $context['message'] = t('Now processing %node', array('%node' => $context['sandbox']['progress']));
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  // Update progress counter.
+  $_progress += $limit;
+
+  // Compute for progress percentage.
+  $finished = $_progress / $context['sandbox']['max'];
+  if ($finished >= 1 && empty($_results['success'])) {
+    // We haven't reached the end of file, we only reached estimate maximum number of rows.
+    // Increase max and recompute for progress percentage.
+    $context['sandbox']['max'] += 500;
+    $finished = $_progress / $context['sandbox']['max'];
   }
+
+  // Set progress message. $results['inserted'] , '%inserted' => count($_results['inserted'])
+  $context['message'] = t('Estimated %row_max rows at most. %row rows read. %inserted rows imported.', array('%row' => $_progress, '%row_max' => $context['sandbox']['max'], '%inserted' => count($_results['inserted'])));
+  // Set progress percentage.
+  $context['finished'] = $finished;
 }
 
 /**
@@ -255,18 +323,9 @@ function avimport_batch_process($filepath, &$context) {
  *
  * @throws Exception
  */
-function avimport_batch_finished($success, $results, $operations) {
-  dpm($results);
+function avimport_batch_read_finished($success, $results, $operations) {
   if ($success && !empty($results['success'])) {
-    $nodes = empty($results['nodes']) ? array() : $results['nodes'];
-    // Here we do something meaningful with the results.
-    $message = t("!count rows were processed.", array(
-      '!count' => count($nodes),
-    ));
-    $message .= theme('item_list', array('items' => array_map(function($node) {
-      return l('s' . $node->title, "node/");
-    }, $nodes)));
-    drupal_set_message($message);
+
   }
   else {
     drupal_set_message(t('Data import was interrupted.'), 'error');
@@ -281,6 +340,18 @@ function avimport_batch_finished($success, $results, $operations) {
 
     $errors = empty($results['errors']) ? array() : $results['errors'];
     foreach ($errors as $err) {
+      drupal_set_message($err, 'error');
+    }
+  }
+
+  $found = empty($results['rows']) ? array() : $results['rows'];
+  drupal_set_message(t('%count rows found.', array('%count' => count($found))));
+  $inserted = empty($results['inserted']) ? array() : $results['inserted'];
+  drupal_set_message(t('%count rows inserted into the database.', array('%count' => count($inserted))));
+
+  $insert_errors = empty($results['insert_errors']) ? array() : $results['insert_errors'];
+  if (!empty($insert_errors)) {
+    foreach ($insert_errors as $err) {
       drupal_set_message($err, 'error');
     }
   }
@@ -378,3 +449,16 @@ function avimport_batch_finished($success, $results, $operations) {
 //  }
 //}
 
+function avimport_form_valid_header_field($types) {
+  $field =  array('#type' => 'item', '#markup' => '');
+  foreach ($types as $type) {
+    $type = strtolower($type);
+    $valid_headers = avimport_get_valid_headers($type);
+    $markup = '<div id="' . $type . '-valid-headers" class="import-valid-headers uk-hidden">';
+    $markup .= t('Required headers: !headers', array('!headers' => implode(', ', array_keys($valid_headers['required']))));
+    $markup .= '<br />' . t('Optional headers: !headers', array('!headers' => implode(', ', array_keys($valid_headers['optional']))));
+    $markup .= '</div>';
+    $field['#markup'] .= $markup;
+  }
+  return $field;
+}

@@ -20,12 +20,10 @@ function avbase_crud_form_submit($form, &$form_state) {
     $row = array();
     foreach ($save_field_ids as $k => $field) {
       $field_type = 'string';
+      $field_id = $field;
       if (is_array($field)) {
         $field_id = $k;
         $field_type = isset($field['type']) ? $field['type'] : $field_type;
-      }
-      else {
-        $field_id = $field;
       }
 
       if (!isset($values[$field_id])) {

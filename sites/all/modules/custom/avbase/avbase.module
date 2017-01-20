@@ -264,8 +264,8 @@ function avbase_category_groups($category_id = '') {
       'plural_name' => 'Shelves',
     );
     $groups['principal'] = array(
-      'name' => 'Principal Manufacturer',
-      'plural_name' => 'Principal Manufacturers',
+      'name' => 'Principal',
+      'plural_name' => 'Principal',
     );
     $groups['payment_method'] = array(
       'name' => 'Payment Method',

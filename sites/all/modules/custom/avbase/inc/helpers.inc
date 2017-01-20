@@ -574,10 +574,32 @@ function avbase_file_validate_is_excel(stdClass $file) {
   $valid_types = array(
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.ms-excel',
+    'application/vnd.ms-office',
   );
   if (!in_array($file_type, $valid_types)) {
-    $errors[] = t('Only valid .xls and .xlsx files are allowed.');
+    $errors[] = t('Selected file %filename is not a valid .xls / .xlsx file.', array('%filename' => $file->filename));
   }
 
   return $errors;
+}
+
+/**
+ * @param $title
+ * @param $group_id
+ * @param bool|FALSE $insert_if_not_found
+ * @return int
+ */
+function avbase_get_category_id_by_title($title, $group_id, $insert_if_not_found = FALSE) {
+  $title = trim($title);
+  if (empty($title) || empty($group_id)) {
+    return NULL;
+  }
+  $id = db_query('SELECT id FROM {avtbl_categories} WHERE title = :title AND group_id = :group_id', array(
+    ':title' => $title,
+    ':group_id' => $group_id
+  ))->fetchField();
+  if (empty($id) && $insert_if_not_found) {
+    $id = db_insert('avtbl_categories')->fields(array('title' => $title, 'group_id' => $group_id))->execute();
+  }
+  return $id;
 }
