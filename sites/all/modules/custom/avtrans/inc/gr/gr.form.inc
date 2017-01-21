@@ -88,9 +88,16 @@ function avtrans_gr_form_default(&$form, &$form_state, $row) {
  * @param $row
  */
 function avtrans_gr_form_settings(&$form, &$form_state, $row) {
+  $js_settings = array('avtrans' => array('transaction' => 'purchase'));
+  $form['#attached']['js'][] = array(
+    'data' => $js_settings,
+    'type' => 'setting',
+  );
+
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
+  $_storage['transaction'] = $js_settings['avtrans']['transaction'];
   $_storage['transaction_type'] = 'gr';
 
   // Set flag if this is view mode.

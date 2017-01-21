@@ -63,6 +63,18 @@ function avtrans_so_form($form, &$form_state, $row) {
  * @param $form
  */
 function avtrans_so_form_settings(&$form, $row) {
+  $js_settings = array('avtrans' => array('transaction' => 'sales'));
+  $form['#attached']['js'][] = array(
+    'data' => $js_settings,
+    'type' => 'setting',
+  );
+
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+  $_storage['transaction'] = $js_settings['avtrans']['transaction'];
+
+  // Table name.
   $table_name = 'avtbl_so';
 
   // Set flag if this is view mode.

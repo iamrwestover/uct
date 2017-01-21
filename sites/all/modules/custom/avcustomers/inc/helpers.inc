@@ -194,10 +194,9 @@ function avcustomers_autocomplete($string = '') {
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where = array($where_or_str);
     $args = array(':string' => '%' . db_like($string) . '%');
-    $rows = avcustomer_query_load($where, $args);
+    $rows = avcustomer_query_load($where, $args, '15');
     foreach ($rows as $row) {
-      $row->display_name = check_plain($row->display_name);
-      $row_html = $row->display_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
+      $row_html = check_plain($row->display_name) . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;

@@ -167,8 +167,7 @@ function avvendors_autocomplete($string = '') {
     $result = $query->execute();
 
     foreach ($result as $row) {
-      $row->display_name = check_plain($row->display_name);
-      $row_html = $row->display_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
+      $row_html = check_plain($row->display_name) . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;

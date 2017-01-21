@@ -14,7 +14,7 @@
 
     // Initialize uikit nestable component.
     UIkit.nestable($wrapper, {handleClass:'uk-nestable-handle', maxDepth: 1});
-    Drupal.settings.avNestableProductForm = Drupal.settings.avNestableProductForm || {};
+    //Drupal.settings.avNestableProductForm = Drupal.settings.avNestableProductForm || {};
     Drupal.settings.avbase = Drupal.settings.avbase || {};
     Drupal.settings.avbase.products = Drupal.settings.avbase.products || {};
 
@@ -120,7 +120,8 @@
           if (uom) {
             var baseUOMPluralForm = uom.data.plural_form || uom.title;
             data.push({"value": uom.title, 'qtyPerUOM': 1, "title": Drupal.checkPlain(uom.title), "text": Drupal.t('base uom')});
-            var otherUOMs = productDetails.data.uoms || {};
+            var productData = productDetails.data || {};
+            var otherUOMs = productData.uoms || {};
             $.each(otherUOMs, function(i, otherUOM) {
               var uom = uoms[otherUOM.uom_id];
               if (uom) {
@@ -170,7 +171,8 @@
         // Get uom details.
         var uomTitle = $(this).val();
         var uomID = 0;
-        var otherUOMs = productDetails.data.uoms || {};
+        var productData = productDetails.data || {};
+        var otherUOMs = productData.uoms || {};
         $.each(uoms, function(i, uom) {
           if (uomTitle.toLowerCase() == uom.title.toLowerCase()) {
             uomID = uom.id;
@@ -178,6 +180,11 @@
           }
         });
 
+        var transaction = Drupal.settings.avtrans.transaction || '';
+        var itemCost = productDetails.cost;
+        if (transaction == 'sales') {
+          itemCost = productDetails.price;
+        }
         // Auto-fill cost fields.
         var cost = 0;
         if (uomID == 0) {
@@ -185,12 +192,12 @@
         }
         else if (uomID == productDetails.uom_id) {
           // Selected UOM is the same as base UOM.
-          cost = parseFloat(productDetails.cost);
+          cost = parseFloat(itemCost);
           $costEl.val(cost.toFixed(2));
         }
         else if (otherUOMs[uomID]) {
           // Selected UOM is a data UOM.
-          cost = parseFloat(productDetails.cost) * parseFloat($qtyPerUOMEl.val());
+          cost = parseFloat(itemCost) * parseFloat($qtyPerUOMEl.val());
           $costEl.val(cost.toFixed(2));
         }
         else {

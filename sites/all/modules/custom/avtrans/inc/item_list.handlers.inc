@@ -53,13 +53,13 @@ function avtrans_item_list_prod_js($form, $form_state) {
     $last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
     $last_element['#suffix'] = empty($last_element['#suffix']) ? '' : $last_element['#suffix'];
     $last_element['#suffix'] .= '<div id="item-list-new-product-wrapper"></div>';
-    $js_settings = array('avNestableProductForm' => array('ajaxAction' => 'add'));
-    $last_element['#attached']['js'] = array(
-      array(
-        'data' => $js_settings,
-        'type' => 'setting',
-      ),
-    );
+    //$js_settings = array('avNestableProductForm' => array('ajaxAction' => 'add'));
+    //$last_element['#attached']['js'] = array(
+    //  array(
+    //    'data' => $js_settings,
+    //    'type' => 'setting',
+    //  ),
+    //);
 
     $output = $last_element;
   }

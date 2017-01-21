@@ -9,6 +9,11 @@
  * @return mixed
  */
 function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+  $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
+
   $detected_cost_changes = empty($form_state['values']['detected_cost_changes']) ? array() : $form_state['values']['detected_cost_changes'];
   $fields = array();
   $fields['product_cost_changes'] = array('#tree' => TRUE);
@@ -43,17 +48,22 @@ function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
       '#markup' => t('!direction from @current_cost to @proposed_cost', array('!direction' => "<i class=\"uk-icon-{$direction}\"></i>", '@current_cost' => $current_cost_formatted, '@proposed_cost' => $proposed_cost_formatted)),
       '#column_attributes' => array('class' => array('uk-width-1-5', $direction_class[$direction])),
     );
+    if ($transaction == 'sales') {
+      $table_cols['cost']['#title'] = t('Proposed sales price change');
+    }
+    else {
+      $current_sales_price_formatted = number_format($current_sales_price, 2);
+      $proposed_sales_price_formatted = number_format($proposed_sales_price, 2);
+      $direction = ($proposed_sales_price > $current_sales_price) ? 'arrow-up' : 'arrow-down';
+      $table_cols['sales_price'] = array(
+        '#title' => 'Proposed sales price change',
+        '#title_display' => 'none',
+        '#type' => 'item',
+        '#markup' => t('!direction from @current_sales_price to @proposed_sales_price', array('!direction' => "<i class=\"uk-icon-{$direction}\"></i>", '@current_sales_price' => $current_sales_price_formatted, '@proposed_sales_price' => $proposed_sales_price_formatted)),
+        '#column_attributes' => array('class' => array("uk-width-1-5", $direction_class[$direction])),
+      );
+    }
 
-    $current_sales_price_formatted = number_format($current_sales_price, 2);
-    $proposed_sales_price_formatted = number_format($proposed_sales_price, 2);
-    $direction = ($proposed_sales_price > $current_sales_price) ? 'arrow-up' : 'arrow-down';
-    $table_cols['sales_price'] = array(
-      '#title' => 'Proposed sales price change',
-      '#title_display' => 'none',
-      '#type' => 'item',
-      '#markup' => t('!direction from @current_sales_price to @proposed_sales_price', array('!direction' => "<i class=\"uk-icon-{$direction}\"></i>", '@current_sales_price' => $current_sales_price_formatted, '@proposed_sales_price' => $proposed_sales_price_formatted)),
-      '#column_attributes' => array('class' => array("uk-width-1-5", $direction_class[$direction])),
-    );
     $table_cols['values'] = array(
       'action' => array(
         '#type' => 'radios',
@@ -72,6 +82,10 @@ function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
       'new_sales_price' => array('#type' => 'value', '#value' => $proposed_sales_price),
       '#column_attributes' => array('class' => array('uk-width-2-5')),
     );
+    if ($transaction == 'sales') {
+      unset($table_cols['values']['action']['#options']['cost_and_price']);
+      $table_cols['values']['action']['#options']['cost'] = t('Update sales price');
+    }
 
     $table_rows[$k] = $table_cols;
     $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
@@ -81,13 +95,17 @@ function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
     $table = array(
       '#theme' => 'avbase_form_table',
       '#header' => array(
-        array('data' => t('Product')),
-        array('data' => t('Change on cost')),
-        array('data' => t('Change on sales price')),
-        '&nbsp;',
+        'title' => array('data' => t('Product')),
+        'cost' => array('data' => t('Change on cost')),
+        'cost_and_price' => array('data' => t('Change on sales price')),
+        'actions' => '&nbsp;',
       ),
       //'product_rows' => array('#tree' => TRUE),
     );
+    if ($transaction == 'sales') {
+      unset($table['#header']['cost_and_price']);
+      $table['#header']['cost'] = t('Change on price');
+    }
     $table['rows'] = $table_rows;
     $table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
 
@@ -124,9 +142,10 @@ function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
   $cost_changes_form = $fields;
   $cost_changes_form['#type'] = 'container';
   $cost_changes_form['#theme'] = 'avbase_modal_form';
+  $field_name = $transaction == 'sales' ? 'prices' : 'costs';
   $cost_changes_form['#modal_options'] = array(
     'modal_id' => 'cost-changed',
-    'modal_title' => t('Some product costs have been changed. Do you want to update our records?'),
+    'modal_title' => t('Some product @field_name have been changed. Do you want to update our records?', array('@field_name' => $field_name)),
     'modal_classes' => array('uk-modal-dialog-large'),
   );
   $form['cost_changes'] = $cost_changes_form;
@@ -142,7 +161,15 @@ function avtrans_cost_changes_form_fields(&$form, &$form_state, $row) {
  * @param $product_ids
  * @param $transaction_type
  */
-function avtrans_cost_changes_db_update($form_state, $row, $product_ids, $transaction_type =' ') {
+function avtrans_cost_changes_db_update($form_state, $row, $product_ids, $transaction_type ='') {
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get transaction type.
+  $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
+  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+
   // Get form values.
   $values = empty($form_state['values']) ? array() : $form_state['values'];
 
@@ -164,6 +191,15 @@ function avtrans_cost_changes_db_update($form_state, $row, $product_ids, $transa
 
       switch ($changes['action']) {
         case 'cost':
+          if ($transaction == 'sales') {
+            $price_set[$product_id] = "WHEN $product_id THEN :price{$product_id}";
+            $price_args[":price{$product_id}"] = $changes['new_cost'];
+          }
+          else {
+            $cost_set[$product_id] = "WHEN $product_id THEN :cost{$product_id}";
+            $cost_args[":cost{$product_id}"] = $changes['new_cost'];
+          }
+          break;
         case 'cost_and_price':
           $cost_set[$product_id] = "WHEN $product_id THEN :cost{$product_id}";
           $cost_args[":cost{$product_id}"] = $changes['new_cost'];

@@ -185,7 +185,7 @@ function avproducts_autocomplete($string = '') {
       $row_html = $title . '<div class="uk-text-muted uk-text-break">' . $code .  '</div>' ;
       $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
-      $matches[$title] = $row_html;
+      $matches[$row->title] = $row_html;
     }
   }
 

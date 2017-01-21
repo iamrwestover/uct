@@ -76,7 +76,9 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
   $_storage = &$form_state['storage'];
 
   // Get transaction type.
+  $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
   $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+
 
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
@@ -98,6 +100,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
   $form['product_rows'] = array(
     '#tree' => TRUE,
     '#theme' => 'avbase_nestable_form',
+    '#transaction' => $transaction,
   );
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
@@ -173,7 +176,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
       '#id' => 'product-cost-' . $prod_key,
       '#item_row_key' => $prod_key,
       '#type' => 'textfield',
-      '#title' => 'Unit Cost',
+      '#title' => $transaction == 'sales' ? t('Unit Price') : t('Unit Cost'),
       '#maxlength' => 19,
       '#element_validate' => array('avtrans_item_list_row_element_validate'),
       '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),

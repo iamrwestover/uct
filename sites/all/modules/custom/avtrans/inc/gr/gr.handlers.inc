@@ -88,7 +88,7 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
         }
 
         // Update cost and price.
-        avtrans_cost_changes_db_update($form_state, $row, array_keys($incoming_base_qty), $transaction_type);
+        avtrans_cost_changes_db_update($form_state, $row, array_keys($incoming_base_qty));
       }
       break;
   }
@@ -112,6 +112,8 @@ function avtrans_gr_form_submit($form, &$form_state) {
       // Get item rows.
       $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
       $_item_rows = &$_storage['item_rows'];
+
+      $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
 
       // Get non-empty product rows from item rows.
       $entered_products = array();
@@ -138,11 +140,15 @@ function avtrans_gr_form_submit($form, &$form_state) {
         }
         $incoming_base_qty = $entered_product['qty'] * $entered_product['qty_per_uom'];
         $current_cost = (float) $product_row->cost;
+        if ($transaction == 'sales') {
+          $current_cost = (float) $product_row->price;
+        }
         $current_sales_price = (float) $product_row->price;
         $new_cost = $entered_product['cost'] / $entered_product['qty_per_uom'];
         $new_cost = round((float) $new_cost, AVBASE_DECIMAL_MAX);
 
-        $proposed_cost = avtrans_compute_product_cost($current_cost, $product_row->qty, $new_cost, $incoming_base_qty);
+        //$proposed_cost = avtrans_compute_product_cost($current_cost, $product_row->qty, $new_cost, $incoming_base_qty);
+        $proposed_cost = $new_cost;
         if (round($current_cost, 2) == round($proposed_cost, 2)) {
           continue;
         }
@@ -152,7 +158,7 @@ function avtrans_gr_form_submit($form, &$form_state) {
         $proposed_sales_price = $price['price'];
         $cost_changes[$k] = array(
           'product_id' => $product_row->id,
-          'title' => check_plain($product_row->title),
+          'title' => $product_row->title,
           'current_cost' => $current_cost,
           'proposed_cost' => $proposed_cost,
           'current_sales_price' => $current_sales_price,

@@ -38,7 +38,7 @@
           </div>
           <div class="uk-width-2-6">
             <div class="av-nestable-cell" style="padding-right: 1em;">
-              Unit Cost
+              <?php print ($form['#transaction'] == 'sales' ? t('Unit Price') : t('Unit Cost')); ?>
             </div>
           </div>
           <div class="uk-width-2-6">
