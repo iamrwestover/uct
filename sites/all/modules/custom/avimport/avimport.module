@@ -188,7 +188,7 @@ function avimport_import_form_submit($form, &$form_state) {
           array('avimport_batch_read_data', array($filepath, $import_type)),
         ),
         'finished' => 'avimport_batch_read_finished',
-        'title' => t('Importing excel rows'),
+        'title' => t('Importing @type', array('@type' => $import_type)),
         //'init_message' => t('Example Batch is starting.'),
         //'progress_message' => '',
         'error_message' => t('Data analysis encountered an error'),
@@ -271,6 +271,7 @@ function avimport_batch_read_data($filepath, $import_type, &$context) {
     return;
   }
 
+//dpm($data);
   foreach ($data as $k => $excel_row) {
     if ($k == $limit) {
       // Limit reached. This last $excel_row is the very first row on the next iteration.
@@ -310,7 +311,7 @@ function avimport_batch_read_data($filepath, $import_type, &$context) {
   }
 
   // Set progress message. $results['inserted'] , '%inserted' => count($_results['inserted'])
-  $context['message'] = t('Estimated %row_max rows at most. %row rows read. %inserted rows imported.', array('%row' => $_progress, '%row_max' => $context['sandbox']['max'], '%inserted' => count($_results['inserted'])));
+  $context['message'] = t('Estimated %row_max rows at most. %row rows read. %inserted %type imported.', array('%row' => $_progress, '%row_max' => $context['sandbox']['max'], '%inserted' => count($_results['inserted']), '%type' => $import_type));
   // Set progress percentage.
   $context['finished'] = $finished;
 }
@@ -345,9 +346,9 @@ function avimport_batch_read_finished($success, $results, $operations) {
   }
 
   $found = empty($results['rows']) ? array() : $results['rows'];
-  drupal_set_message(t('%count rows found.', array('%count' => count($found))));
+  drupal_set_message(t('%count rows found.', array('%count' => count($found))), 'notice');
   $inserted = empty($results['inserted']) ? array() : $results['inserted'];
-  drupal_set_message(t('%count rows inserted into the database.', array('%count' => count($inserted))));
+  drupal_set_message(t('%count rows inserted into the database.', array('%count' => count($inserted))), 'notice');
 
   $insert_errors = empty($results['insert_errors']) ? array() : $results['insert_errors'];
   if (!empty($insert_errors)) {

@@ -248,6 +248,10 @@ function avbase_category_groups($category_id = '') {
       'name' => 'Customer Category',
       'plural_name' => 'Customer Categories',
     );
+    $groups['vendor_cat'] = array(
+      'name' => 'Vendor Category',
+      'plural_name' => 'Vendor Categories',
+    );
     $groups['product_cat'] = array(
       'name' => 'Product Category',
       'plural_name' => 'Product Categories',

@@ -13,7 +13,7 @@ function avbase_category_payment_term_form_alter(&$form, $db_row) {
   $form['days'] = array(
     '#type' => 'textfield',
     '#title' => 'Number of days',
-    '#default_value' => isset($db_row->data['days']) ? check_plain($db_row->data['days']) : '',
+    '#default_value' => isset($db_row->data['days']) ? $db_row->data['days'] : '',
     '#maxlength' => 3,
     '#required' => TRUE,
     '#element_validate' => array('element_validate_integer_positive'),
@@ -31,7 +31,7 @@ function avbase_category_payment_term_form_alter(&$form, $db_row) {
   $form['discount_value'] = array(
     '#type' => 'textfield',
     '#title' => 'Default discount value',
-    '#default_value' => isset($db_row->data['discount_value']) ? check_plain($db_row->data['discount_value']) : '',
+    '#default_value' => isset($db_row->data['discount_value']) ? $db_row->data['discount_value'] : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#special_element_type' => 'number',

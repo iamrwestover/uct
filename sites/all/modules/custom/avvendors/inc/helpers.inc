@@ -17,8 +17,8 @@ function avvendor_load($vendor_id) {
     return $_vendors[$vendor_id];
   }
 
-  $where = array('avvendors.id = :customer_id');
-  $args = array(':customer_id' => $vendor_id);
+  $where = array('avvendors.id = :vendor_id');
+  $args = array(':vendor_id' => $vendor_id);
   $rows = avvendor_query_load($where, $args);
   $row = empty($rows[$vendor_id]) ? FALSE : $rows[$vendor_id];
 
@@ -108,7 +108,7 @@ function avvendor_query_load($param_where, $param_args = array(), $limit_string 
   //
   $query = "SELECT avvendors.*, avcat.title as agent_name
     FROM {avtbl_vendors} avvendors
-    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avvendors.agent_id AND avcat.group_id = 'agent_cust'";
+    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avvendors.agent_id AND avcat.group_id = 'agent_vend'";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
@@ -186,4 +186,41 @@ function avvendors_get_vendor_categories() {
     AVVENDORS_CATEGORY_SUPPLIER => 'Supplier',
     AVVENDORS_CATEGORY_EXPENSES => 'Expenses',
   );
+}
+
+/**
+ * Return definition of vendor table fields.
+ * @param $db_op
+ * @return array
+ */
+function avvendors_table_fields_to_save($db_op = 'insert') {
+  $fields = array(
+    'created',
+    'first_name',
+    'last_name',
+    'middle_name',
+    'company',
+    'display_name',
+    'agent_id' => array('type' => 'int'),
+    'email',
+    'address',
+    'city',
+    'province',
+    'zip_code',
+    'term_id' => array('type' => 'int'),
+    'discount_type' => array('type' => 'int'),
+    'discount_value' => array('type' => 'float'),
+    'category_id' => array('type' => 'int'),
+    'opening_balance' => array('type' => 'float'),
+    'data' => array(
+      'contact_number',
+      'website',
+    ),
+  );
+
+  if ($db_op == 'update') {
+    unset($fields['created']);
+    unset($fields['opening_balance']);
+  }
+  return $fields;
 }

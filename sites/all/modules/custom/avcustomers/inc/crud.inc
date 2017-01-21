@@ -126,45 +126,14 @@ function avcustomers_customer_form_settings(&$form, $view_mode = FALSE) {
   $form['#attributes']['autocomplete'] = 'off';
 
   // Set field names to save.
-  $save_field_ids = array(
-    'created',
-    'first_name',
-    'last_name',
-    'middle_name',
-    'company',
-    'display_name',
-    //'code',
-    'agent_id' => array('type' => 'int'),
-    'email',
-    'address',
-    'city',
-    'province',
-    'zip_code',
-    //'same_addr',
-    'payment_method_id' => array('type' => 'int'),
-    'term_id' => array('type' => 'int'),
-    'discount_type' => array('type' => 'int'),
-    'discount_value' => array('type' => 'float'),
-    'category_id' => array('type' => 'int'),
-    'credit_limit' => array('type' => 'float'),
-  );
-  if (empty($form['id']['#value'])) {
-    $save_field_ids['opening_balance'] = array('type' => 'float');
-  }
+  $db_op = empty($form['id']['#value']) ? 'insert' : 'update';
+  $save_field_ids = avcustomers_table_fields_to_save($db_op);
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,
   );
-
   // Set which fields belong to data field.
-  $data_ids = array(
-    //'title',
-    'phone1',
-    'phone2',
-    'phone3',
-    //'website',
-    //'notes',
-  );
+  $data_ids = empty($save_field_ids['data']) ? array() : $save_field_ids['data'];
   $form['data_ids'] = array(
     '#type' => 'value',
     '#value' => $data_ids,
@@ -189,25 +158,25 @@ function avcustomers_customer_form_info_fields(&$form, $row, $view_mode = FALSE)
   $info['first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'First name',
-    '#default_value' => isset($row->first_name) ? check_plain($row->first_name) : '',
+    '#default_value' => isset($row->first_name) ? $row->first_name : '',
     '#maxlength' => 32,
   );
   $info['middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Middle name',
-    '#default_value' => isset($row->middle_name) ? check_plain($row->middle_name) : '',
+    '#default_value' => isset($row->middle_name) ? $row->middle_name : '',
     '#maxlength' => 32,
   );
   $info['last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Last name',
-    '#default_value' => isset($row->last_name) ? check_plain($row->last_name) : '',
+    '#default_value' => isset($row->last_name) ? $row->last_name : '',
     '#maxlength' => 32,
   );
   $info['company'] = array(
     '#type' => 'textfield',
     '#title' => 'Company',
-    '#default_value' => isset($row->company) ? check_plain($row->company) : '',
+    '#default_value' => isset($row->company) ? $row->company : '',
     '#maxlength' => 255,
   );
   $info['_created'] = array(
@@ -225,6 +194,16 @@ function avcustomers_customer_form_info_fields(&$form, $row, $view_mode = FALSE)
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->category_id) ? $row->category_id : 0,
   );
+  $area_options = avbase_get_category_options_array('customer_area');
+  asort($area_options);
+  $info['area_id'] = array(
+    '#type' => 'select',
+    '#title' => 'Area',
+    '#options' => $area_options,
+    '#empty_value' => 0,
+    '#empty_option' => '- Select -',
+    '#default_value' => isset($row->area_id) ? $row->area_id : 0,
+  );
   //$info['code'] = array(
   //  '#type' => 'textfield',
   //  '#title' => 'Customer code',
@@ -239,7 +218,7 @@ function avcustomers_customer_form_info_fields(&$form, $row, $view_mode = FALSE)
     '#type' => 'textfield',
     '#title' => 'Display name',
     '#title_display' => $view_mode ? 'none' : 'before',
-    '#default_value' => isset($row->display_name) ? check_plain($row->display_name) : '',
+    '#default_value' => isset($row->display_name) ? $row->display_name : '',
     '#maxlength' => 255,
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_display_name'),
@@ -255,7 +234,7 @@ function avcustomers_customer_form_info_fields(&$form, $row, $view_mode = FALSE)
     '#element_validate' => array('avbase_element_validate_category_exists'),
     '#element_validate_conditions' => array('group_id' => 'agent_cust'),
     '#element_save_id' => 'agent_id',
-    '#default_value' => empty($row->agent_name) ? '' : check_plain($row->agent_name),
+    '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
   );
 
   $term_options = avbase_get_category_options_array('payment_term');
@@ -305,26 +284,26 @@ function avcustomers_customer_form_contact_fields(&$form, $row, $view_mode = FAL
   $contact['email'] = array(
     '#type' => 'textfield',
     '#title' => 'E-mail address',
-    '#default_value' => isset($row->email) ? check_plain($row->email) : '',
+    '#default_value' => isset($row->email) ? $row->email : '',
     '#maxlength' => 255,
     '#element_validate' => array('avbase_element_validate_email'),
   );
   $contact['phone1'] = array(
     '#type' => 'textfield',
     '#title' => 'Phone 1',
-    '#default_value' => isset($row->data['phone1']) ? check_plain($row->data['phone1']) : '',
+    '#default_value' => isset($row->data['phone1']) ? $row->data['phone1'] : '',
     '#maxlength' => 32,
   );
   $contact['phone2'] = array(
     '#type' => 'textfield',
     '#title' => 'Phone 2',
-    '#default_value' => isset($row->data['phone2']) ? check_plain($row->data['phone2']) : '',
+    '#default_value' => isset($row->data['phone2']) ? $row->data['phone2'] : '',
     '#maxlength' => 32,
   );
   $contact['phone3'] = array(
     '#type' => 'textfield',
     '#title' => 'Phone 3',
-    '#default_value' => isset($row->data['phone3']) ? check_plain($row->data['phone3']) : '',
+    '#default_value' => isset($row->data['phone3']) ? $row->data['phone3'] : '',
     '#maxlength' => 32,
   );
   //$contact['website'] = array(
@@ -348,25 +327,25 @@ function avcustomers_customer_form_address_fields(&$form, $row, $view_mode = FAL
   $address['address'] = array(
     '#type' => 'textarea',
     '#title' => 'Address',
-    '#default_value' => isset($row->address) ? check_plain($row->address) : '',
+    '#default_value' => isset($row->address) ? $row->address : '',
     '#maxlength' => 255,
   );
   $address['city'] = array(
     '#type' => 'textfield',
     '#title' => 'City / Town',
-    '#default_value' => isset($row->city) ? check_plain($row->city) : '',
+    '#default_value' => isset($row->city) ? $row->city : '',
     '#maxlength' => 64,
   );
   $address['province'] = array(
     '#type' => 'textfield',
     '#title' => 'Province',
-    '#default_value' => isset($row->province) ? check_plain($row->province) : '',
+    '#default_value' => isset($row->province) ? $row->province : '',
     '#maxlength' => 64,
   );
   $address['zip_code'] = array(
     '#type' => 'textfield',
     '#title' => 'ZIP code',
-    '#default_value' => isset($row->zip_code) ? check_plain($row->zip_code) : '',
+    '#default_value' => isset($row->zip_code) ? $row->zip_code : '',
     '#maxlength' => 16,
   );
   //$address['same_addr'] = array(

@@ -106,6 +106,13 @@ function avvendors_schema() {
         'length' => '16',
         'not null' => FALSE,
       ),
+      'opening_balance' => array(
+        'description' => 'Opening balance',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
       'data' => array(
         'description' => 'Miscellaneous vendor info',
         'type' => 'text',

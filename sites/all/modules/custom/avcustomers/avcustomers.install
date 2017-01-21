@@ -148,6 +148,11 @@ function avcustomers_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'area_id' => array(
+        'description' => 'Area id',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
       'credit_limit' => array(
         'description' => 'Credit limit',
         'type' => 'numeric',
@@ -179,6 +184,7 @@ function avcustomers_schema() {
     ),
     'indexes' => array(
       'agent_id' => array('agent_id'),
+      'area_id' => array('area_id'),
       'company' => array('company'),
       'email' => array('email'),
       'first_name' => array('first_name'),

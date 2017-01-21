@@ -106,7 +106,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
   $info['title'] = array(
     '#type' => 'textfield',
     '#title' => 'Title',
-    '#default_value' => isset($row->title) ? check_plain($row->title) : '',
+    '#default_value' => isset($row->title) ? $row->title : '',
     '#maxlength' => 255,
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_unique_field'),
@@ -114,7 +114,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
   $info['code'] = array(
     '#type' => 'textfield',
     '#title' => 'Product code',
-    '#default_value' => isset($row->code) ? check_plain($row->code) : '',
+    '#default_value' => isset($row->code) ? $row->code : '',
     '#maxlength' => 32,
     '#element_validate' => array('avbase_element_validate_unique_field'),
     '#attributes' => array(
@@ -242,7 +242,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
   $info['lot_no'] = array(
     '#type' => 'textfield',
     '#title' => 'Lot no.',
-    '#default_value' => isset($row->lot_no) ? check_plain($row->lot_no) : '',
+    '#default_value' => isset($row->lot_no) ? $row->lot_no : '',
     '#maxlength' => 32,
   );
   $info['vendor_id'] = array(
@@ -253,7 +253,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#autocomplete_path' => 'av/vendors/autocomplete',
     '#element_validate' => array('avbase_element_validate_display_name_exists'),
     '#table_name' => 'avtbl_vendors',
-    '#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
+    '#default_value' => empty($row->vendor_name) ? '' : $row->vendor_name,
   );
   $info['account_type_id'] = array(
     '#type' => 'select',

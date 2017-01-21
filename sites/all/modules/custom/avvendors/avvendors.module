@@ -134,7 +134,7 @@ function avvendors_home_form($form, &$form_state) {
     ->execute();
 
   $action_links_all = array();
-  $categories = avvendors_get_vendor_categories();
+  $categories = avbase_get_category_options_array('vendor_cat');
   foreach ($result as $row) {
     $menu_prefix = 'av/vendors/' . $row->id;
     $action_links = array('links' => array(

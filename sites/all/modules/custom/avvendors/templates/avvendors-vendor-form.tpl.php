@@ -16,6 +16,9 @@ $form['address']['address']['#attributes']['rows'] = 3;
 // Misc.
 $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # / Street / etc.';
 $view_mode = !empty($form['#av_view_mode']);
+
+
+$transactions_html = drupal_render($form['transactions']);
 ?>
 
 <?php if ($view_mode): ?>
@@ -24,15 +27,15 @@ $view_mode = !empty($form['#av_view_mode']);
 <div class="uk-grid uk-grid-large">
   <div class="uk-width-1-2">
     <div class="uk-grid uk-grid-small">
+      <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['display_name']); ?></div>
+      <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['agent_name']); ?></div>
+
       <div class="uk-width-2-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['company']); ?></div>
       <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['category_id']); ?></div>
 
       <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['first_name']); ?></div>
       <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['middle_name']); ?></div>
       <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['last_name']); ?></div>
-
-      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['display_name']); ?></div>
-      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['agent_name']); ?></div>
     </div>
   </div>
 
@@ -42,7 +45,8 @@ $view_mode = !empty($form['#av_view_mode']);
       <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['contact']['email']); ?></div>
       <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['contact']['contact_number']); ?></div>
 
-      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['contact']['website']); ?></div>
+      <div class="uk-width-2-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['contact']['website']); ?></div>
+      <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['opening_balance']); ?></div>
 
       <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['toggle_me']); ?></div>
       <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['settings']); ?></div>
@@ -54,16 +58,20 @@ $view_mode = !empty($form['#av_view_mode']);
 
   <div class="uk-width-1-1 uk-margin-top">
     <ul class="uk-tab" data-uk-tab="{connect:'#more-info'}">
-      <li><a href="">Recent Transactions</a></li>
+      <?php if ($transactions_html): ?>
+        <li><a href="">Recent Transactions</a></li>
+      <?php endif; ?>
       <li><a href="">Address</a></li>
       <!--<li><a href="">Miscellaneous</a></li>-->
     </ul>
     <ul id="more-info" class="uk-switcher">
-      <li class="uk-panel uk-panel-box">
-        <div class="">
-          <?php print drupal_render($form['transactions']); ?>
-        </div>
-      </li>
+      <?php if ($transactions_html): ?>
+        <li class="uk-panel uk-panel-box">
+          <div class="">
+            <?php print $transactions_html; ?>
+          </div>
+        </li>
+      <?php endif; ?>
       <li class="uk-panel uk-panel-box">
         <div class="uk-grid">
           <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['address']); ?></div>

@@ -100,6 +100,9 @@ function avcustomer_query_load($param_where, $param_args = array(), $limit_strin
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
+  if (!empty($limit_string)) {
+    $query .= " LIMIT " . $limit_string;
+  }
 
   $rs = db_query($query, $param_args);
   $rows = array();
@@ -202,4 +205,46 @@ function avcustomers_autocomplete($string = '') {
   }
 
   drupal_json_output($matches);
+}
+
+/**
+ * Return definition of customer table fields.
+ * @param $db_op
+ * @return array
+ */
+function avcustomers_table_fields_to_save($db_op = 'insert') {
+  $fields = array(
+    'created',
+    'first_name',
+    'last_name',
+    'middle_name',
+    'company',
+    'display_name',
+    //'code',
+    'agent_id' => array('type' => 'int'),
+    'email',
+    'address',
+    'city',
+    'province',
+    'zip_code',
+    //'same_addr',
+    'payment_method_id' => array('type' => 'int'),
+    'term_id' => array('type' => 'int'),
+    'discount_type' => array('type' => 'int'),
+    'discount_value' => array('type' => 'float'),
+    'category_id' => array('type' => 'int'),
+    'credit_limit' => array('type' => 'float'),
+    'opening_balance' => array('type' => 'float'),
+    'data' => array(
+      'phone1',
+      'phone2',
+      'phone3',
+    ),
+  );
+
+  if ($db_op == 'update') {
+    unset($fields['created']);
+    unset($fields['opening_balance']);
+  }
+  return $fields;
 }

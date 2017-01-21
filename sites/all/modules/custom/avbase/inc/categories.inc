@@ -156,7 +156,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => 'Title',
-    '#default_value' => isset($row->title) ? check_plain($row->title) : '',
+    '#default_value' => isset($row->title) ? $row->title : '',
     '#maxlength' => 32,
     '#required' => TRUE,
     '#weight' => 1,
@@ -164,7 +164,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
   $form['description'] = array(
     '#type' => 'textarea',
     '#title' => 'Description',
-    '#default_value' => isset($row->description) ? check_plain($row->description) : '',
+    '#default_value' => isset($row->description) ? $row->description : '',
     '#maxlength' => 255,
     '#weight' => 2,
   );
@@ -278,14 +278,14 @@ function avbase_category_agent_form_alter(&$form, $db_row) {
   $form['contact_number'] = array(
     '#type' => 'textfield',
     '#title' => 'Contact number',
-    '#default_value' => isset($db_row->data['contact_number']) ? check_plain($db_row->data['contact_number']) : '',
+    '#default_value' => isset($db_row->data['contact_number']) ? $db_row->data['contact_number'] : '',
     '#maxlength' => 32,
     '#weight' => 1.1,
   );
   $form['address'] = array(
     '#type' => 'textarea',
     '#title' => 'Address',
-    '#default_value' => isset($db_row->data['address']) ? check_plain($db_row->data['address']) : '',
+    '#default_value' => isset($db_row->data['address']) ? $db_row->data['address'] : '',
     '#maxlength' => 255,
     '#weight' => 1.2,
   );

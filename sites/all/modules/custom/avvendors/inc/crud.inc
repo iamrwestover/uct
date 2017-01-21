@@ -41,7 +41,7 @@ function avvendors_vendor_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['misc']['notes'] = array(
     '#type' => 'textarea',
     '#title' => 'Miscellaneous',
-    '#default_value' => isset($row->data['notes']) ? check_plain($row->data['notes']) : '',
+    '#default_value' => isset($row->data['notes']) ? $row->data['notes'] : '',
     '#maxlength' => 255,
   );
 
@@ -80,35 +80,14 @@ function avvendors_vendor_form_settings(&$form, $view_mode = FALSE) {
   $form['#attributes']['autocomplete'] = 'off';
 
   // Set field names to save.
-  $save_field_ids = array(
-    'created',
-    'first_name',
-    'last_name',
-    'middle_name',
-    'company',
-    'display_name',
-    'agent_id' => array('type' => 'int'),
-    'email',
-    'address',
-    'city',
-    'province',
-    'zip_code',
-    'term_id' => array('type' => 'int'),
-    'discount_type' => array('type' => 'int'),
-    'discount_value' => array('type' => 'float'),
-    'category_id' => array('type' => 'int'),
-  );
+  $db_op = empty($form['id']['#value']) ? 'insert' : 'update';
+  $save_field_ids = avvendors_table_fields_to_save($db_op);
   $form['save_field_ids'] = array(
     '#type' => 'value',
     '#value' => $save_field_ids,
   );
-
   // Set which fields belong to data field.
-  $data_ids = array(
-    'contact_number',
-    'website',
-    'notes',
-  );
+  $data_ids = empty($save_field_ids['data']) ? array() : $save_field_ids['data'];
   $form['data_ids'] = array(
     '#type' => 'value',
     '#value' => $data_ids,
@@ -127,31 +106,31 @@ function avvendors_vendor_form_info_fields(&$form, $row, $view_mode = FALSE) {
   $info['first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'First name',
-    '#default_value' => isset($row->first_name) ? check_plain($row->first_name) : '',
+    '#default_value' => isset($row->first_name) ? $row->first_name : '',
     '#maxlength' => 32,
   );
   $info['middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Middle name',
-    '#default_value' => isset($row->middle_name) ? check_plain($row->middle_name) : '',
+    '#default_value' => isset($row->middle_name) ? $row->middle_name : '',
     '#maxlength' => 32,
   );
   $info['last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Last name',
-    '#default_value' => isset($row->last_name) ? check_plain($row->last_name) : '',
+    '#default_value' => isset($row->last_name) ? $row->last_name : '',
     '#maxlength' => 32,
   );
   $info['company'] = array(
     '#type' => 'textfield',
     '#title' => 'Company',
-    '#default_value' => isset($row->company) ? check_plain($row->company) : '',
+    '#default_value' => isset($row->company) ? $row->company : '',
     '#maxlength' => 255,
   );
   $info['category_id'] = array(
     '#type' => 'select',
     '#title' => 'Category',
-    '#options' => avvendors_get_vendor_categories(),
+    '#options' => avbase_get_category_options_array('vendor_cat'),
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->category_id) ? $row->category_id : 0,
@@ -160,7 +139,7 @@ function avvendors_vendor_form_info_fields(&$form, $row, $view_mode = FALSE) {
     '#type' => 'textfield',
     '#title' => 'Display name',
     '#title_display' => $view_mode ? 'none' : 'before',
-    '#default_value' => isset($row->display_name) ? check_plain($row->display_name) : '',
+    '#default_value' => isset($row->display_name) ? $row->display_name : '',
     '#maxlength' => 255,
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_display_name'),
@@ -175,7 +154,7 @@ function avvendors_vendor_form_info_fields(&$form, $row, $view_mode = FALSE) {
     '#element_validate' => array('avbase_element_validate_category_exists'),
     '#element_validate_conditions' => array('group_id' => 'agent_vend'),
     '#element_save_id' => 'agent_id',
-    '#default_value' => empty($row->agent_name) ? '' : check_plain($row->agent_name),
+    '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
   );
 
   $term_options = avbase_get_category_options_array('payment_term');
@@ -210,6 +189,16 @@ function avvendors_vendor_form_info_fields(&$form, $row, $view_mode = FALSE) {
       'step' => 0.01,
     ),
   );
+  $info['opening_balance'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Opening balance',
+    '#default_value' => isset($row->opening_balance) ? round($row->opening_balance, 6) : '',
+    '#maxlength' => 19,
+    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+  );
+  if (!empty($row->id)) {
+    $info['opening_balance']['#disabled'] = TRUE;
+  }
   $form['info'] += $info;
 }
 
@@ -225,20 +214,20 @@ function avvendors_vendor_form_contact_fields(&$form, $row, $view_mode = FALSE) 
   $contact['email'] = array(
     '#type' => 'textfield',
     '#title' => 'E-mail address',
-    '#default_value' => isset($row->email) ? check_plain($row->email) : '',
+    '#default_value' => isset($row->email) ? $row->email : '',
     '#maxlength' => 255,
     '#element_validate' => array('avbase_element_validate_email'),
   );
   $contact['contact_number'] = array(
     '#type' => 'textfield',
     '#title' => 'Contact number',
-    '#default_value' => isset($row->data['contact_number']) ? check_plain($row->data['contact_number']) : '',
+    '#default_value' => isset($row->data['contact_number']) ? $row->data['contact_number'] : '',
     '#maxlength' => 32,
   );
   $contact['website'] = array(
     '#type' => 'textfield',
     '#title' => 'Website',
-    '#default_value' => isset($row->data['website']) ? check_plain($row->data['website']) : '',
+    '#default_value' => isset($row->data['website']) ? $row->data['website'] : '',
     '#maxlength' => 255,
   );
   $form['contact'] += $contact;
@@ -256,25 +245,25 @@ function avvendors_vendor_form_address_fields(&$form, $row, $view_mode = FALSE) 
   $address['address'] = array(
     '#type' => 'textarea',
     '#title' => 'Address',
-    '#default_value' => isset($row->address) ? check_plain($row->address) : '',
+    '#default_value' => isset($row->address) ? $row->address : '',
     '#maxlength' => 255,
   );
   $address['city'] = array(
     '#type' => 'textfield',
     '#title' => 'City / Town',
-    '#default_value' => isset($row->city) ? check_plain($row->city) : '',
+    '#default_value' => isset($row->city) ? $row->city : '',
     '#maxlength' => 64,
   );
   $address['province'] = array(
     '#type' => 'textfield',
     '#title' => 'Province',
-    '#default_value' => isset($row->province) ? check_plain($row->province) : '',
+    '#default_value' => isset($row->province) ? $row->province : '',
     '#maxlength' => 64,
   );
   $address['zip_code'] = array(
     '#type' => 'textfield',
     '#title' => 'ZIP code',
-    '#default_value' => isset($row->zip_code) ? check_plain($row->zip_code) : '',
+    '#default_value' => isset($row->zip_code) ? $row->zip_code : '',
     '#maxlength' => 16,
   );
   $form['address'] += $address;
