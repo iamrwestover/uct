@@ -41,11 +41,12 @@ function avtrans_avbase_crud_dbchange_po($op, $row, $form_state) {
  */
 function avtrans_po_form_submit($form, &$form_state) {
   $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
+  $po_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
   switch ($triggering_element['#id']) {
     case 'submit_and_send':
-      $po_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
       //$mail_to = empty($form_state['values']['email']) ? '' : $form_state['values']['email'];
       avtrans_po_send_to_email($po_id);
       break;
   }
+  $form_state['redirect'] = 'av/po/' . $po_id . '/view';
 }

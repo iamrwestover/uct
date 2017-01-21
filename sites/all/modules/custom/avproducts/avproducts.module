@@ -23,8 +23,8 @@ function avproducts_menu() {
   );
   $items['av/products/add'] = array(
     'title' => 'New product',
-    'page callback' => 'avproducts_product_form_load',
-    'page arguments' => array(NULL),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avproducts_product_form', NULL),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
@@ -32,8 +32,8 @@ function avproducts_menu() {
   );
   $items['av/products/%avproduct/view'] = array(
     'title' => 'View',
-    'page callback' => 'avproducts_product_form_load',
-    'page arguments' => array(2, TRUE),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avproducts_product_form', 2, TRUE),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
@@ -41,8 +41,8 @@ function avproducts_menu() {
   );
   $items['av/products/%avproduct/edit'] = array(
     'title' => 'Edit',
-    'page callback' => 'avproducts_product_form_load',
-    'page arguments' => array(2),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avproducts_product_form', 2),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',

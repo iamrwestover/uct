@@ -1,6 +1,7 @@
 <?php
 module_load_include('inc', 'avtrans', 'inc/item_list.form');
 module_load_include('inc', 'avtrans', 'inc/trans.cost_changes.form');
+//module_load_include('inc', 'avtrans', 'inc/trans.client_changes.form');
 module_load_include('inc', 'avtrans', 'inc/trans.pending_orders.form');
 module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
 
@@ -25,6 +26,7 @@ function avtrans_gr_form_load($row) {
  */
 function avtrans_gr_form($form, &$form_state, $row) {
   $form['#id'] = 'avtrans-gr-form';
+  //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';
   $form['#suffix'] = '</div>';
 
@@ -36,6 +38,9 @@ function avtrans_gr_form($form, &$form_state, $row) {
 
   // Add fields for Cost Changes popup.
   avtrans_cost_changes_form_fields($form, $form_state, $row);
+
+  // Add fields for Client Changes popup.
+  //avtrans_client_changes_form_fields($form, $form_state, $row);
 
   // Add fields for Vendor POs popup.
   avtrans_pending_orders_form_fields($form, $form_state, $row);
@@ -87,7 +92,7 @@ function avtrans_gr_form_default(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_gr_form_settings(&$form, &$form_state, $row) {
+function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode) {
   $js_settings = array('avtrans' => array('transaction' => 'purchase'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -99,9 +104,6 @@ function avtrans_gr_form_settings(&$form, &$form_state, $row) {
   $_storage = &$form_state['storage'];
   $_storage['transaction'] = $js_settings['avtrans']['transaction'];
   $_storage['transaction_type'] = 'gr';
-
-  // Set flag if this is view mode.
-  $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
   //$form['#submit'] = array('avbase_crud_form_submit');
@@ -119,6 +121,7 @@ function avtrans_gr_form_settings(&$form, &$form_state, $row) {
     'created',
     'client_id',
     'term_id' => array('type' => 'int'),
+    'agent_id' => array('type' => 'int'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',

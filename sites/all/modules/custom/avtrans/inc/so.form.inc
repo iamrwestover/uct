@@ -1,5 +1,6 @@
 <?php
 module_load_include('inc', 'avtrans', 'inc/so.handlers');
+//module_load_include('inc', 'avtrans', 'inc/trans.client_changes.form');
 module_load_include('inc', 'avtrans', 'inc/item_list.form');
 
 /**
@@ -12,6 +13,7 @@ module_load_include('inc', 'avtrans', 'inc/item_list.form');
  */
 function avtrans_so_form($form, &$form_state, $row) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   switch (arg(4)) {
     case 'view':
       $page_title = t('Sales Order details');
@@ -41,7 +43,7 @@ function avtrans_so_form($form, &$form_state, $row) {
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
   );
 
-  $form['item_list_date']['#title'] = t('Sales Order Date');
+  $form['transaction_date']['#title'] = t('Sales Order Date');
 
   // Buttons
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
@@ -62,7 +64,7 @@ function avtrans_so_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avtrans_so_form_settings(&$form, $row) {
+function avtrans_so_form_settings(&$form, $row, $view_mode) {
   $js_settings = array('avtrans' => array('transaction' => 'sales'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -76,9 +78,6 @@ function avtrans_so_form_settings(&$form, $row) {
 
   // Table name.
   $table_name = 'avtbl_so';
-
-  // Set flag if this is view mode.
-  $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
@@ -95,6 +94,7 @@ function avtrans_so_form_settings(&$form, $row) {
   $save_field_ids = array(
     'created',
     'client_id',
+    'agent_id' => array('type' => 'int'),
     //'message',
     //'email',
     //'term_id' => array('type' => 'int'),

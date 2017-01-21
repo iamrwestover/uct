@@ -140,7 +140,7 @@
       <div<?php print $content_attributes; ?>>
         <?php print render($title_prefix); ?>
         <?php if ($title): ?>
-          <div id="page-title" class="uk-article-title uk-margin-bottom uk-margin-top"><?php print $title; ?></div><?php endif; ?>
+          <div id="page-title" class="printable uk-article-title uk-margin-bottom uk-margin-top"><?php print $title; ?></div><?php endif; ?>
         <?php print render($title_suffix); ?>
 
         <?php if ($page['intro']): ?>
@@ -152,7 +152,7 @@
         <?php endif; ?>
 
         <?php if ($messages): ?>
-          <div id="messages" class="uk-width-1-1 uk-panel-">
+          <div id="messages" class="not-printable uk-width-1-1 uk-panel-">
             <?php print $messages; ?>
           </div>
         <?php endif; ?>

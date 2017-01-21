@@ -1,5 +1,14 @@
 (function ($) {
-
+  Drupal.behaviors.avbaseGeneral = {
+    attach: function (context, settings) {
+      $('#av-print-btn', context).once('avbasePrintButton', function () {
+        $(this).click(function(e) {
+          window.print();
+          e.preventDefault();
+        });
+      });
+    }
+  };
 }(jQuery));
 
 
@@ -14,5 +23,9 @@ jQuery(document).ready(function ($) {
 
     $(this).addClass('form-submitted');
   });
+
+
+
+
 });
 

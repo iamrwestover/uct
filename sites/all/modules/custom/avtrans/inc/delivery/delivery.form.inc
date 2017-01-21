@@ -1,6 +1,7 @@
 <?php
 module_load_include('inc', 'avtrans', 'inc/item_list.form');
 module_load_include('inc', 'avtrans', 'inc/trans.cost_changes.form');
+//module_load_include('inc', 'avtrans', 'inc/trans.client_changes.form');
 module_load_include('inc', 'avtrans', 'inc/trans.pending_orders.form');
 module_load_include('inc', 'avtrans', 'inc/delivery/delivery.handlers');
 module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
@@ -15,6 +16,7 @@ module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
  */
 function avtrans_delivery_form($form, &$form_state, $row) {
   $form['#id'] = 'avtrans-gr-form';
+  //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';
   $form['#suffix'] = '</div>';
 
@@ -77,7 +79,7 @@ function avtrans_delivery_form_default(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_settings(&$form, &$form_state, $row) {
+function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode) {
   $js_settings = array('avtrans' => array('transaction' => 'sales'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -89,9 +91,6 @@ function avtrans_delivery_form_settings(&$form, &$form_state, $row) {
   $_storage = &$form_state['storage'];
   $_storage['transaction'] = $js_settings['avtrans']['transaction'];
   $_storage['transaction_type'] = 'dr';
-
-  // Set flag if this is view mode.
-  $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
   //$form['#submit'] = array('avbase_crud_form_submit');
@@ -109,6 +108,7 @@ function avtrans_delivery_form_settings(&$form, &$form_state, $row) {
     'created',
     'client_id',
     'term_id' => array('type' => 'int'),
+    'agent_id' => array('type' => 'int'),
   );
   $form['save_field_ids'] = array(
     '#type' => 'value',
@@ -155,7 +155,7 @@ function avtrans_delivery_form_fields(&$form, &$form_state, $row) {
 function avtrans_delivery_form_buttons(&$form, $form_state, $row) {
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
-    '#id' => 'detect-cost-change-btn',
+    '#id' => 'detectc-cost-change-btn',
     '#type' => 'submit',
     '#value' => t('Save delivery details'),
     '#attributes' => array(

@@ -1,3 +1,6 @@
+<?php
+$view_mode = !empty($form['#av_view_mode']);
+?>
 <div class="av-nestable-form uk-nestable av-nestable-product-list-form">
   <div class="av-nestable-form-header">
     <div class="uk-grid uk-grid-collapse uk-text-bold uk-text-uppercase">
@@ -10,8 +13,10 @@
                 <div class="uk-width-1-10">
 
                   <div class="uk-grid uk-grid-collapse uk-text-center">
-                    <div class="uk-width-1-2">&nbsp;</div>
-                    <div class="uk-width-1-2">#</div>
+                    <?php if (empty($view_mode)): ?>
+                      <div class="uk-width-1-2">&nbsp;</div>
+                    <?php endif; ?>
+                    <div class="uk-width-<?php print $view_mode ? '2' : '1'; ?>-2">#</div>
                   </div>
 
                 </div>

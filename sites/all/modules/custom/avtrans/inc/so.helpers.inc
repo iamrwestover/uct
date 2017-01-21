@@ -95,9 +95,9 @@ function avtrans_so_query_load($conditions = array()) {
 
   $query = db_select('avtbl_so', 'avso');
   $query->leftJoin('avtbl_customers', 'avcustomers', 'avcustomers.id = avso.client_id');
-  //$query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avso.term_id AND avcat.group_id = 'payment_term'");
+  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avpo.agent_id AND avcat_agent.group_id = 'agent_cust'");
   $query->addField('avcustomers', 'display_name', 'client_name');
-  //$query->addField('avcat', 'title', 'payment_term_title');
+  $query->addField('avcat_agent', 'title', 'agent_name');
   $query->fields('avso');
   //->fields('avcustomers', array('display_name'))
   //->condition('avso.id', $id)

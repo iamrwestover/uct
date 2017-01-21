@@ -8,18 +8,43 @@ module_load_include('inc', 'avtrans', 'inc/item_list.form.validate');
  * @param $form_state
  * @param $row
  */
-function avtrans_item_list_form_fields(&$form, &$form_state, $row) {
-  $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/item_list.form.js';
+function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get transaction type.
+  $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
+
+  if (empty($view_mode)) {
+    $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/item_list.form.js';
+  }
   $form['client_name'] = array(
     '#type' => 'textfield',
     '#maxlength' => 255,
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_display_name_exists'),
-    //'#default_value' => empty($row->vendor_name) ? '' : check_plain($row->vendor_name),
+    '#default_value' => empty($row->client_name) ? '' : $row->client_name,
     '#title' => t('Client'),
     '#id' => 'client-id',
     '#element_save_id' => 'client_id',
   );
+  $form['agent_name'] = array(
+    '#id' => 'agent-name',
+    '#type' => 'textfield',
+    '#title' => t('Agent'),
+    '#maxlength' => 255,
+    '#autocomplete_path' => 'av/categories/agent_vend/autocomplete',
+    '#weight' => 1.2,
+    '#element_validate' => array('avbase_element_validate_category_exists'),
+    '#element_validate_conditions' => array('group_id' => 'agent_vend'),
+    '#element_save_id' => 'agent_id',
+    '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
+  );
+  if ($transaction == 'sales') {
+    $form['agent_name']['#autocomplete_path'] = 'av/categories/agent_cust/autocomplete';
+    $form['agent_name']['#element_validate_conditions'] = array('group_id' => 'agent_cust');
+  }
 
   $form['discount_type'] = array(
     '#id' => 'discount-type',
@@ -29,6 +54,7 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row) {
     '#options' => avbase_get_discount_types(),
     '#default_value' => isset($row->discount_type) ? $row->discount_type : AVBASE_DISCOUNT_PERCENT,
   );
+
   $form['discount_value'] = array(
     '#id' => 'discount-value',
     '#title_display' => 'invisible',
@@ -43,19 +69,30 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row) {
       //'step' => 0.01,
     ),
   );
-  if (!empty($form['#av_view_mode']) && $form['discount_type']['#default_value'] == AVBASE_DISCOUNT_PERCENT) {
+  if (!empty($view_mode) && $form['discount_type']['#default_value'] == AVBASE_DISCOUNT_PERCENT) {
     $form['discount_value']['#field_suffix'] = '%';
     $form['discount_type']['#default_value'] = '';
   }
 
-  $form['item_list_date'] = array(
+  $form['transaction_date'] = array(
     '#type' => 'item',
     '#title' => 'Date',
     '#markup' => format_date(time(), 'custom', 'F d, Y'),
   );
+  $form['transaction_id'] = array(
+    '#type' => 'item',
+    '#title' => 'Transaction ID',
+    '#markup' => empty($row->id) ? '' : $row->id,
+    '#access' => !empty($row->id),
+  );
+
+  $form['grand_total'] = array('#type' => 'value', '#value' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
+  $form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
+  $form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
+
 
   // Product list.
-  avtrans_item_list_product_fields($form, $form_state, $row);
+  avtrans_item_list_product_fields($form, $form_state, $row, $view_mode);
 }
 
 /**
@@ -64,7 +101,7 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
+function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   // Initialize to-attached js settings.
   $js_settings = array('avbase' => array());
 
@@ -77,11 +114,17 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
 
   // Get transaction type.
   $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
-  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+  $transaction_type = empty($_storage['transaction_type']) ? '' : $_storage['transaction_type'];
 
+  // Get db item rows.
+  $db_row_items = empty($row->items) ? array() : $row->items;
+  $initial_item_rows = array();
+  foreach ($db_row_items as $item) {
+    $initial_item_rows['db_item_' . $item->id] = (array) $item;
+  }
 
   // Get item rows.
-  $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
+  $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : $initial_item_rows;
   $_item_rows = &$_storage['item_rows'];
 
   // Pre-load empty product rows.
@@ -107,7 +150,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
     $fields = array();
     $order_key = $transaction_type == 'gr' ? 'po_id' : 'so_id';
     $order_id = empty($prod_row[$order_key]) ? NULL : $prod_row[$order_key];
-    if (!empty($order_id)) {
+    if (!empty($order_id) && !empty($transaction_type)) {
       $badge_title = $transaction_type == 'gr' ? 'PO# ' : 'SO# ';
       $badge_title .= $order_id;
       $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-success" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
@@ -126,6 +169,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
         'data-column-name' => 'title',
         'class' => array('prod-column-title'),
       ),
+      '#default_value' => isset($prod_row['product_title']) ? $prod_row['product_title'] : '',
     );
 
     $fields['uom_title'] = array(
@@ -142,6 +186,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
         'class' => array('prod-column-uom-title'),
       ),
       '#av_dropdown' => TRUE,
+      '#default_value' => isset($prod_row['uom_title']) ? $prod_row['uom_title'] : '',
     );
 
     $fields['qty_per_uom'] = array(
@@ -156,6 +201,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
       '#attributes' => array(
         'class' => array('prod-column-qty-per-uom'),
       ),
+      '#default_value' => isset($prod_row['qty_per_uom']) ? $prod_row['qty_per_uom'] : '',
     );
 
     $fields['qty'] = array(
@@ -170,6 +216,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
         'data-column-name' => 'qty',
         'class' => array('prod-column-qty'),
       ),
+      '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
 
     $fields['cost'] = array(
@@ -184,6 +231,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
         'data-column-name' => 'cost',
         'class' => array('prod-column-cost'),
       ),
+      '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost']) : '',
     );
 
     $fields['total'] = array(
@@ -198,6 +246,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
         'data-column-name' => 'total',
         'class' => array('prod-column-total'),
       ),
+      '#default_value' => isset($prod_row['total']) ? avbase_number_format($prod_row['total']) : '',
     );
 
     $fields['prod_delete_btn'] = array(
@@ -253,9 +302,11 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row) {
   );
 
   $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
-  $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/nestable_product_form.js';
-  $form['#attached']['js'][] = array(
-    'data' => $js_settings,
-    'type' => 'setting',
-  );
+  if (empty($view_mode)) {
+    $form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/nestable_product_form.js';
+    $form['#attached']['js'][] = array(
+      'data' => $js_settings,
+      'type' => 'setting',
+    );
+  }
 }

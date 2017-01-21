@@ -1,4 +1,5 @@
 <?php
+$view_mode = !empty($form['#av_view_mode']);
 foreach (element_children($form) as $key) {
   $form[$key]['#title_display'] = 'invisible';
 }
@@ -31,8 +32,10 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
               <div class="uk-width-1-10">
 
                 <div class="uk-grid uk-grid-collapse uk-text-center">
-                  <div class="uk-width-1-2"><i class="uk-nestable-handle uk-icon uk-icon-bars uk-margin-small-right"></i></div>
-                  <div class="uk-width-1-2"><span class="av-nestable-row-num"><?php print $form['#prod_index'] + 1; ?></span></div>
+                  <?php if (empty($view_mode)): ?>
+                    <div class="uk-width-1-2"><i class="uk-nestable-handle uk-icon uk-icon-bars uk-margin-small-right"></i></div>
+                  <?php endif; ?>
+                  <div class="uk-width-<?php print $view_mode ? '2' : '1'; ?>-2"><span class="av-nestable-row-num" style="<?php print $view_mode ? 'top: 0;' : ''; ?>"><?php print $form['#prod_index'] + 1; ?></span></div>
                 </div>
 
               </div>
@@ -55,19 +58,19 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
 
     <div class="uk-grid uk-grid-collapse">
       <div class="uk-width-1-6">
-        <div class="av-nestable-cell">
+        <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['qty']); ?>
         </div>
       </div>
 
       <div class="uk-width-2-6">
-        <div class="av-nestable-cell">
+        <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['cost']); ?>
         </div>
       </div>
 
       <div class="uk-width-2-6">
-        <div class="av-nestable-cell">
+        <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['total']); ?>
         </div>
       </div>

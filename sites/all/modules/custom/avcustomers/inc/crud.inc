@@ -101,8 +101,7 @@ function avcustomers_customer_form($form, &$form_state, $row, $view_mode = FALSE
   }
 
   // Convert form to non-edit mode if we are on View page.
-  $form['#av_view_mode'] = $view_mode;
-  avbase_allow_form_view_mode($form);
+  avbase_allow_form_view_mode($form, $view_mode);
   return $form;
 }
 

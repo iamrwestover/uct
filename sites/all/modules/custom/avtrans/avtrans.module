@@ -22,23 +22,38 @@ function avtrans_menu() {
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
+  $items['av/po'] = array(
+    'title' => 'Purchase Orders',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_home_form'),
+    'access callback' => 'user_is_logged_in',
+  );
   $items['av/po/new'] = array(
     'title' => 'New Purchase Order',
-    'page callback' => 'avtrans_po_form_load',
-    'page arguments' => array(NULL),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_po_form', NULL),
     'access callback' => 'user_is_logged_in',
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'inc/po.form.inc',
     'weight' => 10,
   );
-  //$items['av/po/%avtrans_po/view'] = array(
-  //  'title' => 'View Purchase Order',
-  //  'page callback' => 'avtrans_po_form_load',
-  //  'page arguments' => array(3),
+  $items['av/po/%avtrans_po/view'] = array(
+    'title' => 'View Purchase Order',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_po_form', 2, TRUE),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/po.form.inc',
+    'weight' => 0,
+  );
+  //$items['av/po/%avtrans_po/edit'] = array(
+  //  'title' => 'Edit Purchase Order',
+  //  'page callback' => 'drupal_get_form',
+  //  'page arguments' => array('avtrans_po_form', 2),
   //  'access callback' => 'user_is_logged_in',
-  //  //'type' => MENU_LOCAL_TASK,
+  //  'type' => MENU_LOCAL_TASK,
   //  'file' => 'inc/po.form.inc',
-  //  'weight' => 0,
+  //  'weight' => 1,
   //);
   $items['av/gr/new'] = array(
     'title' => 'Receive items',

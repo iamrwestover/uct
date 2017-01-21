@@ -45,7 +45,7 @@ function avtrans_compute_sales_price($current_sales_price, $current_cost, $new_c
  * @param $form_state
  * @param $row
  */
-function avtrans_purchase_fields(&$form, &$form_state, $row){
+function avtrans_purchase_fields(&$form, &$form_state, $row, $view_mode = FALSE){
   // Set parameters for client name field.
   $form['client_name']['#title'] = t('Vendor');
   $form['client_name']['#table_name'] = 'avtbl_vendors';

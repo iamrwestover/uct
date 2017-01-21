@@ -215,14 +215,14 @@ function avtrans_cost_changes_db_update($form_state, $row, $product_ids, $transa
     }
 
     if (!empty($cost_set)) {
-      $query = "UPDATE {avtbl_products} SET cost = CASE id " . implode(' ', $cost_set) . " END WHERE ID IN(:product_ids)";
+      $query = "UPDATE {avtbl_products} SET cost = CASE id " . implode(' ', $cost_set) . " END WHERE id IN(:product_ids)";
       $cost_args[':product_ids'] = array_keys($cost_set);
       if (db_query($query, $cost_args)) {
         avbase_custom_watchdog("{$transaction_type}__cost_update", "ID: {$row['id']}", array('#row' => $row, '#cost_changes' => $cost_changes, '#cost_set' => $cost_set, '#args' => $cost_args));
       }
     }
     if (!empty($price_set)) {
-      $query = "UPDATE {avtbl_products} SET price = CASE id " . implode(' ', $price_set) . " END WHERE ID IN(:product_ids)";
+      $query = "UPDATE {avtbl_products} SET price = CASE id " . implode(' ', $price_set) . " END WHERE id IN(:product_ids)";
       $price_args[':product_ids'] = array_keys($price_set);
       if (db_query($query, $price_args)) {
         avbase_custom_watchdog("{$transaction_type}__price_update", "ID: {$row['id']}", array('#row' => $row, '#cost_changes' => $cost_changes, '#price_set' => $price_set, '#args' => $price_args));

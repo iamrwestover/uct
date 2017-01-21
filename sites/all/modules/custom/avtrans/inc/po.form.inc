@@ -1,5 +1,6 @@
 <?php
 module_load_include('inc', 'avtrans', 'inc/po.handlers');
+//module_load_include('inc', 'avtrans', 'inc/trans.client_changes.form');
 module_load_include('inc', 'avtrans', 'inc/item_list.form');
 
 /**
@@ -9,7 +10,7 @@ module_load_include('inc', 'avtrans', 'inc/item_list.form');
  *
  * @return string
  */
-function avtrans_po_form_load($row) {
+function avtrans_po_form_load($row, $view_mode) {
   return drupal_get_form('avtrans_po_form', $row);
 }
 
@@ -21,26 +22,17 @@ function avtrans_po_form_load($row) {
  * @param $row
  * @return array
  */
-function avtrans_po_form($form, &$form_state, $row) {
+function avtrans_po_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  switch (arg(4)) {
-    case 'view':
-      $page_title = t('Purchase order details');
-      break;
-    case 'edit':
-      $page_title = t('Edit purchase order');
-      break;
-    default:
-      $page_title = t('New purchase order');
-      break;
-  }
+  //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
+  $page_title = empty($form['id']) ? t('New purchase order') : t('Purchase order');
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avtrans_po_form_settings($form, $row);
+  avtrans_po_form_settings($form, $row, $view_mode);
 
   // Item List form fields.
-  avtrans_item_list_form_fields($form, $form_state, $row);
+  avtrans_item_list_form_fields($form, $form_state, $row, $view_mode);
 
   $form['header_total'] = array(
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
@@ -50,9 +42,9 @@ function avtrans_po_form($form, &$form_state, $row) {
   );
 
   // Set common fields when purchasing items.
-  avtrans_purchase_fields($form, $form_state, $row);
+  avtrans_purchase_fields($form, $form_state, $row, $view_mode);
 
-  $form['item_list_date']['#title'] = t('P.O. Date');
+  $form['transaction_date']['#title'] = t('P.O. Date');
   $form['email'] = array(
     '#id' => 'vendor-email',
     '#type' => 'textfield',
@@ -84,12 +76,22 @@ function avtrans_po_form($form, &$form_state, $row) {
     '#type' => 'submit',
     '#value' => t('Save'),
   );
-  $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/transactions'),
-  );
+  if (empty($view_mode)) {
+    $form['buttons']['cancel'] = array(
+      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
+    );
+  }
+  else {
+    $form['buttons']['print'] = array(
+      '#id' => 'av-print-btn',
+      '#type' => 'button',
+      '#value' => t('Print...'),
+      '#visible_in_view_mode' => TRUE,
+    );
+  }
 
   // Convert form to non-edit mode if we are on View page.
-  avbase_allow_form_view_mode($form);
+  avbase_allow_form_view_mode($form, $view_mode);
   return $form;
 }
 
@@ -97,7 +99,7 @@ function avtrans_po_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avtrans_po_form_settings(&$form, $row) {
+function avtrans_po_form_settings(&$form, $row, $view_mode = FALSE) {
   $js_settings = array('avtrans' => array('transaction' => 'purchase'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -111,9 +113,6 @@ function avtrans_po_form_settings(&$form, $row) {
 
   // Table name.
   $table_name = 'avtbl_po';
-
-  // Set flag if this is view mode.
-  $form['#av_view_mode'] = (arg(4) == 'view');
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit', 'avtrans_po_form_submit');
@@ -141,6 +140,7 @@ function avtrans_po_form_settings(&$form, $row) {
     'client_id',
     'message',
     'email',
+    'agent_id' => array('type' => 'int'),
     //'term_id' => array('type' => 'int'),
     'discount_type' => array('type' => 'int'),
     'discount_value' => array('type' => 'float'),

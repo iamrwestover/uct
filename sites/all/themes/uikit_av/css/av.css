@@ -212,3 +212,27 @@ th > a > img {
 #entity-list-wrapper tr {
   cursor: pointer;
 }
+
+/* Print */
+@media print {
+  body {
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+
+  .printable, .printable * {
+    visibility: visible;
+  }
+  .printable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0.5em;
+  }
+
+  .not-printable {
+    display: none;
+  }
+}

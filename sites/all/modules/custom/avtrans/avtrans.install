@@ -61,9 +61,15 @@ function avtrans_goods_received_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
+      'agent_id' => array('agent_id'),
       'transaction_date' => array('transaction_date'),
       'client_id' => array('client_id'),
     ),
@@ -210,9 +216,15 @@ function avtrans_purchase_order_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
+      'agent_id' => array('agent_id'),
       'transaction_date' => array('transaction_date'),
       'client_id' => array('client_id'),
     ),
@@ -352,9 +364,15 @@ function avtrans_sales_order_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
+      'agent_id' => array('agent_id'),
       'client_id' => array('client_id'),
       'transaction_date' => array('transaction_date'),
     ),
@@ -468,9 +486,15 @@ function avtrans_delivery_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
+      'agent_id' => array('agent_id'),
       'transaction_date' => array('transaction_date'),
       'client_id' => array('client_id'),
     ),

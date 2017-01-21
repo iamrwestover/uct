@@ -56,7 +56,7 @@ function avbase_get_category_options_array($group_id) {
   $categories = avbase_get_categories($group_id);
   $options = array();
   foreach ($categories as $v) {
-    $options[$v->id] = check_plain($v->title);
+    $options[$v->id] = $v->title;
   }
   return $options;
 }
@@ -367,16 +367,18 @@ function avbase_get_discount_types() {
 /**
  * Turn form edit form into view only mode.
  * @param $form
+ * @param $view_mode
  */
-function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
-  if (!$ignore_mode_check && empty($form['#av_view_mode'])) {
+function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
+  if (empty($view_mode)) {
     return;
   }
+  $form['#av_view_mode'] = TRUE;
   foreach (element_children($form) as $k) {
     $element = &$form[$k];
-    if ($k == 'buttons') {
-      $element['#access'] = FALSE;
-    }
+    //if ($k == 'buttons') {
+    //  $element['#access'] = FALSE;
+    //}
 
     if (isset($element['#type'])) {
       $element['#required'] = FALSE;
@@ -384,12 +386,12 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
         case 'textfield':
           $element['#type'] = 'item';
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
-          $element['#markup'] = trim($default_value) == '' ? '-' : $default_value;
+          $element['#markup'] = trim($default_value) == '' ? '' : $default_value;
           break;
         case 'textarea':
           $element['#type'] = 'item';
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
-          $element['#markup'] = trim($default_value) == '' ? '-' : check_markup($default_value);
+          $element['#markup'] = trim($default_value) == '' ? '' : check_markup($default_value);
           break;
         case 'select':
           $options = isset($element['#options']) ? $element['#options'] : array();
@@ -398,7 +400,7 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
           $default_value = is_null($default_value) ? $empty_value : $default_value;
           $element['#type'] = 'item';
           $default_option_value = isset($options[$default_value]) ? $options[$default_value] : '';
-          $default_option_value = trim($default_option_value) == '' ? '-' : $default_option_value;
+          $default_option_value = trim($default_option_value) == '' ? '' : $default_option_value;
           $element['#markup'] = $default_option_value;
           break;
         case 'checkbox':
@@ -409,12 +411,12 @@ function avbase_allow_form_view_mode(&$form, $ignore_mode_check = FALSE) {
           break;
         case 'submit':
         case 'button':
-          $element['#access'] = FALSE;
+          $element['#access'] = !empty($element['#visible_in_view_mode']);
           break;
       }
     }
     if (element_children($element)) {
-      avbase_allow_form_view_mode($element, TRUE);
+      avbase_allow_form_view_mode($element, $view_mode);
     }
   }
 }
