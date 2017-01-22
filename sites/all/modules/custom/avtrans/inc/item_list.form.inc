@@ -41,6 +41,7 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = 
     '#element_save_id' => 'agent_id',
     '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
   );
+
   if ($transaction == 'sales') {
     $form['agent_name']['#autocomplete_path'] = 'av/categories/agent_cust/autocomplete';
     $form['agent_name']['#element_validate_conditions'] = array('group_id' => 'agent_cust');
@@ -81,7 +82,7 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = 
   );
   $form['transaction_id'] = array(
     '#type' => 'item',
-    '#title' => 'Transaction ID',
+    '#title' => 'Transaction No.',
     '#markup' => empty($row->id) ? '' : $row->id,
     '#access' => !empty($row->id),
   );
@@ -211,13 +212,16 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#title' => 'Qty.',
       '#maxlength' => 10,
       '#element_validate' => array('avtrans_item_list_row_element_validate'),
-      '#av_prod_element_validate' => array('element_validate_integer_positive', 'avtrans_element_validate_enough_qty'),
+      '#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
         'data-column-name' => 'qty',
         'class' => array('prod-column-qty'),
       ),
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
+    if ($transaction == 'sales' && $transaction_type == 'dr') {
+      $fields['qty']['#element_validate'][] = 'avtrans_element_validate_enough_qty';
+    }
 
     $fields['cost'] = array(
       '#id' => 'product-cost-' . $prod_key,

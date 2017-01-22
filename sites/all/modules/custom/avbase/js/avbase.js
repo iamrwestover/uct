@@ -1,4 +1,12 @@
 (function ($) {
+
+  if (Drupal.ajax) {
+    // Redirect user accordingly.
+    Drupal.ajax.prototype.commands.redirectUser = function (ajax, response) {
+      window.location = response.path;
+    };
+  }
+
   Drupal.behaviors.avbaseGeneral = {
     attach: function (context, settings) {
       $('#av-print-btn', context).once('avbasePrintButton', function () {

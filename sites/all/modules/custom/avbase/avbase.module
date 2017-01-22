@@ -156,7 +156,7 @@ function avbase_menu() {
     'description' => 'System settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avbase_general_settings_form'),
-    'access arguments' => array('access content'),
+    'access callback' => 'user_is_logged_in',
     'menu_name' => 'av',
   );
 
@@ -201,7 +201,7 @@ function avbase_menu() {
     'page callback' => 'avbase_ajax_load',
     'page arguments' => array(2, 3),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access content'),
+    'access callback' => 'user_is_logged_in',
     'file' => 'inc/helpers.inc',
   );
   return $items;

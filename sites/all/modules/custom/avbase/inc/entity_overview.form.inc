@@ -1,6 +1,8 @@
 <?php
 module_load_include('inc', 'avbase', 'inc/entity_overview.handlers');
 
+
+
 /**
  * Search form.
  * @param $form_state
@@ -21,7 +23,8 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name) {
   $form['filter']['search'] = array(
     '#id' => 'entity-search-btn',
     '#type' => 'button',
-    '#value' => t('Search'),
+    '#value' => t('Search entity'),
+    //'#submit' => array('avbase_entity_overview_search_form_submit'),
     '#attributes' => array(
       'class' => array('uk-hidden')
     ),
@@ -87,10 +90,14 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name) {
   $action_links_all = array();
   $loaded_entities = array();
   $rows = array();
+  $index = 0;
   foreach ($result as $row) {
+    $index++;
+    $status = isset($row->status) ? $row->status : NULL;
+
     $menu_prefix = "av/$entity_name/" . $row->id;
     $linked_name = l($row->display_name, $menu_prefix . '/view');
-    $rows[] = array(
+    $rows[$index] = array(
       'data' => array(
         'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
         'display_name' => $linked_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>',
@@ -98,6 +105,9 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name) {
       'class' => array('uk-table-middle'),
       'data-entity-id' => $row->id,
     );
+    if ($status == AVCUSTOMER_STATUS_SUSPENDED) {
+      $rows[$index]['class'][] = 'suk-alert uk-alert-warning';
+    }
     $loaded_entities[] = $row;
   }
 

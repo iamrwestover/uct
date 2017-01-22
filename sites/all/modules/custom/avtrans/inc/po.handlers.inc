@@ -48,5 +48,5 @@ function avtrans_po_form_submit($form, &$form_state) {
       avtrans_po_send_to_email($po_id);
       break;
   }
-  $form_state['redirect'] = 'av/po/' . $po_id . '/view';
+  //$form_state['redirect'] = 'av/po/' . $po_id . '/view';
 }

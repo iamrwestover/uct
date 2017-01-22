@@ -5,6 +5,91 @@ module_load_include('inc', 'avtrans', 'inc/gr/gr.helpers');
 module_load_include('inc', 'avtrans', 'inc/delivery/delivery.helpers');
 
 /**
+ * Advanced transaction load.
+ * @return array
+ */
+function avtrans_transactions_query_load($param_where = array(), $param_args = array(), $limit_string = '') {
+  // Load vendors static variable.
+  //$avbase = &drupal_static('avbase', array());
+  //$avbase['vendors'] = empty($avbase['vendors']) ? array() : $avbase['vendors'];
+  //$_vendors = &$avbase['vendors'];
+
+  // Set / load static variable for this query.
+  $data = &drupal_static(__FUNCTION__, array());
+  $_data_id = $param_where;
+  sort($_data_id);
+  $data_id = md5(json_encode($_data_id) . json_encode($param_args) . json_encode($limit_string));
+
+  if (isset($data[$data_id])) {
+    return $data[$data_id];
+  }
+
+  $queries = array();
+  $queries['po'] = "SELECT
+    avtrans.id AS transaction_id,
+    'po' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avtrans.transaction_date,
+    avclient.display_name
+    FROM avtbl_po AS avtrans
+    INNER JOIN avtbl_vendors AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+  ";
+  $queries['so'] = "SELECT
+    avtrans.id AS transaction_id,
+    'so' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avtrans.transaction_date,
+    avclient.display_name
+    FROM avtbl_so AS avtrans
+    INNER JOIN avtbl_customers AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+  ";
+  $queries['gr'] = "SELECT
+    avtrans.id AS transaction_id,
+    'gr' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avtrans.transaction_date,
+    avclient.display_name
+    FROM avtbl_gr AS avtrans
+    INNER JOIN avtbl_vendors AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+  ";
+  $queries['dr'] = "SELECT
+    avtrans.id AS transaction_id,
+    'dr' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avtrans.transaction_date,
+    avclient.display_name
+    FROM avtbl_dr AS avtrans
+    INNER JOIN avtbl_customers AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+  ";
+
+  if (!empty($param_where)) {
+    foreach ($queries as $k => $v) {
+      $queries[$k] .= " WHERE " . implode(' AND ', $param_where);
+    }
+  }
+  $query = implode(' UNION ', $queries);
+  $query .= " ORDER BY transaction_date DESC";
+  if (!empty($limit_string)) {
+    $query .= " LIMIT " . $limit_string;
+  }
+
+
+  $rs = db_query($query, $param_args);
+  $rows = array();
+  foreach ($rs as $row) {
+    $rows[] = $row;
+  }
+
+
+  $data[$data_id] = $rows;
+  return $rows;
+}
+
+/**
  * Compute new product cost.
  * @param float $current_cost
  * @param $onhand_qty
@@ -62,7 +147,7 @@ function avtrans_purchase_fields(&$form, &$form_state, $row, $view_mode = FALSE)
  * @param $form_state
  * @param $row
  */
-function avtrans_sales_fields(&$form, &$form_state, $row){
+function avtrans_sales_fields(&$form, &$form_state, $row, $view_mode = FALSE){
   // Set parameters for client name field.
   $form['client_name']['#title'] = t('Customer');
   $form['client_name']['#table_name'] = 'avtbl_customers';
@@ -80,7 +165,21 @@ function avtrans_transaction_form_ajax($form, $form_state) {
     // Prevent modal from popping out.
     unset($form['cost_changes']['product_cost_changes']);
   }
-  return $form;
+
+
+  if (!empty($form_state['redirect'])) {
+    $commands = array();
+    $commands[] = array(
+      // Note: we will use this command in the .js file
+      'command' => 'redirectUser',
+      // The path the user is directed to is given here
+      'path' => $form_state['redirect'],
+    );
+    return array('#type' => 'ajax', '#commands' => $commands);
+  }
+  else {
+    return $form;
+  }
 }
 
 /**
@@ -128,4 +227,37 @@ function avtrans_element_validate_enough_qty(&$element, &$form_state) {
   }
 
 
+}
+
+/**
+ * Redirect transaction form.
+ * @param $form
+ * @param $form_state
+ */
+function avtrans_redirect_transaction_form($form, &$form_state) {
+  $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
+  $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
+  $form_state['redirect'] = arg(0) . '/' . arg(1) . '/' . $transaction_id . '/view';
+}
+
+function avtrans_transaction_types($type) {
+  $transaction_types = array(
+    'po' => array(
+      'title' => t('Purchase Order'),
+      'base_path' => 'av/po',
+    ),
+    'so' => array(
+      'title' => t('Sales Order'),
+      'base_path' => 'av/sales-order',
+    ),
+    'gr' => array(
+      'title' => t('Goods Received'),
+      'base_path' => 'av/gr',
+    ),
+    'dr' => array(
+      'title' => t('Delivery'),
+      'base_path' => 'av/delivery',
+    ),
+  );
+  return $transaction_types[$type];
 }

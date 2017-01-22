@@ -11,30 +11,20 @@ module_load_include('inc', 'avtrans', 'inc/item_list.form');
  * @param $row
  * @return array
  */
-function avtrans_so_form($form, &$form_state, $row) {
+function avtrans_so_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
-  switch (arg(4)) {
-    case 'view':
-      $page_title = t('Sales Order details');
-      break;
-    case 'edit':
-      $page_title = t('Edit sales order');
-      break;
-    default:
-      $page_title = t('New sales order');
-      break;
-  }
+  $page_title = empty($row->id) ? t('New sales order') : t('Sales Order');
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avtrans_so_form_settings($form, $row);
+  avtrans_so_form_settings($form, $form_state, $row, $view_mode);
 
   // Item List form fields.
-  avtrans_item_list_form_fields($form, $form_state, $row);
+  avtrans_item_list_form_fields($form, $form_state, $row, $view_mode);
 
   // Set common fields when purchasing items.
-  avtrans_sales_fields($form, $form_state, $row);
+  avtrans_sales_fields($form, $form_state, $row, $view_mode);
 
   $form['header_total'] = array(
     '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
@@ -51,12 +41,23 @@ function avtrans_so_form($form, &$form_state, $row) {
     '#type' => 'submit',
     '#value' => t('Save'),
   );
-  $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/transactions'),
-  );
+  if (empty($view_mode)) {
+    $form['buttons']['cancel'] = array(
+      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
+    );
+  }
+  else {
+    $form['buttons']['print'] = array(
+      '#id' => 'av-print-btn',
+      '#type' => 'button',
+      '#value' => t('Print...'),
+      '#visible_in_view_mode' => TRUE,
+      '#attributes' => array('class' => array('uk-button-primary')),
+    );
+  }
 
   // Convert form to non-edit mode if we are on View page.
-  avbase_allow_form_view_mode($form);
+  avbase_allow_form_view_mode($form, $view_mode);
   return $form;
 }
 
@@ -64,7 +65,7 @@ function avtrans_so_form($form, &$form_state, $row) {
  * Set crud form settings.
  * @param $form
  */
-function avtrans_so_form_settings(&$form, $row, $view_mode) {
+function avtrans_so_form_settings(&$form, &$form_state, $row, $view_mode = FALSE) {
   $js_settings = array('avtrans' => array('transaction' => 'sales'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -80,7 +81,7 @@ function avtrans_so_form_settings(&$form, $row, $view_mode) {
   $table_name = 'avtbl_so';
 
   // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit');
+  $form['#submit'] = array('avbase_crud_form_submit', 'avtrans_redirect_transaction_form');
 
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'so');

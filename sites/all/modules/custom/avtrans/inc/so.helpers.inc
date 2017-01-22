@@ -7,6 +7,10 @@
  * @return object
  */
 function avtrans_so_load($id) {
+  if (empty($id) || $id == 'new') {
+    return FALSE;
+  }
+
   $id = (int) $id;
   if (empty($id)) {
     return NULL;
@@ -95,7 +99,7 @@ function avtrans_so_query_load($conditions = array()) {
 
   $query = db_select('avtbl_so', 'avso');
   $query->leftJoin('avtbl_customers', 'avcustomers', 'avcustomers.id = avso.client_id');
-  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avpo.agent_id AND avcat_agent.group_id = 'agent_cust'");
+  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avso.agent_id AND avcat_agent.group_id = 'agent_cust'");
   $query->addField('avcustomers', 'display_name', 'client_name');
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->fields('avso');

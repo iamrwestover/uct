@@ -52,6 +52,9 @@ function avcustomers_customer_form($form, &$form_state, $row, $view_mode = FALSE
   // Payment group.
   avcustomers_customer_form_payment_fields($form, $row, $view_mode);
 
+  // Transaction group.
+  avcustomers_vendor_form_transaction_fields($form, $form_state, $row, $view_mode);
+
   // Miscellaneous.
   $form['misc'] = array(
     '#type' => 'fieldset',
@@ -77,7 +80,7 @@ function avcustomers_customer_form($form, &$form_state, $row, $view_mode = FALSE
       $form['buttons']['suspend'] = array(
         '#markup' => l('Suspend', 'av/customers/' . $row->id . '/2/change-status', array(
           'attributes' => array('class' => 'uk-button'),
-          'query' => drupal_get_destination(),
+          'query' => array('destination', 'av/customers'),
         )),
         '#avposition' => 'opposite',
       );
@@ -376,14 +379,14 @@ function avcustomers_customer_form_payment_fields(&$form, $row, $view_mode = FAL
   $payment['credit_limit'] = array(
     '#type' => 'textfield',
     '#title' => 'Credit limit',
-    '#default_value' => isset($row->credit_limit) ? round($row->credit_limit, 6) : '',
+    '#default_value' => isset($row->credit_limit) ? ($view_mode ? number_format($row->credit_limit, 2) : avbase_number_format($row->credit_limit)) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
   );
   $payment['opening_balance'] = array(
     '#type' => 'textfield',
     '#title' => 'Opening balance',
-    '#default_value' => isset($row->opening_balance) ? round($row->opening_balance, 6) : '',
+    '#default_value' => isset($row->opening_balance) ? ($view_mode ? number_format($row->opening_balance, 2) : avbase_number_format($row->opening_balance)) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
   );
@@ -490,4 +493,19 @@ function avcustomers_customer_change_status_confirm_form_submit($form, &$form_st
     }
   }
   $form_state['redirect'] = '';
+}
+
+/**
+ *
+ * @param $form
+ */
+function avcustomers_vendor_form_transaction_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
+  if (empty($row->id) || empty($view_mode)) {
+    return;
+  }
+
+  $form_state['values']['transaction_list_filter']['filter_query']['where'][] = 'avtrans.client_id = :client_id';
+  $form_state['values']['transaction_list_filter']['filter_query']['args'][':client_id'] = $row->id;
+  $form['transactions'] = avtrans_transaction_list_form($form, $form_state);
+  $form['transactions']['transaction_list_filter']['#access'] = arg(2) != '';
 }

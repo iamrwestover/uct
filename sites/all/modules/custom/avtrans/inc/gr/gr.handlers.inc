@@ -103,18 +103,20 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
 function avtrans_gr_form_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
   $trigger = $form_state['triggering_element'];
+
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get item rows.
+  $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
+  $_item_rows = &$_storage['item_rows'];
+
+  // Get transaction type.
+  $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
+  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
   switch ($trigger['#id']) {
     case 'detect-cost-change-btn':
-      // Get form storage.
-      $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
-      $_storage = &$form_state['storage'];
-
-      // Get item rows.
-      $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
-      $_item_rows = &$_storage['item_rows'];
-
-      $transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
-
       // Get non-empty product rows from item rows.
       $entered_products = array();
       $product_ids = array();
@@ -177,9 +179,14 @@ function avtrans_gr_form_submit($form, &$form_state) {
   //$form_state['rebuild'] = FALSE;
   avbase_crud_form_submit($form, $form_state);
 
+
+
+  $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
+  $arg1 = $transaction_type == 'dr' ? 'delivery' :  'gr';
+  $form_state['redirect'] = url("av/$arg1/$transaction_id/view", array('absolute' => TRUE));
+
   // Reset form.
   unset($form_state['input']);
   unset($form_state['storage']);
   $form_state['values'] = array();
 }
-

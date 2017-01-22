@@ -112,9 +112,11 @@ function avvendor_query_load($param_where, $param_args = array(), $limit_string 
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
+  $query .= " ORDER BY avvendors.created DESC";
   if (!empty($limit_string)) {
     $query .= " LIMIT " . $limit_string;
   }
+
 
   $rs = db_query($query, $param_args);
   $rows = array();

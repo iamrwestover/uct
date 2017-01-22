@@ -100,6 +100,7 @@ function avcustomer_query_load($param_where, $param_args = array(), $limit_strin
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
+  $query .= " ORDER BY avcustomers.created DESC";
   if (!empty($limit_string)) {
     $query .= " LIMIT " . $limit_string;
   }
@@ -194,6 +195,8 @@ function avcustomers_autocomplete($string = '') {
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where = array($where_or_str);
     $args = array(':string' => '%' . db_like($string) . '%');
+    $where[] = 'avcustomers.status = :active_status';
+    $args[':active_status'] = AVCUSTOMER_STATUS_ACTIVE;
     $rows = avcustomer_query_load($where, $args, '15');
     foreach ($rows as $row) {
       $row_html = check_plain($row->display_name) . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';

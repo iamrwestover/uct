@@ -119,11 +119,12 @@ function avproducts_home_form($form, &$form_state) {
     array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
     array('data' => 'Name', 'field' => 'title'),
     array('data' => 'Category', 'field' => 'category_id'),
-    array('data' => 'UOM', 'field' => 'uom_id'),
+    array('data' => 'Base UOM', 'field' => 'uom_id'),
     //array('data' => 'Description', 'field' => 'description'),
     array('data' => 'Cost', 'field' => 'cost', 'style' => 'width: 100px; text-align: right'),
     array('data' => 'Sales price', 'field' => 'price', 'style' => 'width: 100px; text-align: right'),
     array('data' => 'Qty.', 'field' => 'qty', 'style' => 'width: 70px; text-align: right'),
+    array('data' => 'ROP', 'field' => 'rop', 'class' => array('uk-text-right')),
     '&nbsp;',
   );
 
@@ -158,6 +159,7 @@ function avproducts_home_form($form, &$form_state) {
         'cost' => array('data' => number_format($row->cost, 2), 'style' => 'text-align: right'),
         'price' => array('data' => number_format($row->price, 2), 'style' => 'text-align: right'),
         'qty' => array('data' => number_format($row->qty), 'style' => 'text-align: right'),
+        'rop' => array('data' => number_format($row->rop), 'style' => 'text-align: right'),
         'actions' => $actions_html,
       ),
       'class' => array('uk-table-middle'),

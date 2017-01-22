@@ -376,10 +376,11 @@ function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
   $form['#av_view_mode'] = TRUE;
   foreach (element_children($form) as $k) {
     $element = &$form[$k];
-    //if ($k == 'buttons') {
-    //  $element['#access'] = FALSE;
-    //}
+    if (!empty($element['#visible_in_view_mode'])) {
+      continue;
+    }
 
+    unset($element['#element_validate']);
     if (isset($element['#type'])) {
       $element['#required'] = FALSE;
       switch ($element['#type']) {

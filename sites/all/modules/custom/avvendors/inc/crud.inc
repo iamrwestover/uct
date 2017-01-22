@@ -31,7 +31,7 @@ function avvendors_vendor_form($form, &$form_state, $row, $view_mode = FALSE) {
   avvendors_vendor_form_address_fields($form, $row, $view_mode);
 
   // Transaction group.
-  avvendors_vendor_form_transaction_fields($form, $row, $view_mode);
+  avvendors_vendor_form_transaction_fields($form, $form_state, $row, $view_mode);
 
   // Miscellaneous.
   $form['misc'] = array(
@@ -272,64 +272,72 @@ function avvendors_vendor_form_address_fields(&$form, $row, $view_mode = FALSE) 
  * New vendor - generate transaction fields.
  * @param $form
  */
-function avvendors_vendor_form_transaction_fields(&$form, $row, $view_mode = FALSE) {
+function avvendors_vendor_form_transaction_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   if (empty($row->id) || empty($view_mode)) {
     return;
   }
-  $transactions = array();
 
-  $conditions = array(
-    array('avpo.client_id', $row->id)
-  );
-  $orders = avtrans_po_query_load($conditions, 0, 8);
-  $conditions = array(
-    array('avgr.client_id', $row->id)
-  );
-  $received = avtrans_gr_query_load($conditions, 0, 8);
-  //dpm($received);
+  $form_state['values']['transaction_list_filter']['filter_query']['where'][] = 'avtrans.client_id = :client_id';
+  $form_state['values']['transaction_list_filter']['filter_query']['args'][':client_id'] = $row->id;
+  $form['transactions'] = avtrans_transaction_list_form($form, $form_state);
+  $form['transactions']['transaction_list_filter']['#access'] = arg(2) != '';
 
-  $table_rows = array();
-  foreach ($orders as $k => $order) {
-    $table_cols = array();
-    $table_cols['type'] = array(
-      '#markup' => 'Purchase order',
-      '#column_attributes' => array('class' => array('uk-width-2-5')),
-    );
-    $table_cols['transaction_num'] = array(
-      '#markup' => $order->id,
-      '#column_attributes' => array('class' => array('uk-width-2-5')),
-    );
-    $table_cols['transaction_date'] = array(
-      '#markup' => format_date($order->transaction_date, 'custom', 'Y M d, h:i a'),
-      '#column_attributes' => array('class' => array('uk-width-1-5')),
-    );
-
-    $table_rows[$k] = $table_cols;
-    $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
-  }
-  if (!empty($table_rows)) {
-    $table = array(
-      '#theme' => 'avbase_form_table',
-      '#header' => array(
-        array('data' => t('Type')),
-        array('data' => t('Transaction #')),
-        array('data' => t('Date')),
-        '&nbsp;',
-      ),
-    );
-    $table['rows'] = $table_rows;
-    $table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
-
-    //$fields['product_cost_changes'] += $pcfields;
-    //$fields['intro'] = array('#weight' => -5, '#markup' => '<p>Some product costs have been changed. Do you want to update?</p>');
-    $transactions['table'] = $table;
-  }
-  else {
-    $transactions = array('#markup' => '<div class="uk-text-muted uk-text-center">No transactions yet</div>');
-  }
-
-  $form['transactions'] = array();
-  $form['transactions'] += $transactions;
+  //return;
+  //
+  //$transactions = array();
+  //
+  //$conditions = array(
+  //  array('avpo.client_id', $row->id)
+  //);
+  //$orders = avtrans_po_query_load($conditions, 0, 8);
+  //$conditions = array(
+  //  array('avgr.client_id', $row->id)
+  //);
+  //$received = avtrans_gr_query_load($conditions, 0, 8);
+  ////dpm($received);
+  //
+  //$table_rows = array();
+  //foreach ($orders as $k => $order) {
+  //  $table_cols = array();
+  //  $table_cols['type'] = array(
+  //    '#markup' => 'Purchase order',
+  //    '#column_attributes' => array('class' => array('uk-width-2-5')),
+  //  );
+  //  $table_cols['transaction_num'] = array(
+  //    '#markup' => $order->id,
+  //    '#column_attributes' => array('class' => array('uk-width-2-5')),
+  //  );
+  //  $table_cols['transaction_date'] = array(
+  //    '#markup' => format_date($order->transaction_date, 'custom', 'Y M d, h:i a'),
+  //    '#column_attributes' => array('class' => array('uk-width-1-5')),
+  //  );
+  //
+  //  $table_rows[$k] = $table_cols;
+  //  $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
+  //}
+  //if (!empty($table_rows)) {
+  //  $table = array(
+  //    '#theme' => 'avbase_form_table',
+  //    '#header' => array(
+  //      array('data' => t('Type')),
+  //      array('data' => t('Transaction #')),
+  //      array('data' => t('Date')),
+  //      '&nbsp;',
+  //    ),
+  //  );
+  //  $table['rows'] = $table_rows;
+  //  $table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
+  //
+  //  //$fields['product_cost_changes'] += $pcfields;
+  //  //$fields['intro'] = array('#weight' => -5, '#markup' => '<p>Some product costs have been changed. Do you want to update?</p>');
+  //  $transactions['table'] = $table;
+  //}
+  //else {
+  //  $transactions = array('#markup' => '<div class="uk-text-muted uk-text-center">No transactions yet</div>');
+  //}
+  //
+  //$form['transactions'] = array();
+  //$form['transactions'] += $transactions;
 }
 
 

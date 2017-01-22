@@ -25,11 +25,11 @@ function avtrans_po_form_load($row, $view_mode) {
 function avtrans_po_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
   //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
-  $page_title = empty($form['id']) ? t('New purchase order') : t('Purchase order');
+  $page_title = empty($row->id) ? t('New purchase order') : t('Purchase order');
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avtrans_po_form_settings($form, $row, $view_mode);
+  avtrans_po_form_settings($form, $form_state, $row, $view_mode);
 
   // Item List form fields.
   avtrans_item_list_form_fields($form, $form_state, $row, $view_mode);
@@ -87,6 +87,7 @@ function avtrans_po_form($form, &$form_state, $row, $view_mode = FALSE) {
       '#type' => 'button',
       '#value' => t('Print...'),
       '#visible_in_view_mode' => TRUE,
+      '#attributes' => array('class' => array('uk-button-primary')),
     );
   }
 
@@ -99,7 +100,7 @@ function avtrans_po_form($form, &$form_state, $row, $view_mode = FALSE) {
  * Set crud form settings.
  * @param $form
  */
-function avtrans_po_form_settings(&$form, $row, $view_mode = FALSE) {
+function avtrans_po_form_settings(&$form, &$form_state, $row, $view_mode = FALSE) {
   $js_settings = array('avtrans' => array('transaction' => 'purchase'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -115,7 +116,7 @@ function avtrans_po_form_settings(&$form, $row, $view_mode = FALSE) {
   $table_name = 'avtbl_po';
 
   // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit', 'avtrans_po_form_submit');
+  $form['#submit'] = array('avbase_crud_form_submit', 'avtrans_po_form_submit', 'avtrans_redirect_transaction_form');
 
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'po');

@@ -12,8 +12,8 @@ module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
  *
  * @return string
  */
-function avtrans_gr_form_load($row) {
-  return drupal_get_form('avtrans_gr_form', $row);
+function avtrans_gr_form_load($row, $view_mode = FALSE) {
+  return drupal_get_form('avtrans_gr_form', $row, $view_mode);
 }
 
 /**
@@ -24,27 +24,29 @@ function avtrans_gr_form_load($row) {
  * @param $row
  * @return array
  */
-function avtrans_gr_form($form, &$form_state, $row) {
+function avtrans_gr_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['#id'] = 'avtrans-gr-form';
   //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';
   $form['#suffix'] = '</div>';
 
   // Set crud settings.
-  avtrans_gr_form_settings($form, $form_state, $row);
+  avtrans_gr_form_settings($form, $form_state, $row, $view_mode);
 
   // Add generic Goods Received form fields.
-  avtrans_gr_form_default($form, $form_state, $row);
+  avtrans_gr_form_default($form, $form_state, $row, $view_mode);
 
   // Add fields for Cost Changes popup.
-  avtrans_cost_changes_form_fields($form, $form_state, $row);
+  avtrans_cost_changes_form_fields($form, $form_state, $row, $view_mode);
 
   // Add fields for Client Changes popup.
   //avtrans_client_changes_form_fields($form, $form_state, $row);
 
   // Add fields for Vendor POs popup.
-  avtrans_pending_orders_form_fields($form, $form_state, $row);
+  avtrans_pending_orders_form_fields($form, $form_state, $row, $view_mode);
 
+  // Convert form to non-edit mode if we are on View page.
+  avbase_allow_form_view_mode($form, $view_mode);
   return $form;
 }
 
@@ -56,34 +58,25 @@ function avtrans_gr_form($form, &$form_state, $row) {
  *
  * @return array
  */
-function avtrans_gr_form_default(&$form, &$form_state, $row) {
+function avtrans_gr_form_default(&$form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  switch (arg(4)) {
-    case 'view':
-      $page_title = t('Received item details');
-      break;
-    case 'edit':
-      $page_title = t('Edit purchase order');
-      break;
-    default:
-      $page_title = t('Receive items');
-      break;
-  }
+  $page_title = empty($row->id) ? t('Receive items') : t('Received items');
   drupal_set_title($page_title);
+
 
   $form['#theme'] = 'avtrans_item_list_form';
 
   // Goods Received fields.
-  avtrans_gr_form_fields($form, $form_state, $row);
+  avtrans_gr_form_fields($form, $form_state, $row, $view_mode);
 
   // Item List form fields.
-  avtrans_item_list_form_fields($form, $form_state, $row);
+  avtrans_item_list_form_fields($form, $form_state, $row, $view_mode);
 
   // Set common fields when purchasing items.
-  avtrans_purchase_fields($form, $form_state, $row);
+  avtrans_purchase_fields($form, $form_state, $row, $view_mode);
 
   // Buttons.
-  avtrans_gr_form_buttons($form, $form_state, $row);
+  avtrans_gr_form_buttons($form, $form_state, $row, $view_mode);
 }
 
 /**
@@ -92,7 +85,7 @@ function avtrans_gr_form_default(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode) {
+function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode = FALSE) {
   $js_settings = array('avtrans' => array('transaction' => 'purchase'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -106,7 +99,7 @@ function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode) {
   $_storage['transaction_type'] = 'gr';
 
   // Set generic submit handler.
-  //$form['#submit'] = array('avbase_crud_form_submit');
+  //$form['#submit'] = array('avtrans_gr_form_submit', 'avtrans_redirect_transaction_form');
 
   $table_name = 'avtbl_gr';
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
@@ -120,6 +113,7 @@ function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode) {
   $save_field_ids = array(
     'created',
     'client_id',
+    'reference_id',
     'term_id' => array('type' => 'int'),
     'agent_id' => array('type' => 'int'),
   );
@@ -144,7 +138,7 @@ function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode) {
  * @param $form_state
  * @param $row
  */
-function avtrans_gr_form_fields(&$form, &$form_state, $row) {
+function avtrans_gr_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   $term_options = avbase_get_category_options_array('payment_term');
   asort($term_options);
   $form['term_id'] = array(
@@ -157,6 +151,12 @@ function avtrans_gr_form_fields(&$form, &$form_state, $row) {
     '#empty_option' => '',
     '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
   );
+  $form['reference_id'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reference ID',
+    '#default_value' => isset($row->reference_id) ? $row->reference_id : '',
+    '#maxlength' => 32,
+  );
 }
 
 /**
@@ -165,7 +165,7 @@ function avtrans_gr_form_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_gr_form_buttons(&$form, $form_state, $row) {
+function avtrans_gr_form_buttons(&$form, $form_state, $row, $view_mode = FALSE) {
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
     '#id' => 'detect-cost-change-btn',
@@ -182,7 +182,18 @@ function avtrans_gr_form_buttons(&$form, $form_state, $row) {
       'event' => 'click',
     ),
   );
-  $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/transactions'),
-  );
+  if (empty($view_mode)) {
+    $form['buttons']['cancel'] = array(
+      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
+    );
+  }
+  else {
+    $form['buttons']['print'] = array(
+      '#id' => 'av-print-btn',
+      '#type' => 'button',
+      '#value' => t('Print...'),
+      '#visible_in_view_mode' => TRUE,
+      '#attributes' => array('class' => array('uk-button-primary')),
+    );
+  }
 }

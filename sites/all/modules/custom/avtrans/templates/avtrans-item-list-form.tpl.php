@@ -19,8 +19,8 @@ $term_html = drupal_render($form['term_id']);
     <div class="uk-width-2-4">
 
       <div class="uk-grid uk-grid-small">
-        <div class="uk-width-1-2 uk-margin-bottom"><?php print drupal_render($form['transaction_date']); ?></div>
-        <div class="uk-width-1-2 uk-margin-bottom"><?php print drupal_render($form['transaction_id']); ?></div>
+        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['transaction_date']); ?></div>
+        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['transaction_id']); ?></div>
 
         <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['client_name']); ?></div>
         <?php if ($email_html): ?>
@@ -29,7 +29,8 @@ $term_html = drupal_render($form['term_id']);
         <?php if ($term_html): ?>
           <div class="uk-width-1-2"><?php print $term_html; ?></div>
         <?php endif; ?>
-        <div class="uk-width-1-2"><?php print drupal_render($form['agent_name']); ?></div>
+        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['agent_name']); ?></div>
+        <div class="uk-width-1-2"><?php print drupal_render($form['reference_id']); ?></div>
       </div>
 
     </div>

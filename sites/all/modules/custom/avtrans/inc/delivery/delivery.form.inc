@@ -14,24 +14,26 @@ module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
  * @param $row
  * @return array
  */
-function avtrans_delivery_form($form, &$form_state, $row) {
+function avtrans_delivery_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['#id'] = 'avtrans-gr-form';
   //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';
   $form['#suffix'] = '</div>';
 
   // Set crud settings.
-  avtrans_delivery_form_settings($form, $form_state, $row);
+  avtrans_delivery_form_settings($form, $form_state, $row, $view_mode);
 
   // Add generic Delivery form fields.
-  avtrans_delivery_form_default($form, $form_state, $row);
+  avtrans_delivery_form_default($form, $form_state, $row, $view_mode);
 
   // Add fields for Cost Changes popup.
-  avtrans_cost_changes_form_fields($form, $form_state, $row);
+  avtrans_cost_changes_form_fields($form, $form_state, $row, $view_mode);
 
   // Add fields for Customer SOs popup.
-  avtrans_pending_orders_form_fields($form, $form_state, $row);
+  avtrans_pending_orders_form_fields($form, $form_state, $row, $view_mode);
 
+  // Convert form to non-edit mode if we are on View page.
+  avbase_allow_form_view_mode($form, $view_mode);
   return $form;
 }
 
@@ -43,34 +45,24 @@ function avtrans_delivery_form($form, &$form_state, $row) {
  *
  * @return array
  */
-function avtrans_delivery_form_default(&$form, &$form_state, $row) {
+function avtrans_delivery_form_default(&$form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  switch (arg(4)) {
-    case 'view':
-      $page_title = t('Delivery item details');
-      break;
-    case 'edit':
-      $page_title = t('Edit purchase order');
-      break;
-    default:
-      $page_title = t('New Delivery');
-      break;
-  }
+  $page_title = empty($row->id) ? t('New delivery') : t('Delivery');
   drupal_set_title($page_title);
 
   $form['#theme'] = 'avtrans_item_list_form';
 
   // Goods Received fields.
-  avtrans_delivery_form_fields($form, $form_state, $row);
+  avtrans_delivery_form_fields($form, $form_state, $row, $view_mode);
 
   // Item List form fields.
-  avtrans_item_list_form_fields($form, $form_state, $row);
+  avtrans_item_list_form_fields($form, $form_state, $row, $view_mode);
 
   // Set common fields when purchasing items.
-  avtrans_sales_fields($form, $form_state, $row);
+  avtrans_sales_fields($form, $form_state, $row, $view_mode);
 
   // Buttons.
-  avtrans_delivery_form_buttons($form, $form_state, $row);
+  avtrans_delivery_form_buttons($form, $form_state, $row, $view_mode);
 }
 
 /**
@@ -79,7 +71,7 @@ function avtrans_delivery_form_default(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode) {
+function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode = FALSE) {
   $js_settings = array('avtrans' => array('transaction' => 'sales'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -131,7 +123,7 @@ function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode) 
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_fields(&$form, &$form_state, $row) {
+function avtrans_delivery_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   $term_options = avbase_get_category_options_array('payment_term');
   asort($term_options);
   $form['term_id'] = array(
@@ -152,10 +144,10 @@ function avtrans_delivery_form_fields(&$form, &$form_state, $row) {
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_buttons(&$form, $form_state, $row) {
+function avtrans_delivery_form_buttons(&$form, $form_state, $row, $view_mode = FALSE) {
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
-    '#id' => 'detectc-cost-change-btn',
+    '#id' => 'detect-cost-change-btn',
     '#type' => 'submit',
     '#value' => t('Save delivery details'),
     '#attributes' => array(
@@ -169,7 +161,18 @@ function avtrans_delivery_form_buttons(&$form, $form_state, $row) {
       'event' => 'click',
     ),
   );
-  $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/transactions'),
-  );
+  if (empty($view_mode)) {
+    $form['buttons']['cancel'] = array(
+      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
+    );
+  }
+  else {
+    $form['buttons']['print'] = array(
+      '#id' => 'av-print-btn',
+      '#type' => 'button',
+      '#value' => t('Print...'),
+      '#visible_in_view_mode' => TRUE,
+      '#attributes' => array('class' => array('uk-button-primary')),
+    );
+  }
 }
