@@ -80,7 +80,7 @@ function avcustomers_customer_form($form, &$form_state, $row, $view_mode = FALSE
       $form['buttons']['suspend'] = array(
         '#markup' => l('Suspend', 'av/customers/' . $row->id . '/2/change-status', array(
           'attributes' => array('class' => 'uk-button'),
-          'query' => array('destination', 'av/customers'),
+          'query' => array('destination' => 'av/customers'),
         )),
         '#avposition' => 'opposite',
       );
@@ -507,5 +507,6 @@ function avcustomers_vendor_form_transaction_fields(&$form, &$form_state, $row, 
   $form_state['values']['transaction_list_filter']['filter_query']['where'][] = 'avtrans.client_id = :client_id';
   $form_state['values']['transaction_list_filter']['filter_query']['args'][':client_id'] = $row->id;
   $form['transactions'] = avtrans_transaction_list_form($form, $form_state);
+  $form['transactions']['transaction_list_filter']['search_text']['#access'] = FALSE;
   $form['transactions']['transaction_list_filter']['#access'] = arg(2) != '';
 }

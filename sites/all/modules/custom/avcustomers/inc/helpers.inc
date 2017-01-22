@@ -232,6 +232,7 @@ function avcustomers_table_fields_to_save($db_op = 'insert') {
     //'same_addr',
     'payment_method_id' => array('type' => 'int'),
     'term_id' => array('type' => 'int'),
+    'area_id' => array('type' => 'int'),
     'discount_type' => array('type' => 'int'),
     'discount_value' => array('type' => 'float'),
     'category_id' => array('type' => 'int'),
