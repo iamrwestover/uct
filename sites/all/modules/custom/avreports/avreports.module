@@ -100,20 +100,23 @@ function avreports_home_form($form, &$form_state) {
  * @throws Exception
  */
 function avreports_delivery_list_form($form, &$form_state) {
-  // Headers.
-  $header = array(
-    array('data' => 'Order #', 'class' => array('uk-text-center uk-width-1-10')),
-    array('data' => 'Customer', 'class' => array('uk-width-3-10')),
-    array('data' => 'Receivable', 'class' => array('uk-text-right uk-width-2-10')),
-    array('data' => 'Terms', 'class' => array('uk-text-center uk-width-1-10')),
-    array('data' => 'Agent', 'class' => array('uk-width-3-10')),
-  );
-
-
   $user_filter = empty($form_state['values']['avtrans_tl_filter']) ? array() : $form_state['values']['avtrans_tl_filter'];
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+  $agent_name = empty($user_filter['avcat_agent.title']) ? '' : $user_filter['avcat_agent.title'];
+
+  // Headers.
+  $header = array(
+    'id' => array('data' => 'Order #', 'class' => array('uk-text-center uk-width-1-10')),
+    'customer' => array('data' => 'Customer', 'class' => array('uk-width-4-10')),
+    'receivable' => array('data' => 'Receivable', 'class' => array('uk-text-right uk-width-1-10')),
+    'terms' => array('data' => 'Terms', 'class' => array('uk-text-center uk-width-2-10')),
+    'agent' => array('data' => 'Agent', 'class' => array('uk-width-2-10')),
+  );
+  if (!empty($agent_name)) {
+    unset($header['agent']);
+  }
 
   $where['transaction_types'] = array('dr');
   $where[] = 'avtrans.status = 1';
@@ -143,16 +146,17 @@ function avreports_delivery_list_form($form, &$form_state) {
   foreach ($transactions as $row) {
     $transaction_type = avtrans_transaction_types($row->transaction_type);
     $view_path = "{$transaction_type['base_path']}/$row->transaction_id/view";
-    $rows[] = array(
-      'data' => array(
-        array('data' => l($row->transaction_id, $view_path), 'class' => array('uk-text-center')),
-        check_plain($row->display_name),
-        array('data' => l(number_format($row->grand_total, 2), $view_path), 'class' => array('uk-text-right')),
-        array('data' => check_plain($row->term_name), 'class' => array('uk-text-center')),
-        array('data' => check_plain($row->agent_name), 'class' => array('')),
-      ),
-      'class' => array('uk-table-middle'),
+    $data = array(
+      'id' => array('data' => l($row->transaction_id, $view_path), 'class' => array('uk-text-center')),
+      'customer' => check_plain($row->display_name),
+      'receivable' => array('data' => l(number_format($row->grand_total, 2), $view_path), 'class' => array('uk-text-right')),
+      'terms' => array('data' => check_plain($row->term_name), 'class' => array('uk-text-center')),
+      'agent' => array('data' => check_plain($row->agent_name), 'class' => array('')),
     );
+    if (!empty($agent_name)) {
+      unset($data['agent']);
+    }
+    $rows[] = array('data' => $data, 'class' => array('uk-table-middle'));
     $total_receivables += $row->grand_total;
   }
 
@@ -163,7 +167,7 @@ function avreports_delivery_list_form($form, &$form_state) {
   else {
     $table_attributes = array(
       'id' => 'transaction-list-table',
-      'class' => array(),
+      'class' => array('uk-table-condensed uk-table-striped'),
     );
     // Add summary rows at the bottom of the table.
     $rows[] = array('data' => array(array('data' => '&nbsp;', 'colspan' => 10)));
@@ -193,7 +197,6 @@ function avreports_delivery_list_form($form, &$form_state) {
       '#type' => 'item',
       '#markup' => $today,
     );
-    $agent_name = empty($user_filter['avcat_agent.title']) ? '' : $user_filter['avcat_agent.title'];
     $transaction_list_table['agent'] = array(
       '#title' => 'Agent',
       '#type' => 'item',

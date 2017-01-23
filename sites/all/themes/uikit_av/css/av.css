@@ -217,6 +217,7 @@ th > a > img {
 @media print {
   body {
     margin: 0;
+    font-size: 11px;
   }
   body * {
     visibility: hidden;
