@@ -1,0 +1,8 @@
+name = Report Modules
+description = Reports for AV AIS
+core = 7.x
+package = AV
+<!--dependencies[] = avbase-->
+<!--dependencies[] = avvendors-->
+<!--dependencies[] = avcustomers-->
+<!--dependencies[] = avproducts-->

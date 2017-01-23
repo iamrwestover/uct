@@ -505,9 +505,13 @@ function avbase_element_validate_money_length($element, &$form_state) {
  * @param $value
  */
 function avbase_element_set_form_state_extra_value(&$form_state, $element, $value) {
+  $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : '';
+  if (empty($save_id)) {
+    return;
+  }
+
   $parents = $element['#parents'];
   array_pop($parents);
-  $save_id = isset($element['#element_save_id']) ? $element['#element_save_id'] : $element['#name'];
   $parents[] = $save_id;
 
   // Update form_state values.

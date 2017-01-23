@@ -771,7 +771,7 @@ function uikit_preprocess_form(&$variables) {
   $form_id = isset($element['form_id']['#children']) ? $element['form_id']['#children'] : '';
 
   // Add the uk-form class to all forms.
-  $variables['element']['#attributes']['class'] = array('uk-form');
+  $variables['element']['#attributes']['class'][] = 'uk-form';
   $variables['element']['#attributes']['class'][] = 'uk-form-stacked';
 
   if ($form_build_id) {

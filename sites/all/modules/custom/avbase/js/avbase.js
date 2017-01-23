@@ -15,6 +15,13 @@
           e.preventDefault();
         });
       });
+
+      // Auto select all text when an autocomplete textfield gets focused.
+      $('.form-autocomplete:text', context).once('avbaseFormAutocomplete', function () {
+        $(this).focus(function() {
+          $(this).select();
+        });
+      });
     }
   };
 }(jQuery));

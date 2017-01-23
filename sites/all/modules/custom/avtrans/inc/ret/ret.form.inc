@@ -3,31 +3,31 @@ module_load_include('inc', 'avtrans', 'inc/item_list.form');
 module_load_include('inc', 'avtrans', 'inc/trans.cost_changes.form');
 //module_load_include('inc', 'avtrans', 'inc/trans.client_changes.form');
 module_load_include('inc', 'avtrans', 'inc/trans.pending_orders.form');
-module_load_include('inc', 'avtrans', 'inc/delivery/delivery.handlers');
+module_load_include('inc', 'avtrans', 'inc/ret/ret.handlers');
 module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
 
 /**
- * Delivery form.
+ * ret form.
  *
  * @param $form
  * @param $form_state
  * @param $row
  * @return array
  */
-function avtrans_delivery_form($form, &$form_state, $row, $view_mode = FALSE) {
-  $form['#id'] = 'avtrans-dr-form';
+function avtrans_ret_form($form, &$form_state, $row, $view_mode = FALSE) {
+  $form['#id'] = 'avtrans-ret-form';
   //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';
   $form['#suffix'] = '</div>';
 
   // Set crud settings.
-  avtrans_delivery_form_settings($form, $form_state, $row, $view_mode);
+  avtrans_ret_form_settings($form, $form_state, $row, $view_mode);
 
-  // Add generic Delivery form fields.
-  avtrans_delivery_form_default($form, $form_state, $row, $view_mode);
+  // Add generic ret form fields.
+  avtrans_ret_form_default($form, $form_state, $row, $view_mode);
 
   // Add fields for Cost Changes popup.
-  avtrans_cost_changes_form_fields($form, $form_state, $row, $view_mode);
+  //avtrans_cost_changes_form_fields($form, $form_state, $row, $view_mode);
 
   // Add fields for Customer SOs popup.
   avtrans_pending_orders_form_fields($form, $form_state, $row, $view_mode);
@@ -45,15 +45,15 @@ function avtrans_delivery_form($form, &$form_state, $row, $view_mode = FALSE) {
  *
  * @return array
  */
-function avtrans_delivery_form_default(&$form, &$form_state, $row, $view_mode = FALSE) {
+function avtrans_ret_form_default(&$form, &$form_state, $row, $view_mode = FALSE) {
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  $page_title = empty($row->id) ? t('New delivery') : t('Delivery');
+  $page_title = empty($row->id) ? t('New Sales Return') : t('Sales Return');
   drupal_set_title($page_title);
 
   $form['#theme'] = 'avtrans_item_list_form';
 
   // Goods Received fields.
-  avtrans_delivery_form_fields($form, $form_state, $row, $view_mode);
+  avtrans_ret_form_fields($form, $form_state, $row, $view_mode);
 
   // Item List form fields.
   avtrans_item_list_form_fields($form, $form_state, $row, $view_mode);
@@ -62,7 +62,11 @@ function avtrans_delivery_form_default(&$form, &$form_state, $row, $view_mode = 
   avtrans_sales_fields($form, $form_state, $row, $view_mode);
 
   // Buttons.
-  avtrans_delivery_form_buttons($form, $form_state, $row, $view_mode);
+  avtrans_ret_form_buttons($form, $form_state, $row, $view_mode);
+
+  $form['#hide_discount_fields'] = TRUE;
+  $form['discount_type']['#access'] = FALSE;
+  $form['discount_value']['#access'] = FALSE;
 }
 
 /**
@@ -71,7 +75,7 @@ function avtrans_delivery_form_default(&$form, &$form_state, $row, $view_mode = 
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode = FALSE) {
+function avtrans_ret_form_settings(&$form, &$form_state, $row, $view_mode = FALSE) {
   $js_settings = array('avtrans' => array('transaction' => 'sales'));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
@@ -82,15 +86,15 @@ function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode =
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
   $_storage['transaction'] = $js_settings['avtrans']['transaction'];
-  $_storage['transaction_type'] = 'dr';
+  $_storage['transaction_type'] = 'ret';
 
   // Set generic submit handler.
   //$form['#submit'] = array('avbase_crud_form_submit');
 
-  $table_name = 'avtbl_dr';
+  $table_name = 'avtbl_ret';
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
-  $form['entity_name'] = array('#type' => 'value', '#value' => 'dr');
-  $form['#success_message'] = t('Delivery details saved.');
+  $form['entity_name'] = array('#type' => 'value', '#value' => 'ret');
+  $form['#success_message'] = t('Sales return details saved.');
 
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
@@ -124,19 +128,19 @@ function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode =
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
-  $term_options = avbase_get_category_options_array('payment_term');
-  asort($term_options);
-  $form['term_id'] = array(
-    '#id' => 'term-id',
-    '#type' => 'select',
-    '#title' => 'Payment term',
-    '#options' => $term_options,
-    '#default_value' => isset($row->term_id) ? $row->term_id : 0,
-    '#empty_value' => 0,
-    '#empty_option' => '',
-    '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
-  );
+function avtrans_ret_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
+  //$term_options = avbase_get_category_options_array('payment_term');
+  //asort($term_options);
+  //$form['term_id'] = array(
+  //  '#id' => 'term-id',
+  //  '#type' => 'select',
+  //  '#title' => 'Payment term',
+  //  '#options' => $term_options,
+  //  '#default_value' => isset($row->term_id) ? $row->term_id : 0,
+  //  '#empty_value' => 0,
+  //  '#empty_option' => '',
+  //  '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
+  //);
 }
 
 /**
@@ -145,12 +149,12 @@ function avtrans_delivery_form_fields(&$form, &$form_state, $row, $view_mode = F
  * @param $form_state
  * @param $row
  */
-function avtrans_delivery_form_buttons(&$form, $form_state, $row, $view_mode = FALSE) {
+function avtrans_ret_form_buttons(&$form, $form_state, $row, $view_mode = FALSE) {
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
-    '#id' => 'detect-cost-change-btn',
+    '#id' => 'ret-submit-btn',
     '#type' => 'submit',
-    '#value' => t('Save delivery details'),
+    '#value' => t('Save return details'),
     '#attributes' => array(
       'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),

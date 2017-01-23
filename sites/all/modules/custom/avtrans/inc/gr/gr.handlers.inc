@@ -67,9 +67,11 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
         $qty_update_query = '';
         switch ($transaction_type) {
           case 'gr':
+          case 'ret':
             $qty_update_query = "UPDATE {avtbl_products} SET qty = qty + CASE id";
             break;
           case 'dr':
+          case 'rept':
             $qty_update_query = "UPDATE {avtbl_products} SET qty = qty - CASE id";
             break;
         }
@@ -182,7 +184,7 @@ function avtrans_gr_form_submit($form, &$form_state) {
 
 
   $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
-  $arg1 = $transaction_type == 'dr' ? 'delivery' :  'gr';
+  $arg1 = $transaction_type == 'dr' ? 'delivery' :  $transaction_type;
   $form_state['redirect'] = url("av/$arg1/$transaction_id/view", array('absolute' => TRUE));
 
   // Reset form.

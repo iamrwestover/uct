@@ -232,7 +232,8 @@ th > a > img {
     margin: 0.5em;
   }
 
-  .not-printable {
+  .not-printable,
+  .sticky-header {
     display: none;
   }
 }

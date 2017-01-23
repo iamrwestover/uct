@@ -96,6 +96,7 @@ function avtrans_so_form_settings(&$form, &$form_state, $row, $view_mode = FALSE
     'created',
     'client_id',
     'agent_id' => array('type' => 'int'),
+    'memo',
     //'message',
     //'email',
     //'term_id' => array('type' => 'int'),

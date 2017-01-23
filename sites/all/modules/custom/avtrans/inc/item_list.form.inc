@@ -41,6 +41,12 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = 
     '#element_save_id' => 'agent_id',
     '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
   );
+  $form['memo'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Memo',
+    '#default_value' => isset($row->memo) ? check_plain($row->memo) : '',
+    '#maxlength' => 65000,
+  );
 
   if ($transaction == 'sales') {
     $form['agent_name']['#autocomplete_path'] = 'av/categories/agent_cust/autocomplete';
@@ -121,7 +127,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
   $db_row_items = empty($row->items) ? array() : $row->items;
   $initial_item_rows = array();
   foreach ($db_row_items as $item) {
-    $initial_item_rows['db_item_' . $item->id] = (array) $item;
+    $initial_item_rows['db_item_' . $row->id . '_' . $item->id] = (array) $item;
   }
 
   // Get item rows.
@@ -149,11 +155,25 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
     $fields = array();
-    $order_key = $transaction_type == 'gr' ? 'po_id' : 'so_id';
+    $order_key = '';
+    $badge_title = '';
+    switch ($transaction_type) {
+      case 'gr':
+        $order_key = 'po_id';
+        $badge_title = 'PO#';
+        break;
+      case 'dr':
+        $order_key = 'so_id';
+        $badge_title = 'SO#';
+        break;
+      case 'ret':
+        $order_key = 'dr_id';
+        $badge_title = 'DR#';
+        break;
+    }
     $order_id = empty($prod_row[$order_key]) ? NULL : $prod_row[$order_key];
     if (!empty($order_id) && !empty($transaction_type)) {
-      $badge_title = $transaction_type == 'gr' ? 'PO# ' : 'SO# ';
-      $badge_title .= $order_id;
+      $badge_title .= ' ' . $order_id;
       $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-success" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
     }
     $fields['product_title'] = array(

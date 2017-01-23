@@ -17,6 +17,9 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name) {
   $form['filter']['search_text'] = array(
     '#id' => 'entity-search-text',
     '#type' => 'textfield',
+    '#attributes' => array(
+      //'placeholder' => t('search')
+    ),
     '#icon_key' => 'search',
   );
 

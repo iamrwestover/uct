@@ -8,7 +8,7 @@
  *
  * @return array
  */
-function avtrans_pending_orders_form_fields(&$form, &$form_state, $row) {
+function avtrans_pending_orders_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
@@ -134,7 +134,18 @@ function avtrans_pending_orders_form_fields(&$form, &$form_state, $row) {
     ),
   );
 
-  $modal_title = $transaction_type == 'dr' ? t('Pending sales orders from this customer') : t('Pending purchase orders to this vendor');
+  $modal_title = t('Pending orders to this vendor');
+  switch ($transaction_type) {
+    case 'gr':
+      $modal_title = t('Pending purchase orders to this vendor');
+      break;
+    case 'dr':
+      $modal_title = t('Pending sales orders from this customer');
+      break;
+    case 'ret':
+      $modal_title = t('Recent delivery orders to this customer');
+      break;
+  }
   $pending_orders_form = $fields;
   $pending_orders_form['#type'] = 'container';
   $pending_orders_form['#theme'] = 'avbase_modal_form';
@@ -194,6 +205,11 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
           $conditions[] = array('avso.status', 1);
           $pos = avtrans_so_query_load($conditions);
           break;
+        case 'ret':
+          $conditions[] = array('avdr.client_id', $client_id);
+          $conditions[] = array('avdr.status', 1);
+          $pos = avtrans_dr_query_load($conditions);
+          break;
       }
 
       //foreach ($pos as $k => $po) {
@@ -209,8 +225,10 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
       foreach ($pos as $po_id => $po) {
         $po_items = empty($po->items) ? array() : $po->items;
         foreach ($po_items as $reference_id => $po_item) {
-          if ($po_item->remaining_base_qty < 1) {
-            continue;
+          if ($transaction_type != 'ret') {
+            if ($po_item->remaining_base_qty < 1) {
+              continue;
+            }
           }
 
           $item_row_id = "db_item_{$po_id}_{$reference_id}";
@@ -225,6 +243,7 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
           }
         }
       }
+
       $form_state['values']['client_pending_pos'] = $floating_pos;
 
 //dpm($_item_rows);

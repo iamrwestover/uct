@@ -114,6 +114,7 @@ function avtrans_gr_form_settings(&$form, &$form_state, $row, $view_mode = FALSE
     'created',
     'client_id',
     'reference_id',
+    'memo',
     'term_id' => array('type' => 'int'),
     'agent_id' => array('type' => 'int'),
   );
@@ -156,6 +157,7 @@ function avtrans_gr_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) 
     '#title' => 'Reference ID',
     '#default_value' => isset($row->reference_id) ? $row->reference_id : '',
     '#maxlength' => 32,
+    '#required' => TRUE,
   );
 }
 

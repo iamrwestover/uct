@@ -14,6 +14,8 @@ function avtrans_schema() {
   $schema += avtrans_sales_order_schema();
   // Delivery schema.
   $schema += avtrans_delivery_schema();
+  // Returns schema.
+  $schema += avtrans_returns_schema();
   return $schema;
 }
 
@@ -70,6 +72,11 @@ function avtrans_goods_received_schema() {
         'description' => 'TODO: please describe this field!',
         'type' => 'varchar',
         'length' => '32',
+        'not null' => FALSE,
+      ),
+      'memo' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
         'not null' => FALSE,
       ),
     ),
@@ -227,6 +234,11 @@ function avtrans_purchase_order_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'memo' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
@@ -375,6 +387,11 @@ function avtrans_sales_order_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'memo' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
@@ -497,6 +514,11 @@ function avtrans_delivery_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'memo' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
@@ -569,6 +591,146 @@ function avtrans_delivery_schema() {
     'primary key' => array('id'),
     'indexes' => array(
       'dr_id' => array('dr_id'),
+      'product_id' => array('product_id'),
+      'reference_id' => array('reference_id'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Return schema for Delivery transactions.
+ */
+function avtrans_returns_schema() {
+  $schema = array();
+  $schema['avtbl_ret'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'client_id' => array(
+        'description' => 'Vendor ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Date created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'transaction_date' => array(
+        'description' => 'Purchase order date',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'status' => array(
+        'description' => 'Goods Received status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'reference_id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => FALSE,
+      ),
+      'memo' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'agent_id' => array('agent_id'),
+      'client_id' => array('client_id'),
+      'transaction_date' => array('transaction_date'),
+    ),
+  );
+
+  $schema['avtbl_ret_items'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ret_id' => array(
+        'description' => 'Purchase Order ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'reference_id' => array(
+        'description' => 'Purchase Order details reference',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'ret_id' => array('ret_id'),
       'product_id' => array('product_id'),
       'reference_id' => array('reference_id'),
     ),

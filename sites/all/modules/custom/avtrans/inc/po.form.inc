@@ -141,6 +141,7 @@ function avtrans_po_form_settings(&$form, &$form_state, $row, $view_mode = FALSE
     'client_id',
     'message',
     'email',
+    'memo',
     'agent_id' => array('type' => 'int'),
     //'term_id' => array('type' => 'int'),
     'discount_type' => array('type' => 'int'),

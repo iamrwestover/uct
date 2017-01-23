@@ -61,9 +61,11 @@ $icons = array(
   'av/products' => 'tags',
   'av/vendors' => 'truck',
   'admin/people' => 'user-plus',
-  'av/categories' => 'folder',
+  'av/categories' => 'square',
   'av/expenses' => 'money',
   'av/settings' => 'cog',
+  'av/import' => 'database',
+  'av/reports' => 'folder-open',
 );
 //foreach (element_children($menu_tree) as $v) {
 //  dpm($v . '=' . $menu_tree[$v]['#title'] . '=' . $menu_tree[$v]['#href']);

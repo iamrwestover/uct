@@ -106,7 +106,7 @@
         if (!$(this).closest('.uk-nestable-item').next().hasClass('uk-nestable-item')) {
           $('#prod-add-btn').trigger('click');
         }
-        $(this).select();
+        //$(this).select();
       });
 
       // Trigger actions for UOM select field.

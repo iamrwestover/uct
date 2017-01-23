@@ -3,6 +3,8 @@ module_load_include('inc', 'avtrans', 'inc/po.helpers');
 module_load_include('inc', 'avtrans', 'inc/so.helpers');
 module_load_include('inc', 'avtrans', 'inc/gr/gr.helpers');
 module_load_include('inc', 'avtrans', 'inc/delivery/delivery.helpers');
+module_load_include('inc', 'avtrans', 'inc/ret/ret.helpers');
+module_load_include('inc', 'avtrans', 'inc/rept/rept.helpers');
 
 /**
  * Advanced transaction load.
@@ -24,53 +26,110 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
     return $data[$data_id];
   }
 
+  $transaction_types = empty($param_where['transaction_types']) ? array() : $param_where['transaction_types'];
+  unset($param_where['transaction_types']);
+
   $queries = array();
   $queries['po'] = "SELECT
     avtrans.id AS transaction_id,
     'po' AS transaction_type,
     avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
     avtrans.transaction_date,
-    avclient.display_name
-    FROM avtbl_po AS avtrans
-    INNER JOIN avtbl_vendors AS avclient ON avclient.id = avtrans.client_id
-    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_po} AS avtrans
+    INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_po_items} AS avtrans_items ON avtrans_items.po_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
   ";
   $queries['so'] = "SELECT
     avtrans.id AS transaction_id,
     'so' AS transaction_type,
     avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
     avtrans.transaction_date,
-    avclient.display_name
-    FROM avtbl_so AS avtrans
-    INNER JOIN avtbl_customers AS avclient ON avclient.id = avtrans.client_id
-    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_so} AS avtrans
+    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_so_items} AS avtrans_items ON avtrans_items.so_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
   ";
   $queries['gr'] = "SELECT
     avtrans.id AS transaction_id,
     'gr' AS transaction_type,
     avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
     avtrans.transaction_date,
-    avclient.display_name
-    FROM avtbl_gr AS avtrans
-    INNER JOIN avtbl_vendors AS avclient ON avclient.id = avtrans.client_id
-    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_gr} AS avtrans
+    INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_gr_items} AS avtrans_items ON avtrans_items.gr_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
   ";
   $queries['dr'] = "SELECT
     avtrans.id AS transaction_id,
     'dr' AS transaction_type,
     avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
     avtrans.transaction_date,
-    avclient.display_name
-    FROM avtbl_dr AS avtrans
-    INNER JOIN avtbl_customers AS avclient ON avclient.id = avtrans.client_id
-    LEFT JOIN avtbl_categories AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_dr} AS avtrans
+    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_dr_items} AS avtrans_items ON avtrans_items.dr_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
+  ";
+  $queries['ret'] = "SELECT
+    avtrans.id AS transaction_id,
+    'ret' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
+    avtrans.transaction_date,
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_ret} AS avtrans
+    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_ret_items} AS avtrans_items ON avtrans_items.ret_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
+  ";
+  $queries['rept'] = "SELECT
+    avtrans.id AS transaction_id,
+    'rept' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
+    avtrans.transaction_date,
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_rept} AS avtrans
+    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_rept_items} AS avtrans_items ON avtrans_items.rept_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
   ";
 
-  if (!empty($param_where)) {
-    foreach ($queries as $k => $v) {
+  // Only include queries for specified transaction types.
+  if (!empty($transaction_types)) {
+    $queries = array_intersect_key($queries, array_combine($transaction_types, $transaction_types));
+  }
+  //dpm($param_args);
+  //dpm($param_where);
+  //$param_where[] = "avcat_agent.title = :SSS";
+  //$param_args[':SSS'] = "sss";
+  foreach ($queries as $k => $v) {
+    if (!empty($param_where)) {
       $queries[$k] .= " WHERE " . implode(' AND ', $param_where);
     }
+    $queries[$k] .= " GROUP BY avtrans.id";
   }
+
   $query = implode(' UNION ', $queries);
   $query .= " ORDER BY transaction_date DESC";
   if (!empty($limit_string)) {
@@ -257,6 +316,14 @@ function avtrans_transaction_types($type) {
     'dr' => array(
       'title' => t('Delivery'),
       'base_path' => 'av/delivery',
+    ),
+    'ret' => array(
+      'title' => t('Sales Return'),
+      'base_path' => 'av/ret',
+    ),
+    'rept' => array(
+      'title' => t('Purchase Return'),
+      'base_path' => 'av/rept',
     ),
   );
   return $transaction_types[$type];

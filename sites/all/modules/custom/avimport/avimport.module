@@ -15,9 +15,8 @@ function avimport_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avimport_import_form'),
     'access callback' => 'user_is_logged_in',
-    //'menu_name' => 'av',
-    //'expanded' => TRUE,
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'av',
+    'expanded' => TRUE,
   );
   $items['av/import/prepare-data'] = array(
     'title' => 'Import',
@@ -234,7 +233,7 @@ function avimport_batch_read_data($filepath, $import_type, &$context) {
   }
 
   // Set maximum number of rows to analyze per iteration.
-  $limit = 300;
+  $limit = 100;
 
   // We need to load the library before we can instantiate our ChunkReaderFilter class.
   $library = libraries_load('PHPExcel');

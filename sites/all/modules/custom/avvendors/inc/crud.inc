@@ -277,12 +277,14 @@ function avvendors_vendor_form_transaction_fields(&$form, &$form_state, $row, $v
     return;
   }
 
-  $form_state['values']['transaction_list_filter']['filter_query']['where'][] = 'avtrans.client_id = :client_id';
-  $form_state['values']['transaction_list_filter']['filter_query']['args'][':client_id'] = $row->id;
-  $form['transactions'] = avtrans_transaction_list_form($form, $form_state);
-  $form['transactions']['transaction_list_filter']['search_text']['#access'] = FALSE;
-  //$form['transactions']['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'ss';
-  $form['transactions']['transaction_list_filter']['#access'] = arg(2) != '';
+  $options = array(
+    '#hide_filter_form' => TRUE,
+    '#filter_query' => array(
+      'where' => array('avtrans.client_id = :client_id'),
+      'args' => array(':client_id' => $row->id),
+    ),
+  );
+  $form['transactions'] = avtrans_transaction_list_form($form, $form_state, $options);
 
   //return;
   //
