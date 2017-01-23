@@ -36,6 +36,48 @@ function avreports_menu() {
 }
 
 /**
+ * Implementation of hook_theme().
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function avreports_theme($existing, $type, $theme, $path) {
+  $themes = array();
+
+  $template_path = $path . '/templates';
+
+  // FORMS.
+  $theme_names = array(
+    'avreports_delivery_list',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'render element' => 'form',
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $template_path,
+    );
+  }
+
+  // OTHERS.
+  $theme_names = array(
+    //'avtrans_po_mail',
+    //'avtrans_po_mail_table',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'variables' => array(),
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $template_path,
+    );
+  }
+
+  return $themes;
+}
+
+/**
  * Reports Home page.
  * @param $form
  * @param $form_state
@@ -90,13 +132,14 @@ function avreports_delivery_list_form($form, &$form_state) {
     'avtrans.transaction_date' => array('#default_value' => $today),
     'avcat_agent.title' => array('#access' => TRUE),
     //'reset_button' => array('#access' => FALSE),
-    'search_button' => array('#table_parents' => array('delivery_list_printable')),
+    //'search_button' => array('#table_parents' => array('transaction_list_table')),
   );
   $form['transaction_list_filter'] = avtrans_transaction_list_filter_form($form, $form_state, $filter_form_settings);
 
 
 
   $transactions = avtrans_transactions_query_load($where, $args);
+  $total_receivables = 0;
   foreach ($transactions as $row) {
     $transaction_type = avtrans_transaction_types($row->transaction_type);
     $view_path = "{$transaction_type['base_path']}/$row->transaction_id/view";
@@ -110,29 +153,59 @@ function avreports_delivery_list_form($form, &$form_state) {
       ),
       'class' => array('uk-table-middle'),
     );
+    $total_receivables += $row->grand_total;
   }
-  $table_attributes = array(
-    'id' => 'transaction-list-table',
-    'class' => array(),
-  );
+
+
   if (empty($rows)) {
     $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
   }
   else {
+    $table_attributes = array(
+      'id' => 'transaction-list-table',
+      'class' => array(),
+    );
+    // Add summary rows at the bottom of the table.
+    $rows[] = array('data' => array(array('data' => '&nbsp;', 'colspan' => 10)));
+    $rows[] = array(
+      'data' => array(
+        array('data' => number_format($total_receivables, 2), 'class' => array('uk-text-right'), 'colspan' => 3),
+        array('data' => '', 'colspan' => 2),
+      ),
+      'class' => array('uk-table-middle'),
+    );
     $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
   }
   //$form['table']['#markup'] = $table_markup;
 
-  $delivery_report['transaction_list_table']['#markup'] = '<div id="transaction-list-table-wrapper">' . $table_markup . '<!--Do not remove me--></div>';
-  //$delivery_report
-  $form['delivery_list_printable'] = array(
+  $form['transaction_list_table'] = array(
     '#type' => 'container',
     '#theme' => 'avreports_delivery_list',
     '#attributes' => array(
+      'id' => 'transaction-list-table-wrapper',
       'class' => array('printable')
     ),
   );
-  $form['delivery_list_printable'] += $delivery_report;
+  $transaction_list_table['table']['#markup'] = '<!--Do not remove me-->' . $table_markup;
+  if (!empty($rows)) {
+    $transaction_list_table['transaction_date'] = array(
+      '#title' => 'Transaction Date',
+      '#type' => 'item',
+      '#markup' => $today,
+    );
+    $agent_name = empty($user_filter['avcat_agent.title']) ? '' : $user_filter['avcat_agent.title'];
+    $transaction_list_table['agent'] = array(
+      '#title' => 'Agent',
+      '#type' => 'item',
+      '#markup' => check_plain($agent_name),
+      '#access' => !empty($agent_name),
+    );
+  }
+
+  $form['transaction_list_table'] += $transaction_list_table;
+  //$delivery_report
+
+  //$form['delivery_list_printable'] += $delivery_report;
 
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';

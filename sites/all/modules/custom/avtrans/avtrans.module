@@ -506,10 +506,11 @@ function avtrans_transaction_form_ajax_search($form, $form_state) {
         $target_table_parents = empty($trigger['#table_parents']) ? array() : $trigger['#table_parents'];
       }
       $target_table_parents[] = 'transaction_list_table';
+      $transaction_list_form = drupal_array_get_nested_value($form, $target_table_parents);
       //dpm($form);
       //dpm($target_table_parents);
+      //dpm($transaction_list_form);
       //return $form;
-      $transaction_list_form = drupal_array_get_nested_value($form, $target_table_parents);
       return $transaction_list_form;
       break;
   }

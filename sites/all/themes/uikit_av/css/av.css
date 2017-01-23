@@ -236,4 +236,11 @@ th > a > img {
   .sticky-header {
     display: none;
   }
+
+  a {
+    text-decoration: none;
+  }
+  #page-title {
+    font-size: 27px;
+  }
 }
