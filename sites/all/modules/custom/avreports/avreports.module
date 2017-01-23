@@ -100,6 +100,7 @@ function avreports_home_form($form, &$form_state) {
  * @throws Exception
  */
 function avreports_delivery_list_form($form, &$form_state) {
+  global $user;
   $user_filter = empty($form_state['values']['avtrans_tl_filter']) ? array() : $form_state['values']['avtrans_tl_filter'];
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
@@ -178,6 +179,7 @@ function avreports_delivery_list_form($form, &$form_state) {
       ),
       'class' => array('uk-table-middle'),
     );
+    $rows[] = array('data' => array(array('data' => '- End of list -', 'colspan' => 10, 'class' => array('uk-text-muted uk-text-center'))));
     $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
   }
   //$form['table']['#markup'] = $table_markup;
@@ -202,6 +204,16 @@ function avreports_delivery_list_form($form, &$form_state) {
       '#type' => 'item',
       '#markup' => check_plain($agent_name),
       '#access' => !empty($agent_name),
+    );
+    $transaction_list_table['prepared_by'] = array(
+      '#title' => 'Prepared by',
+      '#type' => 'item',
+      '#markup' => check_plain($user->name),
+    );
+    $transaction_list_table['delivered_by'] = array(
+      '#title' => 'Delivered by',
+      '#type' => 'item',
+      '#markup' => '',
     );
   }
 
