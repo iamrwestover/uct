@@ -125,7 +125,7 @@ function avproducts_home_form($form, &$form_state) {
 
   // Set page.
   if (!empty($user_filter['buttons']['page_num'])) {
-    $_GET['page'] = $user_filter['buttons']['page_num'] - 1;
+    $_GET['page'] = $user_filter['buttons']['page_num'];
   }
 
   $form['filter'] = avproduct_list_filter_form(NULL, $form_state);
@@ -280,8 +280,9 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
   );
 
   $fields['buttons']['page_num'] = array(
-    '#type' => 'textfield', '#id' => 'product-list-page-num',
+    '#type' => 'hidden',
     '#attributes' => array(
+      'id' => 'product-list-page-num',
       'class' => array('trigger-ajax-search'),
     ),
   );

@@ -58,8 +58,8 @@ if (!isset($attributes['title'])) {
   }
   elseif (is_numeric($text)) {
     $attributes['title'] = t('Go to page @number', array('@number' => $text));
-    $attributes['data-page'] = $text;
   }
+  $attributes['data-page'] = $new_page;
 }
 
 $attributes['href'] = url($_GET['q'], array('query' => $query));
