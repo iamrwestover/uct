@@ -29,7 +29,6 @@ $page_new = $variables['page_new'];
 $element = $variables['element'];
 $parameters = $variables['parameters'];
 $attributes = $variables['attributes'];
-
 $page = isset($_GET['page']) ? $_GET['page'] : '';
 if ($new_page = implode(',', pager_load_array($page_new[$element], $element, explode(',', $page)))) {
   $parameters['page'] = $new_page;
@@ -59,6 +58,7 @@ if (!isset($attributes['title'])) {
   }
   elseif (is_numeric($text)) {
     $attributes['title'] = t('Go to page @number', array('@number' => $text));
+    $attributes['data-page'] = $text;
   }
 }
 

@@ -184,6 +184,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#default_value' => isset($row->uom_id) ? $row->uom_id : $default_uom_id,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
+    '#required' => TRUE,
   );
   $info['rop'] = array(
     '#type' => 'textfield',

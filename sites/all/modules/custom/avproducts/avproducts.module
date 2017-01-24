@@ -85,11 +85,12 @@ function avproducts_menu() {
  * @return array
  */
 function avproducts_theme($existing, $type, $theme, $path) {
-  $forms_template_path = $path . '/templates/forms';
+  $forms_template_path = $path . '/templates';
   $form_names = array(
     'avproducts_product_form',
     'avproducts_home_form',
     'uom_multiple',
+    'avproducts_product_list_filter_form',
   );
 
   $theme_forms = array();
@@ -112,8 +113,22 @@ function avproducts_theme($existing, $type, $theme, $path) {
  * @return array
  */
 function avproducts_home_form($form, &$form_state) {
+  $form['#attributes']['autocomplete'] = 'off';
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array('#markup' => l('New product', 'av/products/add', $btn_options));
+
+  $user_filter = empty($form_state['values']['avproducts_pl_filter']) ? array() : $form_state['values']['avproducts_pl_filter'];
+  $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
+  $and = empty($filter_query['and']) ? array() : $filter_query['and'];
+  $or = empty($filter_query['or']) ? array() : $filter_query['or'];
+
+
+  // Set page.
+  if (!empty($user_filter['buttons']['page_num'])) {
+    $_GET['page'] = $user_filter['buttons']['page_num'] - 1;
+  }
+
+  $form['filter'] = avproduct_list_filter_form(NULL, $form_state);
 
   $header = array(
     array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
@@ -128,17 +143,30 @@ function avproducts_home_form($form, &$form_state) {
     '&nbsp;',
   );
 
-  $rows = array();
-  $result = db_select('avtbl_products', 'ap')
-    ->fields('ap')
+  $query = db_select('avtbl_products', 'avprod')
+    ->fields('avprod')
     ->extend('PagerDefault')
     ->extend('TableSort')
     ->limit(10)
-    ->orderByHeader($header)
-    ->execute();
+    ->orderByHeader($header);
+  if (!empty($or)) {
+    $db_or = db_or();
+    foreach ($or as $v) {
+      list($cond_field_name, $cond_value, $cond_operator) = $v;
+      $db_or->condition($cond_field_name, $cond_value, $cond_operator);
+    }
+    $query->condition($db_or);
+  }
+  if (!empty($and)) {
+    foreach ($and as $v) {
+      list($cond_field_name, $cond_value, $cond_operator) = $v;
+      $query->condition($cond_field_name, $cond_value, $cond_operator);
+    }
+  }
+  $result = $query->execute();
 
-  $action_links_all = array();
   $categories = avbase_get_categories_multiple(array('product_cat', 'uom'));
+  $rows = array();
   foreach ($result as $row) {
     $menu_prefix = 'av/products/' . $row->id;
     $action_links = array('links' => array(
@@ -146,7 +174,6 @@ function avproducts_home_form($form, &$form_state) {
       //'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
     ));
 
-    $action_links_all[] = $action_links;
     $actions_html = theme('links__bare', $action_links);
     $linked_name = l($row->title, $menu_prefix . '/view');
     $rows[] = array(
@@ -168,13 +195,15 @@ function avproducts_home_form($form, &$form_state) {
 
   $table_attributes = array('id' => 'products-list-table');
   if (empty($rows)) {
-    $table_markup = '<p>Nothing recorded yet.</p>';
+    $table_markup = '<div class="uk-text-muted">Nothing recorded yet.</div>';
   }
   else {
-    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes, 'action_links_all' => $action_links_all));
+    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
   }
-  $form['table']['#markup'] = $table_markup;
-  $form['pager']['#markup'] = theme('pager', array('tags' => array()));
+
+
+  $form['table']['#markup'] = '<div id="products-list-table-wrapper">' . $table_markup . theme('pager', array('tags' => array())) . '<!--Do not remove me.--></div>';
+  //$form['pager']['#markup'] = theme('pager', array('tags' => array()));
 //$form['#after_build'] = array('avproducts_home_form_after_build');
 //  $form['ag-grid']['#markup'] = '<div id="myGrid" style="height: 300px;" class="ag-fresh"></div>';
   return $form;
@@ -183,5 +212,128 @@ function avproducts_home_form($form, &$form_state) {
 function avproducts_home_form_after_build($form, &$form_state) {
   dpm('f');
   dpm($form);
+  return $form;
+}
+
+function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
+  $fields = array(
+    '#theme' => 'avproducts_product_list_filter_form',
+    '#tree' => TRUE,
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => 'avproducts-product-list-filter-form',
+    ),
+    '#attached' => array(
+      'js' => array(AVPRODUCTS_MODULE_PATH . '/js/products_list_filter.form.js'),
+    ),
+  );
+
+  $fields['search_text'] = empty($settings['search_text']) ? array() : $settings['search_text'];
+  $fields['search_text'] += array(
+    '#type' => 'textfield',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+      'placeholder' => 'search by title or code',
+    ),
+    '#icon_key' => 'search',
+  );
+
+  $fields['avprod.category_id'] = empty($settings['avprod.category_id']) ? array() : $settings['avprod.category_id'];
+  $fields['avprod.category_id'] = array(
+    '#type' => 'select',
+    //'#title' => 'Category',
+    '#options' => avbase_get_category_options_array('product_cat'),
+    '#empty_value' => '',
+    '#empty_option' => '',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+  );
+
+
+  // Buttons.
+  $fields['buttons']['reset_button'] = empty($settings['reset_button']) ? array() : $settings['reset_button'];
+  $fields['buttons']['reset_button'] += array(
+    '#id' => 'product-list-reset-btn',
+    '#type' => 'submit',
+    '#value' => t('reset'),
+    //'#button_label' => '<i class="uk-icon-remove"></i>',
+  );
+
+  $fields['buttons']['search_button'] = empty($settings['search_button']) ? array() : $settings['search_button'];
+  $fields['buttons']['search_button'] += array(
+    '#id' => 'product-list-search-btn',
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#submit' => array('avproducts_product_list_filter_form_submit'),
+    '#limit_validation_errors' => array(array('avproducts_pl_filter')),
+    '#attributes' => array(
+      'class' => array('uk-hidden')
+    ),
+    '#ajax' => array(
+      'callback' => 'avproducts_product_list_filter_form_ajax',
+      'wrapper' => 'products-list-table-wrapper',
+      'effect' => 'none',
+      'event' => 'click',
+      'progress' => array(),
+    ),
+  );
+
+  $fields['buttons']['page_num'] = array(
+    '#type' => 'textfield', '#id' => 'product-list-page-num',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+  );
+
+  $form['avproducts_pl_filter'] = $fields;
+  return $form;
+}
+
+function avproducts_product_list_filter_form_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+  $filter_values = empty($form_state['values']['avproducts_pl_filter']) ? array() : $form_state['values']['avproducts_pl_filter'];
+  $and = $or = array();
+  foreach ($filter_values as $k => $v) {
+    if ($k == 'buttons') {
+      continue;
+    }
+    $v = trim($v);
+    if ($k == 'search_text' && $v != '') {
+      $or[] = array('avprod.title', '%' . db_like($v) . '%', 'LIKE');
+      continue;
+    }
+
+    if ($v != '') {
+      $and[] = array($k, $v, '=');
+    }
+  }
+
+  $form_state['values']['avproducts_pl_filter']['filter_query'] = array('and' => $and, 'or' => $or);
+}
+
+
+function avproducts_product_list_filter_form_ajax($form, $form_state) {
+  $trigger = $form_state['triggering_element'];
+  switch ($trigger['#id']) {
+    case 'product-list-search-btn':
+      $target_table_parents = $trigger['#array_parents'];
+      $depth = count($target_table_parents) - 4;
+      if ($depth > 0) {
+        $target_table_parents = array_slice($target_table_parents, 0, $depth);
+      }
+      else {
+        $target_table_parents = empty($trigger['#table_parents']) ? array() : $trigger['#table_parents'];
+      }
+      $target_table_parents[] = 'table';
+      $transaction_list_form = drupal_array_get_nested_value($form, $target_table_parents);
+      //dpm($form);
+      //dpm($target_table_parents);
+      //dpm($transaction_list_form);
+      //return $form;
+      return $transaction_list_form;
+      break;
+  }
+
   return $form;
 }
