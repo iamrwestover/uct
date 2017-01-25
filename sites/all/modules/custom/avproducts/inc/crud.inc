@@ -153,7 +153,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#maxlength' => 10,
     '#access' => empty($row->id),
     '#required' => TRUE,
-    '#element_validate' => array('element_validate_integer_positive'),
+    '#element_validate' => array('element_validate_integer'),
     //'#attributes' => array(
     //  'data-uk-tooltip' => "{pos:'bottom'}",
     //  'title' => 'Beginning quantity',
@@ -184,7 +184,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#default_value' => isset($row->uom_id) ? $row->uom_id : $default_uom_id,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
-    '#required'
+    '#required' => TRUE,
   );
   $info['rop'] = array(
     '#type' => 'textfield',

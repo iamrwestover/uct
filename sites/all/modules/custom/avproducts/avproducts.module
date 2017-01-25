@@ -188,8 +188,9 @@ function avproducts_home_form($form, &$form_state) {
   $rows = array();
   foreach ($result as $row) {
     $menu_prefix = 'av/products/' . $row->id;
+    $destination = url('av/products', array('query' => drupal_get_query_parameters()));
     $action_links = array('links' => array(
-      'edit' => array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'icon_kedy' => 'edit', 'query' => drupal_get_destination()),
+      'edit' => array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'icon_kedy' => 'edit', 'query' => array('destination' => $destination)),
       //'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
     ));
 

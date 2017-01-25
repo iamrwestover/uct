@@ -96,7 +96,7 @@ function avcustomers_customer_form($form, &$form_state, $row, $view_mode = FALSE
       $form['buttons']['activate'] = array(
         '#markup' => l('Activate', 'av/customers/' . $row->id . '/1/change-status', array(
           'attributes' => array('class' => 'uk-button uk-button-primary'),
-          'query' => drupal_get_destination(),
+          'query' => array('destination' => 'av/customers'),
         )),
         '#avposition' => 'opposite',
       );
@@ -504,9 +504,12 @@ function avcustomers_vendor_form_transaction_fields(&$form, &$form_state, $row, 
     return;
   }
 
-  $form_state['values']['transaction_list_filter']['filter_query']['where'][] = 'avtrans.client_id = :client_id';
-  $form_state['values']['transaction_list_filter']['filter_query']['args'][':client_id'] = $row->id;
-  $form['transactions'] = avtrans_transaction_list_form($form, $form_state);
-  $form['transactions']['transaction_list_filter']['search_text']['#access'] = FALSE;
-  $form['transactions']['transaction_list_filter']['#access'] = arg(2) != '';
+  $options = array(
+    '#hide_filter_form' => TRUE,
+    '#filter_query' => array(
+      'where' => array('avtrans.client_id = :client_id'),
+      'args' => array(':client_id' => $row->id),
+    ),
+  );
+  $form['transactions'] = avtrans_transaction_list_form($form, $form_state, $options);
 }
