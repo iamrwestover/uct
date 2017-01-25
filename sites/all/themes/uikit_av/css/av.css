@@ -130,6 +130,13 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 }
 
 /* Forms */
+.av-button-checkbox input:checked {
+  border: solid 1px transparent;
+}
+.av-button-checkbox input:not(:checked) {
+  border: solid 1px transparent;
+  display: none;
+}
 .form-text,
 .form-select {
   width: 100%;

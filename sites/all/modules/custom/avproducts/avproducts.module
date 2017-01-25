@@ -121,11 +121,12 @@ function avproducts_home_form($form, &$form_state) {
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $and = empty($filter_query['and']) ? array() : $filter_query['and'];
   $or = empty($filter_query['or']) ? array() : $filter_query['or'];
+  $where = empty($filter_query['where']) ? array() : $filter_query['where'];
 
 
   // Set page.
-  if (!empty($user_filter['buttons']['page_num'])) {
-    $_GET['page'] = $user_filter['buttons']['page_num'];
+  if (!empty($user_filter['settings']['page_num'])) {
+    $_GET['page'] = $user_filter['settings']['page_num'];
   }
 
   $form['filter'] = avproduct_list_filter_form(NULL, $form_state);
@@ -161,6 +162,11 @@ function avproducts_home_form($form, &$form_state) {
     foreach ($and as $v) {
       list($cond_field_name, $cond_value, $cond_operator) = $v;
       $query->condition($cond_field_name, $cond_value, $cond_operator);
+    }
+  }
+  if (!empty($where)) {
+    foreach ($where as $v) {
+      $query->where($v);
     }
   }
   $result = $query->execute();
@@ -250,6 +256,28 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
+  $fields['low_stock'] = empty($settings['low_stock']) ? array() : $settings['low_stock'];
+  $fields['low_stock'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Low stock',
+    '#button_checkbox' => TRUE,
+    '#default_value' => 1,
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+  );
+
+  $fields['no_stock'] = empty($settings['no_stock']) ? array() : $settings['no_stock'];
+  $fields['no_stock'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Out of stock',
+    '#button_checkbox' => TRUE,
+    //'#default_value' => 1,
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+  );
+
 
   // Buttons.
   $fields['buttons']['reset_button'] = empty($settings['reset_button']) ? array() : $settings['reset_button'];
@@ -257,7 +285,9 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     '#id' => 'product-list-reset-btn',
     '#type' => 'submit',
     '#value' => t('reset'),
-    //'#button_label' => '<i class="uk-icon-remove"></i>',
+    '#attributes' => array(
+      'class' => array('uk-margin-small-left'),
+    ),
   );
 
   $fields['buttons']['search_button'] = empty($settings['search_button']) ? array() : $settings['search_button'];
@@ -279,7 +309,7 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
-  $fields['buttons']['page_num'] = array(
+  $fields['settings']['page_num'] = array(
     '#type' => 'hidden',
     '#attributes' => array(
       'id' => 'product-list-page-num',
@@ -294,7 +324,7 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
 function avproducts_product_list_filter_form_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
   $filter_values = empty($form_state['values']['avproducts_pl_filter']) ? array() : $form_state['values']['avproducts_pl_filter'];
-  $and = $or = array();
+  $and = $or = $where = array();
   foreach ($filter_values as $k => $v) {
     if ($k == 'buttons') {
       continue;
@@ -304,13 +334,25 @@ function avproducts_product_list_filter_form_submit($form, &$form_state) {
       $or[] = array('avprod.title', '%' . db_like($v) . '%', 'LIKE');
       continue;
     }
+    elseif ($k == 'low_stock') {
+      if ($v) {
+        $where[] = 'avprod.qty < avprod.rop';
+      }
+      continue;
+    }
+    elseif ($k == 'no_stock') {
+      if ($v) {
+        $where[] = 'avprod.qty = 0';
+      }
+      continue;
+    }
 
     if ($v != '') {
       $and[] = array($k, $v, '=');
     }
   }
 
-  $form_state['values']['avproducts_pl_filter']['filter_query'] = array('and' => $and, 'or' => $or);
+  $form_state['values']['avproducts_pl_filter']['filter_query'] = array('and' => $and, 'or' => $or, 'where' => $where);
 }
 
 

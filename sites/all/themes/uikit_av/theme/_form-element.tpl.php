@@ -22,7 +22,19 @@ $suffix = isset($element['#field_suffix']) ? $element['#field_suffix'] : '';
 $checkbox = $type && $type === 'checkbox';
 /* $password = $type && $type === 'password'; */
 $radio = $type && $type === 'radio';
-$classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
+
+$button_radios = FALSE;
+$button_radios_class = 'uk-button-group';
+if ($type && ($type === 'radios' || $radio)) {
+  $element_classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
+  if (is_numeric($k = array_search($button_radios_class, $element_classes))) {
+    unset($element['#attributes']['class'][$k]);
+    $button_radios = TRUE;
+  }
+
+  $button_radio_group = $button_radios && $type == 'radios';
+  $button_radio = $button_radios && $radio;
+}
 
 // Create an attributes array for the wrapping container.
 if (empty($element['#wrapper_attributes'])) {
@@ -93,10 +105,14 @@ if (($checkbox || $radio) && isset($element['#title'])) {
 }
 
 // Create a render array for the form element.
-$build = array(
-  '#theme_wrappers' => array('container__form_element'),
-  '#attributes' => $wrapper_attributes,
-);
+//if (empty($button_radio)) {
+  $build['#theme_wrappers'] = array('container__form_element');
+  $build['#attributes'] = $wrapper_attributes;
+  $build['#ssss'] = $wrapper_attributes;
+//}
+//else {
+//  $variables['element']['#button_radio'] = TRUE;
+//}
 
 // Render the label for the form element.
 $build['label'] = array(
@@ -145,17 +161,5 @@ if (!empty($element['#description'])) {
     0 => array('#markup' => $element['#description']),
   );
 }
-
-// Button radios and button checkboxes.
-if ($type == 'radio' && in_array('uk-button-group', $classes)) {
-  $element['#button_radio'] = TRUE;
-}
-if (!empty($element['#button_radio']) || !empty($element['#button_checkbox'])) {
-  unset($build['#theme_wrappers']);
-}
-if (!empty($element['#button_checkbox'])) {
-  //$build['#attributes']['data-uk-button-checkbox'] = "{activeClass: 'uk-button-success'}";
-}
-
 // Print the form element build array.
 print drupal_render($build);

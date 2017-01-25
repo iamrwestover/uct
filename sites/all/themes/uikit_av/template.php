@@ -225,68 +225,103 @@ function uikit_av_preprocess_user_picture(&$variables) {
  */
 function uikit_av_radios($variables) {
   $element = $variables['element'];
-  $attributes = array();
+  $attributes = empty($element['#attributes']) ? array() : $element['#attributes'];
+  $classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
   if (isset($element['#id'])) {
     $attributes['id'] = $element['#id'];
   }
-
-
-  $element_classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
-  if (is_numeric($k = array_search('uk-button-group', $element_classes))) {
-    unset($element['#attributes']['class'][$k]);
-    $attributes['class'] = 'uk-button-group';
-    $attributes['data-uk-button-radio'] = "{activeClass: 'uk-button-success'}";
-  }
-  else {
-    $attributes['class'] = 'form-radios';
-  }
-
+  $attributes['class'] = 'form-radios';
   if (!empty($element['#attributes']['class'])) {
     $attributes['class'] .= ' ' . implode(' ', $element['#attributes']['class']);
   }
   if (isset($element['#attributes']['title'])) {
     $attributes['title'] = $element['#attributes']['title'];
   }
-  return '<div' . drupal_attributes($attributes) . '>' . (!empty($element['#children']) ? $element['#children'] : '') . '</div>';
 
-  //<div class="uk-button-group" data-uk-button-radio="{activeClass: 'uk-button-success'}">
-  //  <label class="uk-button">
-  //    <input type="radio" name="gender" value="0" style="display:none;"/>
-  //    Leave unchanged
-  //</label>
-  //  <label class="uk-button">
-  //    <input type="radio" name="gender" value="1" style="display:none;"/>
-  //    Update <strong>cost</strong>
-  //  </label>
-  //  <label class="uk-button">
-  //    <input type="radio" name="gender" value="1" style="display:none;"/>
-  //    Update both <strong>cost and sales price</strong>
-  //  </label>
-  //</div>
+  if (in_array('uk-button-group', $classes)) {
+    $attributes['data-uk-button-radio'] = "{activeClass: 'uk-button-success'}";
+  }
+
+  return '<div' . drupal_attributes($attributes) . '>' . (!empty($element['#children']) ? $element['#children'] : '') . '</div>';
+}
+//
+///**
+// * Override theme_radio().
+// * @param $variables
+// *
+// * @return string
+// */
+//function uikit_av_radio($variables) {
+//  $element = $variables['element'];
+//  $element['#attributes']['type'] = 'radio';
+//  element_set_attributes($element, array('id', 'name', '#return_value' => 'value'));
+//
+//  if (isset($element['#return_value']) && $element['#value'] !== FALSE && $element['#value'] == $element['#return_value']) {
+//    $element['#attributes']['checked'] = 'checked';
+//  }
+//  _form_set_class($element, array('form-radio'));
+//dpm($element);
+//  $element['#xxx'] = 'sss';
+//
+//  return '<input' . drupal_attributes($element['#attributes']) . ' />';
+//}
+//
+///**
+// * Override theme_checkbox().
+// * @param $variables
+// *
+// * @return string
+// */
+//function uikit_av_checkbox($variables) {
+//  $element = $variables['element'];
+//  $element['#attributes']['type'] = 'checkbox';
+//  element_set_attributes($element, array('id', 'name', '#return_value' => 'value'));
+//
+//  // Unchecked checkbox has #value of integer 0.
+//  if (!empty($element['#checked'])) {
+//    $element['#attributes']['checked'] = 'checked';
+//  }
+//  _form_set_class($element, array('form-checkbox'));
+//
+//  if (!empty($element['#button_checkbox'])) {
+//    $element['#attributes']['class'][] = 'uk-hidden';
+//  }
+//
+//  return '<input' . drupal_attributes($element['#attributes']) . ' />';
+//}
+
+
+/**
+ * Implements hook_preprocess_HOOK() for theme_radios().
+ * @param $variables
+ */
+//function uikit_av_preprocess_radios(&$variables) {
+//  $element = &$variables['element'];
+//  $element['#attributes']['data-uk-button-radio'] = "{activeClass: 'uk-button-success'}";
+//  $element['#attributes']['style'][] = 'background: red;';
+//}
+
+/**
+ * Implements hook_preprocess_HOOK() for theme_radio().
+ * @param $variables
+ */
+function uikit_av_preprocess_radio(&$variables) {
+  $element = &$variables['element'];
+  $classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
+  if (in_array('uk-button-group', $classes)) {
+    $element['#attributes']['class'][] = 'uk-hidden';
+  }
 }
 
 /**
- * Override theme_radio().
+ * Implements hook_preprocess_HOOK() for theme_checkbox().
  * @param $variables
- *
- * @return string
  */
-function uikit_av_radio($variables) {
-  $element = $variables['element'];
-  $element['#attributes']['type'] = 'radio';
-  element_set_attributes($element, array('id', 'name', '#return_value' => 'value'));
-
-  if (isset($element['#return_value']) && $element['#value'] !== FALSE && $element['#value'] == $element['#return_value']) {
-    $element['#attributes']['checked'] = 'checked';
+function uikit_av_preprocess_checkbox(&$variables) {
+  $element = &$variables['element'];
+  if (!empty($element['#button_checkbox'])) {
+    //$element['#attributes']['class'][] = 'uk-hidden';
   }
-
-  $element_classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
-  if (is_numeric($k = array_search('uk-button-group', $element_classes))) {
-    unset($element['#attributes']['class'][$k]);
-    $element['#attributes']['class'][] = 'uk-hidden';
-  }
-
-  _form_set_class($element, array('form-radio'));
-
-  return '<input' . drupal_attributes($element['#attributes']) . ' />';
 }
+
+

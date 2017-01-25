@@ -62,11 +62,18 @@
     self.$resetBtn.click(function(e) {
       self.$searchEls.each(function() {
         if ($(this).prop('readonly')) {
-          //console.log($(this).attr('value'));
           $(this).val($(this).attr('value'));
           return;
         }
-        $(this).val('');
+        if ($(this).attr('type') == 'checkbox') {
+          $(this).prop('checked', '');
+          if ($(this).attr('checked')) {
+            $(this).prop('checked', 'checked');
+          }
+        }
+        else {
+          $(this).val('');
+        }
       });
       self.$searchBtn.trigger('click');
       e.preventDefault();

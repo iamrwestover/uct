@@ -18,8 +18,6 @@ $display = isset($element['#title_display']) ? $element['#title_display'] : 'bef
 $type = !empty($element['#type']) ? $element['#type'] : FALSE;
 $checkbox = $type && $type === 'checkbox';
 $radio = $type && $type === 'radio';
-$classes = empty($element['#attributes']['class']) ? array() : $element['#attributes']['class'];
-$attributes = array('class' => array());
 
 if (!$checkbox && !$radio) {
   $attributes['class'][] = 'uk-form-label';
@@ -71,22 +69,16 @@ else {
   $output .= $title;
 }
 
-// Button radios and button checkboxes.
-if ($type == 'radio' && in_array('uk-button-group', $classes)) {
-  $element['#button_radio'] = TRUE;
-}
-if (!empty($element['#button_radio'])) {
-  $attributes['class'][] = 'uk-button';
-  if (isset($element['#return_value']) && $element['#value'] !== FALSE && $element['#value'] == $element['#return_value']) {
-    $attributes['class'][] = 'uk-button-success';
-  }
-}
-if (!empty($element['#button_checkbox'])) {
-  $attributes['class'][] = 'uk-button av-button-checkbox';
-  //if (isset($element['#return_value']) && $element['#value'] !== FALSE && $element['#value'] == $element['#return_value']) {
-  //  //$attributes['class'][] = 'uk-button-success';
-  //}
-}
-
+//if (!empty($element['#button_radio'])) {
+//  $attributes['class'][] = 'uk-button';
+//  if (isset($element['#return_value']) && $element['#value'] !== FALSE && $element['#value'] == $element['#return_value']) {
+//    $attributes['class'][] = 'uk-button-success';
+//  }
+//}
+//// Apply button class to button checkboxes.
+//if (!empty($element['#button_checkbox'])) {
+//  $attributes['class'][] = 'uk-button';
+//  //$output = '<div class="data-uk-button-checkbox>' . $output . '</div>';
+//}
 // The leading whitespace helps visually separate fields from inline labels.
 print ' <label' . drupal_attributes($attributes) . '>' . $output . "</label>\n";
