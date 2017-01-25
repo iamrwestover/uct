@@ -239,7 +239,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       ),
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
-    if ($transaction == 'sales' && $transaction_type == 'dr') {
+    if ($transaction == 'sales') {
       $fields['qty']['#element_validate'][] = 'avtrans_element_validate_enough_qty';
     }
 
