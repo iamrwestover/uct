@@ -1,5 +1,5 @@
 
-<div class="uk-grid uk-grid-small uk-margin-top">
+<div class="uk-grid uk-grid-small uk-margin-bottom">
   <div class="uk-width-3-10">
     <?php print drupal_render($form['search_text']); ?>
   </div>

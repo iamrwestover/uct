@@ -114,8 +114,7 @@ function avproducts_theme($existing, $type, $theme, $path) {
  */
 function avproducts_home_form($form, &$form_state) {
   $form['#attributes']['autocomplete'] = 'off';
-  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
-  $form['new_button'] = array('#markup' => l('New product', 'av/products/add', $btn_options));
+
 
   $user_filter = empty($form_state['values']['avproducts_pl_filter']) ? array() : $form_state['values']['avproducts_pl_filter'];
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
@@ -124,24 +123,38 @@ function avproducts_home_form($form, &$form_state) {
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
 
 
-  // Set page.
-  if (!empty($user_filter['settings']['page_num'])) {
-    $_GET['page'] = $user_filter['settings']['page_num'];
+  // Set table pagination and sort settings.
+  if (!empty($user_filter['settings']['table_href'])) {
+    $table_ajax_href = $user_filter['settings']['table_href'];
+    $href_parts = parse_url($table_ajax_href);
+    parse_str($href_parts['query'], $href_query);
+    foreach ($href_query as $k => $v) {
+      $_GET[$k] = $v;
+    }
   }
 
   $form['filter'] = avproduct_list_filter_form(NULL, $form_state);
+  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
+  $form['new_button'] = array('#markup' => l('New product', 'av/products/add', $btn_options));
+  $form['order_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Order selected products'),
+    '#attributes' => array(
+      'class' => array('uk-margin-small-left'),
+    ),
+  );
 
   $header = array(
-    array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
-    array('data' => 'Name', 'field' => 'title'),
-    array('data' => 'Category', 'field' => 'category_id'),
-    array('data' => 'Base UOM', 'field' => 'uom_id'),
+    'id' => array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
+    'display_name' => array('data' => 'Name', 'field' => 'title'),
+    'category' => array('data' => 'Category', 'field' => 'category_id'),
+    'uom' => array('data' => 'Base UOM', 'field' => 'uom_id'),
     //array('data' => 'Description', 'field' => 'description'),
-    array('data' => 'Cost', 'field' => 'cost', 'style' => 'width: 100px; text-align: right'),
-    array('data' => 'Sales price', 'field' => 'price', 'style' => 'width: 100px; text-align: right'),
-    array('data' => 'Qty.', 'field' => 'qty', 'style' => 'width: 70px; text-align: right'),
-    array('data' => 'ROP', 'field' => 'rop', 'class' => array('uk-text-right')),
-    '&nbsp;',
+    'cost' => array('data' => 'Cost', 'field' => 'cost', 'style' => 'width: 100px; text-align: right'),
+    'price' => array('data' => 'Sales price', 'field' => 'price', 'style' => 'width: 100px; text-align: right'),
+    'qty' => array('data' => 'Qty.', 'field' => 'qty', 'style' => 'width: 70px; text-align: right'),
+    'rop' => array('data' => 'ROP', 'field' => 'rop', 'class' => array('uk-text-right')),
+    'actions' => '&nbsp;',
   );
 
   $query = db_select('avtbl_products', 'avprod')
@@ -182,8 +195,8 @@ function avproducts_home_form($form, &$form_state) {
 
     $actions_html = theme('links__bare', $action_links);
     $linked_name = l($row->title, $menu_prefix . '/view');
-    $rows[] = array(
-      'data' => array(
+    $rows[$row->id] = array(
+      //'data' => array(
         'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
         'display_name' => $linked_name,
         'category' => isset($categories[$row->category_id]) ? check_plain($categories[$row->category_id]->title) : '',
@@ -194,25 +207,85 @@ function avproducts_home_form($form, &$form_state) {
         'qty' => array('data' => number_format($row->qty), 'style' => 'text-align: right'),
         'rop' => array('data' => number_format($row->rop), 'style' => 'text-align: right'),
         'actions' => $actions_html,
-      ),
-      'class' => array('uk-table-middle'),
+      //),
+      //'class' => array('uk-table-middle'),
     );
   }
 
   $table_attributes = array('id' => 'products-list-table');
-  if (empty($rows)) {
-    $table_markup = '<div class="uk-text-muted">Nothing recorded yet.</div>';
-  }
-  else {
-    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
-  }
+  //if (empty($rows)) {
+  //  $table_markup = '<div class="uk-text-muted">Nothing recorded yet.</div>';
+  //}
+  //else {
+  //  $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
+  //}
 
 
-  $form['table']['#markup'] = '<div id="products-list-table-wrapper">' . $table_markup . theme('pager', array('tags' => array())) . '<!--Do not remove me.--></div>';
-  //$form['pager']['#markup'] = theme('pager', array('tags' => array()));
-//$form['#after_build'] = array('avproducts_home_form_after_build');
-//  $form['ag-grid']['#markup'] = '<div id="myGrid" style="height: 300px;" class="ag-fresh"></div>';
+  //$form['table']['#markup'] = '<div id="products-list-table-wrapper">' . $table_markup . theme('pager', array('tags' => array())) . '<!--Do not remove me.--></div>';
+
+  //$rows = array();
+  //$rows[] = array(
+  //  'title' => array(
+  //    'data' => array(
+  //      '#type' => 'textfield',
+  //      '#title' => 'rara',
+  //    ),
+  //  ),
+  //  'type' => 'f',
+  //  'author' => 'r',
+  //  'status' => 'x',
+  //  'changed' => 'f',
+  //);
+  //$header = array(
+  //  'title' => array('data' => t('Title'), 'field' => 'n.title'),
+  //  'type' => array('data' => t('Type'), 'field' => 'n.type'),
+  //  'author' => t('Author'),
+  //  'status' => array('data' => t('Status'), 'field' => 'n.status'),
+  //  'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc')
+  //);
+  $form['table'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $rows,
+    '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
+    '#attributes' => $table_attributes,
+    '#prefix' => '<div id="products-list-table-wrapper">',
+    '#suffix' => theme('pager', array('tags' => array())) . '<!--Do not remove me.--></div>',
+  );
   return $form;
+}
+
+function avproducts_home_form_submit($form, &$form_state) {
+  $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
+
+  $selected = array();
+  foreach ($ids as $k => $v) {
+    if (empty($v)) {
+      continue;
+    }
+    $selected[] = $v;
+  }
+
+  if (empty($selected)) {
+    drupal_set_message(t('No product selected.'), 'error');
+    return;
+  }
+
+  $product_rows = avproduct_load_ids($selected);
+  $item_rows = array();
+  $i = 0;
+  foreach ($product_rows as $v) {
+    $item_rows['new_' . $i++] = array(
+      'product_title' => $v->title,
+      'uom_title' => $v->uom_title,
+      'qty_per_uom' => 1,
+      'qty' => $v->eoq,
+      'cost' => $v->cost,
+      'total' => $v->eoq * $v->cost,
+    );
+  }
+  $_SESSION['selected_products'] = $item_rows;
+  $form_state['redirect'] = 'av/po/new';
 }
 
 function avproducts_home_form_after_build($form, &$form_state) {
@@ -250,7 +323,7 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     //'#title' => 'Category',
     '#options' => avbase_get_category_options_array('product_cat'),
     '#empty_value' => '',
-    '#empty_option' => '',
+    '#empty_option' => '- Category -',
     '#attributes' => array(
       'class' => array('trigger-ajax-search'),
     ),
@@ -261,7 +334,7 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     '#type' => 'checkbox',
     '#title' => 'Low stock',
     '#button_checkbox' => TRUE,
-    '#default_value' => 1,
+    //'#default_value' => 1,
     '#attributes' => array(
       'class' => array('trigger-ajax-search'),
     ),
@@ -309,10 +382,10 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
-  $fields['settings']['page_num'] = array(
+  $fields['settings']['table_href'] = array(
     '#type' => 'hidden',
     '#attributes' => array(
-      'id' => 'product-list-page-num',
+      'id' => 'product-list-table-href',
       'class' => array('trigger-ajax-search'),
     ),
   );

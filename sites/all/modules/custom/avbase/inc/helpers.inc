@@ -342,7 +342,7 @@ function avbase_element_validate_product_name_exists(&$element, &$form_state, $f
     return;
   }
 
-  $rows = avproduct_query_load(array('title = :title'), array(':title' => $element_value));
+  $rows = avproduct_query_load(array('avprod.title = :title'), array(':title' => $element_value));
   $row = array_shift($rows);
   if (empty($row->id)) {
     form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));

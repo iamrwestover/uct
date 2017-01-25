@@ -130,6 +130,13 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
     $initial_item_rows['db_item_' . $row->id . '_' . $item->id] = (array) $item;
   }
 
+  // Load selected products if available.
+  if (empty($row->id)) {
+    $selected_product_rows = empty($_SESSION['selected_products']) ? array() : $_SESSION['selected_products'];
+    $initial_item_rows = $selected_product_rows;
+    unset($_SESSION['selected_products']);
+  }
+
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : $initial_item_rows;
   $_item_rows = &$_storage['item_rows'];
@@ -239,7 +246,8 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       ),
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
-    if ($transaction == 'sales') {
+
+    if (($transaction == 'sales' && $transaction_type != 'ret') || ($transaction == 'purchase' && $transaction_type == 'rept')) {
       $fields['qty']['#element_validate'][] = 'avtrans_element_validate_enough_qty';
     }
 

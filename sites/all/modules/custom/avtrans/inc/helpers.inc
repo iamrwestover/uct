@@ -261,6 +261,7 @@ function avtrans_element_validate_enough_qty(&$element, &$form_state) {
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
+  $transaction_type = empty($_storage['transaction_type']) ? '' : $_storage['transaction_type'];
 
   // Get item rows.
   $item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
@@ -273,10 +274,11 @@ function avtrans_element_validate_enough_qty(&$element, &$form_state) {
       $inputted_base_qty = $qty_per_uom * $element_value;
       $current_qty = empty($product->qty) ? 0 : $product->qty;
       if ($current_qty < $inputted_base_qty) {
-        form_error($element, t('Requesting %qty1 for %product but on-hand quantity is only %qty2.', array(
+        form_error($element, t('@verb %qty1 %product but on-hand quantity is only %qty2.', array(
           '%qty1' => number_format($inputted_base_qty),
           '%qty2' => number_format($current_qty),
           '%product' => $product->title,
+          '@verb' => ($transaction_type == 'rept' ? 'Returning' : 'Requesting'),
         )));
       }
     }

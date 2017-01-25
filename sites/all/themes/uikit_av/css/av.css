@@ -219,6 +219,9 @@ th > a > img {
 #entity-list-wrapper tr {
   cursor: pointer;
 }
+table tr.selected {
+  background: ivory;
+}
 
 /* Print */
 @media print {

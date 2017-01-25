@@ -88,9 +88,9 @@
     var ajax = Drupal.ajax[self.$searchBtn.attr('id')] || {};
     self.$targetWrapper = $(ajax.wrapper);
     self.$targetWrapper.once('avproductsProductListForm', function() {
-      $(this).find('.uk-pagination a').click(function(e) {
-        var page = $(this).data('page') || '';
-        $('#product-list-page-num').val(page);
+      $(this).find('.uk-pagination a, th a').click(function(e) {
+        var href = $(this).attr('href');
+        $('#product-list-table-href').val(href);
         self.$searchBtn.trigger('click');
         e.preventDefault();
       });

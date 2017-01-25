@@ -93,9 +93,13 @@ function avproduct_query_load($param_where, $param_args = array()) {
     return $data[$data_id];
   }
 
-  $query = "SELECT avprod.*, avvendor.display_name AS vendor_name
+  $query = "SELECT
+    avprod.*,
+    avvendor.display_name AS vendor_name,
+    avcat_uom.title AS uom_title
     FROM {avtbl_products} avprod
-    LEFT JOIN {avtbl_vendors} avvendor ON avvendor.id = avprod.vendor_id";
+    LEFT JOIN {avtbl_vendors} avvendor ON avvendor.id = avprod.vendor_id
+    LEFT JOIN {avtbl_categories} avcat_uom ON avcat_uom.id = avprod.uom_id";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
