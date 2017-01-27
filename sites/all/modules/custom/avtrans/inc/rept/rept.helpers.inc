@@ -98,10 +98,10 @@ function avtrans_rept_query_load($conditions = array()) {
   }
 
   $query = db_select('avtbl_rept', 'avrept');
-  $query->leftJoin('avtbl_customers', 'avcustomers', 'avcustomers.id = avrept.client_id');
+  $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avrept.client_id');
   $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avrept.term_id AND avcat.group_id = 'payment_term'");
-  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avrept.agent_id AND avcat_agent.group_id = 'agent_cust'");
-  $query->addField('avcustomers', 'display_name', 'client_name');
+  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avrept.agent_id AND avcat_agent.group_id = 'agent_vend'");
+  $query->addField('avvendors', 'display_name', 'client_name');
   $query->addField('avcat', 'title', 'payment_term_title');
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->fields('avrept');

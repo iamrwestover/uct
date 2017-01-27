@@ -109,9 +109,9 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
     avclient.display_name,
     SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
     FROM {avtbl_rept} AS avtrans
-    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtrans.client_id
     LEFT JOIN {avtbl_rept_items} AS avtrans_items ON avtrans_items.rept_id = avtrans.id
-    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
     LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
   ";
 
