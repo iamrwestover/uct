@@ -293,7 +293,17 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
           }
 
           // Recompute total amount.
-          $item_row_arr['total'] = avbase_number_format($item_row_arr['cost'] * $item_row_arr['qty']);
+          $item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
+          if (!in_array($transaction_type, array('ret', 'rept'))) {
+            $discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
+            foreach ($discount as $v) {
+              if (is_numeric($v)) {
+                $v = (float)$v;
+                $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
+              }
+            }
+            $item_row_arr['total'] = round($item_row_arr['total'], 2);
+          }
 
 
           // More preparation.

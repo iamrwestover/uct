@@ -81,6 +81,7 @@
       var $qtyPerUOMEl = $thisRow.find('.prod-column-qty-per-uom');
       var $costEl = $thisRow.find('.prod-column-cost');
       var $qtyEl = $thisRow.find('.prod-column-qty');
+      var $discountEl = $thisRow.find('.prod-column-discount');
       var $totalEl = $thisRow.find('.prod-column-total');
       var uoms = Drupal.settings.avbase.uoms;
 
@@ -210,7 +211,8 @@
       // Trigger actions for cost field.
       $costEl.change(function() {
         var total = self.getRowTotal($thisRow);
-        if (total != '') {
+
+        if (total !== '') {
           $totalEl.val(total.toFixed(2));
           self.refreshSubTotalText();
         }
@@ -227,23 +229,31 @@
         self.switchRowFocus(e, $thisRow);
       });
 
-      // Trigger actions for total field.
-      $totalEl.change(function() {
-        var cost = self.getRowPrice($thisRow);
-        if (cost != '') {
-          $costEl.val(parseFloat(cost.toFixed(6)));
-        }
+      // Trigger actions for qty field.
+      $discountEl.change(function() {
+        $costEl.trigger('change');
+      });
+      //$discountEl.keydown(function(e) {
+      //  self.switchRowFocus(e, $thisRow);
+      //});
 
-        var thisTotal = $(this).val();
-        if ($.isNumeric(thisTotal)) {
-          thisTotal = parseFloat(thisTotal).toFixed(2);
-          $(this).val(thisTotal);
-        }
-        self.refreshSubTotalText();
-      });
-      $totalEl.keydown(function(e) {
-        self.switchRowFocus(e, $thisRow);
-      });
+      // Trigger actions for total field.
+      //$totalEl.change(function() {
+      //  var cost = self.getRowPrice($thisRow);
+      //  if (cost != '') {
+      //    $costEl.val(parseFloat(cost.toFixed(6)));
+      //  }
+      //
+      //  var thisTotal = $(this).val();
+      //  if ($.isNumeric(thisTotal)) {
+      //    thisTotal = parseFloat(thisTotal).toFixed(2);
+      //    $(this).val(thisTotal);
+      //  }
+      //  self.refreshSubTotalText();
+      //});
+      //$totalEl.keydown(function(e) {
+      //  self.switchRowFocus(e, $thisRow);
+      //});
     });
   };
 
@@ -253,12 +263,16 @@
   Drupal.avbaseNestableProductForm.prototype.getRowTotal = function($row) {
     var $costEl = $row.find('.prod-column-cost');
     var $qtyEl = $row.find('.prod-column-qty');
+    var $discountEl = $row.find('.prod-column-discount');
     var qty = Drupal.checkPlain($qtyEl.val());
     var cost = Drupal.checkPlain($costEl.val());
+    var discountVal = $discountEl.length ? Drupal.checkPlain($discountEl.val()) : '';
+    var discount = [];
 
     var error = false;
     $costEl.removeClass('uk-form-danger');
     $qtyEl.removeClass('uk-form-danger');
+    $discountEl.removeClass('uk-form-danger');
     if (!$.isNumeric(cost)) {
       if (cost != '') {
         $costEl.addClass('uk-form-danger');
@@ -272,11 +286,29 @@
       error = true;
     }
 
+    if (discountVal && discountVal != '') {
+      discount = discountVal.split('/');
+      $.each(discount, function (i, v) {
+        if (!$.isNumeric(v)) {
+          $discountEl.addClass('uk-form-danger');
+          error = true;
+        }
+        else {
+          discount[i] = parseFloat(v);
+        }
+      });
+      // Replace discount element value with a cleaner version (no spaces).
+      $discountEl.val(discount.join('/'));
+    }
+
     if (error) {
       return '';
     }
 
-    var total = qty * cost;
+    var total = parseInt(qty) * parseFloat(cost);
+    $.each(discount, function(i, v) {
+      total = total - ((total *  v) / 100);
+    });
     return total;
   };
 

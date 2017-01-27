@@ -33,7 +33,11 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
       $incoming_base_qty = array();
 
       // Save po items.
-      $query = db_insert("avtbl_{$transaction_type}_items")->fields(array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id'));
+      $fields = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id');
+      if (!in_array($transaction_type, array('ret', 'rept'))) {
+        $fields[] = 'discount';
+      }
+      $query = db_insert("avtbl_{$transaction_type}_items")->fields($fields);
       foreach ($_item_rows as $item_row) {
         if (empty($item_row['product_id'])) {
           continue;

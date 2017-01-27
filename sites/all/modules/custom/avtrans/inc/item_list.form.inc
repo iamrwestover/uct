@@ -53,33 +53,33 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = 
     $form['agent_name']['#element_validate_conditions'] = array('group_id' => 'agent_cust');
   }
 
-  $form['discount_type'] = array(
-    '#id' => 'discount-type',
-    '#title_display' => 'invisible',
-    '#type' => 'select',
-    '#title' => 'Discount type',
-    '#options' => avbase_get_discount_types(),
-    '#default_value' => isset($row->discount_type) ? $row->discount_type : AVBASE_DISCOUNT_PERCENT,
-  );
-
-  $form['discount_value'] = array(
-    '#id' => 'discount-value',
-    '#title_display' => 'invisible',
-    '#type' => 'textfield',
-    '#title' => 'Discount value',
-    '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
-    '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number'),
-    //'#special_element_type' => 'number',
-    '#attributes' => array(
-      //'class' => array(''),
-      //'step' => 0.01,
-    ),
-  );
-  if (!empty($view_mode) && $form['discount_type']['#default_value'] == AVBASE_DISCOUNT_PERCENT) {
-    $form['discount_value']['#field_suffix'] = '%';
-    $form['discount_type']['#default_value'] = '';
-  }
+  //$form['discount_type'] = array(
+  //  '#id' => 'discount-type',
+  //  '#title_display' => 'invisible',
+  //  '#type' => 'select',
+  //  '#title' => 'Discount type',
+  //  '#options' => avbase_get_discount_types(),
+  //  '#default_value' => isset($row->discount_type) ? $row->discount_type : AVBASE_DISCOUNT_PERCENT,
+  //);
+  //
+  //$form['discount_value'] = array(
+  //  '#id' => 'discount-value',
+  //  '#title_display' => 'invisible',
+  //  '#type' => 'textfield',
+  //  '#title' => 'Discount value',
+  //  '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
+  //  '#maxlength' => 19,
+  //  '#element_validate' => array('element_validate_number'),
+  //  //'#special_element_type' => 'number',
+  //  '#attributes' => array(
+  //    //'class' => array(''),
+  //    //'step' => 0.01,
+  //  ),
+  //);
+  //if (!empty($view_mode) && $form['discount_type']['#default_value'] == AVBASE_DISCOUNT_PERCENT) {
+  //  $form['discount_value']['#field_suffix'] = '%';
+  //  $form['discount_type']['#default_value'] = '';
+  //}
 
   $form['transaction_date'] = array(
     '#type' => 'item',
@@ -94,8 +94,8 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = 
   );
 
   $form['grand_total'] = array('#type' => 'value', '#value' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
-  $form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
-  $form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
+  //$form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
+  //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
 
 
   // Product list.
@@ -156,7 +156,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
   $prod_index = -1;
   $form['product_rows'] = array(
     '#tree' => TRUE,
-    '#theme' => 'avbase_nestable_form',
+    '#theme' => 'avbase_nestable_form__' . $transaction_type,
     '#transaction' => $transaction,
   );
   foreach ($_item_rows as $prod_key => $prod_row) {
@@ -247,7 +247,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
 
-    if (($transaction == 'sales' && $transaction_type != 'ret') || ($transaction == 'purchase' && $transaction_type == 'rept')) {
+    if (($transaction == 'sales' && $transaction_type == 'dr') || ($transaction == 'purchase' && $transaction_type == 'rept')) {
       $fields['qty']['#element_validate'][] = 'avtrans_element_validate_enough_qty';
     }
 
@@ -266,19 +266,37 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost']) : '',
     );
 
+    $fields['discount'] = array(
+      '#id' => 'product-discount-' . $prod_key,
+      '#item_row_key' => $prod_key,
+      '#type' => 'textfield',
+      '#title' => 'Discount',
+      '#maxlength' => 10,
+      '#element_validate' => array('avtrans_item_list_row_element_validate'),
+      '#av_prod_element_validate' => array('avtrans_element_validate_product_discount'),
+      '#attributes' => array(
+        'data-column-name' => 'discount',
+        'class' => array('prod-column-discount'),
+      ),
+      '#default_value' => isset($prod_row['discount']) ? $prod_row['discount'] : '',
+      '#dont_require' => TRUE,
+      '#access' => !in_array($transaction_type, array('ret', 'rept')),
+    );
+
     $fields['total'] = array(
       '#id' => 'product-total-' . $prod_key,
       '#item_row_key' => $prod_key,
       '#type' => 'textfield',
       '#title' => 'Total',
       '#maxlength' => 19,
-      '#element_validate' => array('avtrans_item_list_row_element_validate'),
-      '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+      //'#element_validate' => array('avtrans_item_list_row_element_validate'),
+      //'#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'data-column-name' => 'total',
         'class' => array('prod-column-total'),
+        'readonly' => 'readonly',
       ),
-      '#default_value' => isset($prod_row['total']) ? avbase_number_format($prod_row['total']) : '',
+      '#default_value' => isset($prod_row['total']) ? number_format($prod_row['total'], 2) : '',
     );
 
     $fields['prod_delete_btn'] = array(
@@ -307,7 +325,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
 
     $form['product_rows'][$prod_key] = $fields;
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
-    $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
+    $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $transaction_type;
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
     $form['product_rows'][$prod_key]['#suffix'] = '</div>';
   }

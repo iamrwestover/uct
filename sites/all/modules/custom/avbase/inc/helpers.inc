@@ -610,3 +610,5 @@ function avbase_get_category_id_by_title($title, $group_id, $insert_if_not_found
   }
   return $id;
 }
+
+

@@ -67,7 +67,7 @@ function avtrans_item_list_row_element_validate($element, &$form_state, $form) {
   $item_row_key = isset($element['#item_row_key']) ? $element['#item_row_key'] : '';
   if (!empty($_item_rows[$item_row_key]['product_id'])) {
     $element_value = $element['#value'];
-    if (trim($element_value) == '') {
+    if (empty($element['#dont_require']) && trim($element_value) == '') {
       form_error($element, t('@field_title is required.', array('@field_title' => $element['#title'])));
     }
 
@@ -77,4 +77,28 @@ function avtrans_item_list_row_element_validate($element, &$form_state, $form) {
       }
     }
   }
+}
+
+/**
+ * Check if element value is in a valid discount format.
+ * @param $element
+ * @param $form_state
+ */
+function avtrans_element_validate_product_discount($element, &$form_state) {
+  $element_value = trim($element['#value']);
+  if ($element_value == '') {
+    return;
+  }
+
+  $parts = explode('/', $element_value);
+  foreach ($parts as $k => $v) {
+    if (!is_numeric($v)) {
+      form_error($element, t('Invalid discount format. Valid format is numeric values separated by /.'));
+      return;
+    }
+    $parts[$k] = (float) $v;
+  }
+
+  $parents = $element['#parents'];
+  drupal_array_set_nested_value($form_state['values'], $parents, implode('/', $parts));
 }

@@ -23,7 +23,7 @@ function avtrans_menu() {
     'expanded' => TRUE,
   );
   $items['av/po'] = array(
-    'title' => 'Purchase Orders',
+    'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_transaction_home_form'),
     'access callback' => 'user_is_logged_in',
@@ -60,7 +60,7 @@ function avtrans_menu() {
   //  'weight' => 1,
   //);
   $items['av/gr'] = array(
-    'title' => 'Goods Received',
+    'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_transaction_home_form'),
     'access callback' => 'user_is_logged_in',
@@ -88,7 +88,7 @@ function avtrans_menu() {
     //'tab_root' => 'av/transactions',
   );
   $items['av/sales-order'] = array(
-    'title' => 'Sales Orders',
+    'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_transaction_home_form'),
     'access callback' => 'user_is_logged_in',
@@ -116,7 +116,7 @@ function avtrans_menu() {
     //'tab_root' => 'av/transactions',
   );
   $items['av/delivery'] = array(
-    'title' => 'Deliveries',
+    'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_transaction_home_form'),
     'access callback' => 'user_is_logged_in',
@@ -144,7 +144,7 @@ function avtrans_menu() {
     //'tab_root' => 'av/transactions',
   );
   $items['av/ret'] = array(
-    'title' => 'Sales Returns',
+    'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_transaction_home_form'),
     'access callback' => 'user_is_logged_in',
@@ -172,13 +172,13 @@ function avtrans_menu() {
     //'tab_root' => 'av/transactions',
   );
   $items['av/rept'] = array(
-    'title' => 'Sales Returns',
+    'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_transaction_home_form'),
     'access callback' => 'user_is_logged_in',
   );
   $items['av/rept/new'] = array(
-    'title' => 'New sales return',
+    'title' => 'New purchase return',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_rept_form', NULL),
     'access callback' => 'user_is_logged_in',
@@ -189,7 +189,7 @@ function avtrans_menu() {
     //'tab_root' => 'av/transactions',
   );
   $items['av/rept/%avtrans_rept/view'] = array(
-    'title' => 'View sales return',
+    'title' => 'View purchase return',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_rept_form', 2, TRUE),
     'access callback' => 'user_is_logged_in',

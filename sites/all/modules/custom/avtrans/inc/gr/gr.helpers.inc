@@ -133,6 +133,13 @@ function avtrans_gr_query_load($conditions = array(), $offset = NULL, $limit = N
       $rs = $query->execute();
       foreach ($rs as $item) {
         $item->total = $item->cost * $item->qty;
+        $discount = empty($item->discount) ? array() : explode('/', $item->discount);
+        foreach ($discount as $v) {
+          if (is_numeric($v)) {
+            $v = (float) $v;
+            $item->total = $item->total - (($item->total * $v) / 100);
+          }
+        }
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
         $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
         $row->items[$item->id] = $item;

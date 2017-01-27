@@ -171,8 +171,8 @@ html.js input.form-autocomplete {
 #autocomplete li.selected {
   background: #f5fbfe;
 }
-.av-nestable-form,
-.av-nestable-form-header {
+.av-nestable-product-list-view,
+.av-nestable-product-list-view .av-nestable-form-header {
   border-bottom: solid 1px #ddd;
 }
 .av-nestable-form .uk-nestable-handle,
@@ -186,13 +186,13 @@ html.js input.form-autocomplete {
 .av-nestable-form .uk-nestable-item+.uk-nestable-item {
   margin-top: 0;
 }
-.av-nestable-form .uk-nestable-item {
+.av-nestable-product-list-view .uk-nestable-item {
   border-bottom: solid 1px #ddd;
 }
-.av-nestable-form input:not(.error),
-.av-nestable-form select:not(.error) {
-  border-color: transparent;
-}
+/*.av-nestable-form input:not(.error),*/
+/*.av-nestable-form select:not(.error) {*/
+  /*border-color: transparent;*/
+/*}*/
 .av-nestable-form input:focus,
  .av-nestable-form select:focus {
    border-color: #99baca;
