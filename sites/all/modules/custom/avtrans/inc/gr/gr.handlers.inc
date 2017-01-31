@@ -33,10 +33,11 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
       $incoming_base_qty = array();
 
       // Save po items.
-      $fields = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id');
-      if (!in_array($transaction_type, array('ret', 'rept'))) {
-        $fields[] = 'discount';
+      $fields = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id', 'discount');
+      if (in_array($transaction_type, array('ret', 'rept'))) {
+        $fields[] = 'good_stock';
       }
+
       $query = db_insert("avtbl_{$transaction_type}_items")->fields($fields);
       foreach ($_item_rows as $item_row) {
         if (empty($item_row['product_id'])) {
@@ -61,6 +62,11 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
         $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
         $query->values($item_row);
 
+        // No need to update inventory if this is sales return and product isn't good stock.
+        if ($transaction_type == 'ret' && empty($item_row['good_stock'])) {
+          continue;
+        }
+        // Update this product's inventory count.
         $this_prod_incoming_base_qty = empty($incoming_base_qty[$item_row['product_id']]) ? 0 : $incoming_base_qty[$item_row['product_id']];
         $incoming_base_qty[$item_row['product_id']] = $this_prod_incoming_base_qty + ($item_row['qty'] * $item_row['qty_per_uom']);
       }

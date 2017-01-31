@@ -408,7 +408,8 @@ function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : 0;
           $icon_class = $default_value ? 'check-square-o' : 'square-o';
           $element['#type'] = 'markup';
-          $element['#markup'] = '<span><i class="uk-icon-small uk-icon-' . $icon_class . '"></i> ' . $element['#title'] . '</span>';
+          $title = (empty($element['#title_display']) || $element['#title_display'] != 'none') ? (' ' . $element['#title']) : '';
+          $element['#markup'] = '<span><i class="uk-icon-' . $icon_class . '"></i>' . $title . '</span>';
           break;
         case 'submit':
         case 'button':

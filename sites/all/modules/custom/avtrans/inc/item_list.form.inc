@@ -84,12 +84,17 @@ function avtrans_item_list_form_fields(&$form, &$form_state, $row, $view_mode = 
   $form['transaction_date'] = array(
     '#type' => 'item',
     '#title' => 'Date',
-    '#markup' => format_date(time(), 'custom', 'F d, Y'),
+    '#title_display' => 'none',
+    '#markup' => isset($row->transaction_date) ? format_date($row->transaction_date, 'custom', 'F d, Y') : '',
+    '#access' => FALSE,
   );
+
+  $transaction_date = isset($row->transaction_date) ? format_date($row->transaction_date, 'custom', 'M. d, Y') : '';
   $form['transaction_id'] = array(
     '#type' => 'item',
     '#title' => 'Transaction No.',
-    '#markup' => empty($row->id) ? '' : $row->id,
+    '#title_display' => 'none',
+    '#markup' => empty($row->id) ? '' : t('<strong>Transaction #</strong> @id<br />@date', array('@id' => $row->id, '@date' => $transaction_date)),
     '#access' => !empty($row->id),
   );
 
@@ -157,6 +162,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
   $form['product_rows'] = array(
     '#tree' => TRUE,
     '#theme' => 'avbase_nestable_form__' . $transaction_type,
+    //'#theme' => 'avbase_nestable_form',
     '#transaction' => $transaction,
   );
   foreach ($_item_rows as $prod_key => $prod_row) {
@@ -236,6 +242,18 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#default_value' => isset($prod_row['qty_per_uom']) ? $prod_row['qty_per_uom'] : '',
     );
 
+    $fields['good_stock'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Good stock?',
+      '#title_display' => 'none',
+      '#button_checkbox' => TRUE,
+      //'#disabled' => TRUE,
+      '#attributes' => array(
+        'title' => t('Good stock?'),
+      ),
+      '#default_value' => empty($prod_row['good_stock']) ? 0 : 1,
+    );
+
     $fields['qty'] = array(
       '#id' => 'product-qty-' . $prod_key,
       '#item_row_key' => $prod_key,
@@ -290,7 +308,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       ),
       '#default_value' => isset($prod_row['discount']) ? $prod_row['discount'] : '',
       '#dont_require' => TRUE,
-      '#access' => !in_array($transaction_type, array('ret', 'rept')),
+      //'#access' => !in_array($transaction_type, array('ret', 'rept')),
     );
 
     $fields['total'] = array(
@@ -306,7 +324,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
         'class' => array('prod-column-total'),
         'readonly' => 'readonly',
       ),
-      '#default_value' => isset($prod_row['total']) ? number_format($prod_row['total'], 2) : '',
+      '#default_value' => isset($prod_row['total']) ? number_format((float) $prod_row['total'], 2) : '',
     );
 
     $fields['prod_delete_btn'] = array(
@@ -336,6 +354,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
     $form['product_rows'][$prod_key] = $fields;
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
     $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $transaction_type;
+    //$form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
     $form['product_rows'][$prod_key]['#suffix'] = '</div>';
   }

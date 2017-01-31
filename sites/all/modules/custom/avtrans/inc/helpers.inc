@@ -172,7 +172,7 @@ function avtrans_compute_product_cost($current_cost, $onhand_qty, $new_cost, $in
  * @return float
  */
 function avtrans_compute_sales_price($current_sales_price, $current_cost, $new_cost) {
-  if ($current_sales_price <= $current_cost) {
+  if ($current_sales_price <= $current_cost || empty($current_cost)) {
     $markup = 0.2;
   }
   else {
@@ -329,4 +329,12 @@ function avtrans_transaction_types($type) {
     ),
   );
   return $transaction_types[$type];
+}
+
+/**
+ * Return return types.
+ * @return array
+ */
+function avtrans_get_return_types() {
+  return array(AVTRANS_RETURN_TYPE_RS => 'RS', AVTRANS_RETURN_TYPE_RUD => 'RUD');
 }

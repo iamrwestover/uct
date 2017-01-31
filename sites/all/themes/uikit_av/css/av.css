@@ -133,9 +133,26 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 .av-button-checkbox input:checked {
   border: solid 1px transparent;
 }
+.av-button-checkbox:focus {
+  border: solid 1px red !important;
+}
+
+.av-button-checkbox input:focus,
 .av-button-checkbox input:not(:checked) {
-  border: solid 1px transparent;
-  display: none;
+  border: solid 1px transparent !important;
+  /*display: none;*/
+}
+.av-button-checkbox input:focus {
+  /*border: solid 1px #00a8e6 !important;*/
+}
+.av-button-checkbox input:not(:checked):before {
+  content: "\f00c";
+  font-family: FontAwesome;
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  text-align: center;
+  line-height: 12px;
+  color: #ddd;
 }
 .form-text,
 .form-select {

@@ -104,6 +104,8 @@ function avtrans_rept_form_settings(&$form, &$form_state, $row, $view_mode = FAL
     'created',
     'client_id',
     'memo',
+    'reference_id',
+    'return_type' => array('type' => 'int'),
     'term_id' => array('type' => 'int'),
     'agent_id' => array('type' => 'int'),
   );
@@ -141,6 +143,23 @@ function avtrans_rept_form_fields(&$form, &$form_state, $row, $view_mode = FALSE
   //  '#empty_option' => '',
   //  '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
   //);
+  $form['reference_id'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Reference ID',
+    '#default_value' => isset($row->reference_id) ? $row->reference_id : '',
+    '#maxlength' => 32,
+    '#required' => TRUE,
+  );
+  $form['return_type'] = array(
+    '#id' => 'return-type',
+    '#type' => 'select',
+    '#title' => 'Return type',
+    '#options' => avtrans_get_return_types(),
+    '#default_value' => isset($row->return_type) ? $row->return_type : '',
+    '#required' => TRUE,
+    '#empty_value' => '',
+    '#empty_option' => '- Select -',
+  );
 }
 
 /**

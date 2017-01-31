@@ -178,7 +178,7 @@ function avproducts_autocomplete($string = '') {
 
     $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'cost', 'price', 'data'));
     $query->condition($db_or);
-    $query->range(0, 10);
+    $query->range(0, 8);
     $result = $query->execute();
 
     foreach ($result as $row) {
@@ -186,7 +186,7 @@ function avproducts_autocomplete($string = '') {
       $title = check_plain($row->title);
       $row->data = unserialize($row->data);
       //$uoms = empty($data['uoms']) ? array() : $data['uoms'];
-      $row_html = $title . '<div class="uk-text-muted uk-text-break">' . $code .  '</div>' ;
+      $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;
       $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->title] = $row_html;

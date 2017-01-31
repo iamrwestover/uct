@@ -18,28 +18,30 @@ $term_html = drupal_render($form['term_id']);
 ?>
 <div class="printable">
   <div class="uk-grid">
-    <div class="uk-width-2-4">
+    <div class="uk-width-5-6">
 
       <div class="uk-grid uk-grid-small">
-        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['transaction_date']); ?></div>
-        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['transaction_id']); ?></div>
-
-        <div class="uk-width-1-1 uk-margin-small-bottom"><?php print drupal_render($form['client_name']); ?></div>
+        <div class="uk-width-2-6 uk-margin-bottom"><?php print drupal_render($form['client_name']); ?></div>
         <?php if ($email_html): ?>
-          <div class="uk-width-1-2"><?php print $email_html; ?></div>
+          <div class="uk-width-1-6"><?php print $email_html; ?></div>
         <?php endif; ?>
         <?php if ($term_html): ?>
-          <div class="uk-width-1-2"><?php print $term_html; ?></div>
+          <div class="uk-width-1-6"><?php print $term_html; ?></div>
         <?php endif; ?>
-        <div class="uk-width-1-2 uk-margin-small-bottom"><?php print drupal_render($form['agent_name']); ?></div>
-        <div class="uk-width-1-2"><?php print drupal_render($form['reference_id']); ?></div>
+        <div class="uk-width-2-6"><?php print drupal_render($form['agent_name']); ?></div>
+        <div class="uk-width-1-6"><?php print drupal_render($form['reference_id']); ?></div>
+        <div class="uk-width-1-6"><?php print drupal_render($form['return_type']); ?></div>
       </div>
 
     </div>
 
-    <div class="uk-width-2-4 uk-text-right">
-      <div class="uk-text-bold uk-text-uppercase">Grand Total</div>
-      <div><h1 class="product-form-grand-total" style="font-size: 50px;"><?php print $form['grand_total']['#value'] ?></h1></div>
+    <div class="uk-width-1-6 uk-text-right">
+      <div class="uk-text-right">
+        <?php print drupal_render($form['transaction_id']); ?>
+        <?php print drupal_render($form['transaction_date']); ?>
+      </div>
+      <!--<div class="uk-text-bold uk-text-uppercase">Grand Total</div>-->
+      <!--<div><h1 class="product-form-grand-total" style="font-size: 50px; margin-bottom: 0;">--><?php //print $form['grand_total']['#value'] ?><!--</h1></div>-->
     </div>
 
 
@@ -47,7 +49,7 @@ $term_html = drupal_render($form['term_id']);
 
 
 
-    <div class="uk-width-1-1 uk-margin-large-top">
+    <div class="uk-width-1-1 uk-margin-top">
       <?php print drupal_render($form['product_rows']); ?>
 
       <div class="uk-grid uk-grid-collapse uk-margin-small-top">

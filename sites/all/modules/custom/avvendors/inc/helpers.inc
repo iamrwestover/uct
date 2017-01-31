@@ -185,9 +185,9 @@ function avvendors_autocomplete($string = '') {
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where = array($where_or_str);
     $args = array(':string' => '%' . db_like($string) . '%');
-    $rows = avvendor_query_load($where, $args, '15');
+    $rows = avvendor_query_load($where, $args, '8');
     foreach ($rows as $row) {
-      $row_html = check_plain($row->display_name) . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
+      $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . check_plain($row->company) .  '</div>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;

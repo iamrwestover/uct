@@ -197,9 +197,9 @@ function avcustomers_autocomplete($string = '') {
     $args = array(':string' => '%' . db_like($string) . '%');
     $where[] = 'avcustomers.status = :active_status';
     $args[':active_status'] = AVCUSTOMER_STATUS_ACTIVE;
-    $rows = avcustomer_query_load($where, $args, '15');
+    $rows = avcustomer_query_load($where, $args, '8');
     foreach ($rows as $row) {
-      $row_html = check_plain($row->display_name) . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>';
+      $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . check_plain($row->company) .  '</div>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;
