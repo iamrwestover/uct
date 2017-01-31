@@ -199,6 +199,10 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       ),
       '#default_value' => isset($prod_row['product_title']) ? $prod_row['product_title'] : '',
     );
+    if (isset($prod_row['qty']) && $prod_row['qty'] == 0 && $view_mode) {
+      $fields['product_title']['#default_value'] = '<del>' . $fields['product_title']['#default_value'] . '</del>';
+      $fields['product_title']['#field_suffix'] = '<em class="uk-margin-small-left uk-text-uppercase uk-text-small">- Out of stock</em>';
+    }
 
     $fields['uom_title'] = array(
       '#id' => 'uom-title-' . $prod_key,
@@ -239,17 +243,23 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#title' => 'Qty.',
       '#maxlength' => 10,
       '#element_validate' => array('avtrans_item_list_row_element_validate'),
-      '#av_prod_element_validate' => array('element_validate_integer_positive'),
+      //'#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
         'data-column-name' => 'qty',
         'class' => array('prod-column-qty'),
       ),
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
-
-    if (($transaction == 'sales' && $transaction_type == 'dr') || ($transaction == 'purchase' && $transaction_type == 'rept')) {
-      $fields['qty']['#element_validate'][] = 'avtrans_element_validate_enough_qty';
+    if ($transaction_type == 'dr') {
+      $fields['qty']['#av_prod_element_validate'][] = 'avbase_element_validate_non_negative_number';
     }
+    else {
+      $fields['qty']['#av_prod_element_validate'][] = 'element_validate_integer_positive';
+    }
+    if ($transaction_type == 'dr' || $transaction_type == 'rept') {
+      $fields['qty']['#av_prod_element_validate'][] = 'avtrans_element_validate_enough_qty';
+    }
+
 
     $fields['cost'] = array(
       '#id' => 'product-cost-' . $prod_key,
