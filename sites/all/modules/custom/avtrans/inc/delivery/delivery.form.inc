@@ -62,7 +62,7 @@ function avtrans_delivery_form_default(&$form, &$form_state, $row, $view_mode = 
   avtrans_sales_fields($form, $form_state, $row, $view_mode);
 
   // Buttons.
-  avtrans_delivery_form_buttons($form, $form_state, $row, $view_mode);
+  avtrans_gr_form_buttons($form, $form_state, $row, $view_mode);
 }
 
 /**

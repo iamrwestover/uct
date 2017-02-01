@@ -298,7 +298,11 @@ function avtrans_element_validate_enough_qty(&$element, &$form_state) {
 function avtrans_redirect_transaction_form($form, &$form_state) {
   $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
   $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
-  $form_state['redirect'] = arg(0) . '/' . arg(1) . '/' . $transaction_id . '/view';
+  $redirect_query = array();
+  if ($triggering_element['#id'] == 'submit_and_print') {
+    $redirect_query['print'] = 1;
+  }
+  $form_state['redirect'] = array(arg(0) . '/' . arg(1) . '/' . $transaction_id . '/view', array('query' => $redirect_query));
 }
 
 function avtrans_transaction_types($type) {
@@ -337,4 +341,50 @@ function avtrans_transaction_types($type) {
  */
 function avtrans_get_return_types() {
   return array(AVTRANS_RETURN_TYPE_RS => 'RS', AVTRANS_RETURN_TYPE_RUD => 'RUD');
+}
+
+/**
+ * Transaction buttons.
+ * @param $transaction_type
+ * @param $view_mode
+ *
+ * @return array
+ */
+function avtrans_transaction_buttons($transaction_type, $view_mode) {
+  $buttons = array('#theme' => 'avbase_crud_button_group');
+  $buttons['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#icon_key' => 'save',
+  );
+  if ($transaction_type == 'po') {
+    $buttons['submit_and_send'] = array(
+      '#id' => 'submit_and_send',
+      '#type' => 'submit',
+      '#value' => t('Save and send'),
+      '#icon_key' => 'mail-forward',
+    );
+  }
+
+  $buttons['submit_and_print'] = array(
+    '#id' => 'submit_and_print',
+    '#type' => 'submit',
+    '#value' => t('Save and print'),
+    '#icon_key' => 'print',
+  );
+  if (empty($view_mode)) {
+    $buttons['cancel'] = array(
+      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
+    );
+  }
+  else {
+    $buttons['print'] = array(
+      '#id' => 'av-print-btn',
+      '#type' => 'button',
+      '#value' => t('Print...'),
+      '#visible_in_view_mode' => TRUE,
+      '#attributes' => array('class' => array('uk-button-primary')),
+    );
+  }
+  return $buttons;
 }

@@ -24,4 +24,7 @@ if (!empty($element['#attributes']['disabled'])) {
   $element['#attributes']['class'][] = 'form-button-disabled';
 }
 $button_label = isset($element['#button_label']) ? $element['#button_label'] : $value;
+if (isset($element['#icon_key'])) {
+  $button_label = '<i class="uk-icon-' . $element['#icon_key'] . ' uk-margin-small-right"></i>' . $button_label;
+}
 print '<button' . drupal_attributes($element['#attributes']) . '>' . $button_label . '</button>';

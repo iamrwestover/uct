@@ -5,7 +5,7 @@ hide($form['footer_total']);
 $form['prod_add_btn']['#attributes']['class'][] = 'av-ajax-trigger';
 //$form['transaction_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
 //$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
-$form['buttons']['submit_and_send']['#attributes']['class'][] = 'uk-button-primary';
+//$form['buttons']['submit_and_send']['#attributes']['class'][] = 'uk-button-primary';
 //$form['buttons']['submit_and_send']['#attributes']['disabled'] = TRUE;
 //$form['discount_value']['#attributes']['class'][] = 'uk-text-right';
 

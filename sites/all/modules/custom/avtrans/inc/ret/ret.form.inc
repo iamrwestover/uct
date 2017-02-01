@@ -62,7 +62,8 @@ function avtrans_ret_form_default(&$form, &$form_state, $row, $view_mode = FALSE
   avtrans_sales_fields($form, $form_state, $row, $view_mode);
 
   // Buttons.
-  avtrans_ret_form_buttons($form, $form_state, $row, $view_mode);
+  avtrans_gr_form_buttons($form, $form_state, $row, $view_mode);
+  unset($form['buttons']['submit']['#id']);
 
   $form['#hide_discount_fields'] = TRUE;
   $form['discount_type']['#access'] = FALSE;

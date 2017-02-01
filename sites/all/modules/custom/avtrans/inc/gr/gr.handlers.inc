@@ -221,6 +221,7 @@ function avtrans_gr_form_submit($form, &$form_state) {
   $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
   switch ($trigger['#id']) {
     case 'detect-cost-change-btn':
+    case 'submit_and_print':
       // Get non-empty product rows from item rows.
       $entered_products = array();
       $product_ids = array();
@@ -287,10 +288,67 @@ function avtrans_gr_form_submit($form, &$form_state) {
 
   $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
   $arg1 = $transaction_type == 'dr' ? 'delivery' :  $transaction_type;
-  $form_state['redirect'] = url("av/$arg1/$transaction_id/view", array('absolute' => TRUE));
+  $redirect_query = array();
+  if ($trigger['#id'] == 'submit_and_print') {
+    $redirect_query['print'] = 1;
+  }
+  $form_state['redirect'] = url("av/$arg1/$transaction_id/view", array('absolute' => TRUE, 'query' => $redirect_query));
 
   // Reset form.
   unset($form_state['input']);
   unset($form_state['storage']);
   $form_state['values'] = array();
+}
+
+/**
+ * Buttons for Goods Received form.
+ * @param $form
+ * @param $form_state
+ * @param $row
+ */
+function avtrans_gr_form_buttons(&$form, $form_state, $row, $view_mode = FALSE) {
+  $form['buttons'] = avtrans_transaction_buttons('gr', $view_mode);
+  $form['buttons']['submit']['#id'] = 'detect-cost-change-btn';
+  $form['buttons']['submit']['#attributes']['class'][] = 'av-ajax-trigger';
+  $form['buttons']['submit']['#ajax'] = array(
+    'callback' => 'avtrans_transaction_form_ajax',
+    'wrapper' => 'avtrans-transaction-form-wrapper',
+    'effect' => 'none',
+    'event' => 'click',
+  );
+  $form['buttons']['submit_and_print']['#attributes'] = $form['buttons']['submit']['#attributes'];
+  $form['buttons']['submit_and_print']['#ajax'] = $form['buttons']['submit']['#ajax'];
+  //$form['buttons']['submit_and_print']['#id'] = 'detect-cost-change-btn-print';
+  //$form['buttons']['submit_and_print']['#value'] = t('Submit and print');
+  //$form['buttons']['submit_and_print']['#icon_key'] = 'print';
+
+  //$form['buttons']['#theme'] = 'avbase_crud_button_group';
+  //$form['buttons']['submit'] = array(
+  //  '#id' => 'detect-cost-change-btn',
+  //  '#type' => 'submit',
+  //  '#value' => t('Receive these items'),
+  //  '#attributes' => array(
+  //    'class' => array('av-ajax-trigger', 'uk-button-primary'),
+  //  ),
+  //  '#ajax' => array(
+  //    'callback' => 'avtrans_transaction_form_ajax',
+  //    'wrapper' => 'avtrans-transaction-form-wrapper',
+  //    'effect' => 'none',
+  //    'event' => 'click',
+  //  ),
+  //);
+  //if (empty($view_mode)) {
+  //  $form['buttons']['cancel'] = array(
+  //    '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
+  //  );
+  //}
+  //else {
+  //  $form['buttons']['print'] = array(
+  //    '#id' => 'av-print-btn',
+  //    '#type' => 'button',
+  //    '#value' => t('Print...'),
+  //    '#visible_in_view_mode' => TRUE,
+  //    '#attributes' => array('class' => array('uk-button-primary')),
+  //  );
+  //}
 }

@@ -35,7 +35,7 @@ $view_mode = !empty($form['#av_view_mode']);
             <div class="uk-grid uk-grid-collapse">
               <div class="uk-width-3-10">
                 <div class="av-nestable-cell uk-text-center">
-                  <span class="not-printable">Stock</span>
+                  <span class="snot-printable">Stock</span>
                 </div>
               </div>
               <div class="uk-width-3-10">

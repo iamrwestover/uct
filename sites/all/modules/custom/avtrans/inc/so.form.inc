@@ -36,25 +36,7 @@ function avtrans_so_form($form, &$form_state, $row, $view_mode = FALSE) {
   $form['transaction_date']['#title'] = t('Sales Order Date');
 
   // Buttons
-  $form['buttons']['#theme'] = 'avbase_crud_button_group';
-  $form['buttons']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
-  if (empty($view_mode)) {
-    $form['buttons']['cancel'] = array(
-      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
-    );
-  }
-  else {
-    $form['buttons']['print'] = array(
-      '#id' => 'av-print-btn',
-      '#type' => 'button',
-      '#value' => t('Print...'),
-      '#visible_in_view_mode' => TRUE,
-      '#attributes' => array('class' => array('uk-button-primary')),
-    );
-  }
+  $form['buttons'] = avtrans_transaction_buttons('so', $view_mode);
 
   // Convert form to non-edit mode if we are on View page.
   avbase_allow_form_view_mode($form, $view_mode);
