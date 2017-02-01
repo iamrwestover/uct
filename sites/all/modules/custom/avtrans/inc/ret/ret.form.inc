@@ -152,6 +152,9 @@ function avtrans_ret_form_fields(&$form, &$form_state, $row, $view_mode = FALSE)
     '#required' => TRUE,
   );
 
+  if (!empty($form_state['values']['selected_pos']['transaction_id'])) {
+    $form_state['input']['return_type'] = AVTRANS_RETURN_TYPE_RUD;
+  }
   $form['return_type'] = array(
     '#id' => 'return-type',
     '#type' => 'select',

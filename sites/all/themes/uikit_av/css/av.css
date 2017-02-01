@@ -237,7 +237,7 @@ th > a > img {
   cursor: pointer;
 }
 table tr.selected {
-  background: ivory;
+  background: ivory !important;
 }
 
 /* Print */

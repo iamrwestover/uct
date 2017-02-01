@@ -53,50 +53,61 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
   <div class="uk-width-5-10">
 
     <div class="uk-grid uk-grid-collapse">
-      <div class="uk-width-1-10">
-        <div class="av-nestable-cell uk-text-center">
-          <?php print drupal_render($form['good_stock']); ?>
-        </div>
-      </div>
 
-      <div class="uk-width-1-10">
-        <div class="av-nestable-cell uk-text-right">
-          <?php print drupal_render($form['qty']); ?>
-        </div>
-      </div>
+      <div class="uk-width-1-2">
 
-      <div class="uk-width-2-10">
-        <div class="av-nestable-cell uk-text-left">
-          <?php print drupal_render($form['uom_title']); ?>
-          <?php print drupal_render($form['qty_per_uom']); ?>
-        </div>
-      </div>
+        <div class="uk-grid uk-grid-collapse">
+          <div class="uk-width-3-10">
+            <div class="av-nestable-cell uk-text-center">
+              <?php print drupal_render($form['good_stock']); ?>
+            </div>
+          </div>
 
-      <div class="uk-width-2-10">
-        <div class="av-nestable-cell uk-text-right">
-          <?php print drupal_render($form['cost']); ?>
-        </div>
-      </div>
+          <div class="uk-width-3-10">
+            <div class="av-nestable-cell uk-text-right">
+              <?php print drupal_render($form['qty']); ?>
+            </div>
+          </div>
 
-      <div class="uk-width-<?php print ($view_mode ? '2' : '1'); ?>-10">
-        <div class="av-nestable-cell uk-text-right">
-          <?php print drupal_render($form['discount']); ?>
-        </div>
-      </div>
-
-      <div class="uk-width-2-10">
-        <div class="av-nestable-cell uk-text-right">
-          <?php print drupal_render($form['total']); ?>
-        </div>
-      </div>
-
-      <?php if (empty($view_mode)): ?>
-        <div class="uk-width-1-10 uk-text-center">
-          <div class="av-nestable-cell">
-            <?php print drupal_render($form['prod_delete_btn']); ?>
+          <div class="uk-width-4-10">
+            <div class="av-nestable-cell uk-text-left">
+              <?php print drupal_render($form['uom_title']); ?>
+              <?php print drupal_render($form['qty_per_uom']); ?>
+            </div>
           </div>
         </div>
-      <?php endif; ?>
+      </div>
+
+      <div class="uk-width-1-2">
+
+        <div class="uk-grid uk-grid-collapse">
+          <div class="uk-width-3-10">
+            <div class="av-nestable-cell uk-text-right">
+              <?php print drupal_render($form['cost']); ?>
+            </div>
+          </div>
+
+          <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-10">
+            <div class="av-nestable-cell uk-text-right">
+              <?php print drupal_render($form['discount']); ?>
+            </div>
+          </div>
+
+          <div class="uk-width-4-10">
+            <div class="av-nestable-cell uk-text-right">
+              <?php print drupal_render($form['total']); ?>
+            </div>
+          </div>
+
+          <?php if (empty($view_mode)): ?>
+            <div class="uk-width-1-10 uk-text-center">
+              <div class="av-nestable-cell">
+                <?php print drupal_render($form['prod_delete_btn']); ?>
+              </div>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
     </div>
 
   </div>

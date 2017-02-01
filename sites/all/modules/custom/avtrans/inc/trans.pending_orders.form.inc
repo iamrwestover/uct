@@ -25,53 +25,77 @@ function avtrans_pending_orders_form_fields(&$form, &$form_state, $row, $view_mo
     '#tree' => TRUE,
   );
 
+  $header = array(
+    'transaction_id' => array('data' => t('Transaction #'), 'class' => 'suk-text-right'),
+    'transaction_date' => array('data' => t('Order Date')),
+    'total' => array('data' => t('Total'), 'class' => 'uk-text-right'),
+  );
   $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
   $table_rows = array();
+  $transaction_details = array();
   foreach ($client_pending_pos as $k => $v) {
-    $table_cols = array();
-    $table_cols['transaction_date'] = array(
-      '#title' => 'Date',
-      '#title_display' => 'none',
-      '#type' => 'item',
-      '#markup' => format_date($v->transaction_date, 'custom', 'Y M d, h:i a'),
-      '#column_attributes' => array('class' => array('uk-width-3-10')),
+    $transaction_details[$v->id] = $v;
+    $table_rows[$v->id] = array(
+      'transaction_id' => array('data' => t('%order_num', array('%order_num' => $v->id)), 'class' => array('suk-text-right')),
+      'transaction_date' => format_date($v->transaction_date, 'custom', 'Y M d, h:i a'),
+      'total' => array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right')),
     );
-    $table_cols['total'] = array(
-      '#title' => 'Total',
-      '#title_display' => 'none',
-      '#type' => 'item',
-      '#markup' => number_format($v->grand_total, 2),
-      '#column_attributes' => array('class' => array('uk-width-3-10', 'uk-text-right')),
-    );
-    $table_cols['order_num'] = array(
-      '#title' => '#',
-      '#title_display' => 'none',
-      '#type' => 'item',
-      '#markup' => t('Order # %order_num', array('%order_num' => $v->id)),
-      '#column_attributes' => array('class' => array('uk-width-2-10', 'uk-text-right')),
-    );
-    $table_cols['values'] = array(
-      'po' => array('#type' => 'value', '#value' => $v),
-      'action' => array(
-        '#type' => 'radios',
-        '#title' => t('Action'),
-        '#title_display' => 'none',
-        '#options' => array(
-          'ignore' => '<i class="uk-icon-ban"></i>',
-          'receive' => '<i class="uk-icon-check"></i>',
-        ),
-        '#default_value' => 'ignore',
-        '#attributes' => array('class' => array('uk-button-group')),
-      ),
-      //'new_cost' => array('#type' => 'value', '#value' => $proposed_cost),
-      //'new_sales_price' => array('#type' => 'value', '#value' => $proposed_sales_price),
-      '#column_attributes' => array('class' => array('uk-width-2-5', 'uk-text-center')),
-    );
-    $table_rows[$k] = $table_cols;
-    $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
+    //$table_cols = array();
+    //$table_cols['transaction_date'] = array(
+    //  '#title' => 'Date',
+    //  '#title_display' => 'none',
+    //  '#type' => 'item',
+    //  '#markup' => format_date($v->transaction_date, 'custom', 'Y M d, h:i a'),
+    //  '#column_attributes' => array('class' => array('uk-width-3-10')),
+    //);
+    //$table_cols['total'] = array(
+    //  '#title' => 'Total',
+    //  '#title_display' => 'none',
+    //  '#type' => 'item',
+    //  '#markup' => number_format($v->grand_total, 2),
+    //  '#column_attributes' => array('class' => array('uk-width-3-10', 'uk-text-right')),
+    //);
+    //$table_cols['order_num'] = array(
+    //  '#title' => '#',
+    //  '#title_display' => 'none',
+    //  '#type' => 'item',
+    //  '#markup' => t('Order # %order_num', array('%order_num' => $v->id)),
+    //  '#column_attributes' => array('class' => array('uk-width-2-10', 'uk-text-right')),
+    //);
+    //$table_cols['values'] = array(
+    //  'po' => array('#type' => 'value', '#value' => $v),
+    //  'action' => array(
+    //    '#type' => 'radios',
+    //    '#title' => t('Action'),
+    //    '#title_display' => 'none',
+    //    '#options' => array(
+    //      'ignore' => '<i class="uk-icon-ban"></i>',
+    //      'receive' => '<i class="uk-icon-check"></i>',
+    //    ),
+    //    '#default_value' => 'ignore',
+    //    '#attributes' => array('class' => array('uk-button-group')),
+    //  ),
+    //  //'new_cost' => array('#type' => 'value', '#value' => $proposed_cost),
+    //  //'new_sales_price' => array('#type' => 'value', '#value' => $proposed_sales_price),
+    //  '#column_attributes' => array('class' => array('uk-width-2-5', 'uk-text-center')),
+    //);
+    //$table_rows[$k] = $table_cols;
+    //$table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
   }
 
   if (!empty($table_rows)) {
+    $fields['selected_pos']['transaction_details'] = array('#type' => 'value', '#value' => $transaction_details);
+    $fields['selected_pos']['transaction_id'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $table_rows,
+      //'#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
+      '#attributes' => array('class' => array('uk-table-striped')),
+      //'#prefix' => '<div id="avtrans-pending-orders-form-wrapper">',
+      //'#suffix' => '</div>',
+      '#multiple' => FALSE,
+    );
+
     $table = array(
       '#theme' => 'avbase_form_table',
       '#header' => array(
@@ -88,7 +112,7 @@ function avtrans_pending_orders_form_fields(&$form, &$form_state, $row, $view_mo
 
     //$fields['product_cost_changes'] += $pcfields;
     //$fields['intro'] = array('#weight' => -5, '#markup' => '<p>Some product costs have been changed. Do you want to update?</p>');
-    $fields['selected_pos']['table'] = $table;
+    //$fields['selected_pos']['table'] = $table;
   }
 
   // Buttons
@@ -111,7 +135,7 @@ function avtrans_pending_orders_form_fields(&$form, &$form_state, $row, $view_mo
   $fields['buttons']['submit'] = array(
     '#id' => 'pos-selected-submit-btn',
     '#type' => 'submit',
-    '#value' => t('Add selected orders'),
+    '#value' => t('Add selected order'),
     '#attributes' => array(
       'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),
@@ -182,11 +206,23 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
   switch ($trigger['#id']) {
     case 'check-po-btn':
       $client_id = (int) $form_state['values']['client_id'];
+      $order_key = '';
+      switch ($transaction_type) {
+        case 'gr':
+          $order_key = 'po_id';
+          break;
+        case 'dr':
+          $order_key = 'so_id';
+          break;
+        case 'ret':
+          $order_key = 'dr_id';
+          break;
+      }
       // Check if this item row is owned by this client.
       // Remove item rows not owned by this client.
       foreach ($_item_rows as $k => $item_row) {
         $item_client_id = empty($item_row['client_id']) ? NULL : $item_row['client_id'];
-        if (!empty($item_row['po_id']) && (empty($client_id) || $item_client_id != $client_id)) {
+        if (!empty($item_row[$order_key]) && (empty($client_id) || $item_client_id != $client_id)) {
           unset($_item_rows[$k]);
           unset($form_state['input']['product_rows'][$k]);
         }
@@ -251,66 +287,72 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
       break;
 
     case 'pos-selected-submit-btn':
-      $selected_pos = empty($form_state['values']['selected_pos']['table']['rows']) ? array() : $form_state['values']['selected_pos']['table']['rows'];
+      $selected_pos = empty($form_state['values']['selected_pos']) ? array() : $form_state['values']['selected_pos'];
+      if (empty($selected_pos['transaction_id'])) {
+        return;
+      }
+      $transaction_id = $selected_pos['transaction_id'];
+      $transaction_details = empty($selected_pos['transaction_details'][$transaction_id]) ? array() : $selected_pos['transaction_details'][$transaction_id];
+      if (empty($transaction_details->id)) {
+        return;
+      }
 
-
+      // Remove previously loaded db_items.
+      foreach ($_item_rows as $k => $v) {
+        if (strstr($k, 'db_item')) {
+          unset($_item_rows[$k]);
+          unset($form_state['input']['product_rows'][$k]);
+        }
+      }
       // Select po items and add them to $_item_rows.
       $receive_pos = array();
-      foreach ($selected_pos as $k => $v) {
-        $v_values = empty($v['values']) ? array() : $v['values'];
-        $will_receive = empty($v_values['action']) ? FALSE : ($v_values['action'] == 'receive');
-        if (!$will_receive || empty($v_values['po']->id)) {
+      $db_item_rows = empty($transaction_details->items) ? array() : $transaction_details->items;
+      foreach ($db_item_rows as $item_row) {
+        $item_row_id = "db_item_{$transaction_details->id}_{$item_row->id}";
+        $item_row_arr = (array) $item_row;
+
+        // Set qty to remaining qty value.
+        $remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
+        if ($remaining_base_qty < 1) {
           continue;
         }
 
-        $db_item_rows = empty($v_values['po']->items) ? array() : $v_values['po']->items;
-        foreach ($db_item_rows as $item_row) {
-          $item_row_id = "db_item_{$v_values['po']->id}_{$item_row->id}";
-          $item_row_arr = (array) $item_row;
+        // Check if remaining qty is still divisible by qty per UOM.
+        if ($remaining_base_qty % $item_row_arr['qty_per_uom']) {
+          // Set qty to remaining base qty.
+          $item_row_arr['qty'] = $remaining_base_qty;
 
-          // Set qty to remaining qty value.
-          $remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
-          if ($remaining_base_qty < 1) {
-            continue;
-          }
+          // Recompute cost.
+          $item_row_arr['cost'] = $item_row_arr['cost'] / $item_row_arr['qty_per_uom'];
 
-          // Check if remaining qty is still divisible by qty per UOM.
-          if ($remaining_base_qty % $item_row_arr['qty_per_uom']) {
-            // Set qty to remaining base qty.
-            $item_row_arr['qty'] = $remaining_base_qty;
-
-            // Recompute cost.
-            $item_row_arr['cost'] = $item_row_arr['cost'] / $item_row_arr['qty_per_uom'];
-
-            // Replace UOM with base UOM.
-            $item_row_arr['uom_id'] = $item_row_arr['base_uom_id'];
-            $item_row_arr['uom_title'] = $item_row_arr['base_uom_title'];
-            $item_row_arr['qty_per_uom'] = 1;
-          }
-          else {
-            // Set qty by dividing remaining qty to qty per uom.
-            $item_row_arr['qty'] = $remaining_base_qty / $item_row_arr['qty_per_uom'];
-          }
-
-          // Recompute total amount.
-          $item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
-          //if (!in_array($transaction_type, array('ret', 'rept'))) {
-            $discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
-            foreach ($discount as $v) {
-              if (is_numeric($v)) {
-                $v = (float)$v;
-                $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
-              }
-            }
-            $item_row_arr['total'] = round($item_row_arr['total'], 2);
-          //}
-
-
-          // More preparation.
-          $item_row_arr['client_id'] = $v_values['po']->client_id;
-          $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost']);
-          $receive_pos[$item_row_id] = $item_row_arr;
+          // Replace UOM with base UOM.
+          $item_row_arr['uom_id'] = $item_row_arr['base_uom_id'];
+          $item_row_arr['uom_title'] = $item_row_arr['base_uom_title'];
+          $item_row_arr['qty_per_uom'] = 1;
         }
+        else {
+          // Set qty by dividing remaining qty to qty per uom.
+          $item_row_arr['qty'] = $remaining_base_qty / $item_row_arr['qty_per_uom'];
+        }
+
+        // Recompute total amount.
+        $item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
+        //if (!in_array($transaction_type, array('ret', 'rept'))) {
+        $discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
+        foreach ($discount as $v) {
+          if (is_numeric($v)) {
+            $v = (float)$v;
+            $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
+          }
+        }
+        $item_row_arr['total'] = round($item_row_arr['total'], 2);
+        //}
+
+
+        // More preparation.
+        $item_row_arr['client_id'] = $transaction_details->client_id;
+        $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost']);
+        $receive_pos[$item_row_id] = $item_row_arr;
       }
       $_item_rows = $receive_pos + $_item_rows;
       $form_state['input']['product_rows'] = $receive_pos + $form_state['input']['product_rows'];

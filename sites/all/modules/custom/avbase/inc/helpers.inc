@@ -621,3 +621,22 @@ function avbase_element_validate_non_negative_number($element, &$form_state) {
     form_error($element, t('%name must not be less than 0.', array('%name' => $element['#title'])));
   }
 }
+
+function avbase_element_validate_required($element, &$form_state) {
+  dpm('a');
+  //$is_empty_multiple = (!count($element['#value']));
+  //$is_empty_string = (is_string($element['#value']) && drupal_strlen(trim($element['#value'])) == 0);
+  //$is_empty_value = ($element['#value'] === 0);
+  //if ($is_empty_multiple || $is_empty_string || $is_empty_value) {
+  //  // Although discouraged, a #title is not mandatory for form elements. In
+  //  // case there is no #title, we cannot set a form error message.
+  //  // Instead of setting no #title, form constructors are encouraged to set
+  //  // #title_display to 'invisible' to improve accessibility.
+  //  if (isset($element['#title'])) {
+  //    form_error($element, $t('!name field is required.', array('!name' => $element['#title'])));
+  //  }
+  //  else {
+  //    form_error($element);
+  //  }
+  //}
+}

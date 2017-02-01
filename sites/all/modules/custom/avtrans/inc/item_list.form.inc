@@ -242,17 +242,43 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#default_value' => isset($prod_row['qty_per_uom']) ? $prod_row['qty_per_uom'] : '',
     );
 
+    //$fields['good_stock'] = array(
+    //  '#type' => 'checkbox',
+    //  '#title' => 'Good stock?',
+    //  '#title_display' => 'none',
+    //  //'#button_checkbox' => TRUE,
+    //  //'#disabled' => TRUE,
+    //  //'#attributes' => array(
+    //  //  'title' => t('Good stock?'),
+    //  //),
+    //  '#default_value' => empty($prod_row['good_stock']) ? 0 : 1,
+    //);
+    //$fields['good_stock'] = array(
+    //  '#item_row_key' => $prod_key,
+    //  '#type' => 'radios',
+    //  '#title' => t('Stock status'),
+    //  '#title_display' => 'none',
+    //  '#options' => array(
+    //    0 => '<i class="uk-icon-ban"></i>',
+    //    1 => '<i class="uk-icon-check"></i>',
+    //  ),
+    //  '#attributes' => array('class' => array('uk-button-group')),
+    //  '#default_value' => isset($prod_row['good_stock']) ? $prod_row['good_stock'] : NULL,
+    //  '#element_validate' => array('avtrans_item_list_row_element_validate'),
+    //  //'#av_prod_element_validate' => array('avbase_element_validate_required'),
+    //);
     $fields['good_stock'] = array(
-      '#type' => 'checkbox',
-      '#title' => 'Good stock?',
-      '#title_display' => 'none',
-      '#button_checkbox' => TRUE,
-      //'#disabled' => TRUE,
-      '#attributes' => array(
-        'title' => t('Good stock?'),
-      ),
-      '#default_value' => empty($prod_row['good_stock']) ? 0 : 1,
+      '#item_row_key' => $prod_key,
+      '#type' => 'select',
+      '#title' => t('Stock status'),
+      '#empty_value' => '',
+      '#empty_option' => '-',
+      '#options' => array(t('Bad'), t('Good')),
+      '#default_value' => isset($prod_row['good_stock']) ? $prod_row['good_stock'] : '',
+      '#element_validate' => array('avtrans_item_list_row_element_validate'),
+      //'#av_prod_element_validate' => array('avbase_element_validate_required'),
     );
+
 
     $fields['qty'] = array(
       '#id' => 'product-qty-' . $prod_key,

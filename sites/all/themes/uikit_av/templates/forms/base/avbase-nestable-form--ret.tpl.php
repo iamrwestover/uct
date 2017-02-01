@@ -31,43 +31,52 @@ $view_mode = !empty($form['#av_view_mode']);
 
       <div class="uk-width-5-10">
         <div class="uk-grid uk-grid-collapse">
-          <div class="uk-width-1-10">
-            <div class="av-nestable-cell uk-text-center">
-              <span class="not-printable">+Stock</span>
-            </div>
-          </div>
-          <div class="uk-width-1-10">
-            <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
-              Qty
-            </div>
-          </div>
-          <div class="uk-width-2-10">
-            <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'left' : 'center'); ?>">
-              UOM
-            </div>
-          </div>
-          <div class="uk-width-2-10">
-            <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
-              <?php print ($form['#transaction'] == 'sales' ? t('Unit Price') : t('Unit Cost')); ?>
-            </div>
-          </div>
-          <div class="uk-width-<?php print ($view_mode ? '2' : '1'); ?>-10 uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
-            <div class="av-nestable-cell">
-              DISC.%
-            </div>
-          </div>
-          <div class="uk-width-2-10">
-            <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
-              Total
-            </div>
-          </div>
-          <?php if (empty($view_mode)): ?>
-            <div class="uk-width-1-10">
-              <div class="av-nestable-cell">
-                <!--Actions-->
+          <div class="uk-width-1-2">
+            <div class="uk-grid uk-grid-collapse">
+              <div class="uk-width-3-10">
+                <div class="av-nestable-cell uk-text-center">
+                  <span class="not-printable">Stock</span>
+                </div>
+              </div>
+              <div class="uk-width-3-10">
+                <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
+                  Qty
+                </div>
+              </div>
+              <div class="uk-width-4-10">
+                <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'left' : 'center'); ?>">
+                  UOM
+                </div>
               </div>
             </div>
-          <?php endif; ?>
+          </div>
+
+          <div class="uk-width-1-2">
+            <div class="uk-grid uk-grid-collapse">
+              <div class="uk-width-3-10">
+                <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
+                  <?php print ($form['#transaction'] == 'sales' ? t('Unit Price') : t('Unit Cost')); ?>
+                </div>
+              </div>
+              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-10 uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
+                <div class="av-nestable-cell">
+                  DISC.%
+                </div>
+              </div>
+              <div class="uk-width-4-10">
+                <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'right' : 'center'); ?>">
+                  Total
+                </div>
+              </div>
+              <?php if (empty($view_mode)): ?>
+                <div class="uk-width-1-10">
+                  <div class="av-nestable-cell">
+                    <!--Actions-->
+                  </div>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
         </div>
       </div>
 
