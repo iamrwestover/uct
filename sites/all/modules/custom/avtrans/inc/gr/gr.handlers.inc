@@ -33,18 +33,23 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
       $incoming_base_qty = array();
 
       // Save po items.
-      $fields = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id', 'discount');
+      $table_name = "avtbl_{$transaction_type}_items";
+      $table_field_names = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id', 'discount');
       if (in_array($transaction_type, array('ret', 'rept'))) {
-        $fields[] = 'good_stock';
+        $table_field_names[] = 'good_stock';
       }
-
-      $query = db_insert("avtbl_{$transaction_type}_items")->fields($fields);
-      foreach ($_item_rows as $item_row) {
+      sort($table_field_names);
+      $insert_rows = array();
+      $insert_args = array();
+      $update_rows = array();
+      $update_args = array();
+      $item_ids = array();
+      foreach ($_item_rows as $item_key => $item_row) {
         if (empty($item_row['product_id'])) {
           continue;
         }
-
-        if (!empty($item_row["{$transaction_type}_id"])) {
+        $pending_item = strstr($item_key, 'pending_po') ? TRUE : FALSE;
+        if ($pending_item && !empty($item_row["{$transaction_type}_id"])) {
           // Make sure only item rows owned by this owner get saved.
           if ($item_row['client_id'] != $row['client_id']) {
             continue;
@@ -56,11 +61,37 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
           //  db_query("UPDATE {avtbl_po} SET status = 0 WHERE id = :id", array(':id' => $item_row['po_id']));
           //}
         }
-
-        // Do save this item row.
         $item_row["{$transaction_type}_id"] = $row['id'];
-        $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
-        $query->values($item_row);
+        if ($pending_item) {
+          $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
+        }
+        else {
+          $item_row['reference_id'] = NULL;
+          $item_id = empty($item_row['id']) ? 0 : $item_row['id'];
+          if (!empty($item_id)) {
+            $item_ids[] = $item_id;
+          }
+        }
+
+        ksort($item_row);
+        $insert_arr = $update_arr = array();
+        foreach ($item_row as $k => $v) {
+          if (!in_array($k, $table_field_names)) {
+            continue;
+          }
+          $arg_id = ':arg_' . count($insert_args);
+          if (empty($item_id)) {
+            $insert_arr[] = $arg_id;
+            $insert_args[$arg_id] = $v;
+          }
+          else {
+            $update_rows[$k][$item_id] = $v;
+          }
+        }
+
+        if (!empty($insert_arr)) {
+          $insert_rows[] = "(" . implode(',', $insert_arr) . ")";
+        }
 
         // No need to update inventory if this is sales return and product isn't good stock.
         if ($transaction_type == 'ret' && empty($item_row['good_stock'])) {
@@ -68,9 +99,69 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
         }
         // Update this product's inventory count.
         $this_prod_incoming_base_qty = empty($incoming_base_qty[$item_row['product_id']]) ? 0 : $incoming_base_qty[$item_row['product_id']];
-        $incoming_base_qty[$item_row['product_id']] = $this_prod_incoming_base_qty + ($item_row['qty'] * $item_row['qty_per_uom']);
+        $previous_incoming_base_qty = empty($item_row['incoming_base_qty']) ? 0 : $item_row['incoming_base_qty'];
+        $incoming_base_qty[$item_row['product_id']] = $this_prod_incoming_base_qty + (($item_row['qty'] * $item_row['qty_per_uom']) - $previous_incoming_base_qty);
       }
-      $query->execute();
+      //$query->execute();
+
+      if (!empty($insert_rows)) {
+        $query = "INSERT INTO {{$table_name}} (" . implode(', ', $table_field_names) . ") VALUES " . implode(', ', $insert_rows);
+        db_query($query, $insert_args);
+      }
+      if (!empty($update_rows)) {
+        $set = array();
+        foreach ($update_rows as $field_name => $id_and_val) {
+          $when = array();
+          foreach ($id_and_val as $k => $v) {
+            $arg_id = ':arg_' . count($update_args);
+            $when[] = "WHEN $k THEN $arg_id";
+            $update_args[$arg_id] = $v;
+          }
+          if (!empty($when)) {
+            $set[] = "$field_name = CASE id " . implode(' ', $when) . ' END';
+          }
+        }
+
+        if (!empty($set)) {
+          $query = "UPDATE {{$table_name}} SET " . implode(', ', $set) . " WHERE id IN (:item_ids)";
+          $update_args[':item_ids'] = $item_ids;
+          db_query($query, $update_args);
+        }
+      }
+      /////////////////////
+      //$query = db_insert($table_name)->fields($table_field_names);
+      //foreach ($_item_rows as $item_row) {
+      //  if (empty($item_row['product_id'])) {
+      //    continue;
+      //  }
+      //
+      //  if (!empty($item_row["{$transaction_type}_id"])) {
+      //    // Make sure only item rows owned by this owner get saved.
+      //    if ($item_row['client_id'] != $row['client_id']) {
+      //      continue;
+      //    }
+      //    // Close this PO if all incoming base qty have already been received.'
+      //    //$received_base_qty = $item_row['qty_per_uom'] * $item_row['qty'];
+      //    //if (isset($item_row['remaining_base_qty']) && ($item_row['remaining_base_qty'] <= $received_base_qty)) {
+      //    //  // Yay close it!
+      //    //  db_query("UPDATE {avtbl_po} SET status = 0 WHERE id = :id", array(':id' => $item_row['po_id']));
+      //    //}
+      //  }
+      //
+      //  // Do save this item row.
+      //  $item_row["{$transaction_type}_id"] = $row['id'];
+      //  $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
+      //  $query->values($item_row);
+      //
+      //  // No need to update inventory if this is sales return and product isn't good stock.
+      //  if ($transaction_type == 'ret' && empty($item_row['good_stock'])) {
+      //    continue;
+      //  }
+      //  // Update this product's inventory count.
+      //  $this_prod_incoming_base_qty = empty($incoming_base_qty[$item_row['product_id']]) ? 0 : $incoming_base_qty[$item_row['product_id']];
+      //  $incoming_base_qty[$item_row['product_id']] = $this_prod_incoming_base_qty + ($item_row['qty'] * $item_row['qty_per_uom']);
+      //}
+      //$query->execute();
 
       // Update product on-hand qty.
       if (!empty($incoming_base_qty)) {
@@ -97,6 +188,7 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
         }
         else {
           drupal_set_message('Product quantities were not updated', 'warning');
+          avbase_custom_watchdog("{$transaction_type}__qty_update_warn1", "ID: {$row['id']}", array('#row' => $row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
         }
 
         // Update cost and price.

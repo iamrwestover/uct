@@ -210,7 +210,7 @@ function avtrans_menu() {
     //'tab_root' => 'av/transactions',
   );
   $items['av/rept/%avtrans_rept/view'] = array(
-    'title' => 'View purchase return',
+    'title' => 'View Purchase Return',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_rept_form', 2, TRUE),
     'access callback' => 'user_is_logged_in',
@@ -219,6 +219,15 @@ function avtrans_menu() {
     'weight' => 0,
     //'tab_parent' => 'av/transactions',
     //'tab_root' => 'av/transactions',
+  );
+  $items['av/rept/%avtrans_rept/edit'] = array(
+    'title' => 'Edit Purchase Return',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_rept_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/rept/rept.form.inc',
+    'weight' => 1,
   );
   return $items;
 }

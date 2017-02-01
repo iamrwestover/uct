@@ -267,7 +267,7 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
             }
           }
 
-          $item_row_id = "db_item_{$po_id}_{$reference_id}";
+          $item_row_id = "pending_po_{$po_id}_{$reference_id}";
           $match = isset($_item_rows[$item_row_id]) ? $_item_rows[$item_row_id] : FALSE;
           if (empty($match)) {
             $floating_pos[$po_id] = $po;
@@ -297,9 +297,9 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
         return;
       }
 
-      // Remove previously loaded db_items.
+      // Remove previously loaded pending items.
       foreach ($_item_rows as $k => $v) {
-        if (strstr($k, 'db_item')) {
+        if (strstr($k, 'pending_po')) {
           unset($_item_rows[$k]);
           unset($form_state['input']['product_rows'][$k]);
         }
@@ -308,7 +308,7 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
       $receive_pos = array();
       $db_item_rows = empty($transaction_details->items) ? array() : $transaction_details->items;
       foreach ($db_item_rows as $item_row) {
-        $item_row_id = "db_item_{$transaction_details->id}_{$item_row->id}";
+        $item_row_id = "pending_po_{$transaction_details->id}_{$item_row->id}";
         $item_row_arr = (array) $item_row;
 
         // Set qty to remaining qty value.

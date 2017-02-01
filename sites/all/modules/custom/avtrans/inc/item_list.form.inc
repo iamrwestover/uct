@@ -184,9 +184,10 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
         $badge_title = 'DR#';
         break;
     }
+
     $order_id = empty($prod_row[$order_key]) ? NULL : $prod_row[$order_key];
-    if (!empty($order_id) && !empty($transaction_type)) {
-      $badge_title .= ' ' . $order_id;
+    if ((strstr($prod_key, 'pending_po') && !empty($order_id) && !empty($transaction_type) || !empty($prod_row['reference_id']))) {
+      $badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
       $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-success" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
     }
     $fields['product_title'] = array(
