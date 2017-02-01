@@ -59,6 +59,7 @@ function avbase_crud_form_submit($form, &$form_state) {
     $table_name = isset($values['table_name']) ? $values['table_name'] : NULL;
     $entity_name = isset($values['entity_name']) ? $values['entity_name'] : '';
     if (!empty($row) && !empty($table_name)) {
+      $row['id'] = $record_id;
       // Let other modules perform pre-save processes.
       if (!empty($entity_name)) {
         if ($returned_row = module_invoke_all('avbase_crud_dbchange_' . $entity_name, 'pre-save', $row, $form_state)) {
@@ -86,7 +87,6 @@ function avbase_crud_form_submit($form, &$form_state) {
         if (db_update($table_name)->fields($row)->condition('id', $record_id)->execute()) {
           $message = t('Changes saved.');
         }
-        $row['id'] = $record_id;
       }
 
       // Let other modules perform after-save processes.

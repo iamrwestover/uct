@@ -275,7 +275,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
       '#empty_option' => '-',
       '#options' => array(t('Bad'), t('Good')),
       '#default_value' => isset($prod_row['good_stock']) ? $prod_row['good_stock'] : '',
-      '#element_validate' => array('avtrans_item_list_row_element_validate'),
+      '#element_validate' => $transaction_type == 'ret' ? array('avtrans_item_list_row_element_validate') : array(),
       //'#av_prod_element_validate' => array('avbase_element_validate_required'),
     );
 

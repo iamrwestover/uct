@@ -53,15 +53,15 @@ function avtrans_menu() {
     //'tab_parent' => 'av/transactions',
     //'tab_root' => 'av/transactions',
   );
-  //$items['av/po/%avtrans_po/edit'] = array(
-  //  'title' => 'Edit Purchase Order',
-  //  'page callback' => 'drupal_get_form',
-  //  'page arguments' => array('avtrans_po_form', 2),
-  //  'access callback' => 'user_is_logged_in',
-  //  'type' => MENU_LOCAL_TASK,
-  //  'file' => 'inc/po.form.inc',
-  //  'weight' => 1,
-  //);
+  $items['av/po/%avtrans_po/edit'] = array(
+    'title' => 'Edit Purchase Order',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_po_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/po.form.inc',
+    'weight' => 1,
+  );
   $items['av/gr'] = array(
     'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
@@ -90,6 +90,15 @@ function avtrans_menu() {
     //'tab_parent' => 'av/transactions',
     //'tab_root' => 'av/transactions',
   );
+  $items['av/gr/%avtrans_gr/edit'] = array(
+    'title' => 'Edit Received Items',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_gr_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/gr/gr.form.inc',
+    'weight' => 1,
+  );
   $items['av/sales-order'] = array(
     'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
@@ -117,6 +126,15 @@ function avtrans_menu() {
     'weight' => 0,
     //'tab_parent' => 'av/transactions',
     //'tab_root' => 'av/transactions',
+  );
+  $items['av/sales-order/%avtrans_so/edit'] = array(
+    'title' => 'Edit Sales Order',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_so_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/so.form.inc',
+    'weight' => 1,
   );
   $items['av/delivery'] = array(
     'title' => 'Transactions',

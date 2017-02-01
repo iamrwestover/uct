@@ -147,9 +147,6 @@ function avtrans_po_form_settings(&$form, &$form_state, $row, $view_mode = FALSE
     'discount_type' => array('type' => 'int'),
     'discount_value' => array('type' => 'float'),
   );
-  if (empty($form['id']['#value'])) {
-    $save_field_ids[] = 'transaction_date';
-  }
 
   $form['save_field_ids'] = array(
     '#type' => 'value',
