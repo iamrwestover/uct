@@ -263,9 +263,9 @@ function avtrans_po_attach_received_items(&$po) {
     $total_remaining_base_qty += $po_item->remaining_base_qty;
   }
 
-  if (empty($total_remaining_base_qty)) {
-    // Close this PO.
-    db_query("UPDATE {avtbl_po} SET status = 0 WHERE id = :id", array(':id' => $po->id));
-    $po->status = 0;
-  }
+  //if (empty($total_remaining_base_qty)) {
+  //  // Close this PO.
+  //  db_query("UPDATE {avtbl_po} SET status = 0 WHERE id = :id", array(':id' => $po->id));
+  //  $po->status = 0;
+  //}
 }

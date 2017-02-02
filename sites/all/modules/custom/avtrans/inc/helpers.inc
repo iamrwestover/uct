@@ -5,6 +5,8 @@ module_load_include('inc', 'avtrans', 'inc/gr/gr.helpers');
 module_load_include('inc', 'avtrans', 'inc/delivery/delivery.helpers');
 module_load_include('inc', 'avtrans', 'inc/ret/ret.helpers');
 module_load_include('inc', 'avtrans', 'inc/rept/rept.helpers');
+module_load_include('inc', 'avtrans', 'inc/sinv/sinv.helpers');
+module_load_include('inc', 'avtrans', 'inc/spay/spay.helpers');
 
 /**
  * Advanced transaction load.
@@ -112,6 +114,34 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
     INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtrans.client_id
     LEFT JOIN {avtbl_rept_items} AS avtrans_items ON avtrans_items.rept_id = avtrans.id
     LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_vend'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
+  ";
+  $queries['sinv'] = "SELECT
+    avtrans.id AS transaction_id,
+    'sinv' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
+    avtrans.transaction_date,
+    avclient.display_name,
+    SUM((avtrans_items.qty * avtrans_items.qty_per_uom) * avtrans_items.cost) AS grand_total
+    FROM {avtbl_sinv} AS avtrans
+    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_sinv_items} AS avtrans_items ON avtrans_items.sinv_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
+  ";
+  $queries['spay'] = "SELECT
+    avtrans.id AS transaction_id,
+    'spay' AS transaction_type,
+    avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
+    avtrans.transaction_date,
+    avclient.display_name,
+    SUM(avtrans_items.paid_amount) AS grand_total
+    FROM {avtbl_spay} AS avtrans
+    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtrans.client_id
+    LEFT JOIN {avtbl_spay_items} AS avtrans_items ON avtrans_items.spay_id = avtrans.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtrans.agent_id AND avcat_agent.group_id = 'agent_cust'
     LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtrans.term_id AND avcat_term.group_id = 'payment_term'
   ";
 
@@ -331,6 +361,14 @@ function avtrans_transaction_types($type) {
       'title' => t('Purchase Return'),
       'base_path' => 'av/rept',
     ),
+    'sinv' => array(
+      'title' => t('Invoice'),
+      'base_path' => 'av/sinv',
+    ),
+    'spay' => array(
+      'title' => t('Payment received'),
+      'base_path' => 'av/spay',
+    ),
   );
   return $transaction_types[$type];
 }
@@ -383,7 +421,8 @@ function avtrans_transaction_buttons($transaction_type, $view_mode) {
       '#type' => 'button',
       '#value' => t('Print...'),
       '#visible_in_view_mode' => TRUE,
-      '#attributes' => array('class' => array('uk-button-primary')),
+      '#attributes' => array('class' => array('suk-button-primary')),
+      '#icon_key' => 'print',
     );
   }
   return $buttons;

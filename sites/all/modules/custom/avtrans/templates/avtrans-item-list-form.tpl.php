@@ -27,6 +27,7 @@ $term_html = drupal_render($form['term_id']);
         <?php endif; ?>
         <?php if ($term_html): ?>
           <div class="uk-width-1-6"><?php print $term_html; ?></div>
+          <div class="uk-width-1-6"><?php print drupal_render($form['due_date']); ?></div>
         <?php endif; ?>
         <div class="uk-width-2-6"><?php print drupal_render($form['agent_name']); ?></div>
         <div class="uk-width-1-6"><?php print drupal_render($form['reference_id']); ?></div>
@@ -78,7 +79,7 @@ $term_html = drupal_render($form['term_id']);
               <!--<div class="uk-width-1-6 uk-margin-small-top"></div>-->
           <!--</div>-->
           <!--<div class="uk-grid uk-grid-collapse uk-margin-small-top">-->
-            <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-small-top"><h3>Grand Total</h3></div>
+            <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
             <div class="uk-width-2-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print $form['grand_total']['#value'] ?></h3></div>
             <!--<div class="uk-width-1-6 uk-margin-small-top"></div>-->
           </div>

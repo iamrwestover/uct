@@ -34,26 +34,39 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
 
       // Save po items.
       $table_name = "avtbl_{$transaction_type}_items";
-      $table_field_names = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id', 'discount');
-      if (in_array($transaction_type, array('ret', 'rept'))) {
-        $table_field_names[] = 'good_stock';
+      if ($transaction_type == 'spay') {
+        $table_field_names = array("{$transaction_type}_id", 'paid_amount', 'reference_id', 'reference_type');
       }
+      else {
+        $table_field_names = array("{$transaction_type}_id", 'product_id', 'uom_id', 'qty_per_uom', 'qty', 'cost', 'reference_id', 'discount');
+        if (in_array($transaction_type, array('ret', 'rept'))) {
+          $table_field_names[] = 'good_stock';
+        }
+        if (in_array($transaction_type, array('sinv'))) {
+          $table_field_names[] = 'reference_type';
+        }
+      }
+
+
       sort($table_field_names);
       $insert_rows = array();
       $insert_args = array();
       $update_rows = array();
       $update_args = array();
       $item_ids = array();
+      $close_transaction_ids = array();
       foreach ($_item_rows as $item_key => $item_row) {
-        if (empty($item_row['product_id'])) {
+        if ($transaction_type != 'spay' && empty($item_row['product_id'])) {
           continue;
         }
-        $pending_item = strstr($item_key, 'pending_po') ? TRUE : FALSE;
+
+        $item_row['paid_amount'] = $item_row['total'];
+        $pending_item = strstr($item_key, 'db_item_') ? TRUE : FALSE;
         if ($pending_item && !empty($item_row["{$transaction_type}_id"])) {
           // Make sure only item rows owned by this owner get saved.
-          if ($item_row['client_id'] != $row['client_id']) {
-            continue;
-          }
+          //if ($item_row['client_id'] != $row['client_id']) {
+          //  continue;
+          //}
           // Close this PO if all incoming base qty have already been received.'
           //$received_base_qty = $item_row['qty_per_uom'] * $item_row['qty'];
           //if (isset($item_row['remaining_base_qty']) && ($item_row['remaining_base_qty'] <= $received_base_qty)) {
@@ -62,16 +75,20 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
           //}
         }
         $item_row["{$transaction_type}_id"] = $row['id'];
-        if ($pending_item) {
-          $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
-        }
-        else {
-          $item_row['reference_id'] = NULL;
+        //dpm($item_key);
+        //dpm($pending_item);
+        //dpm(strstr($item_key, 'db_item_'));
+        //if ($pending_item) {
+        //  $item_row['reference_id'] = isset($item_row['id']) ? $item_row['id'] : NULL;
+        //  $item_id = NULL;
+        //}
+        //else {
+          $item_row['reference_id'] = isset($item_row['reference_id']) ? $item_row['reference_id'] : NULL;
           $item_id = empty($item_row['id']) ? 0 : $item_row['id'];
           if (!empty($item_id)) {
             $item_ids[] = $item_id;
           }
-        }
+        //}
 
         ksort($item_row);
         $insert_arr = $update_arr = array();
@@ -93,13 +110,35 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
           $insert_rows[] = "(" . implode(',', $insert_arr) . ")";
         }
 
+        if ($transaction_type == 'spay') {
+          $close_transaction_ids[] = $item_row['reference_id'];
+        }
+        elseif ($transaction_type == 'gr') {
+          $close_transaction_ids['po'][$item_row['po_id']] = $item_row['po_id'];
+        }
+        elseif ($transaction_type == 'dr') {
+          $close_transaction_ids['so'][$item_row['so_id']] = $item_row['so_id'];
+        }
+        //elseif ($transaction_type == 'ret') {
+        //  $close_transaction_ids['dr'][] = $item_row['dr_id'];
+        //}
+        elseif ($transaction_type == 'sinv') {
+          $reference_type =  empty($item_row['reference_type']) ? '' : $item_row['reference_type'];
+          $close_transaction_ids[$reference_type][$item_row[$reference_type . '_id']] = $item_row[$reference_type . '_id'];
+        }
+
         // No need to update inventory if this is sales return and product isn't good stock.
         if ($transaction_type == 'ret' && empty($item_row['good_stock'])) {
+          continue;
+        }
+        // No need to update inventory for invoice transactions.
+        if (in_array($transaction_type, array('sinv', 'spay'))) {
           continue;
         }
         // Update this product's inventory count.
         $this_prod_incoming_base_qty = empty($incoming_base_qty[$item_row['product_id']]) ? 0 : $incoming_base_qty[$item_row['product_id']];
         $previous_incoming_base_qty = empty($item_row['incoming_base_qty']) ? 0 : $item_row['incoming_base_qty'];
+        $previous_incoming_base_qty = empty($item_row['id']) ? 0 : $previous_incoming_base_qty;
         $incoming_base_qty[$item_row['product_id']] = $this_prod_incoming_base_qty + (($item_row['qty'] * $item_row['qty_per_uom']) - $previous_incoming_base_qty);
       }
       //$query->execute();
@@ -193,6 +232,17 @@ function avtrans_avbase_crud_dbchange_gr($op, $row, $form_state) {
 
         // Update cost and price.
         avtrans_cost_changes_db_update($form_state, $row, array_keys($incoming_base_qty));
+      }
+
+      // Close pos.
+      if (!empty($close_transaction_ids)) {
+        if ($transaction_type != 'spay') {
+          foreach ($close_transaction_ids as $ttype => $tids) {
+            if (db_query("UPDATE {avtbl_{$ttype}} SET status = 0 WHERE id IN (:ids)", array(':ids' => $tids))) {
+              avbase_custom_watchdog("{$ttype}__close", "ID: multiple", array('#ids' => $tids, '#manner' => 'transaction-auto'));
+            }
+          }
+        }
       }
       break;
   }
@@ -307,7 +357,13 @@ function avtrans_gr_form_submit($form, &$form_state) {
  * @param $row
  */
 function avtrans_gr_form_buttons(&$form, $form_state, $row, $view_mode = FALSE) {
-  $form['buttons'] = avtrans_transaction_buttons('gr', $view_mode);
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get transaction type.
+  $transaction_type = empty($_storage['transaction_type']) ? 'gr' : $_storage['transaction_type'];
+  $form['buttons'] = avtrans_transaction_buttons($transaction_type, $view_mode);
   $form['buttons']['submit']['#id'] = 'detect-cost-change-btn';
   $form['buttons']['submit']['#attributes']['class'][] = 'av-ajax-trigger';
   $form['buttons']['submit']['#ajax'] = array(

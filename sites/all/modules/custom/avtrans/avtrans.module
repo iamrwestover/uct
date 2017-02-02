@@ -161,8 +161,15 @@ function avtrans_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/delivery/delivery.form.inc',
     'weight' => 0,
-    //'tab_parent' => 'av/transactions',
-    //'tab_root' => 'av/transactions',
+  );
+  $items['av/delivery/%avtrans_dr/edit'] = array(
+    'title' => 'Edit delivery',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_delivery_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/delivery/delivery.form.inc',
+    'weight' => 1,
   );
   $items['av/ret'] = array(
     'title' => 'Transactions',
@@ -191,6 +198,15 @@ function avtrans_menu() {
     'weight' => 0,
     //'tab_parent' => 'av/transactions',
     //'tab_root' => 'av/transactions',
+  );
+  $items['av/ret/%avtrans_ret/edit'] = array(
+    'title' => 'Edit sales return',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_ret_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/ret/ret.form.inc',
+    'weight' => 1,
   );
   $items['av/rept'] = array(
     'title' => 'Transactions',
@@ -227,6 +243,76 @@ function avtrans_menu() {
     'access callback' => 'user_is_logged_in',
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/rept/rept.form.inc',
+    'weight' => 1,
+  );
+
+  // Invoice.
+  $items['av/sinv'] = array(
+    'title' => 'Transactions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_transaction_home_form'),
+    'access callback' => 'user_is_logged_in',
+  );
+  $items['av/sinv/new'] = array(
+    'title' => 'New invoice',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_sinv_form', NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/sinv/sinv.form.inc',
+    'weight' => 10,
+  );
+  $items['av/sinv/%avtrans_sinv/view'] = array(
+    'title' => 'View invoice',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_sinv_form', 2, TRUE),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/sinv/sinv.form.inc',
+    'weight' => 0,
+  );
+  $items['av/sinv/%avtrans_sinv/edit'] = array(
+    'title' => 'Edit invoice',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_sinv_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/sinv/sinv.form.inc',
+    'weight' => 1,
+  );
+
+  // Receive payment.
+  $items['av/spay'] = array(
+    'title' => 'Transactions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_transaction_home_form'),
+    'access callback' => 'user_is_logged_in',
+  );
+  $items['av/spay/new'] = array(
+    'title' => 'Receive payment',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_spay_form', NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/spay/spay.form.inc',
+    'weight' => 10,
+  );
+  $items['av/spay/%avtrans_spay/view'] = array(
+    'title' => 'View payment',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_spay_form', 2, TRUE),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/spay/spay.form.inc',
+    'weight' => 0,
+  );
+  $items['av/spay/%avtrans_spay/edit'] = array(
+    'title' => 'Edit payment',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtrans_spay_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/spay/spay.form.inc',
     'weight' => 1,
   );
   return $items;
@@ -286,11 +372,13 @@ function avtrans_transaction_home_form($form, &$form_state) {
   $form['#attributes']['autocomplete'] = 'off';
 
   $form['new_po'] = array('#markup' => l('New purchase order', 'av/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
-  $form['new_gr'] = array('#markup' => l('Receive items', 'av/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-left')))));
-  $form['new_rept'] = array('#markup' => l('New purchase return', 'av/rept/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-left')))));
-  $form['new_so'] = array('#markup' => l('New sales order', 'av/sales-order/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-left')))));
-  $form['new_dr'] = array('#markup' => l('New delivery', 'av/delivery/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-left')))));
-  $form['new_ret'] = array('#markup' => l('New sales return', 'av/ret/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-left')))));
+  $form['new_gr'] = array('#markup' => l('Receive items', 'av/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
+  $form['new_rept'] = array('#markup' => l('New purchase return', 'av/rept/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
+  $form['new_so'] = array('#markup' => l('New sales order', 'av/sales-order/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  $form['new_dr'] = array('#markup' => l('New delivery', 'av/delivery/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  $form['new_ret'] = array('#markup' => l('New sales return', 'av/ret/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  $form['new_sinv'] = array('#markup' => l('New invoice', 'av/sinv/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  $form['new_spay'] = array('#markup' => l('Receive payment', 'av/spay/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
 
   $form['transaction_list'] = avtrans_transaction_list_form($form, $form_state);
   return $form;
@@ -453,7 +541,7 @@ function avtrans_transaction_list_filter_form($form, &$form_state, $settings = a
   $fields['buttons']['reset_button'] += array(
     '#id' => 'transaction-reset-btn',
     '#type' => 'submit',
-    '#value' => t('reset'),
+    '#value' => t('clear'),
     //'#button_label' => '<i class="uk-icon-remove"></i>',
   );
 

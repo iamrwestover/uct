@@ -210,6 +210,9 @@ html.js input.form-autocomplete {
 /*.av-nestable-form select:not(.error) {*/
   /*border-color: transparent;*/
 /*}*/
+input.av-no-border {
+  border-color: transparent !important;
+}
 .av-nestable-form input:focus,
  .av-nestable-form select:focus {
    border-color: #99baca;

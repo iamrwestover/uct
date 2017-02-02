@@ -17,6 +17,7 @@
     self.$termEl = $input;
     self.$discountTypeEl = $('#discount-type');
     self.$discountValEl = $('#discount-value');
+    self.$dueDateEl = $('#due-date');
     self.$clientEl = $('#client-id');
     self.client = {a:'a'};
 
@@ -43,6 +44,13 @@
       var termID = $(this).val();
       var term = paymentTerms[termID] || {};
       if (term.id) {
+        var term_data = term['data'] || {};
+        // Set due date.
+        var dueDate = term_data.due_date || '';
+        if (self.$dueDateEl.length) {
+          self.$dueDateEl.val(dueDate);
+        }
+
         var type;
         var val;
         if (term.id == (self.client.term_id)) {
@@ -50,7 +58,6 @@
           val = self.client.discount_value || '';
         }
         else {
-          var term_data = term['data'] || {};
           type = term_data['discount_type'] || 1;
           val = term_data['discount_value'] || '';
         }

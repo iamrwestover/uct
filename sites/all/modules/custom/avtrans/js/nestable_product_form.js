@@ -211,6 +211,9 @@
       // Trigger actions for cost field.
       $costEl.change(function() {
         var total = self.getRowTotal($thisRow);
+        if ($(this).data('is-negative')) {
+          total = total * -1;
+        }
 
         if (total !== '') {
           $totalEl.val(total.toFixed(2));
@@ -238,22 +241,22 @@
       //});
 
       // Trigger actions for total field.
-      //$totalEl.change(function() {
-      //  var cost = self.getRowPrice($thisRow);
-      //  if (cost != '') {
-      //    $costEl.val(parseFloat(cost.toFixed(6)));
-      //  }
-      //
-      //  var thisTotal = $(this).val();
-      //  if ($.isNumeric(thisTotal)) {
-      //    thisTotal = parseFloat(thisTotal).toFixed(2);
-      //    $(this).val(thisTotal);
-      //  }
-      //  self.refreshSubTotalText();
-      //});
-      //$totalEl.keydown(function(e) {
-      //  self.switchRowFocus(e, $thisRow);
-      //});
+      $totalEl.change(function() {
+        //var cost = self.getRowPrice($thisRow);
+        //if (cost != '') {
+        //  $costEl.val(parseFloat(cost.toFixed(6)));
+        //}
+
+        var thisTotal = $(this).val();
+        if ($.isNumeric(thisTotal)) {
+          thisTotal = parseFloat(thisTotal).toFixed(2);
+          $(this).val(thisTotal);
+        }
+        self.refreshSubTotalText();
+      });
+      $totalEl.keydown(function(e) {
+        self.switchRowFocus(e, $thisRow);
+      });
     });
   };
 
@@ -425,7 +428,7 @@
     var subTotal = this.getSubTotal();
     var discountTotal = this.getDiscountTotal();
     var grandTotal = subTotal - discountTotal;
-    grandTotal = grandTotal < 0 ? 0 : grandTotal;
+    //grandTotal = grandTotal < 0 ? 0 : grandTotal;
     return parseFloat(grandTotal).toFixed(2);
   };
 

@@ -16,6 +16,9 @@ function avbase_get_categories($group_id = NULL) {
     $rows = array();
     foreach ($result as $k => $row) {
       $row->data = unserialize($row->data);
+      if ($group_id == 'payment_term' && isset($row->data['days'])) {
+        $row->data['due_date'] = format_date(strtotime("+{$row->data['days']} day"), 'custom', 'M. d, Y');
+      }
       $rows[$row->group_id][$row->id] = $row;
     }
     $data = $rows;
@@ -437,7 +440,7 @@ function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
  */
 function avbase_number_format($x, $max = AVBASE_DECIMAL_FORMAT_MAX, $min = 2) {
   $e = pow(10, $min);
-  return (floor($x * $e) == $x * $e) ? sprintf("%.${min}f", $x) : (empty($max) ? $x : round($x, $max));
+  return (floor($x * $e) == $x * $e) ? sprintf("%.${min}f", $x) : (empty($max) ? $x : number_format($x, $max, '.', ''));
 }
 
 /**

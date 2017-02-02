@@ -125,18 +125,18 @@ function avtrans_delivery_form_settings(&$form, &$form_state, $row, $view_mode =
  * @param $row
  */
 function avtrans_delivery_form_fields(&$form, &$form_state, $row, $view_mode = FALSE) {
-  $term_options = avbase_get_category_options_array('payment_term');
-  asort($term_options);
-  $form['term_id'] = array(
-    '#id' => 'term-id',
-    '#type' => 'select',
-    '#title' => 'Payment term',
-    '#options' => $term_options,
-    '#default_value' => isset($row->term_id) ? $row->term_id : 0,
-    '#empty_value' => 0,
-    '#empty_option' => '',
-    '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
-  );
+  //$term_options = avbase_get_category_options_array('payment_term');
+  //asort($term_options);
+  //$form['term_id'] = array(
+  //  '#id' => 'term-id',
+  //  '#type' => 'select',
+  //  '#title' => 'Payment term',
+  //  '#options' => $term_options,
+  //  '#default_value' => isset($row->term_id) ? $row->term_id : 0,
+  //  '#empty_value' => 0,
+  //  '#empty_option' => '',
+  //  '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
+  //);
 }
 
 /**
