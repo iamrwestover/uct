@@ -334,7 +334,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
         'data-is-negative' => $reference_type == 'ret' ? TRUE : FALSE,
         'class' => array('prod-column-cost'),
       ),
-      '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost']) : '',
+      '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost'], 2) : '',
     );
 
     $fields['discount'] = array(
@@ -367,7 +367,7 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
         'class' => array('prod-column-total'),
         //'readonly' => 'readonly',
       ),
-      '#default_value' => isset($prod_row['total']) ? number_format((float) $prod_row['total'], 2) : '',
+      '#default_value' => isset($prod_row['total']) ? avbase_number_format($prod_row['total'], 2) : '',
     );
     if ($reference_type == 'ret') {
       $fields['total']['#attributes']['class'][] = 'uk-form-success';
@@ -435,8 +435,10 @@ function avtrans_item_list_product_fields(&$form, &$form_state, $row, $view_mode
         'effect' => 'none',
         'event' => 'click',
       ),
-      '#access' => $reference_type == 'ret',
     );
+    if ($transaction_type == 'sinv') {
+      $fields['prod_delete_btn']['#access'] = $reference_type == 'ret';
+    }
 
     if (!empty($_item_rows[$prod_key]['product_id'])) {
       $fields['product_title']['#attributes']['data-selected-product-id'] = $_item_rows[$prod_key]['product_id'];

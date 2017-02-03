@@ -21,7 +21,7 @@ function avreports_menu() {
     'page arguments' => array('avreports_home_form'),
     'access callback' => 'user_is_logged_in',
     'menu_name' => 'av',
-    'expanded' => TRUE,
+    //'expanded' => TRUE,
   );
   $items['av/reports/delivery-list'] = array(
     'title' => 'Delivery List',
@@ -32,6 +32,16 @@ function avreports_menu() {
     //'menu_name' => 'av',
     //'expanded' => TRUE,
   );
+  $items['av/reports/soa'] = array(
+    'title' => 'Statement of Account',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_soa_form'),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    //'menu_name' => 'av',
+    //'expanded' => TRUE,
+  );
+
   return $items;
 }
 
@@ -52,6 +62,7 @@ function avreports_theme($existing, $type, $theme, $path) {
   // FORMS.
   $theme_names = array(
     'avreports_delivery_list',
+    'avreports_soa',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -86,8 +97,9 @@ function avreports_theme($existing, $type, $theme, $path) {
 function avreports_home_form($form, &$form_state) {
 // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
-
+  //$form['intro']['#markup'] = t('Reports');
   $form['delivery_list'] = array('#markup' => l('Delivery List', 'av/reports/delivery-list', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
+  $form['soa'] = array('#markup' => l('Statement of Account', 'av/reports/soa', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-left')))));
   return $form;
 }
 
@@ -230,6 +242,202 @@ function avreports_delivery_list_form($form, &$form_state) {
     '#value' => t('Print...'),
     '#visible_in_view_mode' => TRUE,
     '#attributes' => array('class' => array('uk-button-primary')),
+  );
+
+  return $form;
+}
+
+/**
+ * SOA report.
+ * @param $form
+ * @param $form_state
+ *
+ * @return array
+ * @throws Exception
+ */
+function avreports_soa_form($form, &$form_state) {
+  global $user;
+  $user_filter = empty($form_state['values']['avtrans_tl_filter']) ? array() : $form_state['values']['avtrans_tl_filter'];
+  $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
+  $where = empty($filter_query['where']) ? array() : $filter_query['where'];
+  $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+
+  // Headers.
+  $header = array(
+    'date' => array('data' => 'Date', 'class' => array(''), 'style' => 'width: 13%;'),
+    'reference' => array('data' => 'Reference', 'class' => array(''), 'style' => 'width: 12%;'),
+    'description' => array('data' => 'Description', 'class' => array(''), 'style' => 'width: 15%;'),
+    'debit' => array('data' => 'Debit', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
+    'credit' => array('data' => 'Credit', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
+    'balance' => array('data' => 'Balance', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
+  );
+
+  $where['transaction_types'] = array('sinv', 'spay', 'ret');
+  //$where[] = 'avtrans.status = 1';
+
+  // Add today filter.
+  $today = format_date(time(), 'custom', 'F d, Y');
+  //if (empty($user_filter['avtrans.transaction_date'])) {
+  //  $timestamp = strtotime($today);
+  //  $next_day_timestamp = strtotime('+1 day', $timestamp);
+  //  $where[] = "avtrans.transaction_date > $timestamp AND avtrans.transaction_date < $next_day_timestamp";
+  //}
+
+  $filter_form_settings = array(
+    'avtrans.id' => array('#access' => FALSE),
+    'search_text' => array('#access' => FALSE),
+    'avtrans.transaction_date' => array('#access' => FALSE),
+    'date_to' => array('#default_value' => $today, '#access' => TRUE),
+    'avclient.display_name' => array(
+      '#autocomplete_path' => 'av/customers/autocomplete',
+      '#attributes' => array(
+        'placeholder' => 'search customer',
+        'class' => array('trigger-ajax-search'),
+      ),
+      '#access' => TRUE,
+    ),
+    //'reset_button' => array('#access' => FALSE),
+    //'search_button' => array('#table_parents' => array('transaction_list_table')),
+  );
+  $form['transaction_list_filter'] = avtrans_transaction_list_filter_form($form, $form_state, $filter_form_settings);
+
+  $transactions = empty($user_filter['avclient.display_name']) ? array() : avtrans_transactions_query_load($where, $args, NULL, 'ORDER BY transaction_date ASC');
+  $rows = array();
+  $total_receivables = 0;
+  $balance = 0;
+  foreach ($transactions as $row) {
+    $transaction_type = avtrans_transaction_types($row->transaction_type);
+    $view_path = "{$transaction_type['base_path']}/$row->transaction_id/view";
+    $data = array(
+      'date' => array('data' => l(format_date($row->transaction_date, 'custom', 'M. d, Y'), $view_path), 'class' => array('')),
+      'reference' => l($transaction_type['id_prefix'] . '# ' . $row->transaction_id, $view_path),
+      'description' => array('data' => l($transaction_type['title'], $view_path), 'class' => array('')),
+      'debit' => array('data' => '', 'class' => array('uk-text-right')),
+      'credit' => array('data' => '', 'class' => array('uk-text-right')),
+      'balance' => array('data' => '', 'class' => array('uk-text-right')),
+    );
+    $credit = $debit = 0;
+    $skip_credit = FALSE;
+    switch ($row->transaction_type) {
+      case 'ret':
+        $details = avtrans_ret_load($row->transaction_id);
+        if (!empty($row->status)) {
+          $data['description']['data'] .= ' - <em>pending</em>';
+          $skip_credit = TRUE;
+        }
+        $credit = $details->grand_total;
+        //$data['credit']['data'] = number_format($details->grand_total, 2);
+        break;
+      case 'sinv':
+        $details = avtrans_sinv_load($row->transaction_id);
+        //dpm($details);
+        $debit = $details->debit_total;
+        //$data['debit']['data'] = number_format($details->debit_total, 2);
+        break;
+      case 'spay':
+        $credit = $row->grand_total;
+        //$data['credit']['data'] = number_format($row->grand_total, 2);
+        break;
+    }
+
+    $credit = round($credit, 2);
+    $debit = round($debit, 2);
+    if (!$skip_credit) {
+      $data['credit']['data'] = empty($credit) ? '' : number_format($credit, 2);
+    }
+    else {
+      $data['credit']['data'] = empty($credit) ? '' : '<del>' . number_format($credit, 2) . '</del>';
+      $credit = 0;
+    }
+    $data['debit']['data'] = empty($debit) ? '' : number_format($debit, 2);
+    $balance = round($balance - $credit + $debit, 2);
+    $data['balance']['data'] = number_format($balance, 2);
+
+    $rows[] = array('data' => $data, 'class' => array('uk-table-middle'));
+    $total_receivables += 0;
+  }
+  if (empty($rows)) {
+    $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
+  }
+  else {
+    $table_attributes = array(
+      'id' => 'transaction-list-table',
+      'class' => array('uk-table-condensed uk-table-striped'),
+    );
+    // Add summary rows at the bottom of the table.
+    $rows[] = array('data' => array(array('data' => '&nbsp;', 'colspan' => 10)));
+    $rows[] = array(
+      'data' => array(
+        array('data' => number_format($balance, 2), 'class' => array('uk-text-right uk-text-large'), 'colspan' => 13),
+      ),
+      'class' => array('uk-table-middle'),
+    );
+    $rows[] = array('data' => array(array('data' => '- End of list -', 'colspan' => 10, 'class' => array('uk-text-muted uk-text-center'))));
+    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
+  }
+  $form['transaction_list_table'] = array(
+    '#type' => 'container',
+    '#theme' => 'avreports_soa',
+    '#attributes' => array(
+      'id' => 'transaction-list-table-wrapper',
+      'class' => array('printable')
+    ),
+  );
+  $transaction_list_table['table']['#markup'] = '<!--Do not remove me-->' . $table_markup;
+  if (!empty($rows)) {
+    $transaction_list_table['date_to'] = array(
+      '#title' => 'As of date',
+      '#type' => 'item',
+      '#markup' => empty($user_filter['date_to']) ? '' : $user_filter['date_to'],
+    );
+    $transaction_list_table['prepared_by'] = array(
+      '#title' => 'Prepared by',
+      '#type' => 'item',
+      '#markup' => check_plain($user->name),
+    );
+    $client_name = empty($user_filter['avclient.display_name']) ? '' : $user_filter['avclient.display_name'];
+    $client = avcustomer_query_load(array('avcustomers.display_name = :name'), array(':name' => $client_name));
+    $client = array_shift($client);
+    $transaction_list_table['client_name'] = array(
+      '#title' => 'Customer',
+      '#title_display' => 'none',
+      '#type' => 'item',
+      '#markup' => check_plain($client->display_name),
+    );
+    $transaction_list_table['term_name'] = array(
+      '#title' => 'Terms',
+      '#type' => 'item',
+      '#markup' => check_plain($client->term_name),
+    );
+    $address = array(
+      check_plain($client->address),
+      check_plain($client->city) . ' ' . check_plain($client->province),
+      check_plain($client->zip_code),
+    );
+    $transaction_list_table['address'] = array(
+      '#title' => 'Address',
+      '#title_display' => 'none',
+      '#type' => 'item',
+      '#markup' => implode('<br />', $address),
+    );
+    $transaction_list_table['phone'] = array(
+      '#title' => 'Contact #',
+      '#title_display' => 'none',
+      '#type' => 'item',
+      '#markup' => empty($client->data['phone1']) ? '' : ('Contact #: ' . $client->data['phone1']),
+    );
+  }
+
+  $form['transaction_list_table'] += $transaction_list_table;
+
+  $form['buttons']['#theme'] = 'avbase_crud_button_group';
+  $form['buttons']['print'] = array(
+    '#id' => 'av-print-btn',
+    '#type' => 'button',
+    '#value' => t('Print...'),
+    '#visible_in_view_mode' => TRUE,
+    '#attributes' => array('class' => array('')),
+    '#icon_key' => 'print',
   );
 
   return $form;

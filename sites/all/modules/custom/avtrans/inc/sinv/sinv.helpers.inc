@@ -127,6 +127,8 @@ function avtrans_sinv_query_load($conditions = array()) {
         ->condition('avsinv_items.sinv_id', $row->id)
         ->execute();
       $items_rs = $query->execute();
+      $credit_total = 0;
+      $debit_total = 0;
       foreach ($items_rs as $item) {
         $item->total = $item->cost * $item->qty;
         $discount = empty($item->discount) ? array() : explode('/', $item->discount);
@@ -136,7 +138,14 @@ function avtrans_sinv_query_load($conditions = array()) {
             $item->total = $item->total - (($item->total * $v) / 100);
           }
         }
-        $item->total *= $item->reference_type == 'ret' ? -1 : 1;
+        if ($item->reference_type == 'ret') {
+          $credit_total += $item->total;
+          $item->total *= -1;
+        }
+        else {
+          $debit_total += $item->total;
+        }
+
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
         $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
         $row->items[$item->id] = $item;
@@ -145,6 +154,8 @@ function avtrans_sinv_query_load($conditions = array()) {
     }
     //$row->discount_value_text = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (round($row->discount_value, 2) . '%') : number_format($row->discount_value, 2);
     $row->subtotal = $subtotal;
+    $row->credit_total = $credit_total;
+    $row->debit_total = $debit_total;
     //$row->discounted_value = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (($row->discount_value / 100) * $subtotal) : $row->discount_value;
     $row->grand_total = $subtotal/* - $row->discounted_value*/;
 

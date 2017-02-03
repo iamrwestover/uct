@@ -12,7 +12,7 @@ module_load_include('inc', 'avtrans', 'inc/spay/spay.helpers');
  * Advanced transaction load.
  * @return array
  */
-function avtrans_transactions_query_load($param_where = array(), $param_args = array(), $limit_string = '') {
+function avtrans_transactions_query_load($param_where = array(), $param_args = array(), $limit_string = NULL, $order_by_string = NULL) {
   // Load vendors static variable.
   //$avbase = &drupal_static('avbase', array());
   //$avbase['vendors'] = empty($avbase['vendors']) ? array() : $avbase['vendors'];
@@ -34,6 +34,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   $queries = array();
   $queries['po'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'po' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -48,6 +49,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['so'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'so' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -62,6 +64,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['gr'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'gr' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -76,6 +79,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['dr'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'dr' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -90,6 +94,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['ret'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'ret' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -104,6 +109,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['rept'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'rept' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -118,6 +124,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['sinv'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'sinv' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -132,6 +139,7 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   ";
   $queries['spay'] = "SELECT
     avtrans.id AS transaction_id,
+    avtrans.status,
     'spay' AS transaction_type,
     avcat_agent.title AS agent_name,
     avcat_term.title AS term_name,
@@ -161,8 +169,13 @@ function avtrans_transactions_query_load($param_where = array(), $param_args = a
   }
 
   $query = implode(' UNION ', $queries);
-  $query .= " ORDER BY transaction_date DESC";
-  if (!empty($limit_string)) {
+  if (is_null($order_by_string)) {
+    $query .= " ORDER BY transaction_date DESC";
+  }
+  else {
+    $query .= " $order_by_string";
+  }
+  if (!is_null($limit_string)) {
     $query .= " LIMIT " . $limit_string;
   }
 
@@ -340,34 +353,42 @@ function avtrans_transaction_types($type) {
     'po' => array(
       'title' => t('Purchase Order'),
       'base_path' => 'av/po',
+      'id_prefix' => 'PO',
     ),
     'so' => array(
       'title' => t('Sales Order'),
       'base_path' => 'av/sales-order',
+      'id_prefix' => 'SO',
     ),
     'gr' => array(
       'title' => t('Goods Received'),
       'base_path' => 'av/gr',
+      'id_prefix' => 'GR',
     ),
     'dr' => array(
       'title' => t('Delivery'),
       'base_path' => 'av/delivery',
+      'id_prefix' => 'DR',
     ),
     'ret' => array(
       'title' => t('Sales Return'),
       'base_path' => 'av/ret',
+      'id_prefix' => 'RET',
     ),
     'rept' => array(
       'title' => t('Purchase Return'),
       'base_path' => 'av/rept',
+      'id_prefix' => 'RET',
     ),
     'sinv' => array(
       'title' => t('Invoice'),
       'base_path' => 'av/sinv',
+      'id_prefix' => 'INV',
     ),
     'spay' => array(
       'title' => t('Payment received'),
       'base_path' => 'av/spay',
+      'id_prefix' => 'OR',
     ),
   );
   return $transaction_types[$type];

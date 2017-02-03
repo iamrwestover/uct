@@ -1,6 +1,9 @@
 <?php
 $search_text_html = drupal_render($form['search_text']);
+$client_html = drupal_render($form['avclient.display_name']);
 $agent_html = drupal_render($form['avcat_agent.title']);
+$transaction_date = drupal_render($form['avtrans.transaction_date']);
+$date_to = drupal_render($form['date_to']);
 $transaction_id_html = drupal_render($form['avtrans.id']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
 ?>
@@ -17,9 +20,23 @@ $reset_btn_html = drupal_render($form['buttons']['reset_button']);
     </div>
   <?php endif; ?>
 
-  <div class="uk-width-2-10">
-    <?php print drupal_render($form['avtrans.transaction_date']); ?>
-  </div>
+  <?php if ($transaction_date): ?>
+    <div class="uk-width-2-10">
+      <?php print $transaction_date; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($date_to): ?>
+    <div class="uk-width-2-10">
+      <?php print $date_to; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($client_html): ?>
+    <div class="uk-width-3-10">
+      <?php print $client_html; ?>
+    </div>
+  <?php endif; ?>
 
   <?php if ($agent_html): ?>
     <div class="uk-width-3-10">

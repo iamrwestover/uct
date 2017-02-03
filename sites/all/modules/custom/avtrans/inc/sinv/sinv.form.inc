@@ -15,6 +15,10 @@ module_load_include('inc', 'avtrans', 'inc/gr/gr.handlers');
  * @return array
  */
 function avtrans_sinv_form($form, &$form_state, $row, $view_mode = FALSE) {
+  if (empty($row->status) && empty($view_mode) && !empty($row->id)) {
+    drupal_set_message('This transaction cannot be modified anymore.', 'warning');
+    $view_mode = TRUE;
+  }
   $form['#id'] = 'avtrans-sinv-form';
   //$form['#attached']['js'][] = AVTRANS_MODULE_PATH . '/js/avtrans.form.js';
   $form['#prefix'] = '<div id="avtrans-transaction-form-wrapper"><!-- Do not remove me. -->';

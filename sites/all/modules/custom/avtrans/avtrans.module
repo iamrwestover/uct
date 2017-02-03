@@ -289,7 +289,7 @@ function avtrans_menu() {
     'access callback' => 'user_is_logged_in',
   );
   $items['av/spay/new'] = array(
-    'title' => 'Receive payment',
+    'title' => 'New payment',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtrans_spay_form', NULL),
     'access callback' => 'user_is_logged_in',
@@ -514,6 +514,19 @@ function avtrans_transaction_list_filter_form($form, &$form_state, $settings = a
     '#access' => FALSE,
   );
 
+  $fields['avclient.display_name'] = empty($settings['avclient.display_name']) ? array() : $settings['avclient.display_name'];
+  $fields['avclient.display_name'] += array(
+    '#type' => 'textfield',
+    '#title' => t('Client'),
+    '#title_display' => 'none',
+    '#maxlength' => 255,
+    '#attributes' => array(
+      'placeholder' => 'filter by client',
+      'class' => array('trigger-ajax-search'),
+    ),
+    '#access' => FALSE,
+  );
+
 
 
   //$date_format = 'M. d, Y';
@@ -529,6 +542,21 @@ function avtrans_transaction_list_filter_form($form, &$form_state, $settings = a
       'class' => array('trigger-ajax-search'),
       'readonly' => 'readonly',
     ),
+  );
+
+  $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
+  $fields['date_to'] += array(
+    '#type' => 'textfield',
+    //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
+    //'#element_validate' => array('avbase_element_validate_date'),
+    //'#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+      'class' => array('trigger-ajax-search'),
+      'readonly' => 'readonly',
+    ),
+    '#access' => FALSE,
   );
 
   // Set fields' resistance to reset button.
@@ -595,6 +623,16 @@ function avtrans_transaction_list_filter_form_submit($form, &$form_state) {
       $next_day_timestamp = strtotime('+1 day', $timestamp);
       $where[] = 'avtrans.transaction_date > :stamp1 AND avtrans.transaction_date < :stamp2';
       $args[':stamp1'] = $timestamp;
+      $args[':stamp2'] = $next_day_timestamp;
+      continue;
+    }
+    elseif ($k == 'date_to' && $v != '') {
+      $timestamp = strtotime($v);
+      if (empty($timestamp)) {
+        continue;
+      }
+      $next_day_timestamp = strtotime('+1 day', $timestamp);
+      $where[] = 'avtrans.transaction_date < :stamp2';
       $args[':stamp2'] = $next_day_timestamp;
       continue;
     }
