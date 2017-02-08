@@ -88,6 +88,9 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name) {
     case 'customers':
       $result = avcustomer_query_load($where, $args, '12');
       break;
+    case 'clients':
+      $result = avclient_query_load($where, $args, '12');
+      break;
   }
 
   $action_links_all = array();
@@ -174,6 +177,10 @@ function avbase_entity_overview_buttons_form(&$form_state, $entity_name, $row) {
       $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
       $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
       break;
+    case 'clients':
+      $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
+      $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
+      break;
   }
 
   $transaction_button_list_markup = '<li>' . implode('</li><li>', $transaction_buttons) . '</li>';
@@ -240,6 +247,12 @@ function avbase_entity_overview_info_form(&$form_state, $entity_name) {
       $row = empty($row) ? $random_row : $row;
       $entity_form = avcustomers_customer_form($form, $form_state, $row, TRUE);
       $entity_form['#theme'] = 'avcustomers_customer_form';
+      break;
+    case 'clients':
+      $row = avclient_load($entity_id);
+      $row = empty($row) ? $random_row : $row;
+      $entity_form = avclients_client_form($form, $form_state, $row, TRUE);
+      $entity_form['#theme'] = 'avclients_client_form';
       break;
   }
 

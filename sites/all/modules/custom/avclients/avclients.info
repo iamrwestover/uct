@@ -1,0 +1,5 @@
+name = AV AIS Clients
+description = Client module for AV AIS
+core = 7.x
+package = AV
+dependencies[] = avbase

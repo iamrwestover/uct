@@ -529,6 +529,7 @@ function avbase_entity_details() {
   return array(
     'vendors' => array('title' => t('Vendor')),
     'customers' =>  array('title' => t('Customer')),
+    'clients' =>  array('title' => t('Client')),
   );
 }
 

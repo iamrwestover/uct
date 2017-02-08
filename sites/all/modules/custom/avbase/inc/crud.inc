@@ -67,9 +67,13 @@ function avbase_crud_form_submit($form, &$form_state) {
         }
       }
 
+      // Set "changed" timestamp.
+      if (array_search('changed', $save_field_ids) !== FALSE) {
+        $row['changed'] = time();
+      }
+
       // Do save.
       $message = '';
-      $op = '';
       if (empty($record_id) || !is_numeric($record_id)) {
         // Insert new record.
         $op = 'insert';

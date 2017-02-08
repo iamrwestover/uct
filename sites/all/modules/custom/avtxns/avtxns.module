@@ -1,0 +1,139 @@
+<?php
+
+module_load_include('inc', 'avtxns', 'inc/helpers');
+
+define('AVTXNS_MODULE_PATH', drupal_get_path('module', 'avtxns'));
+define('AVTXNS_RETURN_TYPE_RUD', 1);
+define('AVTXNS_RETURN_TYPE_RS', 2);
+
+/**
+ * Implementation of hook_menu().
+ */
+function avtxns_menu() {
+  $items['av/txns'] = array(
+    'title' => 'Transactions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_txns_home_form'),
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+  );
+  $items['av/txns/po'] = array(
+    'title' => 'Transactions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_txns_home_form'),
+    'access callback' => 'user_is_logged_in',
+  );
+  $items['av/txns/po/new'] = array(
+    'title' => 'New Purchase Order',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_txn_form', 2, NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/txn.form.inc',
+    'weight' => 10,
+  );
+  $items['av/txns/po/%avtxns_txn/view'] = array(
+    'title' => 'View Purchase Order',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_txn_form', 2, 3, TRUE),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/txn.form.inc',
+    'weight' => 0,
+  );
+  $items['av/txns/po/%avtxns_txn/edit'] = array(
+    'title' => 'Edit Purchase Order',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_txn_form', 2, 3),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/txn.form.inc',
+    'weight' => 1,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme().
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function avtxns_theme($existing, $type, $theme, $path) {
+  $themes = array();
+
+  $template_path = $path . '/templates';
+
+  // FORMS.
+  $theme_names = array(
+    'avtxns_item_list_form',
+    'avtxns_txn_list_filter_form',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'render element' => 'form',
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $template_path,
+    );
+  }
+
+  // OTHERS.
+  $theme_names = array(
+    'avtxns_txn_mail',
+    'avtxns_txn_mail_table',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'variables' => array(),
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $template_path,
+    );
+  }
+
+  return $themes;
+}
+
+/**
+ * Implementation of hook_mail().
+ * @param $key
+ * @param $message
+ * @param $params
+ */
+function avtxns_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'po':
+      $message['subject'] = t('Purchase Order from @site_name - P.O.# @po_num', array('@po_num' => $params['po_num'], '@site_name' => variable_get('site_name', 'UCT')));
+      $message['body'] = theme('avtxns_po_mail', $params);
+      // Save a copy.
+      //$message['headers']['CC'] = 'ucaretrading@gmail.com';
+      break;
+  }
+}
+
+/**
+ * Transaction List page.
+ * @param $form
+ * @param $form_state
+ * @return array
+ */
+function avtxns_txns_home_form($form, &$form_state) {
+// Set autocomplete off.
+  $form['#attributes']['autocomplete'] = 'off';
+
+  $form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
+  //$form['new_gr'] = array('#markup' => l('Receive items', 'av/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
+  //$form['new_rept'] = array('#markup' => l('New purchase return', 'av/rept/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
+  //$form['new_so'] = array('#markup' => l('New sales order', 'av/sales-order/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_dr'] = array('#markup' => l('New delivery', 'av/delivery/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_ret'] = array('#markup' => l('New sales return', 'av/ret/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_sinv'] = array('#markup' => l('New invoice', 'av/sinv/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_spay'] = array('#markup' => l('Receive payment', 'av/spay/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+
+  //$form['txns_list'] = avtxns_txns_list_form($form, $form_state);
+  return $form;
+}

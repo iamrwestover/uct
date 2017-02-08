@@ -1,0 +1,228 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ * @return mixed
+ */
+function avtxns_schema() {
+  $schema = array();
+
+  $schema['avtbl_transactions'] = array(
+    'description' => 'Transaction table',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'txn_type' => array(
+        'description' => 'Transaction type',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+      ),
+      'txn_date' => array(
+        'description' => 'Transaction date',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'client_id' => array(
+        'description' => 'Client ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => 'Transaction status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'term_id' => array(
+        'description' => 'Payment Term ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'agent_id' => array(
+        'description' => 'Agent ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'reference_id' => array(
+        'description' => 'Reference ID',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => FALSE,
+      ),
+      'return_type' => array(
+        'description' => 'RUD or RS',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'due_date' => array(
+        'description' => 'Due date timestamp',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'memo' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'email' => array(
+        'description' => 'Email',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'message' => array(
+        'description' => 'Email message',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Timestamp when the record is created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'Timestam when the record was last changed',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'txn_type' => array('txn_type'),
+      'txn_date' => array('txn_date'),
+      'agent_id' => array('agent_id'),
+      'client_id' => array('client_id'),
+      'due_date' => array('due_date'),
+      'reference_id' => array('reference_id'),
+      'status' => array('status'),
+    ),
+  );
+
+  $schema['avtbl_transaction_details'] = array(
+    'description' => 'Transaction details',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'txn_id' => array(
+        'description' => 'Transaction ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'item_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uom_id' => array(
+        'description' => 'Unit of measure ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'qty_per_uom' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'Product description',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cost' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'good_stock' => array(
+        'description' => 'Is it good or bad stock',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'discount1' => array(
+        'description' => 'Discount 1',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'discount2' => array(
+        'description' => 'Discount 2',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'discount3' => array(
+        'description' => 'Discount 3',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'discount4' => array(
+        'description' => 'Discount 4',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'paid_amount' => array(
+        'description' => 'Paid amount - only for payment transactions',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'ref_txn_dtl_id' => array(
+        'description' => 'Reference transaction Detail ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'txn_id' => array('txn_id'),
+      'item_id' => array('item_id'),
+      'ref_txn_dtl_id' => array('ref_txn_dtl_id'),
+    ),
+  );
+
+  return $schema;
+}

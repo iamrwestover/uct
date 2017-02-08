@@ -160,6 +160,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
     '#maxlength' => 32,
     '#required' => TRUE,
     '#weight' => 1,
+    '#element_validate' => array('avbase_element_validate_category_title_unique'),
   );
   $form['description'] = array(
     '#type' => 'textarea',
@@ -274,7 +275,7 @@ function avbase_category_agent_form_alter(&$form, $db_row) {
       break;
   }
 
-  $form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
+  //$form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
   $form['contact_number'] = array(
     '#type' => 'textfield',
     '#title' => 'Contact number',

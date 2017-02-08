@@ -287,6 +287,26 @@ function avbase_category_groups($category_id = '') {
       'name' => 'Customer Agent',
       'plural_name' => 'Customer Agents',
     );
+    $groups['category1'] = array(
+      'name' => 'Client - Customer Category',
+      'plural_name' => 'Client - Customer Categories',
+    );
+    $groups['category2'] = array(
+      'name' => 'Client - Vendor Category',
+      'plural_name' => 'Client - Vendor Categories',
+    );
+    $groups['agent1'] = array(
+      'name' => 'Client - Customer Agent',
+      'plural_name' => 'Client - Customer Agents',
+    );
+    $groups['agent2'] = array(
+      'name' => 'Client - Vendor Agent',
+      'plural_name' => 'Client - Vendor Agents',
+    );
+    $groups['area'] = array(
+      'name' => 'Area',
+      'plural_name' => 'Areas',
+    );
   }
 
   if (isset($groups[$category_id])) {
@@ -368,6 +388,7 @@ function avbase_library() {
 /**
  * @param $form
  * @param $form_state
+ * @param string $entity_name
  */
 function avbase_entity_overview_form($form, &$form_state, $entity_name) {
   module_load_include('inc', 'avbase', 'inc/entity_overview.form');

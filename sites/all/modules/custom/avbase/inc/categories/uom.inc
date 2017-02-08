@@ -42,7 +42,7 @@ function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
  */
 function avbase_category_uom_form_alter(&$form, $db_row) {
   $form['title']['#title'] = t('UOM title');
-  $form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
+  //$form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
   $form['system_default'] = array(
     '#type' => 'checkbox',
     '#title' => 'Use this UOM as system default',
