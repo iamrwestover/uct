@@ -6,6 +6,15 @@ define('AVTXNS_MODULE_PATH', drupal_get_path('module', 'avtxns'));
 define('AVTXNS_RETURN_TYPE_RUD', 1);
 define('AVTXNS_RETURN_TYPE_RS', 2);
 
+define('AVTXNS_TXN_TYPE_PURCHASE_ORDER', 'po');
+define('AVTXNS_TXN_TYPE_RECEIVE', 'rcv');
+define('AVTXNS_TXN_TYPE_PURCHASE_RETURN', 'pr');
+define('AVTXNS_TXN_TYPE_SALES_ORDER', 'so');
+define('AVTXNS_TXN_TYPE_DELIVERY', 'dr');
+define('AVTXNS_TXN_TYPE_SALES_RETURN', 'sr');
+define('AVTXNS_TXN_TYPE_INVOICE', 'inv');
+define('AVTXNS_TXN_TYPE_PAYMENT', 'pmt');
+
 /**
  * Implementation of hook_menu().
  */
@@ -18,39 +27,43 @@ function avtxns_menu() {
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
-  $items['av/txns/po'] = array(
-    'title' => 'Transactions',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('avtxns_txns_home_form'),
-    'access callback' => 'user_is_logged_in',
-  );
-  $items['av/txns/po/new'] = array(
-    'title' => 'New Purchase Order',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('avtxns_txn_form', 2, NULL),
-    'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'inc/txn.form.inc',
-    'weight' => 10,
-  );
-  $items['av/txns/po/%avtxns_txn/view'] = array(
-    'title' => 'View Purchase Order',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('avtxns_txn_form', 2, 3, TRUE),
-    'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'inc/txn.form.inc',
-    'weight' => 0,
-  );
-  $items['av/txns/po/%avtxns_txn/edit'] = array(
-    'title' => 'Edit Purchase Order',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('avtxns_txn_form', 2, 3),
-    'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'inc/txn.form.inc',
-    'weight' => 1,
-  );
+
+  $transaction_types = avtxns_txn_types();
+  foreach ($transaction_types as $k => $v) {
+    $items[$v['base_path']] = array(
+      'title' => 'Transactions',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avtxns_txns_home_form'),
+      'access callback' => 'user_is_logged_in',
+    );
+    $items["{$v['base_path']}/new"] = array(
+      'title' => "New {$v['name']}",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avtxns_txn_form', 2, NULL),
+      'access callback' => 'user_is_logged_in',
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'inc/txn.form.inc',
+      'weight' => 10,
+    );
+    $items["{$v['base_path']}/%avtxns_txn/view"] = array(
+      'title' => "View {$v['name']}",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avtxns_txn_form', 2, 3, TRUE),
+      'access callback' => 'user_is_logged_in',
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'inc/txn.form.inc',
+      'weight' => 0,
+    );
+    $items["{$v['base_path']}/%avtxns_txn/edit"] = array(
+      'title' => "Edit {$v['name']}",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avtxns_txn_form', 2, 3),
+      'access callback' => 'user_is_logged_in',
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'inc/txn.form.inc',
+      'weight' => 1,
+    );
+  }
 
   return $items;
 }
@@ -106,9 +119,9 @@ function avtxns_theme($existing, $type, $theme, $path) {
  */
 function avtxns_mail($key, &$message, $params) {
   switch ($key) {
-    case 'po':
-      $message['subject'] = t('Purchase Order from @site_name - P.O.# @po_num', array('@po_num' => $params['po_num'], '@site_name' => variable_get('site_name', 'UCT')));
-      $message['body'] = theme('avtxns_po_mail', $params);
+    case 'transaction':
+      $message['subject'] = t('Purchase Order from @site_name - P.O.# @transaction_id', array('@transaction_id' => $params['transaction_id'], '@site_name' => variable_get('site_name', 'UCT')));
+      $message['body'] = theme('avtxns_txn_mail', $params);
       // Save a copy.
       //$message['headers']['CC'] = 'ucaretrading@gmail.com';
       break;
@@ -124,16 +137,380 @@ function avtxns_mail($key, &$message, $params) {
 function avtxns_txns_home_form($form, &$form_state) {
 // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
+  $transaction_types = avtxns_txn_types();
+  foreach ($transaction_types as $k => $type) {
+    $button_color_class = $type['transaction'] == 'sales' ? 'uk-button-success' : 'uk-button-primary';
+    $form["new_$k"] = array('#markup' => l($type['name'], "av/txns/$k/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))));
+  }
+  //$form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
+  //$form['new_gr'] = array('#markup' => l('Receive items', 'av/txns/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
+  //$form['new_rept'] = array('#markup' => l('New purchase return', 'av/txns/rept/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
+  //$form['new_so'] = array('#markup' => l('New sales order', 'av/txns/so/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_dr'] = array('#markup' => l('New delivery', 'av/txns/delivery/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_ret'] = array('#markup' => l('New sales return', 'av/txns/ret/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_sinv'] = array('#markup' => l('New invoice', 'av/txns/sinv/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  //$form['new_spay'] = array('#markup' => l('Receive payment', 'av/txns/spay/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
 
-  $form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
-  //$form['new_gr'] = array('#markup' => l('Receive items', 'av/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
-  //$form['new_rept'] = array('#markup' => l('New purchase return', 'av/rept/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
-  //$form['new_so'] = array('#markup' => l('New sales order', 'av/sales-order/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_dr'] = array('#markup' => l('New delivery', 'av/delivery/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_ret'] = array('#markup' => l('New sales return', 'av/ret/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_sinv'] = array('#markup' => l('New invoice', 'av/sinv/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_spay'] = array('#markup' => l('Receive payment', 'av/spay/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  $form['txns_list'] = avtxns_txn_list_form($form, $form_state);
+  return $form;
+}
 
-  //$form['txns_list'] = avtxns_txns_list_form($form, $form_state);
+/**
+ * Return list of transaction types.
+ * @param string $type
+ *
+ * @return array
+ */
+function avtxns_txn_types($type = NULL) {
+  $ret = &drupal_static(__FUNCTION__, array());
+  if (empty($ret)) {
+    // Sales
+    $ret[AVTXNS_TXN_TYPE_PURCHASE_ORDER] = array(
+      'type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'transaction' => 'purchase',
+      'name' => 'Purchase Order',
+      'plural_name' => 'Purchase Orders',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+    );
+    $ret[AVTXNS_TXN_TYPE_RECEIVE] = array(
+      'type' => AVTXNS_TXN_TYPE_RECEIVE,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_RECEIVE,
+      'transaction' => 'purchase',
+      'name' => 'Received Items',
+      'plural_name' => 'Received items',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'qty_change' => 'increment',
+      'cost_change' => TRUE,
+    );
+    $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
+      'type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN,
+      'transaction' => 'purchase',
+      'name' => 'Purchase Return',
+      'plural_name' => 'Purchase Returns',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'qty_change' => 'decrement',
+    );
+    // Purchase.
+    $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
+      'type' => AVTXNS_TXN_TYPE_SALES_ORDER,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_SALES_ORDER,
+      'transaction' => 'sales',
+      'name' => 'Sales Order',
+      'plural_name' => 'Sales Orders',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+    );
+    $ret[AVTXNS_TXN_TYPE_DELIVERY] = array(
+      'type' => AVTXNS_TXN_TYPE_DELIVERY,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_DELIVERY,
+      'transaction' => 'sales',
+      'name' => 'Delivery',
+      'plural_name' => 'Deliveries',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_SALES_ORDER,
+      'qty_change' => 'decrement',
+      'cost_change' => TRUE,
+    );
+    $ret[AVTXNS_TXN_TYPE_SALES_RETURN] = array(
+      'type' => AVTXNS_TXN_TYPE_SALES_RETURN,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_SALES_RETURN,
+      'transaction' => 'sales',
+      'name' => 'Sales Return',
+      'plural_name' => 'Sales Returns',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
+      'qty_change' => 'increment',
+    );
+  }
+
+  if (isset($ret[$type])) {
+    return $ret[$type];
+  }
+  return $ret;
+}
+
+function avtxns_txn_list_form($form, &$form_state, $options = array()) {
+  $form = array(
+    '#visible_in_view_mode' => TRUE,
+    //'#prefix' => '<div>'
+  );
+
+  if (empty($options['#hide_filter_form'])) {
+    $filter_form_settings = array(
+      //'avcat_agent.title' => array('#access' => TRUE),
+    );
+    $form['transaction_list_filter'] = avtxns_txn_list_filter_form(NULL, $form_state, $filter_form_settings);
+    $form['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'search agent, customer, vendor';
+  }
+  $client_header = 'Customer / Vendor';
+  //if (arg(1) == 'vendors') {
+  //  $client_header = 'Vendor';
+  //}
+  //elseif (arg(1) == 'customers') {
+  //  $client_header = 'Customer';
+  //}
+  $header = array(
+    array('data' => 'Type'),
+    array('data' => 'Transaction #'),
+    array('data' => $client_header),
+    array('data' => 'Date'),
+    array('data' => 'Agent'),
+  );
+
+  $required_filter_query = empty($options['#filter_query']) ? array() : $options['#filter_query'];
+  $filter_query = empty($form_state['values']['avtxns_tl_filter']['filter_query']) ? array() : $form_state['values']['avtxns_tl_filter']['filter_query'];
+  $filter_query = array_merge_recursive($filter_query, $required_filter_query);
+  $where = empty($filter_query['where']) ? array() : $filter_query['where'];
+  $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+  $transactions = avtxns_txns_query_load($where, $args, '15');
+  $index = 0;
+  foreach ($transactions as $row) {
+    $index++;
+    $transaction_type = avtxns_txn_types($row->transaction_type);
+    $view_path = "{$transaction_type['base_path']}/$row->id/view";
+    $rows[$index] = array(
+      'data' => array(
+        l($transaction_type['name'], $view_path),
+        l($row->id, $view_path),
+        $rows[$index]['data'][] = check_plain($row->display_name),
+        l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
+        check_plain($row->agent_name),
+      ),
+      'class' => array('uk-table-middle'),
+    );
+  }
+
+  $table_attributes = array(
+    'id' => 'transaction-list-table',
+    'class' => array(),
+  );
+  if (empty($rows)) {
+    $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
+  }
+  else {
+    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
+  }
+  $form['transaction_list_table']['#markup'] = '<div id="transaction-list-table-wrapper">' . $table_markup . '<!--Do not remove me--></div>';
+  return $form;
+}
+
+/**
+ * Generic Transaction List Filter form.
+ * @param $form
+ * @param $form_state
+ * @param array $settings
+ *
+ * @return mixed
+ */
+function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
+  $fields = array(
+    '#theme' => 'avtxns_txn_list_filter_form',
+    '#tree' => TRUE,
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => 'avtxns-txn-list-filter-form',
+    ),
+    '#attached' => array(
+      'js' => array(AVTXNS_MODULE_PATH . '/js/transaction_list_filter.form.js'),
+    ),
+  );
+
+  $fields['avtxn.id'] = empty($settings['avtxn.id']) ? array() : $settings['avtxn.id'];
+  $fields['avtxn.id'] += array(
+    '#type' => 'textfield',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+      'placeholder' => 'transaction #',
+    ),
+    '#icon_key' => 'search',
+    '#access' => empty($settings['hide'][''])
+  );
+  $fields['search_text'] = empty($settings['search_text']) ? array() : $settings['search_text'];
+  $fields['search_text'] += array(
+    '#type' => 'textfield',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+      'placeholder' => 'search by customer / vendor / agent',
+    ),
+    '#icon_key' => 'search',
+  );
+
+  $fields['avcat_agent.title'] = empty($settings['avcat_agent.title']) ? array() : $settings['avcat_agent.title'];
+  $fields['avcat_agent.title'] += array(
+    '#type' => 'textfield',
+    '#title' => t('Agent'),
+    '#title_display' => 'none',
+    '#maxlength' => 255,
+    '#autocomplete_path' => 'av/categories/agent_cust/autocomplete',
+    //'#element_validate' => array('avbase_element_validate_category_exists'),
+    //'#element_validate_conditions' => array('group_id' => 'agent_cust'),
+    '#attributes' => array(
+      'placeholder' => 'filter by agent',
+      'class' => array('trigger-ajax-search'),
+    ),
+    //'#element_save_id' => 'agent_id',
+    //'#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
+    '#access' => FALSE,
+  );
+
+  $fields['avclient.display_name'] = empty($settings['avclient.display_name']) ? array() : $settings['avclient.display_name'];
+  $fields['avclient.display_name'] += array(
+    '#type' => 'textfield',
+    '#title' => t('Client'),
+    '#title_display' => 'none',
+    '#maxlength' => 255,
+    '#attributes' => array(
+      'placeholder' => 'filter by client',
+      'class' => array('trigger-ajax-search'),
+    ),
+    '#access' => FALSE,
+  );
+
+
+
+  //$date_format = 'M. d, Y';
+  $fields['avtxn.transaction_date'] = empty($settings['avtxn.transaction_date']) ? array() : $settings['avtxn.transaction_date'];
+  $fields['avtxn.transaction_date'] += array(
+    '#type' => 'textfield',
+    //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
+    //'#element_validate' => array('avbase_element_validate_date'),
+    //'#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+      'class' => array('trigger-ajax-search'),
+      'readonly' => 'readonly',
+    ),
+  );
+
+  $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
+  $fields['date_to'] += array(
+    '#type' => 'textfield',
+    //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
+    //'#element_validate' => array('avbase_element_validate_date'),
+    //'#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+      'class' => array('trigger-ajax-search'),
+      'readonly' => 'readonly',
+    ),
+    '#access' => FALSE,
+  );
+
+  // Set fields' resistance to reset button.
+  //foreach ($fields as $k => $v) {
+  //
+  //}
+
+  // Buttons.
+  $fields['buttons']['reset_button'] = empty($settings['reset_button']) ? array() : $settings['reset_button'];
+  $fields['buttons']['reset_button'] += array(
+    '#id' => 'transaction-reset-btn',
+    '#type' => 'submit',
+    '#value' => t('clear'),
+    //'#button_label' => '<i class="uk-icon-remove"></i>',
+  );
+
+  $fields['buttons']['search_button'] = empty($settings['search_button']) ? array() : $settings['search_button'];
+  $fields['buttons']['search_button'] += array(
+    '#id' => 'transaction-search-btn',
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#submit' => array('avtxns_txn_list_filter_form_submit'),
+    '#limit_validation_errors' => array(array('avtxns_tl_filter')),
+    '#attributes' => array(
+      'class' => array('uk-hidden')
+    ),
+    '#ajax' => array(
+      'callback' => 'avtxns_txn_form_ajax_search',
+      'wrapper' => 'transaction-list-table-wrapper',
+      'effect' => 'none',
+      'event' => 'click',
+      'progress' => array(),
+    ),
+  );
+
+  $form['avtxns_tl_filter'] = $fields;
+  return $form;
+}
+
+function avtxns_txn_list_filter_form_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+  $filter_values = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
+  $arg_index = 0;
+  $where = $args = array();
+  foreach ($filter_values as $k => $v) {
+    if ($k == 'buttons') {
+      continue;
+    }
+    $v = trim($v);
+    $arg_name = 'arg_' . $arg_index++;
+    if ($k == 'search_text' && $v != '') {
+      $or = array();
+      $or[] = "avcat_agent.title LIKE :$arg_name";
+      $or[] = "avclient.display_name LIKE :$arg_name";
+      $where[] = '(' . implode(' OR ', $or) . ')';
+      $args[":$arg_name"] = '%' . db_like($v) . '%';
+      continue;
+    }
+    elseif ($k == 'avtxn.transaction_date' && $v != '') {
+      $timestamp = strtotime($v);
+      if (empty($timestamp)) {
+        continue;
+      }
+      $next_day_timestamp = strtotime('+1 day', $timestamp);
+      $where[] = 'avtxn.transaction_date >= :stamp1 AND avtxn.transaction_date < :stamp2';
+      $args[':stamp1'] = $timestamp;
+      $args[':stamp2'] = $next_day_timestamp;
+      continue;
+    }
+    elseif ($k == 'date_to' && $v != '') {
+      $timestamp = strtotime($v);
+      if (empty($timestamp)) {
+        continue;
+      }
+      $next_day_timestamp = strtotime('+1 day', $timestamp);
+      $where[] = 'avtxn.transaction_date < :stamp2';
+      $args[':stamp2'] = $next_day_timestamp;
+      continue;
+    }
+
+    if ($v != '') {
+      $where[] = "{$k} = :$arg_name";
+      $args[":$arg_name"] = $v;
+    }
+  }
+
+  $form_state['values']['avtxns_tl_filter']['filter_query'] = array('where' => $where, 'args' => $args);
+}
+
+
+function avtxns_txn_form_ajax_search($form, $form_state) {
+  $trigger = $form_state['triggering_element'];
+
+
+  switch ($trigger['#id']) {
+    case 'transaction-search-btn':
+      $target_table_parents = $trigger['#array_parents'];
+      $depth = count($target_table_parents) - 4;
+      if ($depth > 0) {
+        $target_table_parents = array_slice($target_table_parents, 0, $depth);
+      }
+      else {
+        $target_table_parents = empty($trigger['#table_parents']) ? array() : $trigger['#table_parents'];
+      }
+      $target_table_parents[] = 'transaction_list_table';
+      $transaction_list_form = drupal_array_get_nested_value($form, $target_table_parents);
+      //dpm($form);
+      //dpm($target_table_parents);
+      //dpm($transaction_list_form);
+      //return $form;
+      return $transaction_list_form;
+      break;
+  }
+
   return $form;
 }

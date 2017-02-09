@@ -171,9 +171,10 @@ function avclients_statuses() {
 
 /**
  * Menu callback - retrieve a JSON object containing autocomplete suggestions for existing clients.
+ * @param $client_type
  * @param string $string
  */
-function avclients_autocomplete($string = '') {
+function avclients_autocomplete($client_type, $string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
@@ -194,8 +195,8 @@ function avclients_autocomplete($string = '') {
       'avclients.last_name LIKE :string',
     );
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
-    $where = array($where_or_str);
-    $args = array(':string' => '%' . db_like($string) . '%');
+    $where = array($where_or_str, 'avclients.client_type = :client_type');
+    $args = array(':string' => '%' . db_like($string) . '%', ':client_type' => $client_type);
     $where[] = 'avclients.status = :active_status';
     $args[':active_status'] = AVCLIENT_STATUS_ACTIVE;
     $rows = avclient_query_load($where, $args, '8');

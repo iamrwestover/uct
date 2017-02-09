@@ -2,9 +2,9 @@
 $search_text_html = drupal_render($form['search_text']);
 $client_html = drupal_render($form['avclient.display_name']);
 $agent_html = drupal_render($form['avcat_agent.title']);
-$transaction_date = drupal_render($form['avtrans.transaction_date']);
+$transaction_date = drupal_render($form['avtxn.transaction_date']);
 $date_to = drupal_render($form['date_to']);
-$transaction_id_html = drupal_render($form['avtrans.id']);
+$transaction_id_html = drupal_render($form['avtxn.id']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
 ?>
 <div class="uk-grid uk-grid-small uk-margin-top">

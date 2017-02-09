@@ -150,11 +150,11 @@ function avbase_element_validate_date($element, &$form_state, $form) {
 
   $t_args = array(
     '%element_title' => $element['#title'],
-    '@date_format' => $date_format,
-    '@sample_date' => format_date(time(), 'custom', $date_format)
+    //'@date_format' => $date_format,
+    '%sample_date' => format_date(time(), 'custom', $date_format)
   );
   if (!empty($date_info['error_count'])) {
-    form_error($element, t('Date format for %element_title is invalid. Kindly follow this format: @date_format (e.g. @sample_date)', $t_args));
+    form_error($element, t('Date format for %element_title is invalid. Kindly follow this format: %sample_date', $t_args));
   }
   elseif (!empty($date_info['warning_count'])) {
     form_error($element, t('%element_title is invalid.', $t_args));
@@ -191,6 +191,7 @@ function avbase_element_validate_display_name($element, &$form_state, $form) {
  * @param $element
  * @param $form_state
  * @param $form
+ * @todo phase this function out
  */
 function avbase_element_validate_display_name_exists($element, &$form_state, $form) {
   $table_name = $element['#table_name'];
@@ -199,6 +200,27 @@ function avbase_element_validate_display_name_exists($element, &$form_state, $fo
     return;
   }
   $row = db_query("SELECT id FROM {{$table_name}} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
+  if (!$row) {
+    form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
+  }
+  else {
+    // Set extra form state value for this element.
+    avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
+  }
+}
+
+/**
+ * Check if element contains an existing client name.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_client_name_exists($element, &$form_state, $form) {
+  $display_name = $element['#value'];
+  if (trim($display_name) == '') {
+    return;
+  }
+  $row = db_query("SELECT id FROM {avtbl_clients} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
   if (!$row) {
     form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }

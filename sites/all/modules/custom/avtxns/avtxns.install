@@ -16,13 +16,13 @@ function avtxns_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'txn_type' => array(
+      'transaction_type' => array(
         'description' => 'Transaction type',
         'type' => 'varchar',
         'length' => '8',
         'not null' => TRUE,
       ),
-      'txn_date' => array(
+      'transaction_date' => array(
         'description' => 'Transaction date',
         'type' => 'int',
         'unsigned' => TRUE,
@@ -73,11 +73,6 @@ function avtxns_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
-      'memo' => array(
-        'description' => 'TODO: please describe this field!',
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
       'email' => array(
         'description' => 'Email',
         'type' => 'varchar',
@@ -101,11 +96,16 @@ function avtxns_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'memo' => array(
+        'description' => 'Memo',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'txn_type' => array('txn_type'),
-      'txn_date' => array('txn_date'),
+      'transaction_type' => array('transaction_type'),
+      'transaction_date' => array('transaction_date'),
       'agent_id' => array('agent_id'),
       'client_id' => array('client_id'),
       'due_date' => array('due_date'),
@@ -123,7 +123,7 @@ function avtxns_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'txn_id' => array(
+      'transaction_id' => array(
         'description' => 'Transaction ID',
         'type' => 'int',
         'unsigned' => TRUE,
@@ -218,7 +218,7 @@ function avtxns_schema() {
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'txn_id' => array('txn_id'),
+      'transaction_id' => array('transaction_id'),
       'item_id' => array('item_id'),
       'ref_txn_dtl_id' => array('ref_txn_dtl_id'),
     ),

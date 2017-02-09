@@ -58,7 +58,7 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     '#icon_key' => 'save',
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/' . $ctd['id'] , array('attributes' => array('class' => array('uk-button')))),
+    '#markup' => l('Cancel', 'av/' . $ctd['menu'] , array('attributes' => array('class' => array('uk-button')))),
   );
   if (!empty($row->id)) {
     if ($row->status != AVCLIENT_STATUS_SUSPENDED) {
@@ -504,5 +504,5 @@ function avclients_vendor_form_transaction_fields(&$form, &$form_state, $ctd, $r
       'args' => array(':client_id' => $row->id),
     ),
   );
-  $form['transactions'] = avtrans_transaction_list_form($form, $form_state, $options);
+  $form['transactions'] = avtxns_txn_list_form($form, $form_state, $options);
 }

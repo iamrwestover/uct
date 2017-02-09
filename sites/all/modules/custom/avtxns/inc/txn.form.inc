@@ -1,61 +1,49 @@
 <?php
 module_load_include('inc', 'avtxns', 'inc/txn.handlers');
 module_load_include('inc', 'avtxns', 'inc/item_list.form');
+module_load_include('inc', 'avtxns', 'inc/txn_cost_changes.form');
+module_load_include('inc', 'avtxns', 'inc/txn_pending_orders.form');
 
 /**
  * PO form.
  *
  * @param array $form
  * @param array $form_state
- * @param string $txn_type
+ * @param string $transaction_type
  * @param object $row
  * @param bool $view_mode
  * @return array
  */
-function avtxns_txn_form($form, &$form_state, $txn_type, $row, $view_mode = FALSE) {
-  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  $page_title = empty($row->id) ? t('New purchase order') : t('Purchase order');
-  drupal_set_title($page_title);
+function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
+  if (empty($row->status) && empty($view_mode) && !empty($row->id)) {
+    drupal_set_message('This transaction cannot be modified anymore.', 'warning');
+    $view_mode = TRUE;
+  }
+
+  // Get transaction type details.
+  $ttd = avtxns_txn_types($transaction_type);
+
+  // Wrapper.
+  $form['#prefix'] = '<div id="avtxns-txn-form-wrapper"><!-- Do not remove me. -->';
+  $form['#suffix'] = '</div>';
 
   // Set crud settings.
-  avtxns_txn_form_settings($form, $form_state, $txn_type, $row, $view_mode);
+  avtxns_txn_form_settings($form, $form_state, $transaction_type, $row, $view_mode);
 
   // Item List form fields.
-  avtxns_item_list_form_fields($form, $form_state, $txn_type, $row, $view_mode);
+  avtxns_item_list_form_fields($form, $form_state, $transaction_type, $row, $view_mode);
 
-  $form['header_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
-  );
-  $form['footer_total'] = array(
-    '#markup' => '<div><div class="uk-text-bold uk-text-uppercase">AMOUNT</div><div><h1 class="product-form-grand-total">0.00</h1></div></div>',
-  );
+  if (!empty($ttd['cost_change'])) {
+    // Add fields for Cost Changes popup.
+    avtxns_cost_changes_form_fields($form, $form_state, $transaction_type, $row, $view_mode);
+  }
+  if (isset($ttd['pending_txns_reference_type'])) {
+    // Add fields for Pending orders popup.
+    avtxns_pending_orders_form_fields($form, $form_state, $transaction_type, $row, $view_mode);
+  }
 
-  // Set common fields when purchasing items.
-  avtxns_purchase_fields($form, $form_state, $txn_type, $row, $view_mode);
-
-  //$form['transaction_date']['#title'] = t('P.O. Date');
-  $form['email'] = array(
-    '#id' => 'vendor-email',
-    '#type' => 'textfield',
-    '#title' => 'E-mail address',
-    '#default_value' => isset($row->email) ? check_plain($row->email) : '',
-    '#maxlength' => 255,
-    '#element_validate' => array('avbase_element_validate_email'),
-  );
-  $form['message'] = array(
-    '#type' => 'textarea',
-    '#title' => 'Message to vendor',
-    '#default_value' => isset($row->message) ? check_plain($row->message) : '',
-    '#maxlength' => 65000,
-  );
-  $form['address'] = array(
-    '#type' => 'item',
-    '#title' => 'Shipping address',
-    '#markup' => nl2br(check_plain(variable_get('av_company_address', ''))),
-    //'#maxlength' => 65000,
-  );
-
-  $form['buttons'] = avtxns_transaction_buttons($txn_type, $view_mode);
+  // Buttons.
+  $form['buttons'] = avtxns_transaction_buttons($transaction_type, $view_mode);
 
   // Convert form to non-edit mode if we are on View page.
   avbase_allow_form_view_mode($form, $view_mode);
@@ -66,12 +54,36 @@ function avtxns_txn_form($form, &$form_state, $txn_type, $row, $view_mode = FALS
  * Set crud form settings.
  * @param array $form
  * @param array $form_state
- * @param string $txn_type
+ * @param string $transaction_type
  * @param object $row
  * @param bool $view_mode
  */
-function avtxns_txn_form_settings(&$form, &$form_state, $txn_type, $row, $view_mode = FALSE) {
-  $js_settings = array('avtxns' => array('transaction' => 'purchase'));
+function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
+  // Get transaction type details.
+  $ttd = avtxns_txn_types($transaction_type);
+
+  // Set page title.
+  $page_title = empty($row->id) ? t('New @type', array('@type' => $ttd['name'])) : t('@type', array('@type' => $ttd['name']));
+  drupal_set_title($page_title);
+
+  // Settings.
+  $form['table_name'] = array('#type' => 'value', '#value' => 'avtbl_transactions');
+  $form['entity_name'] = array('#type' => 'value', '#value' => 'txn');
+  $form['transaction_type'] = array('#type' => 'value', '#value' => $transaction_type);
+  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $form['#success_message'] = t('@type details saved.', array('@type' => $ttd['name']));
+  $form['#theme'] = 'avtxns_item_list_form';
+
+  // Set generic submit handler.
+  if (!isset($ttd['pending_txns_reference_type'])) {
+    $form['#submit'] = array('avbase_crud_form_submit', 'avtxns_txn_form_submit', 'avtxns_redirect_transaction_form');
+  }
+  else {
+    $form['#submit'] = array('avtxns_txn_form_submit2');
+  }
+
+  // Js settings.
+  $js_settings = array('avtxns' => array('transaction' => $ttd['transaction']));
   $form['#attached']['js'][] = array(
     'data' => $js_settings,
     'type' => 'setting',
@@ -80,33 +92,28 @@ function avtxns_txn_form_settings(&$form, &$form_state, $txn_type, $row, $view_m
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
-  $_storage['transaction'] = $js_settings['avtxns']['transaction'];
+  //$_storage['transaction'] = $js_settings['avtxns']['transaction'];
 
-  // Table name.
-  $table_name = 'avtbl_txns';
 
-  // Set generic submit handler.
-  $form['#submit'] = array('avbase_crud_form_submit', 'avtxns_txn_form_submit', 'avtxns_redirect_transaction_form');
-
-  $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
-  $form['entity_name'] = array('#type' => 'value', '#value' => 'txn');
-  $form['#success_message'] = t('Purchase order details saved.');
-  $form['#theme'] = 'avtxns_item_list_form';
   
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
 
   // Set field names to save.
   $save_field_ids = array(
-    'created',
+    'transaction_type',
+    'transaction_date',
     'client_id',
-    'message',
-    'email',
-    'memo',
+    'term_id' => array('type' => 'int'),
     'agent_id' => array('type' => 'int'),
-    //'term_id' => array('type' => 'int'),
-    //'discount_type' => array('type' => 'int'),
-    //'discount_value' => array('type' => 'float'),
+    'reference_id',
+    'return_type' => array('type' => 'int'),
+    'due_date',
+    'memo',
+    'email',
+    'message',
+    'created',
+    'changed',
   );
 
   $form['save_field_ids'] = array(
@@ -122,4 +129,67 @@ function avtxns_txn_form_settings(&$form, &$form_state, $txn_type, $row, $view_m
     '#type' => 'value',
     '#value' => $data_ids,
   );
+}
+
+/**
+ * Transaction buttons.
+ * @param $transaction_type
+ * @param $view_mode
+ *
+ * @return array
+ */
+function avtxns_transaction_buttons($transaction_type, $view_mode) {
+  // Get transaction type details.
+  $ttd = avtxns_txn_types($transaction_type);
+
+  $buttons = array('#theme' => 'avbase_crud_button_group');
+  $buttons['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#icon_key' => 'save',
+  );
+  if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER) {
+    $buttons['submit_and_send'] = array(
+      '#id' => 'submit_and_send',
+      '#type' => 'submit',
+      '#value' => t('Save and send'),
+      '#icon_key' => 'mail-forward',
+    );
+  }
+
+  $buttons['submit_and_print'] = array(
+    '#id' => 'submit_and_print',
+    '#type' => 'submit',
+    '#value' => t('Save and print'),
+    '#icon_key' => 'print',
+  );
+  if (empty($view_mode)) {
+    $buttons['cancel'] = array(
+      '#markup' => l('Cancel', 'av/txns', array('attributes' => array('class' => array('uk-button')))),
+    );
+  }
+  else {
+    $buttons['print'] = array(
+      '#id' => 'av-print-btn',
+      '#type' => 'button',
+      '#value' => t('Print...'),
+      '#visible_in_view_mode' => TRUE,
+      '#attributes' => array('class' => array('suk-button-primary')),
+      '#icon_key' => 'print',
+    );
+  }
+
+  if (isset($ttd['pending_txns_reference_type'])) {
+    $buttons['submit']['#id'] = 'detect-cost-change-btn';
+    $buttons['submit']['#attributes']['class'][] = 'av-ajax-trigger';
+    $buttons['submit']['#ajax'] = array(
+      'callback' => 'avtxns_txn_form_ajax',
+      'wrapper' => 'avtxns-txn-form-wrapper',
+      'effect' => 'none',
+      'event' => 'click',
+    );
+    $buttons['submit_and_print']['#attributes'] = $buttons['submit']['#attributes'];
+    $buttons['submit_and_print']['#ajax'] = $buttons['submit']['#ajax'];
+  }
+  return $buttons;
 }

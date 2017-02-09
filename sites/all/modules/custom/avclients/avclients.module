@@ -23,7 +23,7 @@ function avclients_menu() {
   $items = array();
   $client_types = avclients_client_types();
   foreach ($client_types as $k => $v) {
-    $items["av/{$v['id']}"] = array(
+    $items["av/{$v['menu']}"] = array(
       'title' => $v['plural_name'],
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_entity_overview_form', 'clients', "$k"),
@@ -32,7 +32,7 @@ function avclients_menu() {
       'expanded' => TRUE,
     );
 
-    $items["av/{$v['id']}/add"] = array(
+    $items["av/{$v['menu']}/add"] = array(
       'title' => "New {$v['name']}",
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_form', "$k", NULL),
@@ -41,7 +41,7 @@ function avclients_menu() {
       'file' => 'inc/crud.inc',
       'weight' => 10,
     );
-    $items["av/{$v['id']}/%avclient/view"] = array(
+    $items["av/{$v['menu']}/%avclient/view"] = array(
       'title' => 'View',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_form', "$k", 2, TRUE),
@@ -50,7 +50,7 @@ function avclients_menu() {
       'file' => 'inc/crud.inc',
       'weight' => 0,
     );
-    $items["av/{$v['id']}/%avclient/edit"] = array(
+    $items["av/{$v['menu']}/%avclient/edit"] = array(
       'title' => 'Edit',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_form', "$k", 2),
@@ -59,7 +59,7 @@ function avclients_menu() {
       'file' => 'inc/crud.inc',
       'weight' => 1,
     );
-    $items["av/{$v['id']}/%avclient/delete"] = array(
+    $items["av/{$v['menu']}/%avclient/delete"] = array(
       'title' => 'Delete',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_delete_confirm_form', 2),
@@ -68,7 +68,7 @@ function avclients_menu() {
       'file' => 'inc/crud.inc',
       'weight' => 2,
     );
-    $items["av/{$v['id']}/%avclient/%/change-status"] = array(
+    $items["av/{$v['menu']}/%avclient/%/change-status"] = array(
       'title' => 'Suspend',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_change_status_confirm_form', 2, 3),
@@ -76,14 +76,15 @@ function avclients_menu() {
       //'type' => MENU_LOCAL_TASK,
       'file' => 'inc/crud.inc',
     );
-    $items["av/{$v['id']}/autocomplete"] = array(
-      'title' => 'Clients Autocomplete',
-      'page callback' => 'avclients_autocomplete',
-      'access callback' => 'user_is_logged_in',
-      'type' => MENU_CALLBACK,
-      'file' => 'inc/helpers.inc',
-    );
   }
+
+  $items["av/clients/autocomplete"] = array(
+    'title' => 'Clients Autocomplete',
+    'page callback' => 'avclients_autocomplete',
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/helpers.inc',
+  );
   return $items;
 }
 
@@ -220,13 +221,13 @@ function avclients_client_types($client_type = NULL) {
   if (empty($ret)) {
     $ret[AVCLIENT_TYPE_CUSTOMER] = array(
       'type' => AVCLIENT_TYPE_CUSTOMER,
-      'id' => 'client-customers',
+      'menu' => 'client-customers',
       'name' => 'Customer',
       'plural_name' => 'Customers',
     );
     $ret[AVCLIENT_TYPE_VENDOR] = array(
       'type' => AVCLIENT_TYPE_VENDOR,
-      'id' => 'client-vendors',
+      'menu' => 'client-vendors',
       'name' => 'Vendor',
       'plural_name' => 'Vendors',
     );

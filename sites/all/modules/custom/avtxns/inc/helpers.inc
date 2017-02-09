@@ -107,16 +107,16 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
 
   $select = array();
   $select[] = 'avtxns.*';
-  $select[] = 'avvendors.display_name AS client_name';
+  $select[] = 'avclients.display_name AS client_name';
 
 
   $query = db_select('avtbl_transactions', 'avtxns');
-  $query->leftJoin('avtbl_vendors', 'avvendors', 'avvendors.id = avtxns.client_id');
-  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_vend'");
-  $query->addField('avvendors', 'display_name', 'client_name');
+  $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxns.client_id');
+  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclients.client_type)");
+  $query->addField('avclients', 'display_name', 'client_name');
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->fields('avtxns');
-  //->fields('avvendors', array('display_name'))
+  //->fields('avclients', array('display_name'))
   //->condition('avtxns.id', $id)
   //->execute();
   foreach ($conditions as $condition) {
@@ -130,14 +130,14 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $query->range($offset, $limit);
   }
 
-  $query->orderBy('transaction_date', 'DESC');
+  $query->orderBy('created', 'DESC');
   $rs = $query->execute();
   $rows = array();
   foreach ($rs as $row) {
     $subtotal = 0;
     if (!empty($row->id)) {
       $query = db_select('avtbl_transaction_details', 'avtxn_items');
-      $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_items.product_id');
+      $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_items.item_id');
       $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avtxn_items.uom_id AND avcat.group_id = 'uom'");
       $query->leftJoin('avtbl_categories', 'avcat_base', "avcat_base.id = avprod.uom_id AND avcat.group_id = 'uom'");
       $query->addField('avprod', 'title', 'product_title');
@@ -145,12 +145,19 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $query->addField('avcat', 'title', 'uom_title');
       $query->addField('avcat_base', 'title', 'base_uom_title');
       $query->fields('avtxn_items')
-        ->condition('avtxn_items.po_id', $row->id)
+        ->condition('avtxn_items.transaction_id', $row->id)
         ->execute();
       $rs = $query->execute();
       foreach ($rs as $item) {
         $item->total = $item->cost * $item->qty;
-        $discount = empty($item->discount) ? array() : explode('/', $item->discount);
+        $discount = array();
+        for ($x = 1; $x <= 4; $x++) {
+          $_discount_name = "discount$x";
+          if (isset($item->$_discount_name)) {
+            $discount[] = $item->$_discount_name;
+          }
+        }
+        $item->discount_text = implode('/', $discount);
         foreach ($discount as $v) {
           if (is_numeric($v)) {
             $v = (float) $v;
@@ -159,22 +166,25 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         }
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
         $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
+        if ($row->transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item->good_stock)) {
+          $item->incoming_base_qty = 0;
+        }
         $item->remaining_base_qty = $item->incoming_base_qty;
         $row->items[$item->id] = $item;
         $subtotal += $item->total;
       }
     }
-    $row->discount_value_text = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (round($row->discount_value, 2) . '%') : number_format($row->discount_value, 2);
-    $row->subtotal = $subtotal;
-    $row->discounted_value = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (($row->discount_value / 100) * $subtotal) : $row->discount_value;
-    $row->grand_total = $subtotal - $row->discounted_value;
+    //$row->discount_value_text = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (round($row->discount_value, 2) . '%') : number_format($row->discount_value, 2);
+    //$row->subtotal = $subtotal;
+    //$row->discounted_value = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (($row->discount_value / 100) * $subtotal) : $row->discount_value;
+    //$row->grand_total = $subtotal - $row->discounted_value;
+    $row->grand_total = $subtotal;
 
     // Attach received items.
-    avtxns_txn_attach_received_items($row);
+    //avtxns_txn_attach_received_items($row);
 
     $rows[$row->id] = $row;
   }
-
 
   // Update static variables.
   $data[$data_id] = $rows;
@@ -185,40 +195,40 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
 /**
  * Loads transaction details and sends it to specified email.
  * If email is not specified, po email will be used.
- * @param $po_id
+ * @param $transaction_id
  * @param string $email
  *
  * @return bool
  */
-function avtxns_send_txn_to_email($po_id, $email = '') {
-  if (empty($po_id)) {
+function avtxns_send_txn_to_email($transaction_id, $email = '') {
+  if (empty($transaction_id)) {
     return FALSE;
   }
 
-  $po = avtxns_txn_load($po_id);
-  $email = $po->email;
+  $transaction = avtxns_txn_load($transaction_id);
+  $email = empty($email) ? $transaction->email : $email;
   if ($error = user_validate_mail($email)) {
     drupal_set_message($error, 'error');
     return FALSE;
   }
 
-  $po->discount_value = round($po->discount_value, 2);
+  //$transaction->discount_value = round($transaction->discount_value, 2);
   $params = array(
-    'po' => $po,
-    'po_num' => $po->id,
-    'transaction_date' => format_date($po->created, 'custom', 'F d, Y'),
+    'transaction' => $transaction,
+    'transaction_id' => $transaction->id,
+    'transaction_date' => format_date($transaction->created, 'custom', 'F d, Y'),
     'site_name' => variable_get('site_name', 'UCT'),
     'shipping_address' => variable_get('av_company_address', '-'),
-    'vendor_name' => check_plain($po->client_name),
-    //'payment_term_title' => check_plain($po->payment_term_title),
+    'client_name' => check_plain($transaction->client_name),
+    //'payment_term_title' => check_plain($transaction->payment_term_title),
   );
 
-  $params['po_table'] = theme('avtxns_txn_mail_table', $params);
-  $message = drupal_mail('avtrans', 'po', $email, language_default(), $params);
+  $params['transaction_table'] = theme('avtxns_txn_mail_table', $params);
+  $message = drupal_mail('avtxns', 'transaction', $email, language_default(), $params);
   if (!empty($message['result'])) {
     drupal_set_message(t('Purchase order sent successfully to %mail.', array('%mail' => $email)));
-    avbase_custom_watchdog("crud_mail_po", "Sent Purchase Order #@po_id to @vendor_name",
-      array('@po_id' => $po->id, '@vendor_name' => $po->client_name , '#message' => $message)
+    avbase_custom_watchdog("crud_mail_po", "Sent Purchase Order #@transaction_id to @client_name",
+      array('@transaction_id' => $transaction->id, '@client_name' => $transaction->client_name , '#message' => $message)
     );
     return TRUE;
   }
@@ -229,184 +239,78 @@ function avtxns_send_txn_to_email($po_id, $email = '') {
  * Advanced transaction load.
  * @return array
  */
-//function avtxns_txns_query_load($param_where = array(), $param_args = array(), $limit_string = NULL, $order_by_string = NULL) {
-//  // Load vendors static variable.
-//  //$avbase = &drupal_static('avbase', array());
-//  //$avbase['vendors'] = empty($avbase['vendors']) ? array() : $avbase['vendors'];
-//  //$_vendors = &$avbase['vendors'];
-//
-//  // Set / load static variable for this query.
-//  $data = &drupal_static(__FUNCTION__, array());
-//  $_data_id = $param_where;
-//  sort($_data_id);
-//  $data_id = md5(json_encode($_data_id) . json_encode($param_args) . json_encode($limit_string));
-//
-//  if (isset($data[$data_id])) {
-//    return $data[$data_id];
-//  }
-//
-//  $transaction_types = empty($param_where['transaction_types']) ? array() : $param_where['transaction_types'];
-//  unset($param_where['transaction_types']);
-//
-//  $queries = array();
-//  $queries['po'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'po' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_po} AS avtxns
-//    INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_po_items} AS avtxn_items ON avtxn_items.po_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_vend'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['so'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'so' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_so} AS avtxns
-//    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_so_items} AS avtxn_items ON avtxn_items.so_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_cust'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['gr'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'gr' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_gr} AS avtxns
-//    INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_gr_items} AS avtxn_items ON avtxn_items.gr_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_vend'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['dr'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'dr' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_dr} AS avtxns
-//    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_dr_items} AS avtxn_items ON avtxn_items.dr_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_cust'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['ret'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'ret' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_ret} AS avtxns
-//    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_ret_items} AS avtxn_items ON avtxn_items.ret_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_cust'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['rept'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'rept' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_rept} AS avtxns
-//    INNER JOIN {avtbl_vendors} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_rept_items} AS avtxn_items ON avtxn_items.rept_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_vend'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['sinv'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'sinv' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM((avtxn_items.qty * avtxn_items.qty_per_uom) * avtxn_items.cost) AS grand_total
-//    FROM {avtbl_sinv} AS avtxns
-//    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_sinv_items} AS avtxn_items ON avtxn_items.sinv_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_cust'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//  $queries['spay'] = "SELECT
-//    avtxns.id AS transaction_id,
-//    avtxns.status,
-//    'spay' AS transaction_type,
-//    avcat_agent.title AS agent_name,
-//    avcat_term.title AS term_name,
-//    avtxns.transaction_date,
-//    avclient.display_name,
-//    SUM(avtxn_items.paid_amount) AS grand_total
-//    FROM {avtbl_spay} AS avtxns
-//    INNER JOIN {avtbl_customers} AS avclient ON avclient.id = avtxns.client_id
-//    LEFT JOIN {avtbl_spay_items} AS avtxn_items ON avtxn_items.spay_id = avtxns.id
-//    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = 'agent_cust'
-//    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxns.term_id AND avcat_term.group_id = 'payment_term'
-//  ";
-//
-//  // Only include queries for specified transaction types.
-//  if (!empty($transaction_types)) {
-//    $queries = array_intersect_key($queries, array_combine($transaction_types, $transaction_types));
-//  }
-//  //dpm($param_args);
-//  //dpm($param_where);
-//  //$param_where[] = "avcat_agent.title = :SSS";
-//  //$param_args[':SSS'] = "sss";
-//  foreach ($queries as $k => $v) {
-//    if (!empty($param_where)) {
-//      $queries[$k] .= " WHERE " . implode(' AND ', $param_where);
-//    }
-//    $queries[$k] .= " GROUP BY avtxns.id";
-//  }
-//
-//  $query = implode(' UNION ', $queries);
-//  if (is_null($order_by_string)) {
-//    $query .= " ORDER BY transaction_date DESC";
-//  }
-//  else {
-//    $query .= " $order_by_string";
-//  }
-//  if (!is_null($limit_string)) {
-//    $query .= " LIMIT " . $limit_string;
-//  }
-//
-//
-//  $rs = db_query($query, $param_args);
-//  $rows = array();
-//  foreach ($rs as $row) {
-//    $rows[] = $row;
-//  }
-//
-//
-//  $data[$data_id] = $rows;
-//  return $rows;
-//}
+function avtxns_txns_query_load($param_where = array(), $param_args = array(), $limit_string = NULL, $order_by_string = NULL) {
+  // Load vendors static variable.
+  //$avbase = &drupal_static('avbase', array());
+  //$avbase['vendors'] = empty($avbase['vendors']) ? array() : $avbase['vendors'];
+  //$_vendors = &$avbase['vendors'];
+
+  // Set / load static variable for this query.
+  $data = &drupal_static(__FUNCTION__, array());
+  $_data_id = $param_where;
+  sort($_data_id);
+  $data_id = md5(json_encode($_data_id) . json_encode($param_args) . json_encode($limit_string));
+
+  if (isset($data[$data_id])) {
+    return $data[$data_id];
+  }
+
+  //$transaction_types = empty($param_where['transaction_types']) ? array() : $param_where['transaction_types'];
+  //unset($param_where['transaction_types']);
+
+  //$queries = array();
+  $query = "SELECT
+    avtxn.id,
+    avtxn.status,
+    avtxn.transaction_type,
+    avtxn.transaction_date,
+    avcat_agent.title AS agent_name,
+    avcat_term.title AS term_name,
+    avclient.display_name
+    FROM {avtbl_transactions} AS avtxn
+    INNER JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id
+    LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
+    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id
+    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id
+  ";
+
+  // Only include queries for specified transaction types.
+  //if (!empty($transaction_types)) {
+  //  $queries = array_intersect_key($queries, array_combine($transaction_types, $transaction_types));
+  //}
+  //dpm($param_args);
+  //dpm($param_where);
+  //$param_where[] = "avcat_agent.title = :SSS";
+  //$param_args[':SSS'] = "sss";
+  //foreach ($queries as $k => $v) {
+    if (!empty($param_where)) {
+      $query .= " WHERE " . implode(' AND ', $param_where);
+    }
+    $query .= " GROUP BY avtxn.id";
+  //}
+
+  //$query = implode(' UNION ', $queries);
+  if (is_null($order_by_string)) {
+    $query .= " ORDER BY avtxn.transaction_date DESC";
+  }
+  else {
+    $query .= " $order_by_string";
+  }
+  if (!is_null($limit_string)) {
+    $query .= " LIMIT " . $limit_string;
+  }
+
+
+  $rs = db_query($query, $param_args);
+  $rows = array();
+  foreach ($rs as $row) {
+    $rows[] = $row;
+  }
+
+
+  $data[$data_id] = $rows;
+  return $rows;
+}
 
 /**
  * Compute new product cost.
@@ -479,7 +383,7 @@ function avtxns_sales_fields(&$form, &$form_state, $row, $view_mode = FALSE){
 /**
  * Ajax callback before submitting a Receive Items form.
  */
-function avtxns_transaction_form_ajax($form, $form_state) {
+function avtxns_txn_form_ajax($form, $form_state) {
   if (form_get_errors()) {
     // Prevent modal from popping out.
     unset($form['cost_changes']['product_cost_changes']);
@@ -505,7 +409,6 @@ function avtxns_transaction_form_ajax($form, $form_state) {
  * Check if product quantity is enough to give out.
  * @param $element
  * @param $form_state
- * @param $form
  */
 function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   $element_value = $element['#value'];
@@ -548,21 +451,6 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   }
 
 
-}
-
-/**
- * Redirect transaction form.
- * @param $form
- * @param $form_state
- */
-function avtxns_redirect_transaction_form($form, &$form_state) {
-  $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
-  $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
-  $redirect_query = array();
-  if ($triggering_element['#id'] == 'submit_and_print') {
-    $redirect_query['print'] = 1;
-  }
-  $form_state['redirect'] = array(arg(0) . '/' . arg(1) . '/' . $transaction_id . '/view', array('query' => $redirect_query));
 }
 
 function avtxns_transaction_types($type) {
@@ -617,51 +505,4 @@ function avtxns_transaction_types($type) {
  */
 function avtxns_get_return_types() {
   return array(AVTXNS_RETURN_TYPE_RS => 'RS', AVTXNS_RETURN_TYPE_RUD => 'RUD');
-}
-
-/**
- * Transaction buttons.
- * @param $transaction_type
- * @param $view_mode
- *
- * @return array
- */
-function avtxns_transaction_buttons($transaction_type, $view_mode) {
-  $buttons = array('#theme' => 'avbase_crud_button_group');
-  $buttons['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#icon_key' => 'save',
-  );
-  if ($transaction_type == 'po') {
-    $buttons['submit_and_send'] = array(
-      '#id' => 'submit_and_send',
-      '#type' => 'submit',
-      '#value' => t('Save and send'),
-      '#icon_key' => 'mail-forward',
-    );
-  }
-
-  $buttons['submit_and_print'] = array(
-    '#id' => 'submit_and_print',
-    '#type' => 'submit',
-    '#value' => t('Save and print'),
-    '#icon_key' => 'print',
-  );
-  if (empty($view_mode)) {
-    $buttons['cancel'] = array(
-      '#markup' => l('Cancel', 'av/txns', array('attributes' => array('class' => array('uk-button')))),
-    );
-  }
-  else {
-    $buttons['print'] = array(
-      '#id' => 'av-print-btn',
-      '#type' => 'button',
-      '#value' => t('Print...'),
-      '#visible_in_view_mode' => TRUE,
-      '#attributes' => array('class' => array('suk-button-primary')),
-      '#icon_key' => 'print',
-    );
-  }
-  return $buttons;
 }
