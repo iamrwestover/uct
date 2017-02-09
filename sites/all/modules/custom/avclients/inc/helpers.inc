@@ -96,8 +96,8 @@ function avclient_query_load($param_where, $param_args = array(), $limit_string 
 
   $query = "SELECT avclients.*, avcat.title as agent_name, avcat_terms.title as term_name
     FROM {avtbl_clients} avclients
-    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avclients.agent_id AND avcat.group_id = 'agent_cust'
-    LEFT JOIN {avtbl_categories} avcat_terms ON avcat_terms.id = avclients.term_id AND avcat_terms.group_id = 'payment_term'";
+    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avclients.agent_id
+    LEFT JOIN {avtbl_categories} avcat_terms ON avcat_terms.id = avclients.term_id";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }

@@ -12,12 +12,17 @@
  * @return array
  */
 function avclients_client_form($form, &$form_state, $client_type, $row, $view_mode = FALSE) {
+  if (!empty($row->id) && $row->client_type != $client_type) {
+    drupal_not_found();
+    drupal_exit();
+  }
+
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
 
   $ctd = avclients_client_types($client_type);
 
   // Set crud settings.
-  avclients_client_form_settings($form, $ctd, $view_mode);
+  avclients_client_form_settings($form, $ctd, $row, $view_mode);
 
   // Info group.
   avclients_client_form_info_fields($form, $ctd, $row, $view_mode);
@@ -92,10 +97,14 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
  * Set crud form settings.
  * @param $form
  * @param array $ctd
+ * @param object $row
  * @param bool $view_mode
  */
-function avclients_client_form_settings(&$form, $ctd, $view_mode = FALSE) {
+function avclients_client_form_settings(&$form, $ctd, $row, $view_mode = FALSE) {
   $table_name = 'avtbl_clients';
+
+  $page_title = empty($row->id) ? t('New @type', array('@type' => $ctd['name'])) : check_plain($row->display_name);
+  drupal_set_title($page_title);
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
@@ -103,9 +112,9 @@ function avclients_client_form_settings(&$form, $ctd, $view_mode = FALSE) {
   $form['client_type'] = array('#type' => 'value', '#value' => $ctd['type']);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'client');
 
-  $form['#attached']['js'] = array(
-    AVCLIENTS_MODULE_PATH . '/js/client_form.js',
-  );
+  //$form['#attached']['js'] = array(
+  //  AVCLIENTS_MODULE_PATH . '/js/client_form.js',
+  //);
 
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
@@ -188,6 +197,7 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->area_id) ? $row->area_id : 0,
+    '#access' => $ctd['type'] == AVCLIENT_TYPE_CUSTOMER,
   );
   //$info['code'] = array(
   //  '#type' => 'textfield',
@@ -213,11 +223,9 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     '#type' => 'textfield',
     '#title' => t('Agent'),
     '#maxlength' => 255,
-    '#autocomplete_path' => 'av/categories/agent1/autocomplete',
-    '#weight' => 1.2,
-    //'#required' => TRUE,
+    '#autocomplete_path' => "av/categories/agent{$ctd['type']}/autocomplete",
     '#element_validate' => array('avbase_element_validate_category_exists'),
-    '#element_validate_conditions' => array('group_id' => 'agent1'),
+    '#element_validate_conditions' => array('group_id' => "agent{$ctd['type']}"),
     '#element_save_id' => 'agent_id',
     '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
   );
@@ -276,7 +284,7 @@ function avclients_client_form_contact_fields(&$form, $ctd, $row, $view_mode = F
   $contact['contact_number'] = array(
     '#type' => 'textfield',
     '#title' => 'Contact number',
-    '#default_value' => isset($row->data['phone1']) ? $row->data['phone1'] : '',
+    '#default_value' => isset($row->contact_number) ? $row->contact_number : '',
     '#maxlength' => 32,
   );
   //$contact['phone2'] = array(
@@ -291,12 +299,13 @@ function avclients_client_form_contact_fields(&$form, $ctd, $row, $view_mode = F
   //  '#default_value' => isset($row->data['phone3']) ? $row->data['phone3'] : '',
   //  '#maxlength' => 32,
   //);
-  //$contact['website'] = array(
-  //  '#type' => 'textfield',
-  //  '#title' => 'Website',
-  //  '#default_value' => isset($row->data['website']) ? check_plain($row->data['website']) : '',
-  //  '#maxlength' => 255,
-  //);
+  $contact['website'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Website',
+    '#default_value' => isset($row->website) ? $row->website : '',
+    '#maxlength' => 255,
+    '#access' => $ctd['type'] == AVCLIENT_TYPE_VENDOR,
+  );
   $form['contact'] += $contact;
 }
 
@@ -358,6 +367,7 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
     '#default_value' => isset($row->payment_method_id) ? $row->payment_method_id : 0,
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
+    '#access' => $ctd['type'] == AVCLIENT_TYPE_CUSTOMER,
   );
   $payment['credit_limit'] = array(
     '#type' => 'textfield',

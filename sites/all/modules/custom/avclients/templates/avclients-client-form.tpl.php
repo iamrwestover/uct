@@ -32,7 +32,11 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 //$form['address']['zip_code']['#attributes']['placeholder'] = 'ZIP Code';
 
 $view_mode = !empty($form['#av_view_mode']);
+
 $transactions_html = drupal_render($form['transactions']);
+$payment_method_html = drupal_render($form['payment']['payment_method_id']);
+$area_html = drupal_render($form['info']['area_id']);
+$website_html = drupal_render($form['contact']['website']);
 ?>
 
 <?php if ($view_mode): ?>
@@ -61,9 +65,14 @@ $transactions_html = drupal_render($form['transactions']);
 
   <div class="uk-width-1-2">
     <div class="uk-grid uk-grid-small">
-      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['area_id']); ?></div>
+      <?php if ($area_html): ?>
+        <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print $area_html; ?></div>
+      <?php endif; ?>
       <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['contact']['email']); ?></div>
       <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['contact']['contact_number']); ?></div>
+      <?php if ($website_html): ?>
+        <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print $website_html; ?></div>
+      <?php endif; ?>
       <!--<div class="uk-width-1-3 --><?php //print $vertical_margin_class; ?><!--">--><?php //print drupal_render($form['contact']['phone2']); ?><!--</div>-->
       <!--<div class="uk-width-1-3 --><?php //print $vertical_margin_class; ?><!--">--><?php //print drupal_render($form['contact']['phone3']); ?><!--</div>-->
 
@@ -112,7 +121,9 @@ $transactions_html = drupal_render($form['transactions']);
         <div class="uk-grid">
           <div class="uk-width-1-2">
             <div class="uk-grid uk-grid-small">
-              <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['payment']['payment_method_id']); ?></div>
+              <?php if ($payment_method_html): ?>
+                <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print $payment_method_html; ?></div>
+              <?php endif; ?>
               <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['term_id']); ?></div>
               <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['discount_type']); ?></div>
               <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['discount_value']); ?></div>

@@ -390,7 +390,7 @@ function avbase_library() {
  * @param $form_state
  * @param string $entity_name
  */
-function avbase_entity_overview_form($form, &$form_state, $entity_name) {
+function avbase_entity_overview_form($form, &$form_state, $entity_name, $entity_type) {
   module_load_include('inc', 'avbase', 'inc/entity_overview.form');
   $form['#attributes']['id'] = 'entity-search-form';
   $form['#attributes']['autocomplete'] = 'off';
@@ -399,6 +399,6 @@ function avbase_entity_overview_form($form, &$form_state, $entity_name) {
   // Add Search form.
   $form['search'] = avbase_entity_overview_search_form($form_state, $entity_name);
   //$form['buttons'] = avbase_entity_overview_buttons_form($form_state, $entity_name);
-  $form['entity_info'] = avbase_entity_overview_info_form($form_state, $entity_name);
+  //$form['entity_info'] = avbase_entity_overview_info_form($form_state, $entity_name);
   return $form;
 }
