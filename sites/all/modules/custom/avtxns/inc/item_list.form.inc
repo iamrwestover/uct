@@ -60,7 +60,21 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#default_value' => isset($row->reference_id) ? $row->reference_id : '',
     '#maxlength' => 32,
     '#required' => TRUE,
-    '#access' => $transaction_type == AVTXNS_TXN_TYPE_RECEIVE,
+    '#access' => in_array($transaction_type, array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN)),
+  );
+  if (!empty($form_state['values']['selected_pos']['transaction_id'])) {
+    $form_state['input']['return_type'] = AVTRANS_RETURN_TYPE_RUD;
+  }
+  $form['return_type'] = array(
+    '#id' => 'return-type',
+    '#type' => 'select',
+    '#title' => 'Return type',
+    '#options' => avtrans_get_return_types(),
+    '#default_value' => isset($row->return_type) ? $row->return_type : '',
+    '#required' => TRUE,
+    '#empty_value' => '',
+    '#empty_option' => '- Select -',
+    '#access' => in_array($transaction_type, array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN)),
   );
   $form['email'] = array(
     '#id' => 'vendor-email',
@@ -484,6 +498,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         'effect' => 'none',
         'event' => 'click',
       ),
+      '#access' => empty($row->id),
     );
     if ($transaction_type == 'sinv') {
       $fields['prod_delete_btn']['#access'] = $reference_transaction_type == 'ret';
