@@ -37,7 +37,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
     'transaction_date' => array('data' => t('Order Date')),
     'total' => array('data' => t('Total'), 'class' => 'uk-text-right'),
   );
-  if ($transaction_type == 'spay') {
+  if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
     unset($header['agent_name']);
   }
   $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
@@ -51,7 +51,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       'transaction_date' => format_date($v->transaction_date, 'custom', 'Y M d'),
       'total' => array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right')),
     );
-    if ($transaction_type == 'spay') {
+    if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
       unset($table_rows[$v->id]['agent_name']);
     }
   }
@@ -116,7 +116,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       'class' => array('av-ajax-trigger', 'uk-button-primary'),
     ),
     '#submit' => array('avtxns_pending_orders_form_submit'),
-    '#limit_validation_errors' => array(array('client_name'), array('selected_pos')),
+    '#limit_validation_errors' => array(array('client_name'), array('selected_pos'), array('transaction_type')),
     '#ajax' => array(
       'callback' => 'avtxns_txn_form_ajax',
       //'wrapper' => 'avtxns-gr-cost-changed-wrapper',
@@ -194,7 +194,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       // Remove item rows not owned by this client.
       foreach ($_item_rows as $k => $item_row) {
         $item_client_id = empty($item_row['client_id']) ? NULL : $item_row['client_id'];
-        if (!empty($item_row['transaction_id']) && (empty($client_id) || $item_client_id != $client_id)) {
+        if (/*!empty($item_row['transaction_id']) && */!empty($item_client_id) && (empty($client_id) || $item_client_id != $client_id)) {
           unset($_item_rows[$k]);
           unset($form_state['input']['product_rows'][$k]);
         }
@@ -215,7 +215,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       //  }
       //  $po_items = empty($po->items) ? array() : $po->items;
       //  foreach ($po_items as $reference_id => $po_item) {
-      //    if (!in_array($transaction_type, array('ret', 'sinv', 'spay'))) {
+      //    if (!in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, 'sinv', 'spay'))) {
       //      if ($po_item->remaining_base_qty < 1) {
       //        continue;
       //      }
@@ -257,7 +257,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
 
       // Remove previously loaded pending items.
       foreach ($_item_rows as $k => $v) {
-        if ($reference_type == 'ret') {
+        if ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
           continue;
         }
         if (strstr($k, "{$reference_type}_db_item_")) {
@@ -268,10 +268,10 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       // Select po items and add them to $_item_rows.
       $receive_pos = array();
       foreach ($selected_transaction_details as $transaction) {
-        if ($transaction_type == 'spay') {
+        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
           $item_row_id = "{$reference_type}_db_item_{$transaction->id}";
           $transaction_arr = (array) $transaction;
-          $transaction_arr['reference_id'] = $transaction->id;
+          $transaction_arr['ref_txn_dtl_id'] = $transaction->id;
           if (!empty($trigger['#reference_type'])) {
             $transaction_arr['reference_type'] = $trigger['#reference_type'];
           }
@@ -279,79 +279,78 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           //$transaction_arr['transaction_id'] = $transaction_arr['id'];
           unset($transaction_arr['id']);
           unset($transaction_arr['items']);
-          $transaction_arr['transaction_date_formatted'] = format_date($transaction_arr['transaction_date'], 'custom', 'Y M d, h:i a');
-          $query = "SELECT SUM(paid_amount) FROM {avtbl_spay_items} WHERE reference_id = :invoice_id";
+          $transaction_arr['transaction_date_formatted'] = format_date($transaction_arr['transaction_date'], 'custom', 'Y M d');
+          $query = "SELECT SUM(paid_amount) FROM {avtbl_transaction_details} WHERE ref_txn_dtl_id = :invoice_id";
           $total_paid_for_invoice = db_query($query, array(':invoice_id' => $transaction->id))->fetchField();
           $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
           $transaction_arr['balance'] = avbase_number_format(round($transaction->grand_total - $total_paid_for_invoice, 2), 2);
           $transaction_arr['paid_amount'] = $transaction_arr['balance'];
           $transaction_arr['previous_payment'] = avbase_number_format($total_paid_for_invoice, 2);
           $receive_pos[$item_row_id] = $transaction_arr;
-
-          continue;
         }
+        else {
+          $db_item_rows = empty($transaction->items) ? array() : $transaction->items;
+          foreach ($db_item_rows as $item_row) {
+            $item_row_id = "{$reference_type}_db_item_{$transaction->id}_{$item_row->id}";
+            $item_row_arr = (array)$item_row;
+            unset($item_row_arr['id']);
+            $item_row_arr['ref_txn_dtl_id'] = $item_row->id;
+            $item_row_arr['ref_txn_id'] = $transaction->id;
+            //$item_row_arr['ref_txn_type'] = $transaction->transaction_type;
 
-        $db_item_rows = empty($transaction->items) ? array() : $transaction->items;
-        foreach ($db_item_rows as $item_row) {
-          $item_row_id = "{$reference_type}_db_item_{$transaction->id}_{$item_row->id}";
-          $item_row_arr = (array)$item_row;
-          unset($item_row_arr['id']);
-          $item_row_arr['ref_txn_dtl_id'] = $item_row->id;
-          $item_row_arr['ref_txn_id'] = $transaction->id;
-          //$item_row_arr['ref_txn_type'] = $transaction->transaction_type;
+            if (!empty($trigger['#reference_type'])) {
+              $item_row_arr['reference_type'] = $trigger['#reference_type'];
+            }
 
-          if (!empty($trigger['#reference_type'])) {
-            $item_row_arr['reference_type'] = $trigger['#reference_type'];
+            // Set qty to remaining qty value.
+            //$remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
+            //if ($remaining_base_qty < 1) {
+            //  continue;
+            //}
+            //
+            //// Check if remaining qty is still divisible by qty per UOM.
+            //if ($remaining_base_qty % $item_row_arr['qty_per_uom']) {
+            //  // Set qty to remaining base qty.
+            //  $item_row_arr['qty'] = $remaining_base_qty;
+            //
+            //  // Recompute cost.
+            //  $item_row_arr['cost'] = $item_row_arr['cost'] / $item_row_arr['qty_per_uom'];
+            //
+            //  // Replace UOM with base UOM.
+            //  $item_row_arr['uom_id'] = $item_row_arr['base_uom_id'];
+            //  $item_row_arr['uom_title'] = $item_row_arr['base_uom_title'];
+            //  $item_row_arr['qty_per_uom'] = 1;
+            //} else {
+            //  // Set qty by dividing remaining qty to qty per uom.
+            //  $item_row_arr['qty'] = $remaining_base_qty / $item_row_arr['qty_per_uom'];
+            //}
+
+            // Recompute total amount.
+            //$item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
+            ////if (!in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, 'rept'))) {
+            //$discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
+            //foreach ($discount as $v) {
+            //  if (is_numeric($v)) {
+            //    $v = (float)$v;
+            //    $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
+            //  }
+            //}
+            //$item_row_arr['total'] = round($item_row_arr['total'], 2);
+            $item_row_arr['total'] *= $reference_type == AVTXNS_TXN_TYPE_SALES_RETURN ? -1 : 1;
+            $item_row_arr['total'] = avbase_number_format($item_row_arr['total'], 2);
+            //}
+
+
+            // More preparation.
+            $item_row_arr['client_id'] = $transaction->client_id;
+            $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost'], 2);
+            $receive_pos[$item_row_id] = $item_row_arr;
           }
-
-          // Set qty to remaining qty value.
-          //$remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
-          //if ($remaining_base_qty < 1) {
-          //  continue;
-          //}
-          //
-          //// Check if remaining qty is still divisible by qty per UOM.
-          //if ($remaining_base_qty % $item_row_arr['qty_per_uom']) {
-          //  // Set qty to remaining base qty.
-          //  $item_row_arr['qty'] = $remaining_base_qty;
-          //
-          //  // Recompute cost.
-          //  $item_row_arr['cost'] = $item_row_arr['cost'] / $item_row_arr['qty_per_uom'];
-          //
-          //  // Replace UOM with base UOM.
-          //  $item_row_arr['uom_id'] = $item_row_arr['base_uom_id'];
-          //  $item_row_arr['uom_title'] = $item_row_arr['base_uom_title'];
-          //  $item_row_arr['qty_per_uom'] = 1;
-          //} else {
-          //  // Set qty by dividing remaining qty to qty per uom.
-          //  $item_row_arr['qty'] = $remaining_base_qty / $item_row_arr['qty_per_uom'];
-          //}
-
-          // Recompute total amount.
-          //$item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
-          ////if (!in_array($transaction_type, array('ret', 'rept'))) {
-          //$discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
-          //foreach ($discount as $v) {
-          //  if (is_numeric($v)) {
-          //    $v = (float)$v;
-          //    $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
-          //  }
-          //}
-          //$item_row_arr['total'] = round($item_row_arr['total'], 2);
-          $item_row_arr['total'] *= $reference_type == 'ret' ? -1 : 1;
-          $item_row_arr['total'] = avbase_number_format($item_row_arr['total'], 2);
-          //}
-
-
-          // More preparation.
-          $item_row_arr['client_id'] = $transaction->client_id;
-          $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost'], 2);
-          $receive_pos[$item_row_id] = $item_row_arr;
         }
       }
 
       $form_state['input']['product_rows'] = empty($form_state['input']['product_rows']) ? array() : $form_state['input']['product_rows'];
-      if ($reference_type == 'ret') {
+      if ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
         $_item_rows = $_item_rows + $receive_pos;
         $form_state['input']['product_rows'] = $form_state['input']['product_rows'] + $receive_pos;
       }

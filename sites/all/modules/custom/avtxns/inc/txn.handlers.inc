@@ -53,12 +53,28 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       //$matching_table_field_names = array();
       $item_ids = array();
       foreach ($item_rows as $item_row) {
-        if (empty($item_row['product_id'])) {
+        if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT && empty($item_row['product_id'])) {
           continue;
         }
+        // Make sure only item rows owned by this owner get saved.
+        if (!empty($item_row['client_id']) && $item_row['client_id'] != $row['client_id']) {
+          continue;
+        }
+
+        // Set foreign key.
         $item_row['transaction_id'] = $row['id'];
+
+        // Initialize variables.
         $item_ids[] = $item_row['item_id'] = $item_row['product_id'];
         $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = NULL;
+        $insert_arr = $update_arr = array();
+
+        // Overwrite paid amount.
+        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+          $item_row['paid_amount'] = $item_row['total'];
+        }
+
+        // Explode discount text to discount array.
         $discount_text = isset($item_row['discount']) ? trim($item_row['discount']) : '';
         $discount_parts = explode('/', $discount_text);
         $x = 1;
@@ -69,63 +85,29 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           $item_row['discount' . $x++] = (float) $v;
         }
 
+        // Remember transaction detail id to know which rows to insert/update.
         $transaction_detail_id = empty($item_row['id']) ? 0 : $item_row['id'];
         if (!empty($transaction_detail_id)) {
           $transaction_detail_ids[] = $transaction_detail_id;
         }
 
-        //ksort($item_row);
-        $insert_arr = $update_arr = array();
+        // Build insert and update array.
         foreach ($all_table_field_names as $field_name) {
           $arg_id = ':arg_' . count($insert_args);
           $value = isset($item_row[$field_name]) ? $item_row[$field_name] : NULL;
           if (empty($transaction_detail_id)) {
             $insert_arr[] = $arg_id;
             $insert_args[$arg_id] = $value;
-            //$matching_table_field_names[$k] = $k;
           }
           elseif (!is_null($value)) {
             $update_rows[$field_name][$transaction_detail_id] = $value;
           }
         }
-
-        //foreach ($item_row as $k => $v) {
-        //  if (!in_array($k, $all_table_field_names)) {
-        //    continue;
-        //  }
-        //  $arg_id = ':arg_' . count($insert_args);
-        //  if (empty($transaction_detail_id)) {
-        //    $insert_arr[] = $arg_id;
-        //    $insert_args[$arg_id] = $v;
-        //    $matching_table_field_names[$k] = $k;
-        //  }
-        //  else {
-        //    $update_rows[$k][$transaction_detail_id] = $v;
-        //  }
-        //}
-
         if (!empty($insert_arr)) {
           $insert_rows[] = "(" . implode(',', $insert_arr) . ")";
         }
 
-        // Find transaction IDs to close.
-        //if ($transaction_type == 'spay') {
-        //  $close_transaction_ids[] = $item_row['reference_id'];
-        //}
-        //elseif ($transaction_type == 'gr') {
-        //  $close_transaction_ids['po'][$item_row['po_id']] = $item_row['po_id'];
-        //}
-        //elseif ($transaction_type == 'dr') {
-        //  $close_transaction_ids['so'][$item_row['so_id']] = $item_row['so_id'];
-        //}
-        ////elseif ($transaction_type == 'ret') {
-        ////  $close_transaction_ids['dr'][] = $item_row['dr_id'];
-        ////}
-        //elseif ($transaction_type == 'sinv') {
-        //  $reference_type =  empty($item_row['reference_type']) ? '' : $item_row['reference_type'];
-        //  $close_transaction_ids[$reference_type][$item_row[$reference_type . '_id']] = $item_row[$reference_type . '_id'];
-        //}
-
+        // Remember which transaction IDs to close.
         if (!empty($item_row['ref_txn_id'])) {
           $close_transaction_ids[$item_row['ref_txn_id']] = $item_row['ref_txn_id'];
         }
@@ -145,7 +127,6 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         }
         $incoming_base_qty[$item_row['item_id']] = $this_prod_total_incoming_base_qty + $item_row_incoming_base_qty - $previous_incoming_base_qty;
       }
-
 
       // Insert new rows.
       if (!empty($insert_rows)) {
@@ -260,6 +241,9 @@ function avtxns_txn_form_submit2($form, &$form_state) {
   switch ($trigger['#id']) {
     case 'detect-cost-change-btn':
     case 'submit_and_print':
+      if (empty($ttd['cost_change'])) {
+        break;
+      }
       // Get non-empty product rows from item rows.
       $entered_products = array();
       $product_ids = array();

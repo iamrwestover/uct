@@ -13,10 +13,10 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
   $_item_rows = &$_storage['item_rows'];
-  $transaction_type = empty($_storage['transaction_type']) ? '' : $_storage['transaction_type'];
+  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
 
   // Make sure at least one product is added.
-  if ($transaction_type != 'spay') {
+  if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
     $detected_product_ids = array();
     foreach ($_item_rows as $k => $row) {
       if (!empty($row['product_id'])) {
@@ -27,7 +27,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
 
     // No valid product detected.
     if (empty($detected_product_ids)) {
-      form_set_error('', t('Please add at least one valid product.'));
+      form_set_error('', t('Please add at least one valid item.'));
     }
 
     // Save product row details into drupal JS settings.
@@ -49,7 +49,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   }
   $_item_rows = $merged;
 
-  if ($transaction_type == 'spay' && empty($_item_rows)) {
+  if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && empty($_item_rows)) {
     form_set_error('', t('No payment received.'));
   }
 }

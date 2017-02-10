@@ -15,6 +15,11 @@ module_load_include('inc', 'avtxns', 'inc/txn_pending_orders.form');
  * @return array
  */
 function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
+  if (!empty($row->id) && $row->transaction_type != $transaction_type) {
+    drupal_not_found();
+    drupal_exit();
+  }
+
   if (empty($row->status) && empty($view_mode) && !empty($row->id)) {
     drupal_set_message('This transaction cannot be modified anymore.', 'warning');
     $view_mode = TRUE;
@@ -43,7 +48,40 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
   }
 
   // Buttons.
-  $form['buttons'] = avtxns_transaction_buttons($transaction_type, $view_mode);
+  $form['buttons'] = avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_mode);
+
+  //if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+  //  // Add extra button to load customer returns.
+  //  $form['buttons']['check_returns'] = $form['pending_orders']['buttons']['check_po'];
+  //  $form['buttons']['check_returns']['#avposition'] = 'opposite';
+  //  $form['buttons']['check_returns']['#value'] = t('Add returns');
+  //  //$form['buttons']['check_returns']['#weight'] = -1;
+  //  //$form['buttons']['check_returns']['#icon_key'] = 'money';
+  //  $form['buttons']['check_returns']['#id'] = 'check-ret-btn';
+  //  $form['buttons']['check_returns']['#reference_type'] = AVTXNS_TXN_TYPE_SALES_RETURN;
+  //  $form['buttons']['check_returns']['#access'] = TRUE;
+  //  $form['buttons']['check_returns']['#disabled'] = TRUE;
+  //
+  //  //$form['buttons']['check_returns']['#attributes']['class']['margin'] = 'uk-margin-large-right';
+  //  unset($form['buttons']['check_returns']['#attributes']['class']['color']);
+  //  unset($form['buttons']['check_returns']['#attributes']['class']['hide']);
+  //  //unset($form['buttons']['check_returns']['#ajax']);
+  //
+  //  // Count pending returns.
+  //  $client_name = empty($row->client_name) ? NULL : $row->client_name;
+  //  $client_name = empty($client_name) ? (empty($form_state['values']['client_name']) ? NULL : $form_state['values']['client_name']) : $client_name;
+  //  if (!empty($client_name)) {
+  //    $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
+  //      INNER JOIN {avtbl_clients} avclient ON avclient.id = avtxn.client_id
+  //      WHERE avclient.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
+  //    $count = db_query($query, array(':client_name' => $client_name, ':ttype' => AVTXNS_TXN_TYPE_SALES_RETURN))->fetchField();
+  //    if (!empty($count)) {
+  //      //$form['buttons']['check_returns']['#attributes']['class']['color'] = 'uk-button-success';
+  //      $form['buttons']['check_returns']['#value'] .= " - <em>$count pending</em>";
+  //      $form['buttons']['check_returns']['#disabled'] = FALSE;
+  //    }
+  //  }
+  //}
 
   // Convert form to non-edit mode if we are on View page.
   avbase_allow_form_view_mode($form, $view_mode);
@@ -108,7 +146,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
     'agent_id' => array('type' => 'int'),
     'reference_id',
     'return_type' => array('type' => 'int'),
-    'due_date',
+    'due_date' => array('type' => 'int'),
     'memo',
     'email',
     'message',
@@ -133,12 +171,14 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
 
 /**
  * Transaction buttons.
+ * @param array $form_state
  * @param $transaction_type
+ * @param $row
  * @param $view_mode
  *
  * @return array
  */
-function avtxns_transaction_buttons($transaction_type, $view_mode) {
+function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_mode) {
   // Get transaction type details.
   $ttd = avtxns_txn_types($transaction_type);
 
@@ -190,6 +230,44 @@ function avtxns_transaction_buttons($transaction_type, $view_mode) {
     );
     $buttons['submit_and_print']['#attributes'] = $buttons['submit']['#attributes'];
     $buttons['submit_and_print']['#ajax'] = $buttons['submit']['#ajax'];
+  }
+
+  if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+    // Add extra button to load customer returns.
+    $buttons['check_returns'] = array(
+      '#id' => 'check-ret-btn',
+      '#type' => 'submit',
+      '#value' => t('Add returns'),
+      '#attributes' => array(
+        'class' => array('av-ajax-trigger'),
+      ),
+      '#submit' => array('avtxns_pending_orders_form_submit'),
+      '#limit_validation_errors' => array(array('client_name'), array('client_id'), array('transaction_type')),
+      '#ajax' => array(
+        'callback' => 'avtxns_txn_form_ajax',
+        'wrapper' => 'avtxns-txn-form-wrapper',
+        'effect' => 'none',
+        'event' => 'click',
+      ),
+      '#reference_type' => AVTXNS_TXN_TYPE_SALES_RETURN,
+      '#avposition' => 'opposite',
+      //'#disabled' => TRUE,
+    );
+
+    // Count pending returns.
+    $client_name = empty($row->client_name) ? NULL : $row->client_name;
+    $client_name = empty($client_name) ? (empty($form_state['values']['client_name']) ? NULL : $form_state['values']['client_name']) : $client_name;
+    if (!empty($client_name)) {
+      $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
+        INNER JOIN {avtbl_clients} avclient ON avclient.id = avtxn.client_id
+        WHERE avclient.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
+      $count = db_query($query, array(':client_name' => $client_name, ':ttype' => AVTXNS_TXN_TYPE_SALES_RETURN))->fetchField();
+      if (!empty($count)) {
+        //$buttons['check_returns']['#attributes']['class']['color'] = 'uk-button-success';
+        $buttons['check_returns']['#button_label'] = "Add returns - <em>$count pending</em>";
+        //$buttons['check_returns']['#disabled'] = FALSE;
+      }
+    }
   }
   return $buttons;
 }

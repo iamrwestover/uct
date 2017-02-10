@@ -57,7 +57,7 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
     <div class="uk-grid uk-grid-collapse">
       <div class="uk-width-2-10">
         <div class="av-nestable-cell">
-        <?php print drupal_render($form['reference_id']); ?>
+        <?php print drupal_render($form['ref_txn_dtl_id']); ?>
         </div>
       </div>
       <div class="uk-width-2-10">

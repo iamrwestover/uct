@@ -164,7 +164,7 @@ function avtxns_txns_home_form($form, &$form_state) {
 function avtxns_txn_types($type = NULL) {
   $ret = &drupal_static(__FUNCTION__, array());
   if (empty($ret)) {
-    // Sales
+    // Purchase.
     $ret[AVTXNS_TXN_TYPE_PURCHASE_ORDER] = array(
       'type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
@@ -193,7 +193,7 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
       'qty_change' => 'decrement',
     );
-    // Purchase.
+    // Sales.
     $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
       'type' => AVTXNS_TXN_TYPE_SALES_ORDER,
       'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_SALES_ORDER,
@@ -222,6 +222,24 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
       'qty_change' => 'increment',
+    );
+    $ret[AVTXNS_TXN_TYPE_INVOICE] = array(
+      'type' => AVTXNS_TXN_TYPE_INVOICE,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_INVOICE,
+      'transaction' => 'sales',
+      'name' => 'Invoice',
+      'plural_name' => 'Invoices',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
+    );
+    $ret[AVTXNS_TXN_TYPE_PAYMENT] = array(
+      'type' => AVTXNS_TXN_TYPE_PAYMENT,
+      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PAYMENT,
+      'transaction' => 'sales',
+      'name' => 'Received Payment',
+      'plural_name' => 'Received Payment',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_INVOICE,
     );
   }
 

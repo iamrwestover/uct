@@ -135,20 +135,26 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $rows = array();
   foreach ($rs as $row) {
     $subtotal = 0;
+    $credit_total = 0;
+    $debit_total = 0;
     if (!empty($row->id)) {
-      $query = db_select('avtbl_transaction_details', 'avtxn_items');
-      $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_items.item_id');
-      $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avtxn_items.uom_id AND avcat.group_id = 'uom'");
-      $query->leftJoin('avtbl_categories', 'avcat_base', "avcat_base.id = avprod.uom_id AND avcat.group_id = 'uom'");
-      $query->addField('avprod', 'title', 'product_title');
-      $query->addField('avprod', 'uom_id', 'base_uom_id');
-      $query->addField('avcat', 'title', 'uom_title');
-      $query->addField('avcat_base', 'title', 'base_uom_title');
-      $query->fields('avtxn_items')
-        ->condition('avtxn_items.transaction_id', $row->id)
-        ->execute();
-      $rs = $query->execute();
-      foreach ($rs as $item) {
+      $query = db_select('avtbl_transaction_details', 'avtxn_details');
+      if ($row->transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
+        $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_details.item_id');
+        $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avtxn_details.uom_id AND avcat.group_id = 'uom'");
+        $query->leftJoin('avtbl_categories', 'avcat_base', "avcat_base.id = avprod.uom_id AND avcat.group_id = 'uom'");
+        $query->leftJoin('avtbl_transaction_details', 'avtxn_reference', 'avtxn_reference.id = avtxn_details.ref_txn_dtl_id');
+        $query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_reference.transaction_id');
+        $query->addField('avprod', 'title', 'product_title');
+        $query->addField('avprod', 'uom_id', 'base_uom_id');
+        $query->addField('avcat', 'title', 'uom_title');
+        $query->addField('avcat_base', 'title', 'base_uom_title');
+        $query->addField('avtxn_reference', 'transaction_id', 'ref_txn_id');
+        $query->addField('avtxn', 'transaction_type', 'ref_txn_type');
+      }
+      $query->fields('avtxn_details')->condition('avtxn_details.transaction_id', $row->id)->execute();
+      $details_rs = $query->execute();
+      foreach ($details_rs as $item) {
         $item->total = $item->cost * $item->qty;
         $discount = array();
         for ($x = 1; $x <= 4; $x++) {
@@ -164,6 +170,16 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $item->total = $item->total - (($item->total * $v) / 100);
           }
         }
+
+        if (isset($item->ref_txn_type)) {
+          if ($item->ref_txn_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+            $credit_total += $item->total;
+            $item->total *= -1;
+          } else {
+            $debit_total += $item->total;
+          }
+        }
+
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
         $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
         if ($row->transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item->good_stock)) {
@@ -179,6 +195,8 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     //$row->discounted_value = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (($row->discount_value / 100) * $subtotal) : $row->discount_value;
     //$row->grand_total = $subtotal - $row->discounted_value;
     $row->grand_total = $subtotal;
+    $row->credit_total = $credit_total;
+    $row->debit_total = $debit_total;
 
     // Attach received items.
     //avtxns_txn_attach_received_items($row);
@@ -291,7 +309,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
 
   //$query = implode(' UNION ', $queries);
   if (is_null($order_by_string)) {
-    $query .= " ORDER BY avtxn.transaction_date DESC";
+    $query .= " ORDER BY avtxn.transaction_date DESC, avtxn.id DESC";
   }
   else {
     $query .= " $order_by_string";
@@ -388,7 +406,6 @@ function avtxns_txn_form_ajax($form, $form_state) {
     // Prevent modal from popping out.
     unset($form['cost_changes']['product_cost_changes']);
   }
-
 
   if (!empty($form_state['redirect'])) {
     $commands = array();

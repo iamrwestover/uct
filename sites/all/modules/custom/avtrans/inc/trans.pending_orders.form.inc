@@ -373,63 +373,62 @@ function avtrans_pending_orders_form_submit($form, &$form_state) {
           $transaction_arr['paid_amount'] = $transaction_arr['balance'];
           $transaction_arr['previous_payment'] = avbase_number_format($total_paid_for_invoice, 2);
           $receive_pos[$item_row_id] = $transaction_arr;
-
-          continue;
         }
+        else {
+          $db_item_rows = empty($transaction->items) ? array() : $transaction->items;
+          foreach ($db_item_rows as $item_row) {
+            $item_row_id = "{$reference_type}_db_item_{$transaction->id}_{$item_row->id}";
+            $item_row_arr = (array)$item_row;
+            unset($item_row_arr['id']);
+            $item_row_arr['reference_id'] = $item_row->id;
 
-        $db_item_rows = empty($transaction->items) ? array() : $transaction->items;
-        foreach ($db_item_rows as $item_row) {
-          $item_row_id = "{$reference_type}_db_item_{$transaction->id}_{$item_row->id}";
-          $item_row_arr = (array)$item_row;
-          unset($item_row_arr['id']);
-          $item_row_arr['reference_id'] = $item_row->id;
-
-          if (!empty($trigger['#reference_type'])) {
-            $item_row_arr['reference_type'] = $trigger['#reference_type'];
-          }
-
-          // Set qty to remaining qty value.
-          $remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
-          if ($remaining_base_qty < 1) {
-            continue;
-          }
-
-          // Check if remaining qty is still divisible by qty per UOM.
-          if ($remaining_base_qty % $item_row_arr['qty_per_uom']) {
-            // Set qty to remaining base qty.
-            $item_row_arr['qty'] = $remaining_base_qty;
-
-            // Recompute cost.
-            $item_row_arr['cost'] = $item_row_arr['cost'] / $item_row_arr['qty_per_uom'];
-
-            // Replace UOM with base UOM.
-            $item_row_arr['uom_id'] = $item_row_arr['base_uom_id'];
-            $item_row_arr['uom_title'] = $item_row_arr['base_uom_title'];
-            $item_row_arr['qty_per_uom'] = 1;
-          } else {
-            // Set qty by dividing remaining qty to qty per uom.
-            $item_row_arr['qty'] = $remaining_base_qty / $item_row_arr['qty_per_uom'];
-          }
-
-          // Recompute total amount.
-          $item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
-          //if (!in_array($transaction_type, array('ret', 'rept'))) {
-          $discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
-          foreach ($discount as $v) {
-            if (is_numeric($v)) {
-              $v = (float)$v;
-              $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
+            if (!empty($trigger['#reference_type'])) {
+              $item_row_arr['reference_type'] = $trigger['#reference_type'];
             }
+
+            // Set qty to remaining qty value.
+            $remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
+            if ($remaining_base_qty < 1) {
+              continue;
+            }
+
+            // Check if remaining qty is still divisible by qty per UOM.
+            if ($remaining_base_qty % $item_row_arr['qty_per_uom']) {
+              // Set qty to remaining base qty.
+              $item_row_arr['qty'] = $remaining_base_qty;
+
+              // Recompute cost.
+              $item_row_arr['cost'] = $item_row_arr['cost'] / $item_row_arr['qty_per_uom'];
+
+              // Replace UOM with base UOM.
+              $item_row_arr['uom_id'] = $item_row_arr['base_uom_id'];
+              $item_row_arr['uom_title'] = $item_row_arr['base_uom_title'];
+              $item_row_arr['qty_per_uom'] = 1;
+            } else {
+              // Set qty by dividing remaining qty to qty per uom.
+              $item_row_arr['qty'] = $remaining_base_qty / $item_row_arr['qty_per_uom'];
+            }
+
+            // Recompute total amount.
+            $item_row_arr['total'] = round(($item_row_arr['cost'] * $item_row_arr['qty']), 2);
+            //if (!in_array($transaction_type, array('ret', 'rept'))) {
+            $discount = empty($item_row_arr['discount']) ? array() : explode('/', $item_row_arr['discount']);
+            foreach ($discount as $v) {
+              if (is_numeric($v)) {
+                $v = (float)$v;
+                $item_row_arr['total'] = $item_row_arr['total'] - (($item_row_arr['total'] * $v) / 100);
+              }
+            }
+            $item_row_arr['total'] = round($item_row_arr['total'], 2);
+            $item_row_arr['total'] *= $reference_type == 'ret' ? -1 : 1;
+            //}
+
+
+            // More preparation.
+            $item_row_arr['client_id'] = $transaction->client_id;
+            $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost']);
+            $receive_pos[$item_row_id] = $item_row_arr;
           }
-          $item_row_arr['total'] = round($item_row_arr['total'], 2);
-          $item_row_arr['total'] *= $reference_type == 'ret' ? -1 : 1;
-          //}
-
-
-          // More preparation.
-          $item_row_arr['client_id'] = $transaction->client_id;
-          $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost']);
-          $receive_pos[$item_row_id] = $item_row_arr;
         }
       }
 

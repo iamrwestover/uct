@@ -27,7 +27,7 @@ function avtrans_item_list_fields_validate(&$form, &$form_state) {
 
     // No valid product detected.
     if (empty($detected_product_ids)) {
-      form_set_error('', t('Please add at least one valid product.'));
+      form_set_error('', t('Please add at least one valid item.'));
     }
 
     // Save product row details into drupal JS settings.
