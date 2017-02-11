@@ -76,6 +76,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
   else {
     $where[] = 1;
   }
+
   if (!empty($search_string)) {
     $where_or = array(
       "av{$entity_name}.display_name LIKE :string",
@@ -89,6 +90,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
   }
 
   $result = array();
+  $menu_path = 'av/' . $entity_name;
   switch ($entity_name) {
     case 'vendors':
       $result = avvendor_query_load($where, $args, '12');
@@ -97,7 +99,9 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
       $result = avcustomer_query_load($where, $args, '12');
       break;
     case 'clients':
+      $ctd = avclients_client_types($entity_type);
       $result = avclient_query_load($where, $args, '12');
+      $menu_path = $ctd['base_path'];
       break;
   }
 
@@ -109,7 +113,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
     $index++;
     $status = isset($row->status) ? $row->status : NULL;
 
-    $menu_prefix = "av/$entity_name/" . $row->id;
+    $menu_prefix = "$menu_path/" . $row->id;
     $linked_name = l($row->display_name, $menu_prefix . '/view');
     $rows[$index] = array(
       'data' => array(
@@ -119,7 +123,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
       'class' => array('uk-table-middle'),
       'data-entity-id' => $row->id,
     );
-    if ($status == AVCUSTOMER_STATUS_SUSPENDED) {
+    if ($status == AVCLIENT_STATUS_SUSPENDED) {
       $rows[$index]['class'][] = 'suk-alert uk-alert-warning';
     }
     $loaded_entities[] = $row;
@@ -179,7 +183,7 @@ function avbase_entity_overview_buttons_form(&$form_state, $entity_name, $row) {
   $transaction_buttons = array();
   $entity_details = avbase_entity_details();
   $entity_details = $entity_details[$entity_name];
-  $menu_path = $entity_name;
+  $menu_path = 'av/' . $entity_name;
   $entity_title = $entity_details['title'];
   switch ($entity_name) {
     case 'vendors':
@@ -194,7 +198,7 @@ function avbase_entity_overview_buttons_form(&$form_state, $entity_name, $row) {
       $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
       $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
       $ctd = avclients_client_types($row->client_type);
-      $menu_path = $ctd['menu'];
+      $menu_path = $ctd['base_path'];
       $entity_title = $ctd['name'];
       break;
   }
@@ -216,12 +220,12 @@ HTML;
 
 
   $other_buttons = array(
-    'new_entity' => l(t('New') . ' ' . $entity_title, "av/$menu_path/add", array('attributes' => array(
+    'new_entity' => l(t('New') . ' ' . $entity_title, "$menu_path/add", array('attributes' => array(
       'class' => array('uk-button uk-button-success uk-margin-small-left')
     ))),
   );
   if ($entity_id) {
-    $other_buttons['edit_entity'] = l(t('Edit'), "av/$menu_path/{$row->id}/edit", array('attributes' => array(
+    $other_buttons['edit_entity'] = l(t('Edit'), "$menu_path/{$row->id}/edit", array('attributes' => array(
       'class' => array('uk-button uk-button-success uk-margin-small-left')
     )));
   }

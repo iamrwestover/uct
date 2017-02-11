@@ -119,7 +119,6 @@ function avimport_db_insert(&$results, $row, $type) {
       $results['inserted'][] = $row;
     }
     else {
-
       $_insert_errors[$row_num] = t('Error while importing data on row %row_num (%title) into database. %result_err', array('%title' => $title,'%row_num' => $row_num, '%result_err' => $result));
     }
   }
@@ -201,6 +200,8 @@ function avimport_db_insert_products_row($excel_row) {
  * @return bool
  */
 function avimport_db_insert_vendors_row($excel_row) {
+  return avimport_db_insert_clients_row($excel_row, AVCLIENT_TYPE_VENDOR);
+
   // Build insert row.
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'vendors');
 
@@ -244,6 +245,7 @@ function avimport_db_insert_vendors_row($excel_row) {
  * @return bool
  */
 function avimport_db_insert_customers_row($excel_row) {
+  return avimport_db_insert_clients_row($excel_row, AVCLIENT_TYPE_CUSTOMER);
   // Build insert row.
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'customers');
 
@@ -292,14 +294,67 @@ function avimport_db_insert_customers_row($excel_row) {
 }
 
 /**
+ * Insert an excel row into clients table.
+ * @param $excel_row
+ * @param int $client_type
+ * @return bool
+ */
+function avimport_db_insert_clients_row($excel_row, $client_type) {
+  // Build insert row.
+  $insert_row = avimport_excel_row_to_db_row($excel_row, 'clients', $client_type);
+  $ctd = avclients_client_types($client_type);
+  // Check if customer title already exists.
+  if (db_query('SELECT id FROM {avtbl_clients} WHERE display_name = :display_name', array(':display_name' => $insert_row['display_name']))->fetchField()) {
+    return t('@type with same name already exists.', array('@type' => $ctd['name']));
+  }
+
+  $title = empty($excel_row['AGENT NAME']) ? '' : trim($excel_row['AGENT NAME']);
+  if (!empty($title)) {
+    $insert_row['agent_id'] = avbase_get_category_id_by_title($title, 'agent' . $client_type, TRUE);
+  }
+  $title = empty($excel_row['TERM']) ? '' : trim($excel_row['TERM']);
+  if (!empty($title)) {
+    $insert_row['term_id'] = avbase_get_category_id_by_title($title, 'payment_term', TRUE);
+  }
+  $title = empty($excel_row['CATEGORY']) ? '' : trim($excel_row['CATEGORY']);
+  if (!empty($title)) {
+    $insert_row['category_id'] = avbase_get_category_id_by_title($title, 'category' . $client_type, TRUE);
+  }
+  $title = empty($excel_row['PAYMENT METHOD']) ? '' : trim($excel_row['PAYMENT METHOD']);
+  if (!empty($title)) {
+    $insert_row['payment_method_id'] = avbase_get_category_id_by_title($title, 'payment_method', TRUE);
+  }
+  $title = empty($excel_row['AREA']) ? '' : trim($excel_row['AREA']);
+  if (!empty($title)) {
+    $insert_row['area_id'] = avbase_get_category_id_by_title($title, 'area', TRUE);
+  }
+
+  $insert_row['opening_balance'] = isset($insert_row['opening_balance']) ? (float) str_replace(',', '', $insert_row['opening_balance']) : NULL;
+  $insert_row['credit_limit'] = isset($insert_row['credit_limit']) ? (float) str_replace(',', '', $insert_row['credit_limit']) : NULL;
+
+  // Add created and initial qty date timestamp.
+  $insert_row['created'] = time();
+  $insert_row['changed'] = $insert_row['created'];
+
+  return avimport_db_insert_row($insert_row, 'clients');
+}
+
+/**
  * Convert excel row data into format readable by db_insert().
  * @param $excel_row
  * @param $type
  *
  * @return array
  */
-function avimport_excel_row_to_db_row($excel_row, $type) {
-  $valid_headers = avimport_get_valid_headers($type);
+function avimport_excel_row_to_db_row($excel_row, $type, $client_type = NULL) {
+  if ($type == 'clients') {
+    $ctd = avclients_client_types($client_type);
+    $valid_headers = avimport_get_valid_headers(strtolower($ctd['name']) . 's');
+  }
+  else {
+    $valid_headers = avimport_get_valid_headers($type);
+  }
+
   $required_headers = empty($valid_headers['required']) ? array() : $valid_headers['required'];
   $optional_headers = empty($valid_headers['optional']) ? array() : $valid_headers['optional'];
   $headers = $required_headers + $optional_headers;
@@ -329,6 +384,9 @@ function avimport_excel_row_to_db_row($excel_row, $type) {
     $insert_row[$field_id] = $field_type == 'string' ? trim($excel_row[$excel_row_key]) : $excel_row[$excel_row_key];
   }
 
+  if ($type == 'clients') {
+    $insert_row['client_type'] = $client_type;
+  }
   return $insert_row;
 }
 

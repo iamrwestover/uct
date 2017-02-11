@@ -19,7 +19,7 @@ define('AVTXNS_TXN_TYPE_PAYMENT', 'pmt');
  * Implementation of hook_menu().
  */
 function avtxns_menu() {
-  $items['av/txns'] = array(
+  $items['av/transactions'] = array(
     'title' => 'Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_txns_home_form'),
@@ -39,7 +39,7 @@ function avtxns_menu() {
     $items["{$v['base_path']}/new"] = array(
       'title' => "New {$v['name']}",
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('avtxns_txn_form', 2, NULL),
+      'page arguments' => array('avtxns_txn_form', $k, NULL),
       'access callback' => 'user_is_logged_in',
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/txn.form.inc',
@@ -48,7 +48,7 @@ function avtxns_menu() {
     $items["{$v['base_path']}/%avtxns_txn/view"] = array(
       'title' => "View {$v['name']}",
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('avtxns_txn_form', 2, 3, TRUE),
+      'page arguments' => array('avtxns_txn_form', $k, 2, TRUE),
       'access callback' => 'user_is_logged_in',
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/txn.form.inc',
@@ -57,7 +57,7 @@ function avtxns_menu() {
     $items["{$v['base_path']}/%avtxns_txn/edit"] = array(
       'title' => "Edit {$v['name']}",
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('avtxns_txn_form', 2, 3),
+      'page arguments' => array('avtxns_txn_form', $k, 2),
       'access callback' => 'user_is_logged_in',
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/txn.form.inc',
@@ -140,7 +140,7 @@ function avtxns_txns_home_form($form, &$form_state) {
   $transaction_types = avtxns_txn_types();
   foreach ($transaction_types as $k => $type) {
     $button_color_class = $type['transaction'] == 'sales' ? 'uk-button-success' : 'uk-button-primary';
-    $form["new_$k"] = array('#markup' => l($type['name'], "av/txns/$k/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))));
+    $form["new_$k"] = array('#markup' => l($type['name'], "{$transaction_types[$k]['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))));
   }
   //$form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
   //$form['new_gr'] = array('#markup' => l('Receive items', 'av/txns/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
@@ -167,7 +167,7 @@ function avtxns_txn_types($type = NULL) {
     // Purchase.
     $ret[AVTXNS_TXN_TYPE_PURCHASE_ORDER] = array(
       'type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       'transaction' => 'purchase',
       'name' => 'Purchase Order',
       'plural_name' => 'Purchase Orders',
@@ -175,7 +175,7 @@ function avtxns_txn_types($type = NULL) {
     );
     $ret[AVTXNS_TXN_TYPE_RECEIVE] = array(
       'type' => AVTXNS_TXN_TYPE_RECEIVE,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_RECEIVE,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_RECEIVE,
       'transaction' => 'purchase',
       'name' => 'Received Items',
       'plural_name' => 'Received items',
@@ -186,7 +186,7 @@ function avtxns_txn_types($type = NULL) {
     );
     $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
       'type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN,
       'transaction' => 'purchase',
       'name' => 'Purchase Return',
       'plural_name' => 'Purchase Returns',
@@ -196,7 +196,7 @@ function avtxns_txn_types($type = NULL) {
     // Sales.
     $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
       'type' => AVTXNS_TXN_TYPE_SALES_ORDER,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_SALES_ORDER,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_SALES_ORDER,
       'transaction' => 'sales',
       'name' => 'Sales Order',
       'plural_name' => 'Sales Orders',
@@ -204,7 +204,7 @@ function avtxns_txn_types($type = NULL) {
     );
     $ret[AVTXNS_TXN_TYPE_DELIVERY] = array(
       'type' => AVTXNS_TXN_TYPE_DELIVERY,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_DELIVERY,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_DELIVERY,
       'transaction' => 'sales',
       'name' => 'Delivery',
       'plural_name' => 'Deliveries',
@@ -215,7 +215,7 @@ function avtxns_txn_types($type = NULL) {
     );
     $ret[AVTXNS_TXN_TYPE_SALES_RETURN] = array(
       'type' => AVTXNS_TXN_TYPE_SALES_RETURN,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_SALES_RETURN,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_SALES_RETURN,
       'transaction' => 'sales',
       'name' => 'Sales Return',
       'plural_name' => 'Sales Returns',
@@ -225,7 +225,7 @@ function avtxns_txn_types($type = NULL) {
     );
     $ret[AVTXNS_TXN_TYPE_INVOICE] = array(
       'type' => AVTXNS_TXN_TYPE_INVOICE,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_INVOICE,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_INVOICE,
       'transaction' => 'sales',
       'name' => 'Invoice',
       'plural_name' => 'Invoices',
@@ -234,7 +234,7 @@ function avtxns_txn_types($type = NULL) {
     );
     $ret[AVTXNS_TXN_TYPE_PAYMENT] = array(
       'type' => AVTXNS_TXN_TYPE_PAYMENT,
-      'base_path' => 'av/txns/' . AVTXNS_TXN_TYPE_PAYMENT,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAYMENT,
       'transaction' => 'sales',
       'name' => 'Received Payment',
       'plural_name' => 'Received Payment',

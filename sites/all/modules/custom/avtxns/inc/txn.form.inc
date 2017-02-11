@@ -205,7 +205,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
   );
   if (empty($view_mode)) {
     $buttons['cancel'] = array(
-      '#markup' => l('Cancel', 'av/txns', array('attributes' => array('class' => array('uk-button')))),
+      '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
     );
   }
   else {

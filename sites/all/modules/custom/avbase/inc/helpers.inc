@@ -185,6 +185,23 @@ function avbase_element_validate_display_name($element, &$form_state, $form) {
   }
 }
 
+/**
+ * Check if element is a valid and unique display_name.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_client_name($element, &$form_state, $form) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  $record_id = isset($values['id']) ? $values['id'] : 0;
+  //$table_name = $values['table_name'];
+  $display_name = $element['#value'];
+  $exists = db_query("SELECT id FROM {avtbl_clients} WHERE display_name = :display_name AND id <> :id", array(':display_name' => $display_name, ':id' => $record_id))->fetch();
+  if ($exists) {
+    form_error($element, t('Another customer or vendor is already using this @field_title', array('@field_title' => $element['#title'])));
+  }
+}
+
 
 /**
  * Check if element contains an existing display_name.

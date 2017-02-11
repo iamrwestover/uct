@@ -60,6 +60,7 @@ $icons = array(
   'av/customers' => 'users',
   'av/products' => 'tags',
   'av/vendors' => 'truck',
+  'av/transactions' => 'tasks',
   'admin/people' => 'user-plus',
   'av/categories' => 'square',
   'av/expenses' => 'money',

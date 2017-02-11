@@ -58,7 +58,7 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     '#icon_key' => 'save',
   );
   $form['buttons']['cancel'] = array(
-    '#markup' => l('Cancel', 'av/' . $ctd['menu'] , array('attributes' => array('class' => array('uk-button')))),
+    '#markup' => l('Cancel', $ctd['base_path'] , array('attributes' => array('class' => array('uk-button')))),
   );
   if (!empty($row->id)) {
     if ($row->status != AVCLIENT_STATUS_SUSPENDED) {
@@ -103,8 +103,10 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
 function avclients_client_form_settings(&$form, $ctd, $row, $view_mode = FALSE) {
   $table_name = 'avtbl_clients';
 
-  $page_title = empty($row->id) ? t('New @type', array('@type' => $ctd['name'])) : check_plain($row->display_name);
-  drupal_set_title($page_title);
+  if (arg(2) != '') {
+    $page_title = empty($row->id) ? t('New @type', array('@type' => $ctd['name'])) : $row->display_name;
+    drupal_set_title($page_title);
+  }
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
@@ -183,7 +185,7 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
   $info['category_id'] = array(
     '#type' => 'select',
     '#title' => 'Category',
-    '#options' => avbase_get_category_options_array("category1"),
+    '#options' => avbase_get_category_options_array("category" . $ctd['type']),
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->category_id) ? $row->category_id : 0,
@@ -216,7 +218,7 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     '#default_value' => isset($row->display_name) ? $row->display_name : '',
     '#maxlength' => 255,
     '#required' => TRUE,
-    '#element_validate' => array('avbase_element_validate_display_name'),
+    '#element_validate' => array('avbase_element_validate_client_name'),
   );
   $info['agent_name'] = array(
     '#id' => 'agent-name',
@@ -375,6 +377,7 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
     '#default_value' => isset($row->credit_limit) ? ($view_mode ? number_format($row->credit_limit, 2) : avbase_number_format($row->credit_limit)) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+    '#access' => $ctd['type'] == AVCLIENT_TYPE_VENDOR,
   );
   $payment['opening_balance'] = array(
     '#type' => 'textfield',
@@ -500,7 +503,7 @@ function avclients_vendor_form_transaction_fields(&$form, &$form_state, $ctd, $r
   $options = array(
     '#hide_filter_form' => TRUE,
     '#filter_query' => array(
-      'where' => array('avtrans.client_id = :client_id'),
+      'where' => array('avtxn.client_id = :client_id'),
       'args' => array(':client_id' => $row->id),
     ),
   );

@@ -205,7 +205,16 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $conditions[] = array('avtxns.status', 1);
       $conditions[] = array('avtxns.transaction_type', $reference_type);
       $pos = avtxns_txn_query_load($conditions);
-      $floating_pos = $pos;
+      foreach ($pos as $po_k => $po_v) {
+        if (empty($po_v->status)) {
+          continue;
+        }
+        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && $po_v->grand_total <= 0) {
+          continue;
+        }
+        $floating_pos[] = $po_v;
+      }
+
       // Compare pos to already added item rows.
       // If already added item rows' qty is less than db po qty, show them as floating.
       //$floating_pos = array();
@@ -283,7 +292,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           $query = "SELECT SUM(paid_amount) FROM {avtbl_transaction_details} WHERE ref_txn_dtl_id = :invoice_id";
           $total_paid_for_invoice = db_query($query, array(':invoice_id' => $transaction->id))->fetchField();
           $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
-          $transaction_arr['balance'] = avbase_number_format(round($transaction->grand_total - $total_paid_for_invoice, 2), 2);
+          //$transaction_arr['balance'] = avbase_number_format(round($transaction->grand_total - $total_paid_for_invoice, 2), 2);
           $transaction_arr['paid_amount'] = $transaction_arr['balance'];
           $transaction_arr['previous_payment'] = avbase_number_format($total_paid_for_invoice, 2);
           $receive_pos[$item_row_id] = $transaction_arr;

@@ -244,11 +244,19 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
 function avbase_category_groups($category_id = '') {
   $groups = &drupal_static(__FUNCTION__, array());
   if (empty($groups)) {
-    $groups['customer_cat'] = array(
+    //$groups['customer_cat'] = array(
+    //  'name' => 'Customer Category',
+    //  'plural_name' => 'Customer Categories',
+    //);
+    //$groups['vendor_cat'] = array(
+    //  'name' => 'Vendor Category',
+    //  'plural_name' => 'Vendor Categories',
+    //);
+    $groups['category1'] = array(
       'name' => 'Customer Category',
       'plural_name' => 'Customer Categories',
     );
-    $groups['vendor_cat'] = array(
+    $groups['category2'] = array(
       'name' => 'Vendor Category',
       'plural_name' => 'Vendor Categories',
     );
@@ -279,30 +287,24 @@ function avbase_category_groups($category_id = '') {
       'name' => 'Payment Term',
       'plural_name' => 'Payment Terms',
     );
-    $groups['agent_vend'] = array(
-      'name' => 'Vendor Agent',
-      'plural_name' => 'Vendor Agents',
-    );
-    $groups['agent_cust'] = array(
+    //$groups['agent_vend'] = array(
+    //  'name' => 'Vendor Agent',
+    //  'plural_name' => 'Vendor Agents',
+    //);
+    //$groups['agent_cust'] = array(
+    //  'name' => 'Customer Agent',
+    //  'plural_name' => 'Customer Agents',
+    //);
+    $groups['agent1'] = array(
       'name' => 'Customer Agent',
       'plural_name' => 'Customer Agents',
     );
-    $groups['category1'] = array(
-      'name' => 'Client - Customer Category',
-      'plural_name' => 'Client - Customer Categories',
-    );
-    $groups['category2'] = array(
-      'name' => 'Client - Vendor Category',
-      'plural_name' => 'Client - Vendor Categories',
-    );
-    $groups['agent1'] = array(
-      'name' => 'Client - Customer Agent',
-      'plural_name' => 'Client - Customer Agents',
-    );
     $groups['agent2'] = array(
-      'name' => 'Client - Vendor Agent',
-      'plural_name' => 'Client - Vendor Agents',
+      'name' => 'Vendor Agent',
+      'plural_name' => 'Vendor Agents',
     );
+
+
     $groups['area'] = array(
       'name' => 'Area',
       'plural_name' => 'Areas',

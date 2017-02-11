@@ -174,11 +174,11 @@ function avtrans_spay_query_load($conditions = array()) {
           $spay_grand_total += $item->paid_amount;
 
           // Close invoice if necessary.
-          //if (round($total_paid_for_invoice, 2) == round($item->grand_total, 2)) {
-          //  if (db_query("UPDATE {avtbl_sinv} SET status = :status WHERE id = :invoice_id", array(':invoice_id' => $item->reference_id, ':status' => (empty($item->status) ? 1 : 0)))) {
-          //    avbase_custom_watchdog("sinv__close", "ID: {$item->reference_id}", array('#row' => $item, '#manner' => 'payment-auto'));
-          //  }
-          //}
+          if (round($total_paid_for_invoice, 2) == round($item->grand_total, 2)) {
+            if (db_query("UPDATE {avtbl_sinv} SET status = :status WHERE id = :invoice_id", array(':invoice_id' => $item->reference_id, ':status' => (empty($item->status) ? 1 : 0)))) {
+              avbase_custom_watchdog("sinv__close", "ID: {$item->reference_id}", array('#row' => $item, '#manner' => 'payment-auto'));
+            }
+          }
         }
 
         $row->items[$item->id] = $item;

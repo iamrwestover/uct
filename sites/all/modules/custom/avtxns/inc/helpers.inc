@@ -87,9 +87,9 @@ function avtxns_txn_load_ids($ids) {
  * @return array
  */
 function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = NULL) {
-  if (empty($conditions)) {
-    return array();
-  }
+  //if (empty($conditions)) {
+  //  return array();
+  //}
 
   // Load products static variable.
   $avbase = &drupal_static('avbase', array());
@@ -104,11 +104,6 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   if (isset($data[$data_id])) {
     return $data[$data_id];
   }
-
-  $select = array();
-  $select[] = 'avtxns.*';
-  $select[] = 'avclients.display_name AS client_name';
-
 
   $query = db_select('avtbl_transactions', 'avtxns');
   $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxns.client_id');
@@ -166,12 +161,12 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $item->discount_text = implode('/', $discount);
         foreach ($discount as $v) {
           if (is_numeric($v)) {
-            $v = (float) $v;
+            $v = (float)$v;
             $item->total = $item->total - (($item->total * $v) / 100);
           }
         }
 
-        if (isset($item->ref_txn_type)) {
+        if (!empty($item->ref_txn_type)) {
           if ($item->ref_txn_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
             $credit_total += $item->total;
             $item->total *= -1;
@@ -187,7 +182,25 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         }
         $item->remaining_base_qty = $item->incoming_base_qty;
         $row->items[$item->id] = $item;
-        $subtotal += $item->total;
+
+        // Special fields for payment transactions.
+        if ($row->transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+          $subtotal += $item->paid_amount;
+          $invoice = avtxns_txn_load($item->ref_txn_dtl_id);
+          if (!empty($invoice->id)) {
+            // Get total paid - excluding payments before this transaction.
+            $query = "SELECT SUM(paid_amount) FROM {avtbl_transaction_details} WHERE ref_txn_dtl_id = :invoice_id AND transaction_id < :payment_id";
+            $total_paid_for_invoice = db_query($query, array(':invoice_id' => $invoice->id, ':payment_id' => $row->id))->fetchField();
+            $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
+
+            $item->balance = $invoice->grand_total - $total_paid_for_invoice;
+            $item->previous_payment = $total_paid_for_invoice;
+            $item->grand_total = $invoice->grand_total;
+          }
+        }
+        else {
+          $subtotal += $item->total;
+        }
       }
     }
     //$row->discount_value_text = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (round($row->discount_value, 2) . '%') : number_format($row->discount_value, 2);
@@ -200,6 +213,22 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
 
     // Attach received items.
     //avtxns_txn_attach_received_items($row);
+
+    // Close invoice if necessary.
+    if ($row->transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+      $query = "SELECT SUM(paid_amount) FROM {avtbl_transaction_details} WHERE ref_txn_dtl_id = :invoice_id";
+      $total_paid_for_invoice = db_query($query, array(':invoice_id' => $row->id))->fetchField();
+      $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
+      $row->total_paid = $total_paid_for_invoice;
+      $row->balance = $row->grand_total - $total_paid_for_invoice;
+      if ($row->status && (round($total_paid_for_invoice, 2) == round($row->grand_total, 2))) {
+        // Close invoice.
+        if (db_query("UPDATE {avtbl_transactions} SET status = 0 WHERE id = :invoice_id", array(':invoice_id' => $row->id))) {
+          avbase_custom_watchdog(AVTXNS_TXN_TYPE_INVOICE . "__close", "ID: {$row->id}", array('#row' => $row, '#manner' => 'auto'));
+          $row->status = 0;
+        }
+      }
+    }
 
     $rows[$row->id] = $row;
   }

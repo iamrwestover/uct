@@ -165,13 +165,13 @@ function avtrans_sinv_query_load($conditions = array()) {
     $total_paid_for_invoice = db_query($query, array(':invoice_id' => $row->id))->fetchField();
     $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
     $row->total_paid = $total_paid_for_invoice;
-    //if ($row->status && (round($total_paid_for_invoice, 2) == round($row->grand_total, 2))) {
-    //  // Close invoice.
-    //  if (db_query("UPDATE {avtbl_sinv} SET status = 0 WHERE id = :invoice_id", array(':invoice_id' => $row->id))) {
-    //    avbase_custom_watchdog("sinv__close", "ID: {$row->id}", array('#row' => $row, '#manner' => 'auto'));
-    //    $row->status = 0;
-    //  }
-    //}
+    if ($row->status && (round($total_paid_for_invoice, 2) == round($row->grand_total, 2))) {
+      // Close invoice.
+      if (db_query("UPDATE {avtbl_sinv} SET status = 0 WHERE id = :invoice_id", array(':invoice_id' => $row->id))) {
+        avbase_custom_watchdog("sinv__close", "ID: {$row->id}", array('#row' => $row, '#manner' => 'auto'));
+        $row->status = 0;
+      }
+    }
 
     $rows[$row->id] = $row;
   }
