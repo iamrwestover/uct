@@ -104,8 +104,13 @@ function avtxns_element_validate_product_discount($element, &$form_state) {
   }
 
   foreach ($parts as $k => $v) {
-    if (!is_numeric($v) || ((float) $v < 0)) {
-      form_error($element, t('Invalid discount format. Valid format is positive numeric values separated by /.'));
+    $error = !is_numeric($v);
+    if (!$error) {
+      $v = (float) $v;
+      $error = $v < 1 || $v > 99;
+    }
+    if ($error) {
+      form_error($element, t('Invalid discount format. Valid format is numeric values (1-99) separated by /.'));
       return;
     }
     $parts[$k] = (float) $v;

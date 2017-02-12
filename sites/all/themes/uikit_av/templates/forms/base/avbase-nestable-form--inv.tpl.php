@@ -81,7 +81,7 @@ $view_mode = !empty($form['#av_view_mode']);
     ksort($item_rows_by_ref_txn_type);
     $item_index = 0;
     foreach ($item_rows_by_ref_txn_type as $ref_txn_type => $item_rows) {
-      print ($view_mode ? '<div class="uk-badge uk-badge-warning uk-margin-small-top">' . strtoupper($ttd[$ref_txn_type]['name']) . '</div>' : '');
+      print (($view_mode && $ref_txn_type == AVTXNS_TXN_TYPE_SALES_RETURN) ? '<div class="uk-badge uk-badge-warning uk-margin-small-top">' . strtoupper($ttd[$ref_txn_type]['name']) . '</div>' : '');
       foreach ($item_rows as $item_key => $item_row) {
         $item_rows[$item_key]['#prod_index'] = $item_index++;
       }

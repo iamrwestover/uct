@@ -26,7 +26,7 @@ function avclients_menu() {
     $items["{$v['base_path']}"] = array(
       'title' => $v['plural_name'],
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('avbase_entity_overview_form', 'clients', "$k"),
+      'page arguments' => array('avbase_entity_overview_form', "$k"),
       'access callback' => 'user_is_logged_in',
       'menu_name' => 'av',
       'expanded' => TRUE,

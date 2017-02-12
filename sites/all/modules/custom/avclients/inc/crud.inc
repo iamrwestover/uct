@@ -60,12 +60,12 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', $ctd['base_path'] , array('attributes' => array('class' => array('uk-button')))),
   );
-  if (!empty($row->id)) {
+  if (!empty($row->id) && $row->client_type == AVCLIENT_TYPE_CUSTOMER) {
     if ($row->status != AVCLIENT_STATUS_SUSPENDED) {
       $form['buttons']['suspend'] = array(
-        '#markup' => l('Suspend', 'av/clients/' . $row->id . '/2/change-status', array(
+        '#markup' => l('Suspend', $ctd['base_path'] . '/' . $row->id . '/2/change-status', array(
           'attributes' => array('class' => 'uk-button'),
-          'query' => array('destination' => 'av/clients'),
+          'query' => array('destination' => $ctd['base_path']),
         )),
         '#avposition' => 'opposite',
       );
@@ -79,9 +79,9 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
       $form['#suffix'] = $form_suffix;
       //drupal_set_message('This account is currently suspended.', 'error', FALSE);
       $form['buttons']['activate'] = array(
-        '#markup' => l('Activate', 'av/clients/' . $row->id . '/1/change-status', array(
+        '#markup' => l('Activate', $ctd['base_path'] . '/' . $row->id . '/1/change-status', array(
           'attributes' => array('class' => 'uk-button uk-button-primary'),
-          'query' => array('destination' => 'av/clients'),
+          'query' => array('destination' => $ctd['base_path']),
         )),
         '#avposition' => 'opposite',
       );

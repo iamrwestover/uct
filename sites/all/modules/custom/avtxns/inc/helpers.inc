@@ -106,12 +106,15 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   }
 
   $query = db_select('avtbl_transactions', 'avtxns');
-  $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxns.client_id');
-  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclients.client_type)");
-  $query->addField('avclients', 'display_name', 'client_name');
+  $query->leftJoin('avtbl_clients', 'avclient', 'avclient.id = avtxns.client_id');
+  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclient.client_type)");
+  //$query->leftJoin('avtbl_categories', 'avcat_terms', 'avcat_terms.id = avtxns.term_id');
+  $query->addField('avclient', 'display_name', 'client_name');
   $query->addField('avcat_agent', 'title', 'agent_name');
+  //$query->addField('avcat_terms', 'title', 'term_name');
+  //$query->addField('avcat_terms', 'data', 'term_data');
   $query->fields('avtxns');
-  //->fields('avclients', array('display_name'))
+  //->fields('avclient', array('display_name'))
   //->condition('avtxns.id', $id)
   //->execute();
   foreach ($conditions as $condition) {
@@ -133,6 +136,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $credit_total = 0;
     $debit_total = 0;
     if (!empty($row->id)) {
+      //$row->term_data = unserialize($row->term_data);
       $query = db_select('avtbl_transaction_details', 'avtxn_details');
       $query->fields('avtxn_details');
       if ($row->transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
@@ -291,7 +295,7 @@ function avtxns_send_txn_to_email($transaction_id, $email = '') {
  * Advanced transaction load.
  * @return array
  */
-function avtxns_txns_query_load($param_where = array(), $param_args = array(), $limit_string = NULL, $order_by_string = NULL) {
+function avtxns_txns_query_load($param_where = array(), $param_args = array(), $limit_string = NULL, $order_by = NULL) {
   // Load vendors static variable.
   //$avbase = &drupal_static('avbase', array());
   //$avbase['vendors'] = empty($avbase['vendors']) ? array() : $avbase['vendors'];
@@ -311,43 +315,51 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
   //unset($param_where['transaction_types']);
 
   //$queries = array();
-  $query = "SELECT
-    avtxn.id,
-    avtxn.status,
-    avtxn.transaction_type,
-    avtxn.transaction_date,
-    avcat_agent.title AS agent_name,
-    avcat_term.title AS term_name,
-    avclient.display_name
-    FROM {avtbl_transactions} AS avtxn
-    INNER JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id
-    LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
-    LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id
-    LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id
-  ";
+  $select = array();
+  $select[] = 'avtxn.id';
+  $select[] = 'avtxn.status';
+  $select[] = 'avtxn.transaction_type';
+  $select[] = 'avtxn.transaction_date';
+  $select[] = 'avtxn_detail.ref_txn_dtl_id';
+  $select[] = 'avcat_agent.title AS agent_name';
+  //$select[] = 'avcat_term.title AS term_name';
+  $select[] = 'avclient.display_name';
+  $select[] = 'avtxn_ref.transaction_type AS ref_txn_type';
+  $select[] = "IF (
+      avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
+      SUM(avtxn_detail.paid_amount),
+      (SUM(
+          avtxn_detail.qty
+          * avtxn_detail.cost
+          * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+          * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+          * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+          * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+        )
+      )
+    ) AS grand_total";
 
-  // Only include queries for specified transaction types.
-  //if (!empty($transaction_types)) {
-  //  $queries = array_intersect_key($queries, array_combine($transaction_types, $transaction_types));
-  //}
-  //dpm($param_args);
-  //dpm($param_where);
-  //$param_where[] = "avcat_agent.title = :SSS";
-  //$param_args[':SSS'] = "sss";
-  //foreach ($queries as $k => $v) {
-    if (!empty($param_where)) {
-      $query .= " WHERE " . implode(' AND ', $param_where);
-    }
-    $query .= " GROUP BY avtxn.id";
-  //}
+  $joins = array();
+  $joins[] = 'INNER JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id';
+  $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
+  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
+  $joins[] = "LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_ref ON
+    IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', 0, avtxn_detail_ref.id = avtxn_detail.ref_txn_dtl_id)";
+  $joins[] = "LEFT JOIN {avtbl_transactions} AS avtxn_ref ON
+    avtxn_ref.id = IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', avtxn_detail.ref_txn_dtl_id , avtxn_detail_ref.transaction_id)";
 
-  //$query = implode(' UNION ', $queries);
-  if (is_null($order_by_string)) {
-    $query .= " ORDER BY avtxn.transaction_date DESC, avtxn.id DESC";
+  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
+  if (!empty($param_where)) {
+    $query .= " WHERE " . implode(' AND ', $param_where);
   }
-  else {
-    $query .= " $order_by_string";
+  $query .= " GROUP BY avtxn.id, avtxn_ref.transaction_type";
+
+  $order_by = is_null($order_by) ? array('avtxn.transaction_date DESC', 'avtxn.id DESC') : $order_by;
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
   }
+
   if (!is_null($limit_string)) {
     $query .= " LIMIT " . $limit_string;
   }

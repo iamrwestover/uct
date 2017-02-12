@@ -47,6 +47,9 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
     avtxns_pending_orders_form_fields($form, $form_state, $transaction_type, $row, $view_mode);
   }
 
+  if ($view_mode && $transaction_type == AVTXNS_TXN_TYPE_INVOICE && !empty($row->client_id)) {
+    $form['balance_ages'] = avreports_client_balance_aging_form($row->client_id);
+  }
   // Buttons.
   $form['buttons'] = avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_mode);
 

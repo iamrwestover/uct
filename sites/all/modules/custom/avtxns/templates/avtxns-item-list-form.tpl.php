@@ -95,6 +95,8 @@ $term_html = drupal_render($form['term_id']);
 
     </div>
   </div>
+
+  <?php print drupal_render($form['balance_ages']); ?>
 </div>
 <?php
 

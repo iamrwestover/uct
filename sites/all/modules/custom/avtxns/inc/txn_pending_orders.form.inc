@@ -205,6 +205,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $conditions[] = array('avtxns.status', 1);
       $conditions[] = array('avtxns.transaction_type', $reference_type);
       $pos = avtxns_txn_query_load($conditions);
+      $floating_pos = array();
       foreach ($pos as $po_k => $po_v) {
         if (empty($po_v->status)) {
           continue;
@@ -293,6 +294,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           $total_paid_for_invoice = db_query($query, array(':invoice_id' => $transaction->id))->fetchField();
           $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
           //$transaction_arr['balance'] = avbase_number_format(round($transaction->grand_total - $total_paid_for_invoice, 2), 2);
+          $transaction_arr['balance'] = avbase_number_format($transaction_arr['balance'], 2);
           $transaction_arr['paid_amount'] = $transaction_arr['balance'];
           $transaction_arr['previous_payment'] = avbase_number_format($total_paid_for_invoice, 2);
           $receive_pos[$item_row_id] = $transaction_arr;

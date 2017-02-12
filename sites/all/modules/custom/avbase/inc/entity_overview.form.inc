@@ -6,13 +6,12 @@ module_load_include('inc', 'avbase', 'inc/entity_overview.handlers');
 /**
  * Search form.
  * @param $form_state
- * @param $entity_name
  * @param $entity_type
  *
  * @return mixed
  * @throws Exception
  */
-function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_type = NULL) {
+function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
   $search_string = empty($form_state['values']['search_text']) ? '' : $form_state['values']['search_text'];
 
   $form['filter']['search_text'] = array(
@@ -69,41 +68,24 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
 
   $where = array();
   $args = array();
-  if (isset($entity_type)) {
-    $where[] = "av{$entity_name}.client_type = :client_type";
-    $args[':client_type'] = $entity_type;
-  }
-  else {
-    $where[] = 1;
-  }
+  $where[] = "avclient.client_type = :client_type";
+  $args[':client_type'] = $entity_type;
 
   if (!empty($search_string)) {
     $where_or = array(
-      "av{$entity_name}.display_name LIKE :string",
-      "av{$entity_name}.company LIKE :string",
-      "av{$entity_name}.first_name LIKE :string",
-      "av{$entity_name}.last_name LIKE :string",
+      "avclient.display_name LIKE :string",
+      "avclient.company LIKE :string",
+      "avclient.first_name LIKE :string",
+      "avclient.last_name LIKE :string",
     );
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where[] = $where_or_str;
     $args[':string'] = '%' . db_like($search_string) . '%';
   }
 
-  $result = array();
-  $menu_path = 'av/' . $entity_name;
-  switch ($entity_name) {
-    case 'vendors':
-      $result = avvendor_query_load($where, $args, '12');
-      break;
-    case 'customers':
-      $result = avcustomer_query_load($where, $args, '12');
-      break;
-    case 'clients':
-      $ctd = avclients_client_types($entity_type);
-      $result = avclient_query_load($where, $args, '12');
-      $menu_path = $ctd['base_path'];
-      break;
-  }
+  $ctd = avclients_client_types($entity_type);
+  $result = avclient_query_load($where, $args, '12');
+  $menu_path = $ctd['base_path'];
 
   $action_links_all = array();
   $loaded_entities = array();
@@ -172,36 +154,19 @@ function avbase_entity_overview_search_form(&$form_state, $entity_name, $entity_
 /**
  * Entity Overview buttons
  * @param $form_state
- * @param $entity_name
  * @param object $row
  *
  * @return array
  */
-function avbase_entity_overview_buttons_form(&$form_state, $entity_name, $row) {
+function avbase_entity_overview_buttons_form(&$form_state, $row) {
   $entity_id = empty($row->id) ? '' : $row->id;
 
   $transaction_buttons = array();
-  $entity_details = avbase_entity_details();
-  $entity_details = $entity_details[$entity_name];
-  $menu_path = 'av/' . $entity_name;
-  $entity_title = $entity_details['title'];
-  switch ($entity_name) {
-    case 'vendors':
-      $transaction_buttons[] = l(t('Purchase Order'), 'av/po/new', array('query' => array('id' => $entity_id)));
-      $transaction_buttons[] = l(t('Receive items'), 'av/gr/new', array('query' => array('id' => $entity_id)));
-      break;
-    case 'customers':
-      $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
-      $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
-      break;
-    case 'clients':
-      $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
-      $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
-      $ctd = avclients_client_types($row->client_type);
-      $menu_path = $ctd['base_path'];
-      $entity_title = $ctd['name'];
-      break;
-  }
+  $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
+  $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
+  $ctd = avclients_client_types($row->client_type);
+  $menu_path = $ctd['base_path'];
+  $entity_title = $ctd['name'];
 
   $transaction_button_list_markup = '<li>' . implode('</li><li>', $transaction_buttons) . '</li>';
   $transaction_buttons_markup = <<<HTML
@@ -242,39 +207,20 @@ HTML;
 /**
  * Entity Overview entity info form.
  * @param $form_state
- * @param $entity_name
  * @param $entity_type
  *
  * @return array
  */
-function avbase_entity_overview_info_form(&$form_state, $entity_name, $entity_type = NULL) {
-  module_load_include('inc', "av$entity_name", 'inc/crud');
+function avbase_entity_overview_info_form(&$form_state, $entity_type = NULL) {
+  module_load_include('inc', "avclients", 'inc/crud');
   $entity_id = empty($form_state['values']['clicked_entity_id']) ? NULL : $form_state['values']['clicked_entity_id'];
 
   $form = array();
-  $row = array();
-  $entity_form = array();
   $random_row = $form_state['#random_entity'];
-  switch ($entity_name) {
-    case 'vendors':
-      $row = avvendor_load($entity_id);
-      $row = empty($row) ? $random_row : $row;
-      $entity_form = avvendors_vendor_form($form, $form_state, $row, TRUE);
-      $entity_form['#theme'] = 'avvendors_vendor_form';
-      break;
-    case 'customers':
-      $row = avcustomer_load($entity_id);
-      $row = empty($row) ? $random_row : $row;
-      $entity_form = avcustomers_customer_form($form, $form_state, $row, TRUE);
-      $entity_form['#theme'] = 'avcustomers_customer_form';
-      break;
-    case 'clients':
-      $row = avclient_load($entity_id);
-      $row = empty($row) ? $random_row : $row;
-      $entity_form = avclients_client_form($form, $form_state, $entity_type, $row, TRUE);
-      $entity_form['#theme'] = 'avclients_client_form';
-      break;
-  }
+  $row = avclient_load($entity_id);
+  $row = empty($row) ? $random_row : $row;
+  $entity_form = avclients_client_form($form, $form_state, $entity_type, $row, TRUE);
+  $entity_form['#theme'] = 'avclients_client_form';
 
 
 
@@ -283,7 +229,7 @@ function avbase_entity_overview_info_form(&$form_state, $entity_name, $entity_ty
     '#type' => 'container',
     '#attributes' => array('id' => 'entity-info-wrapper'),
   );
-  $form['entity_info_container']['buttons'] = avbase_entity_overview_buttons_form($form_state, $entity_name, $row);
+  $form['entity_info_container']['buttons'] = avbase_entity_overview_buttons_form($form_state, $row);
   $form['entity_info_container']['buttons']['#prefix'] = '<div style="position: absolute; top: -52px; right: 0;">';
   $form['entity_info_container']['buttons']['#suffix'] = '</div>';
 

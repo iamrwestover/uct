@@ -212,6 +212,7 @@ function avtxns_txn_types($type = NULL) {
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_SALES_ORDER,
       'qty_change' => 'decrement',
       'cost_change' => TRUE,
+      'receivable_type' => 'debit',
     );
     $ret[AVTXNS_TXN_TYPE_SALES_RETURN] = array(
       'type' => AVTXNS_TXN_TYPE_SALES_RETURN,
@@ -222,6 +223,7 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
       'qty_change' => 'increment',
+      'receivable_type' => 'credit',
     );
     $ret[AVTXNS_TXN_TYPE_INVOICE] = array(
       'type' => AVTXNS_TXN_TYPE_INVOICE,
@@ -231,6 +233,7 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Invoices',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
+      'receivable_type' => 'credit',
     );
     $ret[AVTXNS_TXN_TYPE_PAYMENT] = array(
       'type' => AVTXNS_TXN_TYPE_PAYMENT,
@@ -270,10 +273,10 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //  $client_header = 'Customer';
   //}
   $header = array(
+    array('data' => 'Date'),
     array('data' => 'Type'),
     array('data' => 'Transaction #'),
     array('data' => $client_header),
-    array('data' => 'Date'),
     array('data' => 'Agent'),
   );
 
@@ -290,10 +293,10 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $view_path = "{$transaction_type['base_path']}/$row->id/view";
     $rows[$index] = array(
       'data' => array(
+        l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
         l($transaction_type['name'], $view_path),
         l($row->id, $view_path),
         $rows[$index]['data'][] = check_plain($row->display_name),
-        l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
         check_plain($row->agent_name),
       ),
       'class' => array('uk-table-middle'),

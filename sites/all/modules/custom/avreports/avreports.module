@@ -63,6 +63,7 @@ function avreports_theme($existing, $type, $theme, $path) {
   $theme_names = array(
     'avreports_delivery_list',
     'avreports_soa',
+    'avreports_balance_ages',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
@@ -113,7 +114,7 @@ function avreports_home_form($form, &$form_state) {
  */
 function avreports_delivery_list_form($form, &$form_state) {
   global $user;
-  $user_filter = empty($form_state['values']['avtrans_tl_filter']) ? array() : $form_state['values']['avtrans_tl_filter'];
+  $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
@@ -131,36 +132,35 @@ function avreports_delivery_list_form($form, &$form_state) {
     unset($header['agent']);
   }
 
-  $where['transaction_types'] = array('dr');
-  $where[] = 'avtrans.status = 1';
+  $where[] = "avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_DELIVERY . "'";
+  $where[] = 'avtxn.status = 1';
 
   // Add today filter.
   $today = format_date(time(), 'custom', 'F d, Y');
-  if (empty($user_filter['avtrans.transaction_date'])) {
+  if (empty($user_filter['avtxn.transaction_date'])) {
     $timestamp = strtotime($today);
     $next_day_timestamp = strtotime('+1 day', $timestamp);
-    $where[] = "avtrans.transaction_date > $timestamp AND avtrans.transaction_date < $next_day_timestamp";
+    $where[] = "avtxn.transaction_date >= $timestamp AND avtxn.transaction_date < $next_day_timestamp";
   }
 
   $filter_form_settings = array(
-    'avtrans.id' => array('#access' => FALSE),
+    'avtxn.id' => array('#access' => FALSE),
     'search_text' => array('#access' => FALSE),
-    'avtrans.transaction_date' => array('#default_value' => $today),
+    'avtxn.transaction_date' => array('#default_value' => $today),
     'avcat_agent.title' => array('#access' => TRUE),
     //'reset_button' => array('#access' => FALSE),
     //'search_button' => array('#table_parents' => array('transaction_list_table')),
   );
-  $form['transaction_list_filter'] = avtrans_transaction_list_filter_form($form, $form_state, $filter_form_settings);
+  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
 
-
-  $transactions = avtrans_transactions_query_load($where, $args);
+  $transactions = avtxns_txns_query_load($where, $args);
   $total_receivables = 0;
   foreach ($transactions as $row) {
-    $transaction_type = avtrans_transaction_types($row->transaction_type);
-    $view_path = "{$transaction_type['base_path']}/$row->transaction_id/view";
+    $transaction_type = avtxns_txn_types($row->transaction_type);
+    $view_path = "{$transaction_type['base_path']}/$row->id/view";
     $data = array(
-      'id' => array('data' => l($row->transaction_id, $view_path), 'class' => array('uk-text-center')),
+      'id' => array('data' => l($row->id, $view_path), 'class' => array('uk-text-center')),
       'customer' => check_plain($row->display_name),
       'receivable' => array('data' => l(number_format($row->grand_total, 2), $view_path), 'class' => array('uk-text-right')),
       'terms' => array('data' => check_plain($row->term_name), 'class' => array('uk-text-center')),
@@ -257,7 +257,7 @@ function avreports_delivery_list_form($form, &$form_state) {
  */
 function avreports_soa_form($form, &$form_state) {
   global $user;
-  $user_filter = empty($form_state['values']['avtrans_tl_filter']) ? array() : $form_state['values']['avtrans_tl_filter'];
+  $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
@@ -272,24 +272,18 @@ function avreports_soa_form($form, &$form_state) {
     'balance' => array('data' => 'Balance', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
   );
 
-  $where['transaction_types'] = array('sinv', 'spay', 'ret');
-  //$where[] = 'avtrans.status = 1';
+  $where[] = 'avtxn.transaction_type IN (:transaction_types)';
+  $args[':transaction_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT);
 
   // Add today filter.
   $today = format_date(time(), 'custom', 'F d, Y');
-  //if (empty($user_filter['avtrans.transaction_date'])) {
-  //  $timestamp = strtotime($today);
-  //  $next_day_timestamp = strtotime('+1 day', $timestamp);
-  //  $where[] = "avtrans.transaction_date > $timestamp AND avtrans.transaction_date < $next_day_timestamp";
-  //}
-
   $filter_form_settings = array(
-    'avtrans.id' => array('#access' => FALSE),
+    'avtxn.id' => array('#access' => FALSE),
     'search_text' => array('#access' => FALSE),
-    'avtrans.transaction_date' => array('#access' => FALSE),
+    'avtxn.transaction_date' => array('#access' => FALSE),
     'date_to' => array('#default_value' => $today, '#access' => TRUE),
     'avclient.display_name' => array(
-      '#autocomplete_path' => 'av/customers/autocomplete',
+      '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_CUSTOMER,
       '#attributes' => array(
         'placeholder' => 'search customer',
         'class' => array('trigger-ajax-search'),
@@ -299,58 +293,80 @@ function avreports_soa_form($form, &$form_state) {
     //'reset_button' => array('#access' => FALSE),
     //'search_button' => array('#table_parents' => array('transaction_list_table')),
   );
-  $form['transaction_list_filter'] = avtrans_transaction_list_filter_form($form, $form_state, $filter_form_settings);
+  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
-  $transactions = empty($user_filter['avclient.display_name']) ? array() : avtrans_transactions_query_load($where, $args, NULL, 'ORDER BY transaction_date ASC');
+  $client_name = empty($user_filter['avclient.display_name']) ? '' : $user_filter['avclient.display_name'];
+  $client = NULL;
+  if (!empty($client_name)) {
+    $client = avclient_query_load(array('avclient.display_name = :name'), array(':name' => $client_name));
+    $client = array_shift($client);
+  }
+
+  $order_by = array('avtxn.transaction_date ASC', 'avtxn.id ASC', 'ref_txn_type ASC');
+  $transactions = empty($client->id) ? array() : avtxns_txns_query_load($where, $args, NULL, $order_by);
   $rows = array();
   $total_receivables = 0;
   $balance = 0;
+
+  $opening_balance = isset($client->opening_balance) ? (float) $client->opening_balance : 0;
+  if (!empty($opening_balance)) {
+    $opening_balance_details = array(
+      'transaction_date' => $client->created,
+      'grand_total' => $opening_balance,
+      'description' => t('Opening balance'),
+    );
+    array_unshift($transactions, (object) $opening_balance_details);
+  }
+
   foreach ($transactions as $row) {
-    $transaction_type = avtrans_transaction_types($row->transaction_type);
-    $view_path = "{$transaction_type['base_path']}/$row->transaction_id/view";
+    $date_string = format_date($row->transaction_date, 'custom', 'M. d, Y');
+    if (!empty($row->id)) {
+      // Get transaction type details.
+      $ttd = avtxns_txn_types($row->transaction_type);
+      $view_path = "{$ttd['base_path']}/$row->id/view";
+      $reference = l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path);
+      switch ($row->ref_txn_type) {
+        case AVTXNS_TXN_TYPE_DELIVERY:
+          $description = t('Sales');
+          break;
+        case AVTXNS_TXN_TYPE_SALES_RETURN:
+          $description = t('Returns');
+          break;
+        default:
+          $description = $ttd['name'];
+          break;
+      }
+      $description = l($description, $view_path);
+      $date_string = l($date_string, $view_path);
+    }
+    else {
+      $reference = empty($row->reference) ? '' : $row->reference;
+      $description = empty($row->description) ? '' : $row->description;
+    }
     $data = array(
-      'date' => array('data' => l(format_date($row->transaction_date, 'custom', 'M. d, Y'), $view_path), 'class' => array('')),
-      'reference' => l($transaction_type['id_prefix'] . '# ' . $row->transaction_id, $view_path),
-      'description' => array('data' => l($transaction_type['title'], $view_path), 'class' => array('')),
+      'date' => array('data' => $date_string, 'class' => array('')),
+      'reference' => $reference,
+      'description' => array('data' => $description, 'class' => array('')),
       'debit' => array('data' => '', 'class' => array('uk-text-right')),
       'credit' => array('data' => '', 'class' => array('uk-text-right')),
       'balance' => array('data' => '', 'class' => array('uk-text-right')),
     );
-    $credit = $debit = 0;
-    $skip_credit = FALSE;
-    switch ($row->transaction_type) {
-      case 'ret':
-        $details = avtrans_ret_load($row->transaction_id);
-        if (!empty($row->status)) {
-          $data['description']['data'] .= ' - <em>pending</em>';
-          $skip_credit = TRUE;
-        }
-        $credit = $details->grand_total;
-        //$data['credit']['data'] = number_format($details->grand_total, 2);
-        break;
-      case 'sinv':
-        $details = avtrans_sinv_load($row->transaction_id);
-        //dpm($details);
-        $debit = $details->debit_total;
-        //$data['debit']['data'] = number_format($details->debit_total, 2);
-        break;
-      case 'spay':
-        $credit = $row->grand_total;
-        //$data['credit']['data'] = number_format($row->grand_total, 2);
-        break;
-    }
 
-    $credit = round($credit, 2);
-    $debit = round($debit, 2);
-    if (!$skip_credit) {
-      $data['credit']['data'] = empty($credit) ? '' : number_format($credit, 2);
+    $skip_credit = FALSE;
+    if (!empty($row->ref_txn_type)) {
+      // Get reference transaction type details.
+      $rttd = avtxns_txn_types($row->ref_txn_type);
+      $credit = $rttd['receivable_type'] == 'credit' ? $row->grand_total : 0;
+      $debit = $rttd['receivable_type'] == 'debit' ? $row->grand_total : 0;
     }
     else {
-      $data['credit']['data'] = empty($credit) ? '' : '<del>' . number_format($credit, 2) . '</del>';
       $credit = 0;
+      $debit = $row->grand_total;
     }
+
+    $data['credit']['data'] = empty($credit) ? '' : number_format($credit, 2);
     $data['debit']['data'] = empty($debit) ? '' : number_format($debit, 2);
-    $balance = round($balance - $credit + $debit, 2);
+    $balance = $balance - $credit + $debit;
     $data['balance']['data'] = number_format($balance, 2);
 
     $rows[] = array('data' => $data, 'class' => array('uk-table-middle'));
@@ -372,7 +388,7 @@ function avreports_soa_form($form, &$form_state) {
       ),
       'class' => array('uk-table-middle'),
     );
-    $rows[] = array('data' => array(array('data' => '- End of list -', 'colspan' => 10, 'class' => array('uk-text-muted uk-text-center'))));
+    //$rows[] = array('data' => array(array('data' => '- End of list -', 'colspan' => 10, 'class' => array('uk-text-muted uk-text-center'))));
     $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
   }
   $form['transaction_list_table'] = array(
@@ -395,9 +411,6 @@ function avreports_soa_form($form, &$form_state) {
       '#type' => 'item',
       '#markup' => check_plain($user->name),
     );
-    $client_name = empty($user_filter['avclient.display_name']) ? '' : $user_filter['avclient.display_name'];
-    $client = avcustomer_query_load(array('avcustomers.display_name = :name'), array(':name' => $client_name));
-    $client = array_shift($client);
     $transaction_list_table['client_name'] = array(
       '#title' => 'Customer',
       '#title_display' => 'none',
@@ -426,6 +439,13 @@ function avreports_soa_form($form, &$form_state) {
       '#type' => 'item',
       '#markup' => empty($client->data['phone1']) ? '' : ('Contact #: ' . $client->data['phone1']),
     );
+  }
+
+  // Show balance aging.
+
+
+  if (!empty($client->id)) {
+    $transaction_list_table['balance_ages'] = avreports_client_balance_aging_form($client->id);
   }
 
   $form['transaction_list_table'] += $transaction_list_table;

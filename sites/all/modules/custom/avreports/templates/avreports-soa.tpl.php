@@ -11,6 +11,7 @@
 </div>
 
 <?php print drupal_render($form['table']); ?>
+<?php print drupal_render($form['balance_ages']); ?>
 
 <div class="uk-grid uk-margin-top">
   <div class="uk-width-1-2">

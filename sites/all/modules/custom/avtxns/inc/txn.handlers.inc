@@ -276,13 +276,13 @@ function avtxns_txn_form_submit2($form, &$form_state) {
         $new_cost = $entered_product['cost'] / $entered_product['qty_per_uom'];
         $new_cost = round((float) $new_cost, AVBASE_DECIMAL_MAX);
 
-        //$proposed_cost = avtrans_compute_product_cost($current_cost, $product_row->qty, $new_cost, $incoming_base_qty);
+        //$proposed_cost = avtxns_compute_product_cost($current_cost, $product_row->qty, $new_cost, $incoming_base_qty);
         $proposed_cost = $new_cost;
         if (round($current_cost, 2) == round($proposed_cost, 2)) {
           continue;
         }
 
-        $price = avtrans_compute_sales_price($current_sales_price, $current_cost, $proposed_cost);
+        $price = avtxns_compute_sales_price($current_sales_price, $current_cost, $proposed_cost);
         $price_markup = $price['markup'] * 100;
         $proposed_sales_price = $price['price'];
         $cost_changes[$k] = array(

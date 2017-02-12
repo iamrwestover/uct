@@ -17,7 +17,7 @@ function avclient_load($client_id) {
     return $_clients[$client_id];
   }
 
-  $where = array('avclients.id = :client_id');
+  $where = array('avclient.id = :client_id');
   $args = array(':client_id' => $client_id);
   $rows = avclient_query_load($where, $args);
   $row = empty($rows[$client_id]) ? FALSE : $rows[$client_id];
@@ -55,7 +55,7 @@ function avclient_load_ids($ids) {
   }
 
   if (!empty($query_ids)) {
-    $where = array('avclients.id IN(:client_ids)');
+    $where = array('avclient.id IN(:client_ids)');
     $args = array(':client_ids' => $query_ids);
     $rows = avclient_query_load($where, $args);
     if (!empty($rows)) {
@@ -94,14 +94,17 @@ function avclient_query_load($param_where, $param_args = array(), $limit_string 
     return $data[$data_id];
   }
 
-  $query = "SELECT avclients.*, avcat.title as agent_name, avcat_terms.title as term_name
-    FROM {avtbl_clients} avclients
-    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avclients.agent_id
-    LEFT JOIN {avtbl_categories} avcat_terms ON avcat_terms.id = avclients.term_id";
+  $query = "SELECT
+    avclient.*, avcat.title as agent_name,
+    avcat_terms.title as term_name,
+    avcat_terms.data as term_data
+    FROM {avtbl_clients} avclient
+    LEFT JOIN {avtbl_categories} avcat ON avcat.id = avclient.agent_id
+    LEFT JOIN {avtbl_categories} avcat_terms ON avcat_terms.id = avclient.term_id";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
-  $query .= " ORDER BY avclients.created DESC";
+  $query .= " ORDER BY avclient.created DESC";
   if (!empty($limit_string)) {
     $query .= " LIMIT " . $limit_string;
   }
@@ -111,6 +114,9 @@ function avclient_query_load($param_where, $param_args = array(), $limit_string 
   foreach ($rs as $row) {
     if (isset($row->data)) {
       $row->data = unserialize($row->data);
+    }
+    if (isset($row->term_data)) {
+      $row->term_data = unserialize($row->term_data);
     }
     $rows[$row->id] = $row;
   }
@@ -189,15 +195,15 @@ function avclients_autocomplete($client_type, $string = '') {
     //$query->range(0, 15);
     //$result = $query->execute();
     $where_or = array(
-      'avclients.display_name LIKE :string',
-      'avclients.company LIKE :string',
-      'avclients.first_name LIKE :string',
-      'avclients.last_name LIKE :string',
+      'avclient.display_name LIKE :string',
+      'avclient.company LIKE :string',
+      'avclient.first_name LIKE :string',
+      'avclient.last_name LIKE :string',
     );
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
-    $where = array($where_or_str, 'avclients.client_type = :client_type');
+    $where = array($where_or_str, 'avclient.client_type = :client_type');
     $args = array(':string' => '%' . db_like($string) . '%', ':client_type' => $client_type);
-    $where[] = 'avclients.status = :active_status';
+    $where[] = 'avclient.status = :active_status';
     $args[':active_status'] = AVCLIENT_STATUS_ACTIVE;
     $rows = avclient_query_load($where, $args, '8');
     foreach ($rows as $row) {

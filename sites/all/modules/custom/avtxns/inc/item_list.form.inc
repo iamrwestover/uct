@@ -561,7 +561,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       $fields['total']['#element_save_id'] = 'paid_amount';
       $fields['total']['#required'] = TRUE;
       $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : $prod_row['balance'];
-      $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
+      $fields['total']['#default_value'] = empty($paid_amount) ? '' : $paid_amount;
       $fields['total']['#element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
       //$fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
       $disabled_fields = array(
@@ -586,7 +586,6 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $form['product_rows'][$prod_key] = $fields;
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
     $form['product_rows'][$prod_key]['#prod_category'] = empty($prod_row['category_title']) ? '' : $prod_row['category_title'];
-    $form['product_rows'][$prod_key]['#prod_ref_txn_type'] = empty($prod_row['ref_txn_type']) ? '' : $prod_row['ref_txn_type'];
     $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $transaction_type;
     //$form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
