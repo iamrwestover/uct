@@ -134,20 +134,25 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $debit_total = 0;
     if (!empty($row->id)) {
       $query = db_select('avtbl_transaction_details', 'avtxn_details');
+      $query->fields('avtxn_details');
       if ($row->transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
         $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_details.item_id');
-        $query->leftJoin('avtbl_categories', 'avcat', "avcat.id = avtxn_details.uom_id AND avcat.group_id = 'uom'");
-        $query->leftJoin('avtbl_categories', 'avcat_base', "avcat_base.id = avprod.uom_id AND avcat.group_id = 'uom'");
+        $query->leftJoin('avtbl_categories', 'avcat', 'avcat.id = avtxn_details.uom_id');
+        $query->leftJoin('avtbl_categories', 'avcat_base', 'avcat_base.id = avprod.uom_id');
+        $query->leftJoin('avtbl_categories', 'avcat_catprod', 'avcat_catprod.id = avprod.category_id');
         $query->leftJoin('avtbl_transaction_details', 'avtxn_reference', 'avtxn_reference.id = avtxn_details.ref_txn_dtl_id');
         $query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_reference.transaction_id');
         $query->addField('avprod', 'title', 'product_title');
         $query->addField('avprod', 'uom_id', 'base_uom_id');
         $query->addField('avcat', 'title', 'uom_title');
         $query->addField('avcat_base', 'title', 'base_uom_title');
+        $query->addField('avcat_catprod', 'title', 'category_title');
         $query->addField('avtxn_reference', 'transaction_id', 'ref_txn_id');
         $query->addField('avtxn', 'transaction_type', 'ref_txn_type');
+        $query->orderBy('category_title', 'ASC');
+        $query->orderBy('product_title', 'ASC');
       }
-      $query->fields('avtxn_details')->condition('avtxn_details.transaction_id', $row->id)->execute();
+      $query->condition('avtxn_details.transaction_id', $row->id)->execute();
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
         $item->total = $item->cost * $item->qty;

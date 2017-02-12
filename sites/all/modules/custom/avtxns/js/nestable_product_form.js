@@ -198,7 +198,13 @@
         }
         else if (otherUOMs[uomID]) {
           // Selected UOM is a data UOM.
-          cost = parseFloat(itemCost) * parseFloat($qtyPerUOMEl.val());
+          if (transaction == 'sales' && $.isNumeric(otherUOMs[uomID].price)) {
+            cost = parseFloat(otherUOMs[uomID].price);
+
+          }
+          else {
+            cost = parseFloat(itemCost) * parseFloat($qtyPerUOMEl.val());
+          }
           $costEl.val(cost.toFixed(2));
         }
         else {

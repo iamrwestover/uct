@@ -155,26 +155,47 @@ function avimport_db_insert_products_row($excel_row) {
   if (!empty($title)) {
     $insert_row['principal_id'] = avbase_get_category_id_by_title($title, 'principal', TRUE);
   }
-  $title = empty($excel_row['UOM 1']) ? '' : trim($excel_row['UOM 1']);
-  if (!empty($title)) {
-    $uom_id = avbase_get_category_id_by_title($title, 'uom', TRUE);
-    if (!empty($uom_id)) {
-      $insert_row['data']['uoms'][$uom_id] = array(
-        'uom_id' => avbase_get_category_id_by_title($title, 'uom', TRUE),
-        'qty' => ((int)$excel_row['UOM 1 QTY']) ? (int)$excel_row['UOM 1 QTY'] : 1,
-      );
-    }
+
+  $test_uoms = array(
+    114 => rand(2, 6), // link
+    92 => rand(4, 6), // card
+    1 => 20, // box
+    13 => 10, // pack
+    31 => 12, // dozen
+    29 => 24, // case
+  );
+
+  //array_splice($test_uoms, -1, rand(1, 3));
+  foreach ($test_uoms as $k => $v) {
+    $insert_row['data']['uoms'][$k] = array(
+      'uom_id' => $k,
+      'qty' =>  $v,
+    );
   }
-  $title = empty($excel_row['UOM 2']) ? '' : trim($excel_row['UOM 2']);
-  if (!empty($title)) {
-    $uom_id = avbase_get_category_id_by_title($title, 'uom', TRUE);
-    if (!empty($uom_id)) {
-      $insert_row['data']['uoms'][$uom_id] = array(
-        'uom_id' => avbase_get_category_id_by_title($title, 'uom', TRUE),
-        'qty' => ((int)$excel_row['UOM 2 QTY']) ? (int)$excel_row['UOM 2 QTY'] : 1,
-      );
-    }
-  }
+
+
+  //$title = empty($excel_row['UOM 1']) ? '' : trim($excel_row['UOM 1']);
+  //if (!empty($title)) {
+  //  $uom_id = avbase_get_category_id_by_title($title, 'uom', TRUE);
+  //  if (!empty($uom_id)) {
+  //    $insert_row['data']['uoms'][$uom_id] = array(
+  //      //'uom_id' => avbase_get_category_id_by_title($title, 'uom', TRUE),
+  //      'uom_id' => $uom_id,
+  //      'qty' => ((int)$excel_row['UOM 1 QTY']) ? (int)$excel_row['UOM 1 QTY'] : 1,
+  //    );
+  //  }
+  //}
+  //$title = empty($excel_row['UOM 2']) ? '' : trim($excel_row['UOM 2']);
+  //if (!empty($title)) {
+  //  $uom_id = avbase_get_category_id_by_title($title, 'uom', TRUE);
+  //  if (!empty($uom_id)) {
+  //    $insert_row['data']['uoms'][$uom_id] = array(
+  //      //'uom_id' => avbase_get_category_id_by_title($title, 'uom', TRUE),
+  //      'uom_id' => $uom_id,
+  //      'qty' => ((int)$excel_row['UOM 2 QTY']) ? (int)$excel_row['UOM 2 QTY'] : 1,
+  //    );
+  //  }
+  //}
 
   // Add created and initial qty date timestamp.
   $insert_row['created'] = $insert_row['initial_qty_date'] = time();

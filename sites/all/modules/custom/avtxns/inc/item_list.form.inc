@@ -258,6 +258,16 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     '#transaction' => $ttd['transaction'],
   );
   //$reference_type = empty($form_state['values']['client_pending_pos_reference_type']) ? '' : $form_state['values']['client_pending_pos_reference_type'];
+
+  // Group item rows by category title.
+  //$item_rows_by_category = array();
+  //foreach ($_item_rows as $prod_key => $prod_row) {
+  //  $item_rows_by_category[$prod_row['category_title']][$prod_key] = $prod_row;
+  //}
+  //dpm($item_rows_by_category);
+  //foreach ($item_rows_by_category as $category_title => $prod_rows) {
+  //
+  //}
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
     $fields = array();
@@ -575,6 +585,8 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     $form['product_rows'][$prod_key] = $fields;
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
+    $form['product_rows'][$prod_key]['#prod_category'] = empty($prod_row['category_title']) ? '' : $prod_row['category_title'];
+    $form['product_rows'][$prod_key]['#prod_ref_txn_type'] = empty($prod_row['ref_txn_type']) ? '' : $prod_row['ref_txn_type'];
     $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $transaction_type;
     //$form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';

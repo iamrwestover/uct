@@ -39,7 +39,6 @@ function avimport_menu() {
  */
 function avimport_import_form($form, &$form_state) {
   $form['#attached']['js'][] = AVIMPORT_MODULE_PATH . '/js/avimport.js';
-  $excel_rows = empty($_SESSION['avimport']['rows']) ? array() : $_SESSION['avimport']['rows'];
 
   // "Analyze data" Fieldset.
   $form['analyze_data'] = array(
@@ -80,54 +79,6 @@ function avimport_import_form($form, &$form_state) {
     //'#title' => 'Prepare data',
     '#attributes' => array('class' => array('')),
     '#access' => !empty($excel_rows),
-  );
-
-  if (!empty($excel_rows)) {
-    $table_rows = array();
-    foreach ($excel_rows as $k => $v) {
-      if (empty($v['title'])) {
-        continue;
-      }
-
-      $table_cols = array();
-      $table_cols['product_title'] = array(
-        '#type' => 'item',
-        '#markup' => check_plain($v['title']),
-        '#column_attributes' => array('class' => array('uk-width-1-5')),
-      );
-
-      $table_rows[$k] = $table_cols;
-      $table_rows[$k]['#row_attributes'] = array('class' => array('uk-table-middle'));
-    }
-
-    if (!empty($table_rows)) {
-      $table = array(
-        '#theme' => 'avbase_form_table',
-        '#header' => array(
-          array('data' => t('Product title')),
-        ),
-      );
-      $table['rows'] = $table_rows;
-      $table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
-      $form['pending_data'] += $table;
-    }
-    else {
-      $required_header_names = array('TITLE', 'INITIAL QTY', 'BASE UOM', 'COST', 'SALES PRICE', 'ROP', 'EOQ');
-      $optional_header_names = array('CODE', 'CATEGORY', 'EXTRA UOM 1', 'EXTRA UOM 2', 'EXPIRY DATE', 'LOT NO', 'SHELF LOCATION', 'PRINCIPAL');
-      $form['pending_data']['reminder'] = array(
-        '#markup' => t('There are no valid rows found. Make sure your file includes the following header names in all CAPS: %header_names', array('%header_names' => implode(', ', $required_header_names))),
-        '#prefix' => '<div class="uk-text-muted">',
-        '#suffix' => '</div>',
-      );
-      //unset($_SESSION['avimport']);
-    }
-  }
-
-  $form['pending_data']['reset'] = array(
-    '#id' => 'reset-btn',
-    '#type' => 'submit',
-    '#value' => t('Reset'),
-    '#attributes' => array('class' => array('uk-button-primary uk-margin-top')),
   );
 
   return $form;
