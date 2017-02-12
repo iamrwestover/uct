@@ -358,7 +358,7 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
   $fields['buttons']['reset_button'] += array(
     '#id' => 'product-list-reset-btn',
     '#type' => 'submit',
-    '#value' => t('clear'),
+    '#value' => t('reset filter'),
     '#attributes' => array(
       'class' => array('uk-margin-small-left'),
     ),

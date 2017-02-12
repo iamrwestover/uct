@@ -236,5 +236,8 @@ function avclients_client_types($client_type = NULL) {
   if (isset($ret[$client_type])) {
     return $ret[$client_type];
   }
-  return $ret;
+  elseif (is_null($client_type)) {
+    return $ret;
+  }
+  return NULL;
 }

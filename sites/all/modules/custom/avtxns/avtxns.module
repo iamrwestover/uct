@@ -249,7 +249,10 @@ function avtxns_txn_types($type = NULL) {
   if (isset($ret[$type])) {
     return $ret[$type];
   }
-  return $ret;
+  elseif (is_null($type)) {
+    return $ret;
+  }
+  return NULL;
 }
 
 function avtxns_txn_list_form($form, &$form_state, $options = array()) {
@@ -364,7 +367,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     '#title' => t('Agent'),
     '#title_display' => 'none',
     '#maxlength' => 255,
-    '#autocomplete_path' => 'av/categories/agent_cust/autocomplete',
+    //'#autocomplete_path' => 'av/categories/agent1/autocomplete',
     //'#element_validate' => array('avbase_element_validate_category_exists'),
     //'#element_validate_conditions' => array('group_id' => 'agent_cust'),
     '#attributes' => array(
@@ -431,7 +434,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   $fields['buttons']['reset_button'] += array(
     '#id' => 'transaction-reset-btn',
     '#type' => 'submit',
-    '#value' => t('clear'),
+    '#value' => t('reset filter'),
     //'#button_label' => '<i class="uk-icon-remove"></i>',
   );
 
