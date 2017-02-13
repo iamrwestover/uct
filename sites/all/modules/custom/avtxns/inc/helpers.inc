@@ -497,20 +497,17 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   $product_id = empty($item_row['product_id']) ? NULL : $item_row['product_id'];
   $qty_per_uom = empty($item_row['qty_per_uom']) ? NULL : $item_row['qty_per_uom'];
   if (!empty($qty_per_uom)) {
-    $product = avproduct_load($product_id);
-    if (!empty($product)) {
-      $inputted_base_qty = $qty_per_uom * $element_value;
-      $current_qty = empty($product->qty) ? 0 : $product->qty;
+    $inputted_base_qty = $qty_per_uom * $element_value;
+    //$current_qty = empty($product->qty) ? 0 : $product->qty;
 
-      $available_qty = (int) avtxns_item_available_qty($product_id);
-      if ($available_qty < $inputted_base_qty) {
-        form_error($element, t('@verb %qty1 %product but available quantity is only %qty2.', array(
-          '%qty1' => number_format($inputted_base_qty),
-          '%qty2' => number_format($available_qty),
-          '%product' => $product->title,
-          '@verb' => ($transaction_type == 'rept' ? 'Returning' : 'Requesting'),
-        )));
-      }
+    $available_qty = (int) avtxns_item_available_qty($product_id);
+    if ($available_qty < $inputted_base_qty) {
+      form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
+        '@qty1' => number_format($inputted_base_qty),
+        '@qty2' => number_format($available_qty),
+        '%product' => $item_row['product_title'],
+        '@verb' => ($transaction_type == 'rept' ? 'Returning' : 'Requesting'),
+      )));
     }
   }
   else {
@@ -617,8 +614,8 @@ function avtxns_qty_check_and_reserve($form, $form_state) {
     'xx' => variable_get('avbase_user_reserved_qty', array()),
   );
 
-  if (!empty($entered_qty) && $entered_qty_is_valid) {
-    avtxns_reserve_user_qty($entered_item_id, $entered_qty);
+  if ($entered_qty_is_valid) {
+    avtxns_reserve_user_qty($entered_item_id, ($entered_qty * $entered_qty_per_uom));
     //$commands['xx']['zz'] = variable_get('avbase_user_reserved_qty', array());
   }
 
