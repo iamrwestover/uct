@@ -18,6 +18,9 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       break;
 
     case 'after-save':
+      // Remove qty reservations.
+      avtxns_remove_user_qty_reservation();
+
       // Get item rows.
       $item_rows = isset($form_state['storage']['item_rows']) ? $form_state['storage']['item_rows'] : array();
 

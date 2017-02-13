@@ -1,5 +1,19 @@
 (function ($) {
 
+  Drupal.ajax.prototype.commands.enoughQtyValidationResult = function (ajax, response) {
+    var $qtyEl = $('#' + response.triggerEl['#id']);
+    $qtyEl.prop('title', '');
+    if (!response.itemID) {
+      return;
+    }
+
+    $qtyEl.prop('title', 'Available: ' + response.availableQty);
+    $qtyEl.removeClass('uk-form-danger');
+    if (!response.valid) {
+      $qtyEl.addClass('uk-form-danger');
+    }
+  };
+
   /**
    * An avbaseNestableProductForm object.
    * @param $wrapper
@@ -211,7 +225,7 @@
           $costEl.val('');
         }
 
-        $costEl.trigger('change');
+        $qtyEl.trigger('change');
       });
 
       // Trigger actions for cost field.

@@ -389,18 +389,26 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       //'#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
         'data-column-name' => 'qty',
+        'data-uk-tooltip' => '',
         'class' => array('prod-column-qty'),
       ),
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
-    if ($transaction_type == 'dr') {
+    if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
       $fields['qty']['#av_prod_element_validate'][] = 'avbase_element_validate_non_negative_number';
     }
     else {
       $fields['qty']['#av_prod_element_validate'][] = 'element_validate_integer_positive';
     }
-    if ($transaction_type == 'dr' || $transaction_type == 'rept') {
+    if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY || $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN) {
       $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_enough_qty';
+      $fields['qty']['#ajax'] = array(
+        'callback' => 'avtxns_qty_check_and_reserve',
+        //'wrapper' => 'item-list-product-row-' . $prod_key . '-wrapper',
+        'effect' => 'none',
+        'event' => 'change',
+        'progress' => array(),
+      );
     }
 
 
@@ -434,7 +442,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       ),
       '#default_value' => isset($prod_row['discount_text']) ? $prod_row['discount_text'] : '',
       '#dont_require' => TRUE,
-      //'#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, 'rept')),
+      //'#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN)),
     );
 
     $fields['total'] = array(
