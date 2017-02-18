@@ -512,6 +512,7 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
 
   $qty_details = avtxns_item_qty_details($item_id);
   $user_available_qty = (int) $qty_details['user_available'];
+  $user_available_qty = $user_available_qty < 0 ? 0 : $user_available_qty;
   if ($user_available_qty < $total_product_qty) {
     form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
       '@qty1' => number_format($total_product_qty),

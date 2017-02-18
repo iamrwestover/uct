@@ -263,7 +263,7 @@
         var request = $.ajax({
           url: Drupal.settings.basePath + 'av/transactions/qty-check-and-reserve',
           method: 'POST',
-          data: {entered_item_id: itemID, entered_qty: $(this).val(), entered_qty_per_uom: $qtyPerUOMEl.val()},
+          data: {entered_item_id: itemID, entered_qty: self.getTotalEnteredQty(itemID), entered_qty_per_uom: $qtyPerUOMEl.val()},
           dataType: 'json',
           beforeSend: function() {
             // Reset tooltip.
@@ -296,24 +296,24 @@
         if ($(this).hasClass('qty-checking')) {
           return;
         }
-        var totalEnteredBaseQty = 0;
         var itemID = $productTitleEl.data('selected-product-id');
+        var totalEnteredBaseQty = self.getTotalEnteredQty(itemID);
         //var matchingQtyEls = [];
-        self.$productRows.each(function() {
-          if ($(this).find('.prod-column-title').data('selected-product-id') == itemID) {
-            var $thisQtyEl = $(this).find('.prod-column-qty');
-            var enteredQty = $thisQtyEl.val();
-            var enteredQtyPerUOM = $(this).find('.prod-column-qty-per-uom').val();
-            if ($.isNumeric(enteredQty) && $.isNumeric(enteredQtyPerUOM)) {
-              totalEnteredBaseQty += enteredQty * enteredQtyPerUOM;
-              //matchingQtyEls.push($thisQtyEl);
-              //$thisQtyEl.addClass('qty-check-tagged');
-              //$thisQtyEl.addClass('uk-text-muted');
-              //$thisQtyEl.removeClass('prod-column-qty');
-              //console.log($thisQtyEl);
-            }
-          }
-        });
+        //self.$productRows.each(function() {
+        //  if ($(this).find('.prod-column-title').data('selected-product-id') == itemID) {
+        //    var $thisQtyEl = $(this).find('.prod-column-qty');
+        //    var enteredQty = $thisQtyEl.val();
+        //    var enteredQtyPerUOM = $(this).find('.prod-column-qty-per-uom').val();
+        //    if ($.isNumeric(enteredQty) && $.isNumeric(enteredQtyPerUOM)) {
+        //      totalEnteredBaseQty += enteredQty * enteredQtyPerUOM;
+        //      //matchingQtyEls.push($thisQtyEl);
+        //      //$thisQtyEl.addClass('qty-check-tagged');
+        //      //$thisQtyEl.addClass('uk-text-muted');
+        //      //$thisQtyEl.removeClass('prod-column-qty');
+        //      //console.log($thisQtyEl);
+        //    }
+        //  }
+        //});
 
         var qtyPerUOM = $qtyPerUOMEl.val();
         var UOMTitle = $UOMEl.val();
@@ -345,7 +345,7 @@
         clearTimeout(typingTimer);
         typingTimer = setTimeout(function () {
           if ($qtyEl.is(':focus')) {
-            $qtyEl.trigger('mouseenter');
+            $qtyEl.trigger('change');
           }
         }, doneTypingInterval);
       });
@@ -383,6 +383,25 @@
         self.switchRowFocus(e, $thisRow);
       });
     });
+  };
+
+  /**
+   * Get total entered qty for specific product.
+   */
+  Drupal.avbaseNestableProductForm.prototype.getTotalEnteredQty = function (itemID) {
+    var totalEnteredBaseQty = 0;
+    //var matchingQtyEls = [];
+    this.$productRows.each(function() {
+      if ($(this).find('.prod-column-title').data('selected-product-id') == itemID) {
+        var $thisQtyEl = $(this).find('.prod-column-qty');
+        var enteredQty = $thisQtyEl.val();
+        var enteredQtyPerUOM = $(this).find('.prod-column-qty-per-uom').val();
+        if ($.isNumeric(enteredQty) && $.isNumeric(enteredQtyPerUOM)) {
+          totalEnteredBaseQty += enteredQty * enteredQtyPerUOM;
+        }
+      }
+    });
+    return totalEnteredBaseQty;
   };
 
   /**
