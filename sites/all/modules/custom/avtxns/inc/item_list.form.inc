@@ -167,7 +167,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   $transaction_date_text = format_date($txn_date_timestamp, 'custom', $date_format);
   $form['transaction_date'] = array(
     '#type' => 'textfield',
-    '#title' => 'Transaction date',
+    '#title' => 'Date',
     '#default_value' => $transaction_date_text,
     '#element_validate' => array('avbase_element_validate_date'),
     '#av_date_format' => $date_format,
@@ -389,6 +389,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       //'#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
         'data-column-name' => 'qty',
+        //'data-row-key' => $prod_key,
         'data-uk-tooltip' => '',
         'class' => array('prod-column-qty'),
       ),
@@ -402,16 +403,37 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     }
     if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY || $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN) {
       $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_enough_qty';
-      $fields['qty']['#ajax'] = array(
-        'callback' => 'avtxns_qty_check_and_reserve',
-        //'wrapper' => 'item-list-product-row-' . $prod_key . '-wrapper',
-        'effect' => 'none',
-        'event' => 'change',
-        'progress' => array(),
-      );
+      //$fields['qty_check_field'] = array(
+      //  //'#id' => 'product-qty-check-' . $prod_key,
+      //  //'#item_row_key' => $prod_key,
+      //  //'#type' => 'textfield',
+      //  //'#title' => 'Qty Check',
+      //  //'#attributes' => array(
+      //  //  'data-column-name' => 'qty-check',
+      //  //  'class' => array('prod-column-qty-check'),
+      //  //),
+      //  '#name' => 'qty_check_btn_' . $prod_key,
+      //  '#item_row_key' => $prod_key,
+      //  '#type' => 'button',
+      //  '#value' => t('Check qty'),
+      //  '#limit_validation_errors' => array(),
+      //  //'#submit' => array('avtxns_item_list_prod_submit'),
+      //  '#attributes' => array(
+      //    //'class' => array('prod-column-delete-btn'),
+      //    'tabindex' => -1,
+      //  ),
+      //  '#ajax' => array(
+      //    'callback' => 'avtxns_qty_check_and_reserve',
+      //    //'path' => 'av/ajax',
+      //    //'wrapper' => 'item-list-product-row-' . $prod_key . '-wrapper',
+      //    'effect' => 'none',
+      //    'event' => 'click',
+      //    'progress' => array(),
+      //  ),
+      //);
     }
 
-
+//dpm('a');
     $fields['cost'] = array(
       '#id' => 'product-cost-' . $prod_key,
       '#item_row_key' => $prod_key,
@@ -464,7 +486,6 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       $fields['total']['#attributes']['class'][] = 'uk-form-success';
     }
 
-    // SPAY fields.
     $fields['transaction_date_formatted'] = array(
       '#type' => 'textfield',
       '#title' => 'Transaction date',
@@ -630,4 +651,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       'type' => 'setting',
     );
   }
+
+  //$user_reserved_qty = variable_get('avbase_user_reserved_qty', array());
+  //dpm($user_reserved_qty);
 }

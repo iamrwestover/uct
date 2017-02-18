@@ -1,18 +1,21 @@
 (function ($) {
 
-  Drupal.ajax.prototype.commands.enoughQtyValidationResult = function (ajax, response) {
-    var $qtyEl = $('#' + response.triggerEl['#id']);
-    $qtyEl.prop('title', '');
-    if (!response.itemID) {
-      return;
-    }
-
-    $qtyEl.prop('title', 'Available: ' + response.availableQty);
-    $qtyEl.removeClass('uk-form-danger');
-    if (!response.valid) {
-      $qtyEl.addClass('uk-form-danger');
-    }
-  };
+  //Drupal.ajax.prototype.commands.enoughQtyValidationResult = function (ajax, response) {
+  //  console.log(response);
+  //  var $qtyEl = $('#product-qty-' + response.triggerEl['#item_row_key']);
+  //  $qtyEl.prop('title', '');
+  //  if (!response.itemID) {
+  //    return;
+  //  }
+  //
+  //  $qtyEl.prop('title', 'Available: ' + response.availableQty);
+  //  $qtyEl.removeClass('uk-form-danger');
+  //  if (!response.valid) {
+  //    $qtyEl.addClass('uk-form-danger');
+  //  }
+  //
+  //  //$qtyEl.trigger('mouseenter');
+  //};
 
   /**
    * An avbaseNestableProductForm object.
@@ -95,6 +98,7 @@
       var $qtyPerUOMEl = $thisRow.find('.prod-column-qty-per-uom');
       var $costEl = $thisRow.find('.prod-column-cost');
       var $qtyEl = $thisRow.find('.prod-column-qty');
+      //var $qtyCheckEl = $thisRow.find('.prod-column-qty-check');
       var $discountEl = $thisRow.find('.prod-column-discount');
       var $totalEl = $thisRow.find('.prod-column-total');
       var uoms = Drupal.settings.avbase.uoms;
@@ -113,6 +117,7 @@
           var uom = uoms[productDetails.uom_id];
           $qtyPerUOMEl.val(1);
           $UOMEl.val(uom.title);
+          //$qtyCheckEl.trigger('change');
           $UOMEl.trigger('change');
         }
       });
@@ -246,7 +251,103 @@
 
       // Trigger actions for qty field.
       $qtyEl.change(function() {
+        // Compute costs.
         $costEl.trigger('change');
+
+        // Check if item qty is valid and not greater than user available qty.
+        var itemID = $productTitleEl.data('selected-product-id');
+        if (!itemID) {
+          return;
+        }
+
+        var request = $.ajax({
+          url: Drupal.settings.basePath + 'av/transactions/qty-check-and-reserve',
+          method: 'POST',
+          data: {entered_item_id: itemID, entered_qty: $(this).val(), entered_qty_per_uom: $qtyPerUOMEl.val()},
+          dataType: 'json',
+          beforeSend: function() {
+            // Reset tooltip.
+            $qtyEl.prop('title', '<i class="uk-icon-refresh uk-icon-spin uk-margin-small-right"></i>checking available qty');
+            $qtyEl.addClass('qty-checking');
+          },
+          complete: function() {
+            $qtyEl.removeClass('qty-checking');
+            if ($qtyEl.is(':focus')) {
+              $qtyEl.trigger('mouseenter');
+            }
+          }
+        });
+        request.done(function(response) {
+          Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
+          if ($.isNumeric(response.user_available)) {
+            Drupal.settings.avbase.availableQty[itemID] = response.user_available;
+          }
+        });
+        request.fail(function(jqXHR, textStatus) {
+          alert('Request failed: ' + textStatus );
+        });
+      });
+      $qtyEl.focus(function() {
+        $(this).trigger('mouseenter');
+      });
+      // Mouse enter.
+      $qtyEl.mouseenter(function() {
+        $(this).removeClass('uk-form-danger');
+        if ($(this).hasClass('qty-checking')) {
+          return;
+        }
+        var totalEnteredBaseQty = 0;
+        var itemID = $productTitleEl.data('selected-product-id');
+        //var matchingQtyEls = [];
+        self.$productRows.each(function() {
+          if ($(this).find('.prod-column-title').data('selected-product-id') == itemID) {
+            var $thisQtyEl = $(this).find('.prod-column-qty');
+            var enteredQty = $thisQtyEl.val();
+            var enteredQtyPerUOM = $(this).find('.prod-column-qty-per-uom').val();
+            if ($.isNumeric(enteredQty) && $.isNumeric(enteredQtyPerUOM)) {
+              totalEnteredBaseQty += enteredQty * enteredQtyPerUOM;
+              //matchingQtyEls.push($thisQtyEl);
+              //$thisQtyEl.addClass('qty-check-tagged');
+              //$thisQtyEl.addClass('uk-text-muted');
+              //$thisQtyEl.removeClass('prod-column-qty');
+              //console.log($thisQtyEl);
+            }
+          }
+        });
+
+        var qtyPerUOM = $qtyPerUOMEl.val();
+        var UOMTitle = $UOMEl.val();
+        //var $taggedQtyEls = $('.qty-check-tagged');
+        //console.log($(this).find('.prod-column-qty'));
+        //console.log($taggedQtyEls);
+        if ($.isNumeric(qtyPerUOM)) {
+          Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
+          var availableQty = Drupal.settings.avbase.availableQty[itemID] || 0;
+          availableQty = Math.floor((availableQty - totalEnteredBaseQty) / qtyPerUOM);
+
+
+          //$taggedQtyEls.removeClass('uk-form-danger');
+          //console.log(availableQty);
+          if (availableQty < 0) {
+            //$taggedQtyEls.addClass('uk-form-danger');
+            $(this).addClass('uk-form-danger');
+            availableQty = 0;
+          }
+          $(this).prop('title', availableQty + ' ' + UOMTitle);
+        }
+        //$taggedQtyEls.removeClass('qty-check-tagged');
+      });
+
+      // Key up.
+      var typingTimer;
+      var doneTypingInterval = 500;
+      $qtyEl.keyup(function() {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function () {
+          if ($qtyEl.is(':focus')) {
+            $qtyEl.trigger('mouseenter');
+          }
+        }, doneTypingInterval);
       });
       $qtyEl.keydown(function(e) {
         self.switchRowFocus(e, $thisRow);

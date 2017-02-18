@@ -27,6 +27,13 @@ function avtxns_menu() {
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
+  $items['av/transactions/qty-check-and-reserve'] = array(
+    'title' => 'QTY Check',
+    'page callback' => 'avtxns_qty_check_and_reserve',
+    'access callback' => 'user_is_logged_in',
+    'file' => 'inc/helpers.inc',
+    'type' => MENU_CALLBACK,
+  );
 
   $transaction_types = avtxns_txn_types();
   foreach ($transaction_types as $k => $v) {

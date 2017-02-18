@@ -36,8 +36,8 @@ $term_html = drupal_render($form['term_id']);
 
     </div>
 
-    <div class="uk-width-1-6 uk-text-right">
-      <div class="uk-text-right">
+    <div class="uk-width-1-6">
+      <div class="">
         <?php
           $transaction_id_html = drupal_render($form['transaction_id']);
           print ($transaction_id_html ? $transaction_id_html : '');

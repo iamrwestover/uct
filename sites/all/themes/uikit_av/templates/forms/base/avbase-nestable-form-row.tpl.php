@@ -47,6 +47,7 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
       <div class="uk-width-1-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['qty']); ?>
+          <?php print drupal_render($form['qty_check_field']); ?>
         </div>
       </div>
 

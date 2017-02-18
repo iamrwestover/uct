@@ -15,6 +15,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $_item_rows = &$_storage['item_rows'];
   $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
 
+
   // Make sure at least one product is added.
   if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
     $detected_product_ids = array();

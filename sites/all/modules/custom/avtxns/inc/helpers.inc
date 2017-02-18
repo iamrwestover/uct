@@ -487,32 +487,61 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   }
 
   // Get form storage.
-  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
-  $_storage = &$form_state['storage'];
-  $transaction_type = empty($_storage['transaction_type']) ? '' : $_storage['transaction_type'];
+  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
 
   // Get item rows.
   $item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
-  $item_row = empty($item_rows[$item_row_key]) ? array() : $item_rows[$item_row_key];
-  $product_id = empty($item_row['product_id']) ? NULL : $item_row['product_id'];
-  $qty_per_uom = empty($item_row['qty_per_uom']) ? NULL : $item_row['qty_per_uom'];
-  if (!empty($qty_per_uom)) {
-    $inputted_base_qty = $qty_per_uom * $element_value;
-    //$current_qty = empty($product->qty) ? 0 : $product->qty;
+  $element_item_row = empty($item_rows[$item_row_key]) ? array() : $item_rows[$item_row_key];
+  $item_id = empty($element_item_row['product_id']) ? NULL : (int)$element_item_row['product_id'];
+  if (empty($item_id)) {
+    form_error($element, t('Product not specified.'));
+    return;
+  }
 
-    $available_qty = (int) avtxns_item_available_qty($product_id);
-    if ($available_qty < $inputted_base_qty) {
-      form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
-        '@qty1' => number_format($inputted_base_qty),
-        '@qty2' => number_format($available_qty),
-        '%product' => $item_row['product_title'],
-        '@verb' => ($transaction_type == 'rept' ? 'Returning' : 'Requesting'),
-      )));
+  $total_product_qty = 0;
+  foreach ($item_rows as $item_row) {
+    if (strtolower($item_row['product_title']) != strtolower($element_item_row['product_title'])) {
+      continue;
     }
+
+    $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
+    $qty = empty($item_row['qty']) ? 1 : (int)$item_row['qty'];
+    $inputted_base_qty = $qty_per_uom * $qty;
+    $total_product_qty += $inputted_base_qty;
   }
-  else {
-    drupal_set_message('Validation against on-hand quantity failed.', 'warning');
+
+  $qty_details = avtxns_item_qty_details($item_id);
+  $user_available_qty = (int) $qty_details['user_available'];
+  if ($user_available_qty < $total_product_qty) {
+    form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
+      '@qty1' => number_format($total_product_qty),
+      '@qty2' => number_format($user_available_qty),
+      '%product' => $element_item_row['product_title'],
+      '@verb' => ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN ? 'Returning' : 'Requesting'),
+    )));
   }
+
+  //$item_row = empty($item_rows[$item_row_key]) ? array() : $item_rows[$item_row_key];
+  //$product_id = empty($item_row['product_id']) ? NULL : $item_row['product_id'];
+  //$qty_per_uom = empty($item_row['qty_per_uom']) ? NULL : $item_row['qty_per_uom'];
+  //if (!empty($qty_per_uom)) {
+  //  $inputted_base_qty = $qty_per_uom * $element_value;
+  //  //$current_qty = empty($product->qty) ? 0 : $product->qty;
+  //
+  //  $qty_details = avtxns_item_qty_details($product_id);
+  //  $user_available_qty = (int) $qty_details['user_available'];
+  //  if ($user_available_qty < $inputted_base_qty) {
+  //    form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
+  //      '@qty1' => number_format($inputted_base_qty),
+  //      '@qty2' => number_format($user_available_qty),
+  //      '%product' => $item_row['product_title'],
+  //      '@verb' => ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN ? 'Returning' : 'Requesting'),
+  //    )));
+  //  }
+  //}
+  //else {
+  //  drupal_set_message('Validation against on-hand quantity failed.', 'warning');
+  //}
 
 
 }
@@ -573,12 +602,33 @@ function avtxns_get_return_types() {
 
 /**
  * Ajax validation if entered qty is less than on-hand qty.
- * @param $form
- * @param $form_state
  *
  * @return array
  */
-function avtxns_qty_check_and_reserve($form, $form_state) {
+function avtxns_qty_check_and_reserve() {
+  $data = array(
+    //'post' => $_POST,
+  );
+  extract($_POST);
+
+  $entered_item_id = (int)$entered_item_id;
+  $entered_qty_per_uom = (int)$entered_qty_per_uom;
+
+  if (!empty($entered_item_id)) {
+    $qty_details = avtxns_item_qty_details($entered_item_id);
+    $user_available = (int)$qty_details['user_available'];
+    //$total_available = (int)$qty_details['total_available'];
+    $entered_base_qty = (is_numeric($entered_qty) ? $entered_qty : 0) * $entered_qty_per_uom;
+    avtxns_reserve_user_qty($entered_item_id, $entered_base_qty);
+
+    //$data['valid_qty'] = !empty($entered_qty_is_valid);
+    $data['user_available'] = $user_available;
+    //$data['total_available'] = $total_available;
+  }
+
+  print drupal_json_encode($data);
+  drupal_exit();
+
   $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
   $parents = $triggering_element['#parents'];
   array_pop($parents);
@@ -587,37 +637,34 @@ function avtxns_qty_check_and_reserve($form, $form_state) {
   $entered_item_id = empty($item_row['product_id']) ? 0 : $item_row['product_id'];
 
   // Get qty.
-  $on_hand_qty = (int) avtxns_item_on_hand_qty($entered_item_id);
-  $reserved_qty = (int) avtxns_user_reserved_qty($entered_item_id);
-  $available_qty = $on_hand_qty - $reserved_qty;
-
+  $qty_details = avtxns_item_qty_details($entered_item_id);
+  $user_available_qty = (int) $qty_details['user_available'];
+  $total_available_qty = (int) $qty_details['total_available'];
 
   $entered_qty = (int) $item_row['qty'];
-  $entered_uom_title = trim($item_row['uom_title']);
-  $entered_qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : $item_row['qty_per_uom'];
-  $uom_available_qty = floor($available_qty / $entered_qty_per_uom);
-  $entered_qty_is_valid = is_numeric($entered_qty) && $entered_qty <= $uom_available_qty;
+  //$entered_uom_title = trim($item_row['uom_title']);
+  $entered_qty_per_uom = (int) $item_row['qty_per_uom'];
+  $entered_qty_per_uom = empty($entered_qty_per_uom) ? 1 : $entered_qty_per_uom;
+  $entered_base_qty = $entered_qty * $entered_qty_per_uom;
+  //$user_uom_available_qty = floor($user_available_qty / $entered_qty_per_uom);
+  //$total_uom_available_qty = floor($total_available_qty / $entered_qty_per_uom);
+  //$entered_qty_is_valid = is_numeric($entered_qty) && $entered_qty <= $user_uom_available_qty;
+  $entered_qty_is_valid = $entered_base_qty <= $user_available_qty;
+  if ($entered_qty_is_valid) {
+    avtxns_reserve_user_qty($entered_item_id, $entered_base_qty);
+    //$total_uom_available_qty = floor(($total_available_qty - $entered_base_qty) / $entered_qty_per_uom);
+  }
+
   $commands = array();
   $commands['xx'] = array(
     // Note: we will use this command in the .js file
     'command' => 'enoughQtyValidationResult',
     'triggerEl' => $triggering_element,
-    'itemRow' => $item_row,
     'itemID' => $entered_item_id,
-    'onHandQty' => $on_hand_qty,
-    'reservedQty' => $reserved_qty,
-    'availableQty' => number_format($uom_available_qty) . ' ' . $entered_uom_title,
-    'uomTitle' => $entered_uom_title,
-    'valid' => $entered_qty_is_valid,
-    // The path the user is directed to is given here
-    //'path' => $form_state['redirect'],
-    'xx' => variable_get('avbase_user_reserved_qty', array()),
+    //'availableQty' => number_format($total_uom_available_qty) . ' ' . $entered_uom_title,
+    //'uomTitle' => $entered_uom_title,
+    //'valid' => $entered_qty_is_valid,
   );
-
-  if ($entered_qty_is_valid) {
-    avtxns_reserve_user_qty($entered_item_id, ($entered_qty * $entered_qty_per_uom));
-    //$commands['xx']['zz'] = variable_get('avbase_user_reserved_qty', array());
-  }
 
   return array('#type' => 'ajax', '#commands' => $commands);
 }
@@ -625,37 +672,64 @@ function avtxns_qty_check_and_reserve($form, $form_state) {
 /**
  * Get item on hand qty.
  * @param $item_id
+ * @return array|NULL
  */
 function avtxns_item_on_hand_qty($item_id) {
-  return db_query("SELECT qty FROM {avtbl_products} WHERE id = :id", array(':id' => $item_id))->fetchField();
+  if (empty($item_id)) {
+    return NULL;
+  }
+  $data = &drupal_static(__FUNCTION__, array());
+  if (!isset($data[$item_id])) {
+    $data[$item_id] = db_query("SELECT qty FROM {avtbl_products} WHERE id = :id", array(':id' => $item_id))->fetchField();
+  }
+  return $data[$item_id];
 }
 
 /**
  * Get total qty reserved for this item.
  * @param $item_id
- * @return int
+ * @return array|NULL
  */
 function avtxns_user_reserved_qty($item_id) {
   global $user;
-  $user_reserved_qty = variable_get('avbase_user_reserved_qty', array());
-  $locked_qty = empty($user_reserved_qty[$item_id]) ? array() : $user_reserved_qty[$item_id];
-  $total = 0;
-  $minutes = 5;
-  foreach ($locked_qty as $uid => $qty_details) {
-    if (empty($uid) || empty($qty_details['qty'])) {
-      continue;
-    }
-    $timestamp = empty($qty_details['timestamp']) ? 0 : $qty_details['timestamp'];
-    if ($timestamp + (60 * $minutes) >= time()) {
-      $total += ($user->uid && $user->uid == $uid) ? 0 : $qty_details['qty'];
-    }
-    else {
-      unset($user_reserved_qty[$item_id][$uid]);
-    }
+  if (empty($item_id) || empty($user->uid)) {
+    return NULL;
   }
 
-  variable_set('avbase_user_reserved_qty', $user_reserved_qty);
-  return $total;
+  $data = &drupal_static(__FUNCTION__, array());
+  $now = time();
+  if (!isset($data[$item_id][$user->uid])) {
+    $user_reserved_qty = variable_get('avbase_user_reserved_qty', array());
+    $total_reserved = $other_users_reserved = 0;
+    $minutes = 5;
+    foreach ($user_reserved_qty as $reserved_item_id => $locked_qty) {
+      foreach ($locked_qty as $uid => $dtls) {
+        if (empty($uid) || !isset($dtls['qty'])) {
+          continue;
+        }
+        $timestamp = empty($dtls['timestamp']) ? 0 : $dtls['timestamp'];
+        $qty = (int) $dtls['qty'];
+        if (!empty($qty) && ($timestamp + (60 * $minutes) >= $now)) {
+          if ($reserved_item_id == $item_id) {
+            $other_users_reserved += ($user->uid && $user->uid == $uid) ? 0 : $dtls['qty'];
+            $total_reserved += $dtls['qty'];
+          }
+        } else {
+          unset($user_reserved_qty[$reserved_item_id][$uid]);
+        }
+      }
+      if (empty($user_reserved_qty[$reserved_item_id])) {
+        unset($user_reserved_qty[$reserved_item_id]);
+      }
+    }
+
+    variable_set('avbase_user_reserved_qty', $user_reserved_qty);
+    $data[$item_id][$user->uid] = array(
+      'total_reserved' => $total_reserved,
+      'other_users_reserved' => $other_users_reserved,
+    );
+  }
+  return $data[$item_id][$user->uid];
 }
 
 /**
@@ -699,12 +773,16 @@ function avtxns_remove_user_qty_reservation() {
 }
 
 /**
- * Get available item qty.
+ * Get item qty details.
  * @param $item_id
  * @return int
  */
-function avtxns_item_available_qty($item_id) {
+function avtxns_item_qty_details($item_id) {
   $on_hand_qty = (int) avtxns_item_on_hand_qty($item_id);
-  $reserved_qty = (int) avtxns_user_reserved_qty($item_id);
-  return $on_hand_qty - $reserved_qty;
+  $reservation = avtxns_user_reserved_qty($item_id);
+  return array(
+    'on_hand_qty' => $on_hand_qty,
+    'user_available' => $on_hand_qty - $reservation['other_users_reserved'],
+    'total_available' => $on_hand_qty - $reservation['total_reserved'],
+  );
 }
