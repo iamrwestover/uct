@@ -106,10 +106,10 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   }
 
   $query = db_select('avtbl_transactions', 'avtxns');
-  $query->leftJoin('avtbl_clients', 'avclient', 'avclient.id = avtxns.client_id');
-  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclient.client_type)");
+  $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxns.client_id');
+  $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclients.client_type)");
   //$query->leftJoin('avtbl_categories', 'avcat_terms', 'avcat_terms.id = avtxns.term_id');
-  $query->addField('avclient', 'display_name', 'client_name');
+  $query->addField('avclients', 'display_name', 'client_name');
   $query->addField('avcat_agent', 'title', 'agent_name');
   //$query->addField('avcat_terms', 'title', 'term_name');
   //$query->addField('avcat_terms', 'data', 'term_data');
@@ -324,7 +324,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
   $select[] = 'avtxn_detail.ref_txn_dtl_id';
   $select[] = 'avcat_agent.title AS agent_name';
   $select[] = 'avcat_term.title AS term_name';
-  $select[] = 'avclient.display_name';
+  $select[] = 'avclients.display_name';
   //$select[] = 'avcat_client_term.title AS client_term_name';
   $select[] = 'avtxn_ref.transaction_type AS ref_txn_type';
   $select[] = "IF (
@@ -342,11 +342,11 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
     ) AS grand_total";
 
   $joins = array();
-  $joins[] = 'INNER JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id';
+  $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avclient.term_id';
-  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_client_term ON avcat_client_term.id = avclient.term_id';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avclients.term_id';
+  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_client_term ON avcat_client_term.id = avclients.term_id';
   $joins[] = "LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_ref ON
     IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', 0, avtxn_detail_ref.id = avtxn_detail.ref_txn_dtl_id)";
   $joins[] = "LEFT JOIN {avtbl_transactions} AS avtxn_ref ON

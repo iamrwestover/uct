@@ -75,8 +75,8 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
   //  $client_name = empty($client_name) ? (empty($form_state['values']['client_name']) ? NULL : $form_state['values']['client_name']) : $client_name;
   //  if (!empty($client_name)) {
   //    $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
-  //      INNER JOIN {avtbl_clients} avclient ON avclient.id = avtxn.client_id
-  //      WHERE avclient.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
+  //      INNER JOIN {avtbl_clients} avclients ON avclients.id = avtxn.client_id
+  //      WHERE avclients.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
   //    $count = db_query($query, array(':client_name' => $client_name, ':ttype' => AVTXNS_TXN_TYPE_SALES_RETURN))->fetchField();
   //    if (!empty($count)) {
   //      //$form['buttons']['check_returns']['#attributes']['class']['color'] = 'uk-button-success';
@@ -262,8 +262,8 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     $client_name = empty($client_name) ? (empty($form_state['values']['client_name']) ? NULL : $form_state['values']['client_name']) : $client_name;
     if (!empty($client_name)) {
       $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
-        INNER JOIN {avtbl_clients} avclient ON avclient.id = avtxn.client_id
-        WHERE avclient.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
+        INNER JOIN {avtbl_clients} avclients ON avclients.id = avtxn.client_id
+        WHERE avclients.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
       $count = db_query($query, array(':client_name' => $client_name, ':ttype' => AVTXNS_TXN_TYPE_SALES_RETURN))->fetchField();
       if (!empty($count)) {
         //$buttons['check_returns']['#attributes']['class']['color'] = 'uk-button-success';

@@ -6,26 +6,8 @@ $view_mode = !empty($form['#av_view_mode']);
     <div class="uk-grid uk-grid-collapse uk-text-bold uk-text-uppercase">
       <div class="uk-width-5-10">
         <div class="uk-grid uk-grid-collapse">
-          <div class="uk-width-1-1">
-            <div class="av-nestable-cell">
-
-              <div class="uk-grid uk-grid-collapse">
-                <div class="uk-width-1-10">
-
-                  <div class="uk-grid uk-grid-collapse uk-text-center">
-                    <?php if (empty($view_mode)): ?>
-                      <div class="uk-width-1-2">&nbsp;</div>
-                    <?php endif; ?>
-                    <div class="uk-width-<?php print $view_mode ? '2' : '1'; ?>-2">#</div>
-                  </div>
-
-                </div>
-
-                <div class="uk-width-9-10 uk-text-left" style="padding-left: 30px;">Product</div>
-              </div>
-
-            </div>
-          </div>
+          <div class="uk-width-1-2 uk-text-center" style="width: 7%;"><div class="av-nestable-cell">#</div></div>
+          <div class="uk-width-1-2" style="width: 93%;"><div class="av-nestable-cell">Product</div></div>
         </div>
       </div>
 

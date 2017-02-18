@@ -95,10 +95,10 @@ function avproduct_query_load($param_where, $param_args = array()) {
 
   $query = "SELECT
     avprod.*,
-    avclient.display_name AS vendor_name,
+    avclients.display_name AS vendor_name,
     avcat_uom.title AS uom_title
     FROM {avtbl_products} avprod
-    LEFT JOIN {avtbl_clients} avclient ON avclient.id = avprod.vendor_id
+    LEFT JOIN {avtbl_clients} avclients ON avclients.id = avprod.vendor_id
     LEFT JOIN {avtbl_categories} avcat_uom ON avcat_uom.id = avprod.uom_id";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);

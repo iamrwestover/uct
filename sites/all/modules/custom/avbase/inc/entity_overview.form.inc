@@ -68,15 +68,15 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
 
   $where = array();
   $args = array();
-  $where[] = "avclient.client_type = :client_type";
+  $where[] = "avclients.client_type = :client_type";
   $args[':client_type'] = $entity_type;
 
   if (!empty($search_string)) {
     $where_or = array(
-      "avclient.display_name LIKE :string",
-      "avclient.company LIKE :string",
-      "avclient.first_name LIKE :string",
-      "avclient.last_name LIKE :string",
+      "avclients.display_name LIKE :string",
+      "avclients.company LIKE :string",
+      "avclients.first_name LIKE :string",
+      "avclients.last_name LIKE :string",
     );
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where[] = $where_or_str;

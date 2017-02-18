@@ -198,7 +198,7 @@ html.js input.form-autocomplete {
   top: 5px;
 }
 .av-nestable-cell {
-  padding: 5px;
+  padding: 2px 5px;
 }
 .av-nestable-form .uk-nestable-item+.uk-nestable-item {
   margin-top: 0;
@@ -247,7 +247,7 @@ table tr.selected {
 @media print {
   body {
     margin: 0;
-    font-size: 11px;
+    font-size: 10px;
   }
   body * {
     visibility: hidden;
@@ -273,5 +273,9 @@ table tr.selected {
   }
   #page-title {
     font-size: 27px;
+  }
+
+  .av-nestable-cell {
+    padding: 0 5px;
   }
 }

@@ -12,7 +12,7 @@ function avreports_client_balance_aging_form($client_id) {
   }
 
   $invoice_where = array(
-    array('avclient.id', $client->id),
+    array('avclients.id', $client->id),
     array('avtxns.transaction_type', AVTXNS_TXN_TYPE_INVOICE),
     array('avtxns.status', 1),
   );

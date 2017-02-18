@@ -298,7 +298,7 @@ function avreports_soa_form($form, &$form_state) {
     'search_text' => array('#access' => FALSE),
     'avtxn.transaction_date' => array('#access' => FALSE),
     'date_to' => array('#default_value' => $today, '#access' => TRUE),
-    'avclient.display_name' => array(
+    'avclients.display_name' => array(
       '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_CUSTOMER,
       '#attributes' => array(
         'placeholder' => 'search customer',
@@ -311,10 +311,10 @@ function avreports_soa_form($form, &$form_state) {
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
-  $client_name = empty($user_filter['avclient.display_name']) ? '' : $user_filter['avclient.display_name'];
+  $client_name = empty($user_filter['avclients.display_name']) ? '' : $user_filter['avclients.display_name'];
   $client = NULL;
   if (!empty($client_name)) {
-    $client = avclient_query_load(array('avclient.display_name = :name'), array(':name' => $client_name));
+    $client = avclient_query_load(array('avclients.display_name = :name'), array(':name' => $client_name));
     $client = array_shift($client);
   }
 
