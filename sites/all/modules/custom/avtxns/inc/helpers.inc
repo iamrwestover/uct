@@ -620,7 +620,9 @@ function avtxns_qty_check_and_reserve() {
     $user_available = (int)$qty_details['user_available'];
     //$total_available = (int)$qty_details['total_available'];
     $entered_base_qty = (is_numeric($entered_qty) ? $entered_qty : 0) * $entered_qty_per_uom;
-    avtxns_reserve_user_qty($entered_item_id, $entered_base_qty);
+    if ($entered_base_qty <= $user_available) {
+      avtxns_reserve_user_qty($entered_item_id, $entered_base_qty);
+    }
 
     //$data['valid_qty'] = !empty($entered_qty_is_valid);
     $data['user_available'] = $user_available;
@@ -629,45 +631,6 @@ function avtxns_qty_check_and_reserve() {
 
   print drupal_json_encode($data);
   drupal_exit();
-
-  $triggering_element = isset($form_state['triggering_element']) ? $form_state['triggering_element'] : array();
-  $parents = $triggering_element['#parents'];
-  array_pop($parents);
-  $item_row = drupal_array_get_nested_value($form_state['values'], $parents);
-
-  $entered_item_id = empty($item_row['product_id']) ? 0 : $item_row['product_id'];
-
-  // Get qty.
-  $qty_details = avtxns_item_qty_details($entered_item_id);
-  $user_available_qty = (int) $qty_details['user_available'];
-  $total_available_qty = (int) $qty_details['total_available'];
-
-  $entered_qty = (int) $item_row['qty'];
-  //$entered_uom_title = trim($item_row['uom_title']);
-  $entered_qty_per_uom = (int) $item_row['qty_per_uom'];
-  $entered_qty_per_uom = empty($entered_qty_per_uom) ? 1 : $entered_qty_per_uom;
-  $entered_base_qty = $entered_qty * $entered_qty_per_uom;
-  //$user_uom_available_qty = floor($user_available_qty / $entered_qty_per_uom);
-  //$total_uom_available_qty = floor($total_available_qty / $entered_qty_per_uom);
-  //$entered_qty_is_valid = is_numeric($entered_qty) && $entered_qty <= $user_uom_available_qty;
-  $entered_qty_is_valid = $entered_base_qty <= $user_available_qty;
-  if ($entered_qty_is_valid) {
-    avtxns_reserve_user_qty($entered_item_id, $entered_base_qty);
-    //$total_uom_available_qty = floor(($total_available_qty - $entered_base_qty) / $entered_qty_per_uom);
-  }
-
-  $commands = array();
-  $commands['xx'] = array(
-    // Note: we will use this command in the .js file
-    'command' => 'enoughQtyValidationResult',
-    'triggerEl' => $triggering_element,
-    'itemID' => $entered_item_id,
-    //'availableQty' => number_format($total_uom_available_qty) . ' ' . $entered_uom_title,
-    //'uomTitle' => $entered_uom_title,
-    //'valid' => $entered_qty_is_valid,
-  );
-
-  return array('#type' => 'ajax', '#commands' => $commands);
 }
 
 /**

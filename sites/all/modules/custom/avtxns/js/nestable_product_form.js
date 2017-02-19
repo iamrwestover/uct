@@ -267,8 +267,11 @@
           dataType: 'json',
           beforeSend: function() {
             // Reset tooltip.
-            $qtyEl.prop('title', '<i class="uk-icon-refresh uk-icon-spin uk-margin-small-right"></i>checking available qty');
+            //$qtyEl.prop('title', '<i class="uk-icon-refresh uk-icon-spin uk-margin-small-right"></i>');
             $qtyEl.addClass('qty-checking');
+            //if ($qtyEl.is(':focus')) {
+            //  $qtyEl.trigger('mouseenter');
+            //}
           },
           complete: function() {
             $qtyEl.removeClass('qty-checking');
@@ -284,37 +287,22 @@
           }
         });
         request.fail(function(jqXHR, textStatus) {
-          alert('Request failed: ' + textStatus );
+          alert('Something went wrong: ' + textStatus );
         });
       });
-      $qtyEl.focus(function() {
-        $(this).trigger('mouseenter');
-      });
+      //$qtyEl.focus(function() {
+      //  $(this).trigger('mouseenter');
+      //});
       // Mouse enter.
       $qtyEl.mouseenter(function() {
-        $(this).removeClass('uk-form-danger');
         if ($(this).hasClass('qty-checking')) {
           return;
         }
+        if ($.isNumeric($(this).val())) {
+          $(this).removeClass('uk-form-danger');
+        }
         var itemID = $productTitleEl.data('selected-product-id');
         var totalEnteredBaseQty = self.getTotalEnteredQty(itemID);
-        //var matchingQtyEls = [];
-        //self.$productRows.each(function() {
-        //  if ($(this).find('.prod-column-title').data('selected-product-id') == itemID) {
-        //    var $thisQtyEl = $(this).find('.prod-column-qty');
-        //    var enteredQty = $thisQtyEl.val();
-        //    var enteredQtyPerUOM = $(this).find('.prod-column-qty-per-uom').val();
-        //    if ($.isNumeric(enteredQty) && $.isNumeric(enteredQtyPerUOM)) {
-        //      totalEnteredBaseQty += enteredQty * enteredQtyPerUOM;
-        //      //matchingQtyEls.push($thisQtyEl);
-        //      //$thisQtyEl.addClass('qty-check-tagged');
-        //      //$thisQtyEl.addClass('uk-text-muted');
-        //      //$thisQtyEl.removeClass('prod-column-qty');
-        //      //console.log($thisQtyEl);
-        //    }
-        //  }
-        //});
-
         var qtyPerUOM = $qtyPerUOMEl.val();
         var UOMTitle = $UOMEl.val();
         //var $taggedQtyEls = $('.qty-check-tagged');
@@ -328,12 +316,13 @@
 
           //$taggedQtyEls.removeClass('uk-form-danger');
           //console.log(availableQty);
+
           if (availableQty < 0) {
             //$taggedQtyEls.addClass('uk-form-danger');
             $(this).addClass('uk-form-danger');
             availableQty = 0;
           }
-          $(this).prop('title', availableQty + ' ' + UOMTitle);
+          $(this).prop('title', 'Remaining: ' + availableQty + ' ' + UOMTitle);
         }
         //$taggedQtyEls.removeClass('qty-check-tagged');
       });
