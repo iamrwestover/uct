@@ -42,7 +42,9 @@ function avreports_client_balance_aging_form($client_id) {
 
   $balance_ages_form = array('#theme' => 'avreports_balance_ages');
   $ages_count = 0;
+  $total_balance = 0;
   foreach ($balance_ages as $k => $balance) {
+    $total_balance += $balance;
     $balance_ages_form[$k] = array(
       '#type' => 'item',
       '#title' => t('@from to @to days', array('@from' => $k - $term_days + 1, '@to' => $k)),
@@ -54,5 +56,6 @@ function avreports_client_balance_aging_form($client_id) {
       $balance_ages_form[$k]['#title'] = t('@from++ days', array('@from' => $k - $term_days));
     }
   }
+  $balance_ages_form['#total_balance'] = number_format($total_balance, 2);
   return $balance_ages_form;
 }

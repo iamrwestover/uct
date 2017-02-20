@@ -48,6 +48,8 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
   }
 
   if ($view_mode && $transaction_type == AVTXNS_TXN_TYPE_INVOICE && !empty($row->client_id)) {
+    $term_days = isset($row->term_data['days']) ? (int) $row->term_data['days'] : NULL;
+    $form['special_discount'] = avtxns_special_discount_form($term_days);
     $form['balance_ages'] = avreports_client_balance_aging_form($row->client_id);
   }
   // Buttons.

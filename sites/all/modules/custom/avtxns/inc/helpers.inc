@@ -108,15 +108,15 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query = db_select('avtbl_transactions', 'avtxns');
   $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxns.client_id');
   $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclients.client_type)");
-  //$query->leftJoin('avtbl_categories', 'avcat_terms', 'avcat_terms.id = avtxns.term_id');
+  $query->leftJoin('avtbl_categories', 'avcat_terms', 'avcat_terms.id = avtxns.term_id');
   $query->addField('avclients', 'display_name', 'client_name');
   $query->addField('avclients', 'address');
   $query->addField('avclients', 'city');
   $query->addField('avclients', 'province');
   $query->addField('avclients', 'zip_code');
   $query->addField('avcat_agent', 'title', 'agent_name');
-  //$query->addField('avcat_terms', 'title', 'term_name');
-  //$query->addField('avcat_terms', 'data', 'term_data');
+  $query->addField('avcat_terms', 'title', 'term_name');
+  $query->addField('avcat_terms', 'data', 'term_data');
   $query->fields('avtxns');
   //->fields('avclient', array('display_name'))
   //->condition('avtxns.id', $id)
@@ -244,6 +244,11 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
           $row->status = 0;
         }
       }
+    }
+
+    // Term data.
+    if (isset($row->term_data)) {
+      $row->term_data = unserialize($row->term_data);
     }
 
     $rows[$row->id] = $row;
@@ -756,4 +761,37 @@ function avtxns_item_qty_details($item_id) {
     'user_available' => $on_hand_qty - $reservation['other_users_reserved'],
     'total_available' => $on_hand_qty - $reservation['total_reserved'],
   );
+}
+
+/**
+ * Return form array containing notes on special discounts.
+ * @param $term_days
+ * @return array
+ */
+function avtxns_special_discount_form($term_days) {
+  if (empty($term_days)) {
+    return array();
+  }
+
+  $notes = array();
+  for ($x = 1; $x <= 5; $x++) {
+    $notes[$term_days * $x] = 0;
+  }
+
+  $notes_count = 0;
+  $form = array('#theme' => 'avtxns_special_discount_form');
+  foreach ($notes as $k => $balance) {
+    $form[$k] = array(
+      '#type' => 'item',
+      '#title' => t('within @to days', array('@to' => $k)),
+      '#title_display' => 'inline-before',
+      '#markup' => '___________',
+    );
+
+    $notes_count++;
+    if ($notes_count == count($notes)) {
+      $form[$k]['#title'] = t('after @from days', array('@from' => $k - $term_days));
+    }
+  }
+  return $form;
 }

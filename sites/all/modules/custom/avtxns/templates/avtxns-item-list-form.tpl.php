@@ -20,6 +20,9 @@ $address_html = drupal_render($form['client_address_string']);
 $return_type_html = drupal_render($form['return_type']);
 $reference_id_html = drupal_render($form['reference_id']);
 $element_bottom_margin = $view_mode ? '' : ' uk-margin-small-bottom';
+
+$special_discount_html = drupal_render($form['special_discount']);
+$balance_ages_html = drupal_render($form['balance_ages']);
 ?>
 <div class="printable">
   <div class="uk-grid uk-grid-small">
@@ -121,7 +124,12 @@ $element_bottom_margin = $view_mode ? '' : ' uk-margin-small-bottom';
 
     </div>
 
-    <div class="uk-width-1-1 uk-margin-top"><?php print drupal_render($form['balance_ages']); ?></div>
+    <?php if ($special_discount_html): ?>
+      <div class="uk-width-1-1 uk-margin-top"><?php print $special_discount_html; ?></div>
+    <?php endif; ?>
+    <?php if ($balance_ages_html): ?>
+      <div class="uk-width-1-1 uk-margin-top"><?php print $balance_ages_html; ?></div>
+    <?php endif; ?>
     <div class="uk-width-1-2 uk-margin-top"><?php print drupal_render($form['prepared_by']); ?></div>
     <div class="uk-width-1-2 uk-margin-top uk-text-right"><?php print drupal_render($form['received_by']); ?></div>
   </div>

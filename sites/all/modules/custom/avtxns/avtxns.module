@@ -93,6 +93,7 @@ function avtxns_theme($existing, $type, $theme, $path) {
   $theme_names = array(
     'avtxns_item_list_form',
     'avtxns_txn_list_filter_form',
+    'avtxns_special_discount_form',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(
