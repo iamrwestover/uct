@@ -1,22 +1,5 @@
 (function ($) {
 
-  //Drupal.ajax.prototype.commands.enoughQtyValidationResult = function (ajax, response) {
-  //  console.log(response);
-  //  var $qtyEl = $('#product-qty-' + response.triggerEl['#item_row_key']);
-  //  $qtyEl.prop('title', '');
-  //  if (!response.itemID) {
-  //    return;
-  //  }
-  //
-  //  $qtyEl.prop('title', 'Available: ' + response.availableQty);
-  //  $qtyEl.removeClass('uk-form-danger');
-  //  if (!response.valid) {
-  //    $qtyEl.addClass('uk-form-danger');
-  //  }
-  //
-  //  //$qtyEl.trigger('mouseenter');
-  //};
-
   /**
    * An avbaseNestableProductForm object.
    * @param $wrapper
@@ -310,18 +293,12 @@
         var totalEnteredBaseQty = self.getTotalEnteredQty(itemID);
         var qtyPerUOM = $qtyPerUOMEl.val();
         var UOMTitle = $UOMEl.val();
-        //var $taggedQtyEls = $('.qty-check-tagged');
-        //console.log($(this).find('.prod-column-qty'));
-        //console.log($taggedQtyEls);
         if ($.isNumeric(qtyPerUOM)) {
           Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
-          if (Drupal.settings.avbase.availableQty[itemID]) {
-            var availableQty = Drupal.settings.avbase.availableQty[itemID]
+          if (typeof(Drupal.settings.avbase.availableQty[itemID]) != 'undefined') {
+            var availableQty = Drupal.settings.avbase.availableQty[itemID];
             availableQty = Math.floor((availableQty - totalEnteredBaseQty) / qtyPerUOM);
-            //$taggedQtyEls.removeClass('uk-form-danger');
-            //console.log(availableQty);
             if (availableQty < 0) {
-              //$taggedQtyEls.addClass('uk-form-danger');
               $(this).addClass('uk-form-danger');
               availableQty = 0;
             }

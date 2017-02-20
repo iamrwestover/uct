@@ -517,7 +517,7 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
     }
 
     $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
-    $qty = empty($item_row['qty']) ? 1 : (int)$item_row['qty'];
+    $qty = empty($item_row['qty']) ? 0 : (int)$item_row['qty'];
     $inputted_base_qty = $qty_per_uom * $qty;
     $total_product_qty += $inputted_base_qty;
   }

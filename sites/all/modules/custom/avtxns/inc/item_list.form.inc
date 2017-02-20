@@ -299,6 +299,13 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $_storage['new_row_counter'] = $starting_empty_row_count;
   }
 
+  //$rx = db_query("SELECT *, title AS product_title FROM avtbl_products LIMIT 250");
+  //$xx = 0;
+  //foreach ($rx as $ss) {
+  //  $ss->item_id = $ss->id;
+  //  $_item_rows['new_' . $xx++] = (array) $ss;
+  //}
+
   // If there are product ids found inside $_item_rows, remember them in an array.
   $detected_product_ids = array();
 
