@@ -1,9 +1,6 @@
 /* Print */
 @media print {
   @page {
-    @bottom-left {
-      content: 'f';
-    }
     margin: 0.5cm 0.5cm 1.5cm;
   }
 
