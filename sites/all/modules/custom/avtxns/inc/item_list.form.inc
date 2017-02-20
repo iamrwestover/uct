@@ -108,7 +108,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   $form['term_id'] = array(
     '#id' => 'term-id',
     '#type' => 'select',
-    '#title' => 'Payment term',
+    '#title' => 'Terms',
     '#title_display' => $view_mode ? 'inline-before' : 'before',
     '#options' => $term_options,
     '#default_value' => isset($row->term_id) ? $row->term_id : 0,
