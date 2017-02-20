@@ -315,8 +315,8 @@
         //console.log($taggedQtyEls);
         if ($.isNumeric(qtyPerUOM)) {
           Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
-          var availableQty = Drupal.settings.avbase.availableQty[itemID] || false;
-          if (availableQty !== false) {
+          if (Drupal.settings.avbase.availableQty[itemID]) {
+            var availableQty = Drupal.settings.avbase.availableQty[itemID]
             availableQty = Math.floor((availableQty - totalEnteredBaseQty) / qtyPerUOM);
             //$taggedQtyEls.removeClass('uk-form-danger');
             //console.log(availableQty);
@@ -326,6 +326,11 @@
               availableQty = 0;
             }
             $(this).prop('title', 'Remaining: ' + availableQty + ' ' + UOMTitle);
+          }
+          else {
+            $qtyEl.addClass('qty-checking');
+            $qtyEl.focus();
+            $qtyEl.trigger('change');
           }
         }
         //$taggedQtyEls.removeClass('qty-check-tagged');
