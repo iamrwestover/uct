@@ -119,6 +119,11 @@
 
 
 <div id="page-outer-wrapper" class="uk-margin-left uk-margin-right">
+  <div id="print-header" class="uk-hidden printable">
+    <div class="site-name"><?php print $site_name; ?></div>
+    <div class="site-address"><?php print check_plain(variable_get('av_company_address', NULL)); ?></div>
+  </div>
+
   <div<?php print $page_container_attributes; ?>>
     <?php if ($site_slogan): ?>
       <div id="site-slogan">

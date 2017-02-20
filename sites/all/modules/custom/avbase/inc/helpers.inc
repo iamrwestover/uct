@@ -429,12 +429,12 @@ function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
         case 'textfield':
           $element['#type'] = 'item';
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
-          $element['#markup'] = trim($default_value) == '' ? '' : $default_value;
+          $element['#markup'] = trim($default_value) == '' ? '' : (empty($element['#avhtml']) ? check_plain($default_value) : $default_value);
           break;
         case 'textarea':
           $element['#type'] = 'item';
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
-          $element['#markup'] = trim($default_value) == '' ? '' : check_markup($default_value);
+          $element['#markup'] = trim($default_value) == '' ? '' : nl2br($default_value);
           break;
         case 'select':
           $options = isset($element['#options']) ? $element['#options'] : array();
@@ -444,14 +444,14 @@ function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
           $element['#type'] = 'item';
           $default_option_value = isset($options[$default_value]) ? $options[$default_value] : '';
           $default_option_value = trim($default_option_value) == '' ? '' : $default_option_value;
-          $element['#markup'] = $default_option_value;
+          $element['#markup'] = check_plain($default_option_value);
           break;
         case 'checkbox':
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : 0;
           $icon_class = $default_value ? 'check-square-o' : 'square-o';
           $element['#type'] = 'markup';
           $title = (empty($element['#title_display']) || $element['#title_display'] != 'none') ? (' ' . $element['#title']) : '';
-          $element['#markup'] = '<span><i class="uk-icon-' . $icon_class . '"></i>' . $title . '</span>';
+          $element['#markup'] = '<span><i class="uk-icon-' . $icon_class . '"></i>' . check_plain($title) . '</span>';
           break;
         case 'submit':
         case 'button':
@@ -665,21 +665,26 @@ function avbase_element_validate_non_negative_number($element, &$form_state) {
   }
 }
 
-function avbase_element_validate_required($element, &$form_state) {
-  dpm('a');
-  //$is_empty_multiple = (!count($element['#value']));
-  //$is_empty_string = (is_string($element['#value']) && drupal_strlen(trim($element['#value'])) == 0);
-  //$is_empty_value = ($element['#value'] === 0);
-  //if ($is_empty_multiple || $is_empty_string || $is_empty_value) {
-  //  // Although discouraged, a #title is not mandatory for form elements. In
-  //  // case there is no #title, we cannot set a form error message.
-  //  // Instead of setting no #title, form constructors are encouraged to set
-  //  // #title_display to 'invisible' to improve accessibility.
-  //  if (isset($element['#title'])) {
-  //    form_error($element, $t('!name field is required.', array('!name' => $element['#title'])));
-  //  }
-  //  else {
-  //    form_error($element);
-  //  }
-  //}
+/**
+ * Append extra user details to user object.
+ * @param $user
+ */
+function avbase_user_extra_details(&$user) {
+  if (empty($user->uid) || !empty($user->avdata)) {
+    return;
+  }
+
+  $query = "SELECT * FROM {avtbl_users} avusers WHERE uid = :uid";
+  $row = db_query($query, array(':uid' => $user->uid))->fetch();
+  if (empty($row->id)) {
+    return;
+  }
+  $name_details = array(
+    'first_name' => empty($row->first_name) ? NULL : $row->first_name,
+    'last_name' => empty($row->last_name) ? NULL : $row->last_name,
+  );
+  $name_details = array_filter($name_details);
+  $full_name = implode(' ', $name_details);
+  $row->full_name = empty($full_name) ? $user->name : $full_name;
+  $user->avdata = $row;
 }

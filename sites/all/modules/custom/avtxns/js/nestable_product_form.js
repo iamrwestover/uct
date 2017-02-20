@@ -254,48 +254,53 @@
         // Compute costs.
         $costEl.trigger('change');
 
-        // Check if item qty is valid and not greater than user available qty.
-        var itemID = $productTitleEl.data('selected-product-id');
-        if (!itemID) {
-          return;
-        }
-
-        var request = $.ajax({
-          url: Drupal.settings.basePath + 'av/transactions/qty-check-and-reserve',
-          method: 'POST',
-          data: {entered_item_id: itemID, entered_qty: self.getTotalEnteredQty(itemID), entered_qty_per_uom: $qtyPerUOMEl.val()},
-          dataType: 'json',
-          beforeSend: function() {
-            // Reset tooltip.
-            //$qtyEl.prop('title', '<i class="uk-icon-refresh uk-icon-spin uk-margin-small-right"></i>');
-            $qtyEl.addClass('qty-checking');
-            //if ($qtyEl.is(':focus')) {
-            //  $qtyEl.trigger('mouseenter');
-            //}
-          },
-          complete: function() {
-            $qtyEl.removeClass('qty-checking');
-            if ($qtyEl.is(':focus')) {
-              $qtyEl.trigger('mouseenter');
+        if ($(this).hasClass('js-qty-validate')) {
+          // Check if item qty is valid and not greater than user available qty.
+          var itemID = $productTitleEl.data('selected-product-id');
+          if (!itemID) {
+            return;
+          }
+          var request = $.ajax({
+            url: Drupal.settings.basePath + 'av/transactions/qty-check-and-reserve',
+            method: 'POST',
+            data: {
+              entered_item_id: itemID,
+              entered_qty: self.getTotalEnteredQty(itemID),
+              entered_qty_per_uom: $qtyPerUOMEl.val()
+            },
+            dataType: 'json',
+            beforeSend: function () {
+              // Reset tooltip.
+              //$qtyEl.prop('title', '<i class="uk-icon-refresh uk-icon-spin uk-margin-small-right"></i>');
+              $qtyEl.addClass('qty-checking');
+              //if ($qtyEl.is(':focus')) {
+              //  $qtyEl.trigger('mouseenter');
+              //}
+            },
+            complete: function () {
+              $qtyEl.removeClass('qty-checking');
+              if ($qtyEl.is(':focus')) {
+                $qtyEl.trigger('mouseenter');
+              }
             }
-          }
-        });
-        request.done(function(response) {
-          Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
-          if ($.isNumeric(response.user_available)) {
-            Drupal.settings.avbase.availableQty[itemID] = response.user_available;
-          }
-        });
-        request.fail(function(jqXHR, textStatus) {
-          alert('Something went wrong: ' + textStatus );
-        });
+          });
+          request.done(function (response) {
+            Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
+            if ($.isNumeric(response.user_available)) {
+              Drupal.settings.avbase.availableQty[itemID] = response.user_available;
+            }
+          });
+          request.fail(function (jqXHR, textStatus) {
+            alert('Something went wrong: ' + textStatus);
+          });
+        }
       });
       //$qtyEl.focus(function() {
       //  $(this).trigger('mouseenter');
       //});
       // Mouse enter.
       $qtyEl.mouseenter(function() {
-        if ($(this).hasClass('qty-checking')) {
+        if ($(this).hasClass('qty-checking') || !$(this).hasClass('js-qty-validate')) {
           return;
         }
         if ($.isNumeric($(this).val())) {
@@ -310,19 +315,18 @@
         //console.log($taggedQtyEls);
         if ($.isNumeric(qtyPerUOM)) {
           Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
-          var availableQty = Drupal.settings.avbase.availableQty[itemID] || 0;
-          availableQty = Math.floor((availableQty - totalEnteredBaseQty) / qtyPerUOM);
-
-
-          //$taggedQtyEls.removeClass('uk-form-danger');
-          //console.log(availableQty);
-
-          if (availableQty < 0) {
-            //$taggedQtyEls.addClass('uk-form-danger');
-            $(this).addClass('uk-form-danger');
-            availableQty = 0;
+          var availableQty = Drupal.settings.avbase.availableQty[itemID] || false;
+          if (availableQty !== false) {
+            availableQty = Math.floor((availableQty - totalEnteredBaseQty) / qtyPerUOM);
+            //$taggedQtyEls.removeClass('uk-form-danger');
+            //console.log(availableQty);
+            if (availableQty < 0) {
+              //$taggedQtyEls.addClass('uk-form-danger');
+              $(this).addClass('uk-form-danger');
+              availableQty = 0;
+            }
+            $(this).prop('title', 'Remaining: ' + availableQty + ' ' + UOMTitle);
           }
-          $(this).prop('title', 'Remaining: ' + availableQty + ' ' + UOMTitle);
         }
         //$taggedQtyEls.removeClass('qty-check-tagged');
       });

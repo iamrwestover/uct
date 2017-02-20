@@ -5,6 +5,7 @@ base theme = uikit
 
 stylesheets[all][] = css/preloader.css
 stylesheets[all][] = css/av.css
+stylesheets[all][] = css/print.css
 stylesheets[all][] = css/uikit_overrides.css
 scripts[] = js/drupal_overrides.js
 scripts[] = js/uikit_av.js

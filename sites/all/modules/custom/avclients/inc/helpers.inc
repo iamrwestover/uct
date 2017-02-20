@@ -118,6 +118,7 @@ function avclient_query_load($param_where, $param_args = array(), $limit_string 
     if (isset($row->term_data)) {
       $row->term_data = unserialize($row->term_data);
     }
+    $row->address_string = avclients_address_string_format($row);
     $rows[$row->id] = $row;
   }
 
@@ -207,15 +208,7 @@ function avclients_autocomplete($client_type, $string = '') {
     $args[':active_status'] = AVCLIENT_STATUS_ACTIVE;
     $rows = avclient_query_load($where, $args, '8');
     foreach ($rows as $row) {
-      $address = array(
-        'city' => empty($row->city) ? NULL : check_plain($row->city),
-        'province' => empty($row->province) ? NULL : check_plain($row->province),
-        'zip_code' => empty($row->zip_code) ? NULL : check_plain($row->zip_code),
-      );
-      $address = array_filter($address);
-      $address_string = (empty($row->address) ? '' : (check_plain($row->address) . '<br />')) . implode(', ', $address);
-
-      $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . $address_string .  '</div>';
+      $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . $row->address_string .  '</div>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;
@@ -265,4 +258,25 @@ function avclients_table_fields_to_save($db_op = 'insert') {
     unset($fields['opening_balance']);
   }
   return $fields;
+}
+
+/**
+ * Return formatted address string.
+ * @param $client
+ * @return string
+ */
+function avclients_address_string_format($client) {
+  $city_province = array(
+    'city' => empty($client->city) ? NULL : check_plain($client->city),
+    'province' => empty($client->province) ? NULL : check_plain($client->province),
+    'zip_code' => empty($client->zip_code) ? NULL : check_plain($client->zip_code),
+  );
+  $city_province = array_filter($city_province);
+  $address_details = array(
+    'address' => empty($client->address) ? NULL : check_plain($client->address),
+    'city_province' => implode(', ', $city_province),
+  );
+  $address_details = array_filter($address_details);
+  $address_string = implode("\n", $address_details);
+  return $address_string;
 }

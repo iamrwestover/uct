@@ -110,6 +110,10 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclients.client_type)");
   //$query->leftJoin('avtbl_categories', 'avcat_terms', 'avcat_terms.id = avtxns.term_id');
   $query->addField('avclients', 'display_name', 'client_name');
+  $query->addField('avclients', 'address');
+  $query->addField('avclients', 'city');
+  $query->addField('avclients', 'province');
+  $query->addField('avclients', 'zip_code');
   $query->addField('avcat_agent', 'title', 'agent_name');
   //$query->addField('avcat_terms', 'title', 'term_name');
   //$query->addField('avcat_terms', 'data', 'term_data');
@@ -219,6 +223,9 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $row->grand_total = $subtotal;
     $row->credit_total = $credit_total;
     $row->debit_total = $debit_total;
+
+    // Client address string.
+    $row->address_string = avclients_address_string_format($row);
 
     // Attach received items.
     //avtxns_txn_attach_received_items($row);
@@ -345,7 +352,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
   $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avclients.term_id';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_client_term ON avcat_client_term.id = avclients.term_id';
   $joins[] = "LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_ref ON
     IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', 0, avtxn_detail_ref.id = avtxn_detail.ref_txn_dtl_id)";

@@ -15,10 +15,12 @@
           var client = Drupal.settings.avbase[groupName][clientID] || {};
           var email = client.email || '';
           var agentName = client.agent_name || '';
+          var addressString = client.address_string || '';
 
           if (client.id) {
-            $('#vendor-email').val(Drupal.checkPlain(email));
+            $('#vendor-email').val(email);
             $('#agent-name').val(agentName);
+            $('#client-address').val(addressString);
           }
 
           //$(this).trigger('change');

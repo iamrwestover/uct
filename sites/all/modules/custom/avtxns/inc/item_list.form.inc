@@ -11,9 +11,10 @@ module_load_include('inc', 'avtxns', 'inc/item_list.form.validate');
  * @param bool $view_mode
  */
 function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
+  global $user;
   // Get form storage.
-  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
-  $_storage = &$form_state['storage'];
+  //$form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  //$_storage = &$form_state['storage'];
 
   // Get transaction type details.
   $ttd = avtxns_txn_types($transaction_type);
@@ -32,12 +33,31 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#element_validate' => array('avbase_element_validate_client_name_exists'),
     '#default_value' => empty($row->client_name) ? '' : $row->client_name,
     '#title' => $ttd['ctd']['name'],
+    '#title_display' => $view_mode ? 'none' : 'before',
     '#id' => 'client-id',
+    '#attributes' => array(
+      //'placeholder' => $ttd['ctd']['name'],
+    ),
     '#element_save_id' => 'client_id',
     '#autocomplete_path' => "av/clients/autocomplete/{$ttd['ctd']['type']}",
     '#avbase_autocomplete' => array(
       'entity_group' => 'clients',
     ),
+  );
+  $form['client_address_string'] = array(
+    '#id' => 'client-address',
+    '#type' => 'textarea',
+    '#title' => 'Address',
+    '#title_display' => $view_mode ? 'none' : 'before',
+    //'#markup' => '<div id="client-address-string">' . (empty($row->address_string) ? '-' : $row->address_string) . '</div>',
+    '#default_value' => empty($row->address_string) ? '' : $row->address_string,
+    '#maxlength' => 65000,
+    '#attributes' => array(
+      'rows' => 3,
+      'readonly' => 'readonly',
+    ),
+    '#resizable' => FALSE,
+    '#access' => $view_mode,
   );
 
   $agent_category_id = 'agent' . $ttd['ctd']['type'];
@@ -45,9 +65,13 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#id' => 'agent-name',
     '#type' => 'textfield',
     '#title' => t('Agent'),
+    '#title_display' => $view_mode ? 'inline-before' : 'before',
     '#maxlength' => 255,
     '#autocomplete_path' => "av/categories/$agent_category_id/autocomplete",
     '#weight' => 1.2,
+    '#attributes' => array(
+      //'placeholder' => 'Agent name',
+    ),
     '#element_validate' => array('avbase_element_validate_category_exists'),
     '#element_validate_conditions' => array('group_id' => $agent_category_id),
     '#element_save_id' => 'agent_id',
@@ -57,6 +81,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   $form['reference_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Reference ID',
+    '#title_display' => $view_mode ? 'inline-before' : 'before',
     '#default_value' => isset($row->reference_id) ? $row->reference_id : '',
     '#maxlength' => 32,
     '#required' => TRUE,
@@ -70,6 +95,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#id' => 'return-type',
     '#type' => 'select',
     '#title' => 'Return type',
+    '#title_display' => $view_mode ? 'inline-before' : 'before',
     '#options' => avtxns_get_return_types(),
     '#default_value' => isset($row->return_type) ? $row->return_type : '',
     '#required' => TRUE,
@@ -83,18 +109,21 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#id' => 'term-id',
     '#type' => 'select',
     '#title' => 'Payment term',
+    '#title_display' => $view_mode ? 'inline-before' : 'before',
     '#options' => $term_options,
     '#default_value' => isset($row->term_id) ? $row->term_id : 0,
     '#empty_value' => 0,
     '#empty_option' => '',
     '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
-    '#access' => $transaction_type == AVTXNS_TXN_TYPE_INVOICE,
+    '#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_PAYMENT)),
+    //'#access' => $transaction_type == AVTXNS_TXN_TYPE_INVOICE,
   );
   $date_format = 'M. d, Y';
   $form['due_date'] = array(
     '#id' => 'due-date',
     '#type' => 'textfield',
     '#title' => 'Due date',
+    '#title_display' => $view_mode ? 'inline-before' : 'before',
     '#default_value' => !empty($row->due_date) ? format_date($row->due_date, 'custom', $date_format) : '',
     '#element_validate' => array('avbase_element_validate_date'),
     '#av_date_format' => $date_format,
@@ -109,28 +138,32 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#id' => 'vendor-email',
     '#type' => 'textfield',
     '#title' => 'E-mail address',
-    '#default_value' => isset($row->email) ? check_plain($row->email) : '',
+    '#title_display' => 'before',
+    '#default_value' => isset($row->email) ? $row->email : '',
     '#maxlength' => 255,
+    '#attributes' => array(
+      'placeholder' => 'E-mail address',
+    ),
     '#element_validate' => array('avbase_element_validate_email'),
-    '#access' => $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+    '#access' => $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER && empty($view_mode),
   );
   $form['message'] = array(
     '#type' => 'textarea',
     '#title' => 'Message to vendor',
-    '#default_value' => isset($row->message) ? check_plain($row->message) : '',
+    '#default_value' => isset($row->message) ? $row->message : '',
     '#maxlength' => 65000,
     '#access' => $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER,
   );
   $form['address'] = array(
     '#type' => 'item',
     '#title' => 'Shipping address',
-    '#markup' => nl2br(check_plain(variable_get('av_company_address', ''))),
+    '#markup' => nl2br(variable_get('av_company_address', '')),
     '#access' => $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER,
   );
   $form['memo'] = array(
     '#type' => 'textarea',
     '#title' => 'Memo',
-    '#default_value' => isset($row->memo) ? check_plain($row->memo) : '',
+    '#default_value' => isset($row->memo) ? $row->memo : '',
     '#maxlength' => 65000,
   );
 
@@ -168,6 +201,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   $form['transaction_date'] = array(
     '#type' => 'textfield',
     '#title' => 'Date',
+    //'#title_display' => 'none',
     '#default_value' => $transaction_date_text,
     '#element_validate' => array('avbase_element_validate_date'),
     '#av_date_format' => $date_format,
@@ -176,7 +210,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
     ),
     '#required' => TRUE,
-    '#access' => empty($row->id),
+    '#access' => empty($view_mode),
     '#disabled' => $transaction_type == AVTXNS_TXN_TYPE_PAYMENT,
   );
 
@@ -185,14 +219,32 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#title' => 'Transaction No.',
     '#title_display' => 'none',
     '#markup' => (empty($row->id) ? '' : t('<strong>Transaction #</strong> @id<br />@date', array('@id' => $row->id, '@date' => $transaction_date_text))),
-    '#access' => !empty($row->id),
+    '#access' => $view_mode,
   );
 
   $form['grand_total'] = array('#type' => 'value', '#value' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
   //$form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
   //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
 
-
+  avbase_user_extra_details($user);
+  $form['prepared_by'] = array(
+    '#type' => 'item',
+    '#title' => 'Prepared by',
+    '#title_display' => 'inline-before',
+    '#markup' => $user->avdata->full_name,
+    //'#maxlength' => 65000,
+    '#access' => $view_mode,
+  );
+  $form['received_by'] = array(
+    '#type' => 'item',
+    '#title' => 'Received by',
+    '#title_display' => 'inline-before',
+    '#markup' => '_______________________________',
+    //'#maxlength' => 65000,
+    '#access' => $view_mode,
+  );
+  //$user = user_load($user->uid);
+  //dpm($user);
   // Product list.
   avtxns_item_list_product_fields($form, $form_state, $transaction_type, $row, $view_mode);
 }
@@ -301,7 +353,8 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       '#default_value' => isset($prod_row['product_title']) ? $prod_row['product_title'] : '',
     );
     if (isset($prod_row['qty']) && $prod_row['qty'] == 0 && $view_mode) {
-      $fields['product_title']['#default_value'] = '<del>' . $fields['product_title']['#default_value'] . '</del>';
+      $fields['product_title']['#avhtml'] = TRUE;
+      $fields['product_title']['#default_value'] = '<del>' . check_plain($fields['product_title']['#default_value']) . '</del>';
       $fields['product_title']['#field_suffix'] = '<em class="uk-margin-small-left uk-text-uppercase uk-text-small">- Out of stock</em>';
     }
     //if ($reference_transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
@@ -403,6 +456,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     }
     if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY || $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN) {
       $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_enough_qty';
+      $fields['qty']['#attributes']['class'][] = 'js-qty-validate';
       //$fields['qty_check_field'] = array(
       //  //'#id' => 'product-qty-check-' . $prod_key,
       //  //'#item_row_key' => $prod_key,

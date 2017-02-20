@@ -1,4 +1,4 @@
-<div class="uk-grid uk-margin-top">
+<div class="uk-grid">
   <div class="uk-width-5-6">
     <strong><?php print drupal_render($form['client_name']); ?></strong>
     <?php print drupal_render($form['address']); ?>
@@ -18,7 +18,7 @@
     <?php print drupal_render($form['prepared_by']); ?>
   </div>
   <div class="uk-width-1-2 uk-text-right">
-    <?php print drupal_render($form['delivered_by']); ?>
+    <?php print drupal_render($form['received_by']); ?>
   </div>
 </div>
 <?php

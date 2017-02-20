@@ -223,25 +223,30 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   if (!empty($rows)) {
     $transaction_list_table['transaction_date'] = array(
       '#title' => 'Transaction Date',
+      '#title_display' => 'none',
       '#type' => 'item',
       '#markup' => $today,
     );
     $transaction_list_table['agent'] = array(
       '#title' => 'Agent',
+      '#title_display' => 'inline-before',
       '#type' => 'item',
       '#markup' => check_plain($agent_name),
       '#access' => !empty($agent_name),
     );
+    avbase_user_extra_details($user);
     $transaction_list_table['prepared_by'] = array(
       '#title' => 'Prepared by',
+      '#title_display' => 'inline-before',
       '#type' => 'item',
-      '#markup' => check_plain($user->name),
+      '#markup' => check_plain($user->avdata->full_name),
     );
     $transaction_list_table['delivered_by'] = array(
       '#title' => 'Delivered by',
+      '#title_display' => 'inline-before',
       '#type' => 'item',
-      '#markup' => '',
-      '#access' => $transaction_type == AVTXNS_TXN_TYPE_DELIVERY,
+      '#markup' => '_______________________________',
+      //'#access' => $transaction_type == AVTXNS_TXN_TYPE_DELIVERY,
     );
   }
 
@@ -419,13 +424,23 @@ function avreports_soa_form($form, &$form_state) {
   if (!empty($rows)) {
     $transaction_list_table['date_to'] = array(
       '#title' => 'As of date',
+      '#title_display' => 'inline-before',
       '#type' => 'item',
       '#markup' => empty($user_filter['date_to']) ? '' : $user_filter['date_to'],
     );
+    avbase_user_extra_details($user);
     $transaction_list_table['prepared_by'] = array(
       '#title' => 'Prepared by',
+      '#title_display' => 'inline-before',
       '#type' => 'item',
-      '#markup' => check_plain($user->name),
+      '#markup' => check_plain($user->avdata->full_name),
+    );
+    $transaction_list_table['received_by'] = array(
+      '#type' => 'item',
+      '#title' => 'Received by',
+      '#title_display' => 'inline-before',
+      '#markup' => '_______________________________',
+      //'#maxlength' => 65000,
     );
     $transaction_list_table['client_name'] = array(
       '#title' => 'Customer',

@@ -88,5 +88,10 @@ if (!empty($element['#button_checkbox'])) {
   //}
 }
 
-// The leading whitespace helps visually separate fields from inline labels.
-print ' <label' . drupal_attributes($attributes) . '>' . $output . "</label>\n";
+if ($display == 'inline-before') {
+  print '<span class="suk-text-bold uk-margin-small-right">' . $output . ':</span>';
+}
+else {
+  // The leading whitespace helps visually separate fields from inline labels.
+  print ' <label' . drupal_attributes($attributes) . '>' . $output . "</label>\n";
+}
