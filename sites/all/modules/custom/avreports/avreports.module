@@ -148,7 +148,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
 
   $where[] = "avtxn.transaction_type = '" . $transaction_type . "'";
-  //$where[] = 'avtxn.status = 1';
+  $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
 
   // Add today filter.
   $today = format_date(time(), 'custom', 'F d, Y');
@@ -295,6 +295,7 @@ function avreports_soa_form($form, &$form_state) {
 
   $where[] = 'avtxn.transaction_type IN (:transaction_types)';
   $args[':transaction_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT);
+  $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
 
   // Add today filter.
   $today = format_date(time(), 'custom', 'F d, Y');

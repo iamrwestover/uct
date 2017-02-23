@@ -109,6 +109,14 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   $page_title = empty($row->id) ? t('New @type', array('@type' => $ttd['name'])) : t('@type', array('@type' => $ttd['name']));
   drupal_set_title($page_title);
 
+  // Transaction status.
+  if (isset($row->status) && $row->status != AVTXNS_TXN_STATUS_OPEN) {
+    $tsd = avtxns_txn_status_details($row->status);
+    $badge_color = $row->status == AVTXNS_TXN_STATUS_PENDING ? 'uk-badge-warning' : 'uk-badge-danger';
+    $form['#prefix'] .= '<span class="not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0; right: 0;">' . strtoupper($tsd['title']) . '</span>';
+    //$page_title .= ' - ' . strtoupper($tsd['title']);
+  }
+
   // Settings.
   $form['table_name'] = array('#type' => 'value', '#value' => 'avtbl_transactions');
   $form['entity_name'] = array('#type' => 'value', '#value' => 'txn');
@@ -198,7 +206,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#id' => 'submit_and_send',
       '#type' => 'submit',
       '#value' => t('Save and send'),
-      '#icon_key' => 'mail-forward',
+      '#icon_key' => 'send',
     );
   }
 
@@ -222,6 +230,30 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#attributes' => array('class' => array('suk-button-primary')),
       '#icon_key' => 'print',
     );
+
+    // Add status change button.
+    $buttons['void_btn'] = array(
+      '#markup' => l('Void transaction', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_VOID, array(
+        'attributes' => array('class' => 'uk-button'),
+        'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
+      )),
+      //'#type' => 'button',
+      //'#value' => t('Void transaction'),
+      '#visible_in_view_mode' => TRUE,
+      '#avposition' => 'opposite',
+      //'#attributes' => array('class' => array('uk-button-danger')),
+      //'#icon_key' => 'ban',
+      '#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)),
+    );
+    //$buttons['pending_btn'] = array(
+    //  '#type' => 'button',
+    //  '#value' => t('For approval'),
+    //  '#visible_in_view_mode' => TRUE,
+    //  '#avposition' => 'opposite',
+    //  '#attributes' => array('class' => array('uk-button-warning')),
+    //  '#icon_key' => 'user',
+    //  '#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)),
+    //);
   }
 
   if (isset($ttd['pending_txns_reference_type'])) {
@@ -275,4 +307,81 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     }
   }
   return $buttons;
+}
+
+/**
+ * Menu callback: confirm transaction status change.
+ * @param $form
+ * @param $form_state
+ * @param object $row
+ * @param $status
+ *
+ * @return array
+ */
+function avtxns_txn_change_status_confirm_form($form, &$form_state, $row, $status) {
+  switch ($status) {
+    case AVTXNS_TXN_STATUS_PENDING:
+      $prompt = 'Are you sure you want to send this transaction for admin approval?';
+      break;
+    case AVTXNS_TXN_STATUS_OPEN:
+      $prompt = 'Are you sure you want to open this transaction?';
+      break;
+    case AVTXNS_TXN_STATUS_VOID:
+      $prompt = 'Are you sure you want to void this transaction?';
+      break;
+    default:
+      $prompt = 'Are you sure?';
+      break;
+  }
+
+  $display_name = 'Transaction # ' . $row->id;
+  $client_name = check_plain($row->client_name);
+  $ttd = avtxns_txn_types($row->transaction_type);
+  $description = <<<HTML
+  <span class="uk-text-bold">$display_name</span><br />
+  {$ttd['name']}<br />
+  $client_name
+HTML;
+
+  if ($status == AVTXNS_TXN_STATUS_VOID) {
+    $description .= '<br /><br /><em class="uk-text-large uk-margin-top">This action cannot be undone.</em>';
+  }
+  $form_state['id'] = $row->id;
+  $form_state['status'] = $status;
+  return confirm_form(array(), $prompt, '', $description);
+}
+
+/**
+ * Handler for transaction status change.
+ *
+ * @see avtxns_txn_change_status_confirm_form()
+ */
+function avtxns_txn_change_status_confirm_form_submit($form, &$form_state) {
+  $status = isset($form_state['status']) ? $form_state['status'] : '';
+  $id = empty($form_state['id']) ? NULL : $form_state['id'];
+  if (avtxns_txn_change_status($id, $status)) {
+    drupal_set_message('Transaction status changed.');
+  }
+
+  //
+  //if (isset($form_state['row']->id)) {
+  //
+  //  if (avclients_client_change_status($form_state['row']->id, $status)) {
+  //
+  //    switch ($status) {
+  //      case AVCLIENT_STATUS_DISABLED:
+  //        //drupal_set_message('Client\'s account has been disabled.');
+  //        break;
+  //      case AVCLIENT_STATUS_SUSPENDED:
+  //        //drupal_set_message('Client\'s account has been suspended.');
+  //        break;
+  //      case AVCLIENT_STATUS_ACTIVE:
+  //        drupal_set_message('Client\'s account has been activated.');
+  //        break;
+  //      default:
+  //        break;
+  //    }
+  //  }
+  //}
+  //$form_state['redirect'] = '';
 }

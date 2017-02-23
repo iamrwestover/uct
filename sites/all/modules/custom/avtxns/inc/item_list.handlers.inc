@@ -67,11 +67,6 @@ function avtxns_item_list_prod_submit($form, &$form_state) {
  * Ajax callback  when adding products or removing on a PO form.
  */
 function avtxns_item_list_prod_js($form, $form_state) {
-  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
-  $_storage = &$form_state['storage'];
-  $_storage['new_row_counter'] = isset($_storage['new_row_counter']) ? $_storage['new_row_counter'] : 0;
-  $_counter = &$_storage['new_row_counter'];
-
   $trigger = $form_state['triggering_element'];
   $output = array();
   if ($trigger['#name'] == 'prod_add_btn') {
@@ -79,7 +74,7 @@ function avtxns_item_list_prod_js($form, $form_state) {
 
 
     $keys = element_children($product_elements);
-    $keys = array_splice($keys, ($_counter - 20));
+    $keys = array_splice($keys, (count($keys) - 20));
     $new_elements = array();
     $last_key = NULL;
     foreach ($keys as $k) {

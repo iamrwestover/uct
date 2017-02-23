@@ -510,16 +510,25 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
     return;
   }
 
+  $element_parents = $element['#parents'];
+  $default_item_rows = drupal_array_get_nested_value($form_state['complete form'], array_slice($element_parents, 0, count($element_parents) - 2));
   $total_product_qty = 0;
-  foreach ($item_rows as $item_row) {
+  foreach ($item_rows as $item_row_key => $item_row) {
     if (strtolower($item_row['product_title']) != strtolower($element_item_row['product_title'])) {
       continue;
     }
 
+    // Get default qty if available.
+    $item_row_default_value = empty($default_item_rows[$item_row_key]['qty']['#default_value']) ? 0 : $default_item_rows[$item_row_key]['qty']['#default_value'];
+    $item_row_default_value = (int) $item_row_default_value;
+    $item_row_default_qty_per_uom = empty($default_item_rows[$item_row_key]['qty_per_uom']['#default_value']) ? 1 : $default_item_rows[$item_row_key]['qty_per_uom']['#default_value'];
+    $item_row_default_qty_per_uom = (int) $item_row_default_qty_per_uom;
+    $item_row_default_base_qty = $item_row_default_value * $item_row_default_qty_per_uom;
+
     $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
     $qty = empty($item_row['qty']) ? 0 : (int)$item_row['qty'];
     $inputted_base_qty = $qty_per_uom * $qty;
-    $total_product_qty += $inputted_base_qty;
+    $total_product_qty += $inputted_base_qty - $item_row_default_base_qty;
   }
 
   $qty_details = avtxns_item_qty_details($item_id);
@@ -527,7 +536,7 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   $user_available_qty = $user_available_qty < 0 ? 0 : $user_available_qty;
   if ($user_available_qty < $total_product_qty) {
     form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
-      '@qty1' => number_format($total_product_qty),
+      '@qty1' => (empty($form_state['values']['id']) ? '' : 'additional ') . number_format($total_product_qty),
       '@qty2' => number_format($user_available_qty),
       '%product' => $element_item_row['product_title'],
       '@verb' => ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN ? 'Returning' : 'Requesting'),
@@ -559,6 +568,12 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
 
 }
 
+/**
+ * Return transaction type details.
+ * @param $type
+ *
+ * @return mixed
+ */
 function avtxns_transaction_types($type) {
   $transaction_types = array(
     'po' => array(
@@ -626,8 +641,25 @@ function avtxns_qty_check_and_reserve() {
 
   $entered_item_id = (int)$entered_item_id;
   $entered_qty_per_uom = (int)$entered_qty_per_uom;
+  $transaction_id = (int)$transaction_id;
 
   if (!empty($entered_item_id)) {
+    $default_base_qty = 0;
+    if (!empty($transaction_id)) {
+      $transaction = avtxns_txn_load($transaction_id);
+      if (!empty($transaction->id)) {
+        $transaction_items = empty($transaction->items) ? array() : $transaction->items;
+        foreach ($transaction_items as $ti) {
+          if ($ti->item_id != $entered_item_id) {
+            continue;
+          }
+          $default_qty = empty($ti->qty) ? 0 : $ti->qty;
+          $default_qty_per_uom = empty($ti->qty_per_uom) ? 1 : $ti->qty_per_uom;
+          $default_base_qty += ($default_qty * $default_qty_per_uom);
+        }
+      }
+    }
+
     $qty_details = avtxns_item_qty_details($entered_item_id);
     $user_available = (int)$qty_details['user_available'];
     //$total_available = (int)$qty_details['total_available'];
@@ -637,7 +669,7 @@ function avtxns_qty_check_and_reserve() {
     }
 
     //$data['valid_qty'] = !empty($entered_qty_is_valid);
-    $data['user_available'] = $user_available;
+    $data['user_available'] = $user_available + $default_base_qty;
     //$data['total_available'] = $total_available;
   }
 
@@ -794,4 +826,111 @@ function avtxns_special_discount_form($term_days) {
     }
   }
   return $form;
+}
+
+/**
+ * Return transaction status details.
+ * @param $status
+ *
+ * @return array
+ */
+function avtxns_txn_status_details($status) {
+  $statuses = array(
+    AVTXNS_TXN_STATUS_CLOSED => array(
+      'status' => AVTXNS_TXN_STATUS_CLOSED,
+      'title' => t('Closed'),
+    ),
+    AVTXNS_TXN_STATUS_OPEN => array(
+      'status' => AVTXNS_TXN_STATUS_OPEN,
+      'title' => t('Open'),
+    ),
+    AVTXNS_TXN_STATUS_PENDING => array(
+      'status' => AVTXNS_TXN_STATUS_PENDING,
+      'title' => t('Pending Approval'),
+    ),
+    AVTXNS_TXN_STATUS_VOID => array(
+      'status' => AVTXNS_TXN_STATUS_VOID,
+      'title' => t('Void'),
+    ),
+  );
+
+  if (isset($statuses[$status])) {
+    return $statuses[$status];
+  }
+  else {
+    return $statuses;
+  }
+}
+
+/**
+ * Change transaction status.
+ * @param $id
+ * @param $status
+ *
+ * @return bool
+ */
+function avtxns_txn_change_status($id, $status) {
+  if (empty($id) || !is_numeric($id)) {
+    return FALSE;
+  }
+
+  $row = avtxns_txn_load($id);
+  if (empty($row->id)) {
+    drupal_set_message('Transaction not found.', 'error');
+    return FALSE;
+  }
+  $tsd = avtxns_txn_status_details($status);
+  if (!isset($tsd['status'])) {
+    drupal_set_message('Unknown transaction status.', 'error');
+    return FALSE;
+  }
+  if ($status == $row->status) {
+    drupal_set_message(t('Transaction is already @status', array('@status' => $tsd['title'])), 'error');
+    return FALSE;
+  }
+
+  switch ($row->status) {
+    case AVTXNS_TXN_STATUS_CLOSED:
+    case AVTXNS_TXN_STATUS_VOID:
+      drupal_set_message('Status of Closed and Void transactions cannot be changed.', 'error');
+      return FALSE;
+      break;
+    case AVTXNS_TXN_STATUS_OPEN:
+      if (!in_array($status, array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID))) {
+        drupal_set_message(t('Cannot change transaction to %status', array('%status' => $tsd['title'])), 'error');
+        return FALSE;
+      }
+      break;
+    case AVTXNS_TXN_STATUS_PENDING:
+      if (!in_array($status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_VOID))) {
+        drupal_set_message(t('Cannot change transaction to %status', array('%status' => $tsd['title'])), 'error');
+        return FALSE;
+      }
+      break;
+  }
+
+  if ($status == AVTXNS_TXN_STATUS_VOID) {
+    // Re-open related transactions if possible.
+    $item_rows = empty($row->items) ? array() : $row->items;
+    $related_transaction_ids = array();
+    foreach ($item_rows as $item_row) {
+      $ref_txn_id = empty($item_row->ref_txn_id) ? NULL : $item_row->ref_txn_id;
+      if ($row->transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+        $ref_txn_id = empty($item_row->ref_txn_dtl_id) ? NULL : $item_row->ref_txn_dtl_id;
+      }
+      if ($ref_txn_id) {
+        $related_transaction_ids[$ref_txn_id] = $ref_txn_id;
+      }
+    }
+
+    // Check if each related transaction IDs can be re-opened.
+    foreach ($related_transaction_ids as $ref_txn_id) {
+
+    }
+  }
+  //if (db_query("UPDATE {avtbl_transactions} SET status = :status WHERE id = :txn_id", array(':txn_id' => $row->id, ':status' => $status))) {
+  //  avbase_custom_watchdog("txn__status_change", "ID: {$row->id}", array('#status' => $status, '#row' => $row));
+  //  return TRUE;
+  //}
+  return FALSE;
 }

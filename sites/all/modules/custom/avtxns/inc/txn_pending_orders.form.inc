@@ -42,9 +42,9 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   }
   $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
   $table_rows = array();
-  $transaction_details = array();
+  //$transaction_details = array();
   foreach ($client_pending_pos as $k => $v) {
-    $transaction_details[$v->id] = $v;
+    //$transaction_details[$v->id] = $v;
     $table_rows[$v->id] = array(
       'transaction_id' => array('data' => t('%order_num', array('%order_num' => $v->id)), 'class' => array('suk-text-right')),
       'agent_name' => check_plain($v->agent_name),
@@ -57,7 +57,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   }
 
   if (!empty($table_rows)) {
-    $fields['selected_pos']['transaction_details'] = array('#type' => 'value', '#value' => $transaction_details);
+    //$fields['selected_pos']['transaction_details'] = array('#type' => 'value', '#value' => $transaction_details);
     $fields['selected_pos']['transaction_id'] = array(
       '#type' => 'tableselect',
       '#header' => $header,
@@ -69,26 +69,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       //'#suffix' => '</div>',
       '#multiple' => ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN || $transaction_type == AVTXNS_TXN_TYPE_PAYMENT),
     );
-
-    //$table = array(
-    //  '#theme' => 'avbase_form_table',
-    //  '#header' => array(
-    //    array('data' => t('Order Date')),
-    //    array('data' => t('Total'), 'class' => 'uk-text-right'),
-    //    array('data' => t('&nbsp;'), 'class' => 'uk-text-right'),
-    //    '&nbsp;',
-    //  ),
-    //  //'#caption' => 'Ivan Dorseys',
-    //  //'product_rows' => array('#tree' => TRUE),
-    //);
-    //$table['rows'] = $table_rows;
-    //$table['#attributes'] = array('class' => array('uk-table-striped', 'uk-table-condensed'));
-
-    //$fields['product_cost_changes'] += $pcfields;
-    //$fields['intro'] = array('#weight' => -5, '#markup' => '<p>Some product costs have been changed. Do you want to update?</p>');
-    //$fields['selected_pos']['table'] = $table;
   }
-
   // Buttons
   $fields['buttons']['check_po'] = array(
     '#id' => 'check-po-btn',
@@ -202,18 +183,25 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
 
       $conditions = array();
       $conditions[] = array('avtxns.client_id', $client_id);
-      $conditions[] = array('avtxns.status', 1);
+      if ($reference_type == AVTXNS_TXN_TYPE_INVOICE) {
+        $conditions[] = array('avtxns.status', array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), 'IN');
+      }
+      else {
+        $conditions[] = array('avtxns.status', AVTXNS_TXN_STATUS_OPEN);
+      }
       $conditions[] = array('avtxns.transaction_type', $reference_type);
       $pos = avtxns_txn_query_load($conditions);
       $floating_pos = array();
       foreach ($pos as $po_k => $po_v) {
-        if (empty($po_v->status)) {
-          continue;
-        }
         if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && $po_v->grand_total <= 0) {
           continue;
         }
-        $floating_pos[] = $po_v;
+        $trimmed_po = new stdClass();
+        $trimmed_po->id = $po_v->id;
+        $trimmed_po->agent_name = $po_v->agent_name;
+        $trimmed_po->transaction_date = $po_v->transaction_date;
+        $trimmed_po->grand_total = $po_v->grand_total;
+        $floating_pos[] = $trimmed_po;
       }
 
       // Compare pos to already added item rows.
@@ -258,11 +246,12 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       }
       $transaction_ids = (array) $selected_pos['transaction_id'];
       $transaction_ids = array_filter($transaction_ids);
-      $transaction_details = empty($selected_pos['transaction_details']) ? array() : $selected_pos['transaction_details'];
-      $selected_transaction_details = array();
-      foreach ($transaction_ids as $v) {
-        $selected_transaction_details[$v] = empty($transaction_details[$v]) ? array() : $transaction_details[$v];
-      }
+      //$transaction_details = empty($selected_pos['transaction_details']) ? array() : $selected_pos['transaction_details'];
+      //$selected_transaction_details = array();
+      //foreach ($transaction_ids as $v) {
+      //  $selected_transaction_details[$v] = empty($transaction_details[$v]) ? array() : $transaction_details[$v];
+      //}
+      $selected_transaction_details = avtxns_txn_load_ids($transaction_ids);
 
 
       // Remove previously loaded pending items.
@@ -282,6 +271,8 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           $item_row_id = "{$reference_type}_db_item_{$transaction->id}";
           $transaction_arr = (array) $transaction;
           $transaction_arr['ref_txn_dtl_id'] = $transaction->id;
+          // Remember Invoice ID to immediately close invoice after payment, regardless of amount paid.
+          $transaction_arr['ref_txn_id'] = $transaction->id;
           if (!empty($trigger['#reference_type'])) {
             $transaction_arr['reference_type'] = $trigger['#reference_type'];
           }

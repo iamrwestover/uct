@@ -160,6 +160,7 @@ function avclients_client_change_status($id, $status) {
   }
 
   if (db_query("UPDATE {avtbl_clients} SET status = :status WHERE id = :client_id", array(':client_id' => $id, ':status' => $status))) {
+    avbase_custom_watchdog("client__status_change", "ID: {$id}", array('#status' => $status));
     return TRUE;
   }
   return FALSE;

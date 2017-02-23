@@ -331,12 +331,11 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $prod_index++;
     $fields = array();
     $reference_transaction_type = empty($prod_row['reference_type']) ? '' : $prod_row['reference_type'];
+    $order_id = empty($prod_row['ref_txn_id']) ? NULL : $prod_row['ref_txn_id'];
     if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT && !empty($reference_transaction_type)) {
-      $order_key = 'ref_txn_id';
       $badge_title = strtoupper($reference_transaction_type) . '#';
       $badge_type = $reference_transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN ? 'success' : 'primary';
 
-      $order_id = empty($prod_row[$order_key]) ? NULL : $prod_row[$order_key];
       if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
         //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
         $badge_title .= ' ' . $order_id;
@@ -359,7 +358,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       ),
       '#default_value' => isset($prod_row['product_title']) ? $prod_row['product_title'] : '',
     );
-    if (isset($prod_row['qty']) && $prod_row['qty'] == 0 && $view_mode) {
+    if ($order_id) {
+      $fields['product_title']['#attributes']['readonly'] = 'readonly';
+    }
+    if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY && isset($prod_row['qty']) && $prod_row['qty'] == 0 && $view_mode) {
       $fields['product_title']['#avhtml'] = TRUE;
       $fields['product_title']['#default_value'] = '<del>' . check_plain($fields['product_title']['#default_value']) . '</del>';
       $fields['product_title']['#field_suffix'] = '<em class="uk-margin-small-left uk-text-uppercase uk-text-small">- Out of stock</em>';
@@ -449,13 +451,13 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       //'#av_prod_element_validate' => array('element_validate_integer_positive'),
       '#attributes' => array(
         'data-column-name' => 'qty',
-        //'data-row-key' => $prod_key,
+        'data-transaction-id' => empty($row->id) ? 0 : $row->id,
         'data-uk-tooltip' => '',
         'class' => array('prod-column-qty'),
       ),
       '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
     );
-    if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
+    if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_INVOICE))) {
       $fields['qty']['#av_prod_element_validate'][] = 'avbase_element_validate_non_negative_number';
     }
     else {
@@ -651,7 +653,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       $fields['total']['#element_save_id'] = 'paid_amount';
       $fields['total']['#required'] = TRUE;
       $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : $prod_row['balance'];
-      $fields['total']['#default_value'] = empty($paid_amount) ? '' : $paid_amount;
+      $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
       $fields['total']['#element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
       //$fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
       $disabled_fields = array(
@@ -705,6 +707,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   );
 
   $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
+  if (!empty($row->id)) {
+    $js_settings['avbase']['transactions'][$row->id] = $row;
+  }
   if (empty($view_mode)) {
     $form['#attached']['js'][] = AVTXNS_MODULE_PATH . '/js/nestable_product_form.js';
     $form['#attached']['js'][] = array(

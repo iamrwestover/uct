@@ -50,6 +50,23 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   }
   $_item_rows = $merged;
 
+  // Make sure all included reference transaction IDs are still open.
+  $ref_txn_ids = array();
+  foreach ($_item_rows as $k => $v) {
+    $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];
+    if ($ref_txn_id) {
+      $ref_txn_ids[$ref_txn_id] = $ref_txn_id;
+    }
+  }
+
+  $query = "SELECT id, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
+  $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
+  foreach ($rs as $txn) {
+    if ($txn->status != AVTXNS_TXN_STATUS_OPEN) {
+      form_set_error('', t('Cannot proceed with items from Transaction # @txn_id. Transaction is not OPEN anymore. Try removing these items before proceeding.', array('@txn_id' => $txn->id)));
+    }
+  }
+
   if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && empty($_item_rows)) {
     form_set_error('', t('No payment received.'));
   }

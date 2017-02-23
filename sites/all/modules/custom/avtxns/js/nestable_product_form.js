@@ -136,6 +136,9 @@
         return data;
       };
       $UOMEl.click(function() {
+        if ($qtyEl.is('[readonly]')) {
+          return;
+        }
         if (!avDropdown.visible) {
           avDropdown.render(avDropdownData($productTitleEl.data('selected-product-id')));
         }
@@ -240,7 +243,8 @@
         if ($(this).hasClass('js-qty-validate')) {
           // Check if item qty is valid and not greater than user available qty.
           var itemID = $productTitleEl.data('selected-product-id');
-          if (!itemID) {
+          var itemDetails = Drupal.settings.avbase.products[itemID] || {};
+          if (itemDetails.title != $productTitleEl.val()) {
             return;
           }
           var request = $.ajax({
@@ -249,7 +253,8 @@
             data: {
               entered_item_id: itemID,
               entered_qty: self.getTotalEnteredQty(itemID),
-              entered_qty_per_uom: $qtyPerUOMEl.val()
+              entered_qty_per_uom: $qtyPerUOMEl.val(),
+              transaction_id: $qtyEl.data('transaction-id')
             },
             dataType: 'json',
             beforeSend: function () {
@@ -268,6 +273,7 @@
             }
           });
           request.done(function (response) {
+            console.log(response);
             Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
             if ($.isNumeric(response.user_available)) {
               Drupal.settings.avbase.availableQty[itemID] = response.user_available;
@@ -290,6 +296,12 @@
           $(this).removeClass('uk-form-danger');
         }
         var itemID = $productTitleEl.data('selected-product-id');
+        var itemDetails = Drupal.settings.avbase.products[itemID] || {};
+        if (itemID && itemDetails.title != $productTitleEl.val()) {
+          $(this).prop('title', '');
+          return;
+        }
+
         var totalEnteredBaseQty = self.getTotalEnteredQty(itemID);
         var qtyPerUOM = $qtyPerUOMEl.val();
         var UOMTitle = $UOMEl.val();

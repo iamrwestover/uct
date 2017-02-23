@@ -14,7 +14,7 @@ function avreports_client_balance_aging_form($client_id) {
   $invoice_where = array(
     array('avclients.id', $client->id),
     array('avtxns.transaction_type', AVTXNS_TXN_TYPE_INVOICE),
-    array('avtxns.status', 1),
+    array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
   );
   $invoices = avtxns_txn_query_load($invoice_where);
   $now = time() /*+ (86400*44)*/;

@@ -15,6 +15,11 @@ define('AVTXNS_TXN_TYPE_SALES_RETURN', 'sr');
 define('AVTXNS_TXN_TYPE_INVOICE', 'inv');
 define('AVTXNS_TXN_TYPE_PAYMENT', 'pmt');
 
+define('AVTXNS_TXN_STATUS_CLOSED', 0);
+define('AVTXNS_TXN_STATUS_OPEN', 1);
+define('AVTXNS_TXN_STATUS_PENDING', 2);
+define('AVTXNS_TXN_STATUS_VOID', 3);
+
 /**
  * Implementation of hook_menu().
  */
@@ -71,6 +76,15 @@ function avtxns_menu() {
       'weight' => 1,
     );
   }
+
+  $items['av/transactions/%avtxns_txn/change-status/%'] = array(
+    'title' => 'Transaction Status Change',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_txn_change_status_confirm_form', 2, 4),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/txn.form.inc',
+  );
 
   return $items;
 }

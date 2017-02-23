@@ -17,6 +17,7 @@ $email_html = drupal_render($form['email']);
 $term_html = drupal_render($form['term_id']);
 $due_date_html = drupal_render($form['due_date']);
 $address_html = drupal_render($form['client_address_string']);
+$agent_html = drupal_render($form['agent_name']);
 $return_type_html = drupal_render($form['return_type']);
 $reference_id_html = drupal_render($form['reference_id']);
 $element_bottom_margin = $view_mode ? '' : ' uk-margin-small-bottom';
@@ -42,7 +43,9 @@ $balance_ages_html = drupal_render($form['balance_ages']);
         </div>
         <div class="uk-width-1-2">
           <div class="uk-grid uk-grid-small">
-            <div class="uk-width-1-1<?php print $element_bottom_margin; ?>"><?php print drupal_render($form['agent_name']); ?></div>
+            <?php if ($agent_html): ?>
+              <div class="uk-width-1-1<?php print $element_bottom_margin; ?>"><?php print $agent_html; ?></div>
+            <?php endif; ?>
             <?php if ($return_type_html): ?>
               <div class="uk-width-1-2<?php print $element_bottom_margin; ?>"><?php print $return_type_html; ?></div>
             <?php endif; ?>
