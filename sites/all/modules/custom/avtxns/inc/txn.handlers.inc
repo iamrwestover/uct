@@ -43,10 +43,11 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         'discount4',
         'paid_amount',
         'ref_txn_dtl_id',
+        'ref_txn_id',
+        'ref_txn_type',
       );
       //sort($all_table_field_names);
 
-      $incoming_base_qty = array();
       $close_transaction_ids = array();
       $insert_rows = array();
       $insert_args = array();
@@ -55,6 +56,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $transaction_detail_ids = array();
       //$matching_table_field_names = array();
       $item_ids = array();
+      $discount_updates = array();
       foreach ($item_rows as $item_row) {
         if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT && empty($item_row['product_id'])) {
           continue;
@@ -85,7 +87,9 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           if (!is_numeric($v)) {
             continue;
           }
-          $item_row['discount' . $x++] = (float) $v;
+          $discount_field_name = 'discount' . $x++;
+          $item_row[$discount_field_name] = (float) $v;
+          $discount_updates[$discount_field_name][$item_row['item_id']] = $item_row[$discount_field_name];
         }
 
         // Remember transaction detail id to know which rows to insert/update.
@@ -114,21 +118,6 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         if (!empty($item_row['ref_txn_id'])) {
           $close_transaction_ids[$item_row['ref_txn_id']] = $item_row['ref_txn_id'];
         }
-
-        // No need to update inventory for specific transactions.
-        if (!isset($ttd['qty_change'])) {
-          continue;
-        }
-
-        // Update this product's inventory count.
-        $this_prod_total_incoming_base_qty = empty($incoming_base_qty[$item_row['item_id']]) ? 0 : $incoming_base_qty[$item_row['item_id']];
-        $previous_incoming_base_qty = empty($item_row['incoming_base_qty']) ? 0 : $item_row['incoming_base_qty'];
-        $previous_incoming_base_qty = empty($item_row['id']) ? 0 : $previous_incoming_base_qty;
-        $item_row_incoming_base_qty = ($item_row['qty'] * $item_row['qty_per_uom']);
-        if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item_row['good_stock'])) {
-          $item_row_incoming_base_qty = 0;
-        }
-        $incoming_base_qty[$item_row['item_id']] = $this_prod_total_incoming_base_qty + $item_row_incoming_base_qty - $previous_incoming_base_qty;
       }
 
       // Insert new rows.
@@ -158,36 +147,75 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         }
       }
 
-      // Update product on-hand qty.
-      if (!empty($incoming_base_qty)) {
-        $qty_update_query = '';
-        if (isset($ttd['qty_change'])) {
-          if ($ttd['qty_change'] == 'increment') {
-            $qty_update_query = "UPDATE {avtbl_products} SET qty = qty + CASE id";
-          }
-          elseif ($ttd['qty_change'] == 'decrement') {
-            $qty_update_query = "UPDATE {avtbl_products} SET qty = qty - CASE id";
-          }
+      // Delete transaction detail ids that were removed.
+      if (empty($form_state['#new_record'])) {
+        $delete_query = "DELETE FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
+        $delete_args = array(':txn_id' => $row['id']);
+        if (!empty($transaction_detail_ids)) {
+          $delete_query .= " AND id NOT IN (:txn_dtl_ids)";
+          $delete_args[':txn_dtl_ids'] = $transaction_detail_ids;
         }
-        if (!empty($qty_update_query)) {
-          foreach ($incoming_base_qty as $k => $v) {
-            $qty_update_query .= " WHEN $k THEN $v";
-          }
-          $qty_update_query .= " END WHERE id IN (" . implode(', ', array_keys($incoming_base_qty)) . ")";
-          if (db_query($qty_update_query)) {
-            avbase_custom_watchdog("{$transaction_type}__qty_update", "ID: {$row['id']}", array('#row' => $row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
-          }
-        }
-        else {
-          drupal_set_message('Product quantities were not updated', 'warning');
-          avbase_custom_watchdog("{$transaction_type}__qty_update_warn1", "ID: {$row['id']}", array('#row' => $row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
-        }
-
+        db_query($delete_query, $delete_args);
       }
+
+      // Update product on-hand qty.
+      avbase_product_qty_update($item_rows, $row);
 
       // Update cost and price.
       if (!empty($ttd['cost_change'])) {
         avtxns_cost_changes_db_update($form_state, $row, $item_ids, $transaction_type);
+      }
+
+      // Discount changes.
+      if (!empty($discount_updates)) {
+        $discount_update_sets = array();
+        $du_item_ids = array();
+        foreach ($discount_updates as $discount_field_name => $du) {
+          $discount_update_sets[$discount_field_name] = "$discount_field_name = CASE id";
+          foreach($du as $du_item_id => $discount_value) {
+            $discount_update_sets[$discount_field_name] .= " WHEN $du_item_id THEN $discount_value";
+            $du_item_ids[$du_item_id] = $du_item_id;
+          }
+          $discount_update_sets[$discount_field_name] .= ' END';
+        }
+
+        // Update product discounts.
+        if (!empty($ttd['product_discount_overwrite']) && !empty($discount_update_sets)) {
+          $du_query = "UPDATE {avtbl_products} SET " . implode(', ', $discount_update_sets);
+          $du_query .= ' WHERE ID IN (' . implode(', ', $du_item_ids) . ')';
+          if (db_query($du_query)) {
+            avbase_custom_watchdog("{$transaction_type}__discount_update", "Transaction ID: {$row['id']}", array('#row' => $row, '#item_ids' => $du_item_ids, '#entity_name' => $transaction_type));
+          }
+        }
+
+        // Send transaction status to PENDING if one of the products' discount is over the limit.
+        $transaction_row = avtxns_txn_load($row['id']);
+        if (!empty($ttd['product_discount_check']) && $transaction_row->status != AVTXNS_TXN_STATUS_PENDING) {
+          $set_to_pending = FALSE;
+          $query = "SELECT id, discount1, discount2, discount3, discount4 FROM {avtbl_products}
+            WHERE id IN (:ids)";
+          $du_rs = db_query($query, array(':ids' => $du_item_ids));
+          foreach ($du_rs as $du_row) {
+            for ($x = 1; $x <= 4; $x++) {
+              $discount_field_name = 'discount' . $x;
+              $existing_discount_value = empty($du_row->$discount_field_name) ? 0 : $du_row->$discount_field_name;
+              $incoming_discount_value = empty($discount_updates[$discount_field_name][$du_row->id]) ? 0 : $discount_updates[$discount_field_name][$du_row->id];
+              if ($incoming_discount_value > ($existing_discount_value * AVTXN_DISCOUNT_MULTIPLIER)) {
+                $set_to_pending = TRUE;
+                break;
+              }
+              if ($set_to_pending) {
+                break;
+              }
+            }
+          }
+
+          if ($set_to_pending) {
+            if (avtxns_txn_change_status($transaction_row->id, AVTXNS_TXN_STATUS_PENDING)) {
+              drupal_set_message('Some item discounts exceeded the maximum allowed. This transaction has been sent for approval.', 'warning');
+            }
+          }
+        }
       }
 
       if (!empty($close_transaction_ids) && $transaction_type != AVTXNS_TXN_TYPE_SALES_RETURN) {

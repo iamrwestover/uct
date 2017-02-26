@@ -20,7 +20,7 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
     drupal_exit();
   }
 
-  if (empty($row->status) && empty($view_mode) && !empty($row->id)) {
+  if (empty($view_mode) && !empty($row->id) && !in_array($row->status, array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_OPEN))) {
     drupal_set_message('This transaction cannot be modified anymore.', 'warning');
     $view_mode = TRUE;
   }
@@ -122,6 +122,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   $form['entity_name'] = array('#type' => 'value', '#value' => 'txn');
   $form['transaction_type'] = array('#type' => 'value', '#value' => $transaction_type);
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $form['status'] = array('#type' => 'value', '#value' => isset($row->status) ? $row->status : NULL);
   $form['#success_message'] = t('@type details saved.', array('@type' => $ttd['name']));
   $form['#theme'] = 'avtxns_item_list_form';
 
@@ -231,29 +232,40 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#icon_key' => 'print',
     );
 
-    // Add status change button.
+    // Add status change buttons.
     $buttons['void_btn'] = array(
       '#markup' => l('Void transaction', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_VOID, array(
-        'attributes' => array('class' => 'uk-button'),
+        'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right'),
         'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
+        'icon_key' => 'ban',
+        'icon_classes' => array('uk-margin-small-right'),
       )),
-      //'#type' => 'button',
-      //'#value' => t('Void transaction'),
       '#visible_in_view_mode' => TRUE,
       '#avposition' => 'opposite',
-      //'#attributes' => array('class' => array('uk-button-danger')),
-      //'#icon_key' => 'ban',
       '#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)),
     );
-    //$buttons['pending_btn'] = array(
-    //  '#type' => 'button',
-    //  '#value' => t('For approval'),
-    //  '#visible_in_view_mode' => TRUE,
-    //  '#avposition' => 'opposite',
-    //  '#attributes' => array('class' => array('uk-button-warning')),
-    //  '#icon_key' => 'user',
-    //  '#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)),
-    //);
+    $buttons['pending_btn'] = array(
+      '#markup' => l('For approval', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_PENDING, array(
+        'attributes' => array('class' => 'uk-button uk-margin-small-right'),
+        'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
+        'icon_key' => 'user',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#visible_in_view_mode' => TRUE,
+      '#avposition' => 'opposite',
+      '#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN)),
+    );
+    $buttons['open_btn'] = array(
+      '#markup' => l('Approve', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_OPEN, array(
+        'attributes' => array('class' => 'uk-button uk-button-success uk-margin-small-right'),
+        'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
+        'icon_key' => 'thumbs-o-up',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#visible_in_view_mode' => TRUE,
+      '#avposition' => 'opposite',
+      '#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_PENDING)),
+    );
   }
 
   if (isset($ttd['pending_txns_reference_type'])) {

@@ -250,9 +250,9 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#type' => 'textfield',
     '#title' => t('Preferred vendor'),
     '#maxlength' => 255,
-    '#autocomplete_path' => 'av/vendors/autocomplete',
-    '#element_validate' => array('avbase_element_validate_display_name_exists'),
-    '#table_name' => 'avtbl_vendors',
+    '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_VENDOR,
+    '#element_validate' => array('avbase_element_validate_client_name_exists'),
+    //'#table_name' => 'avtbl_vendors',
     '#default_value' => empty($row->vendor_name) ? '' : $row->vendor_name,
   );
   $info['account_type_id'] = array(
@@ -278,6 +278,14 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#empty_value' => 0,
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->principal_id) ? $row->principal_id : 0,
+  );
+
+  $info['discount'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Max allowed discount (%)',
+    '#maxlength' => 10,
+    '#element_validate' => array('avbase_element_validate_product_discount'),
+    '#default_value' => isset($row->discount_text) ? $row->discount_text : '',
   );
 
   $form['info'] += $info;
@@ -565,6 +573,16 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
         $row['initial_qty_date'] = time();
       }
 
+      // Explode discount text to discount array.
+      $discount_text = isset($values['discount']) ? trim($values['discount']) : '';
+      $discount_parts = explode('/', $discount_text);
+      $x = 1;
+      foreach ($discount_parts as $k => $v) {
+        if (!is_numeric($v)) {
+          continue;
+        }
+        $row['discount' . $x++] = (float) $v;
+      }
       return $row;
       break;
   }

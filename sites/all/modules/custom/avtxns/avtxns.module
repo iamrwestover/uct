@@ -20,6 +20,8 @@ define('AVTXNS_TXN_STATUS_OPEN', 1);
 define('AVTXNS_TXN_STATUS_PENDING', 2);
 define('AVTXNS_TXN_STATUS_VOID', 3);
 
+define('AVTXN_DISCOUNT_MULTIPLIER', 0.4);
+
 /**
  * Implementation of hook_menu().
  */
@@ -205,6 +207,7 @@ function avtxns_txn_types($type = NULL) {
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       'qty_change' => 'increment',
       'cost_change' => TRUE,
+      'product_discount_overwrite' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
       'type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
@@ -234,6 +237,7 @@ function avtxns_txn_types($type = NULL) {
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_SALES_ORDER,
       'qty_change' => 'decrement',
       'cost_change' => TRUE,
+      'product_discount_check' => TRUE,
       'receivable_type' => 'debit',
     );
     $ret[AVTXNS_TXN_TYPE_SALES_RETURN] = array(

@@ -31,6 +31,7 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['expiry_date']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['rop']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['eoq']); ?></div>
+      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['discount']); ?></div>
 
       <!--<div class="uk-width-1-1">--><?php //print drupal_render($form['info']['description']); ?><!--</div>-->
     </div>

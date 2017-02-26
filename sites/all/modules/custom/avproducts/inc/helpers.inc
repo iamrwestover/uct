@@ -70,10 +70,11 @@ function avproduct_load_ids($ids) {
  * Advanced product load.
  * @param array $param_where
  * @param array $param_args
+ * @param $limit_string
  *
  * @return array
  */
-function avproduct_query_load($param_where, $param_args = array()) {
+function avproduct_query_load($param_where, $param_args = array(), $limit_string = '') {
   if (empty($param_where)) {
     return array();
   }
@@ -103,6 +104,9 @@ function avproduct_query_load($param_where, $param_args = array()) {
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
+  if (!empty($limit_string)) {
+    $query .= " LIMIT " . $limit_string;
+  }
 
   $rs = db_query($query, $param_args);
   $rows = array();
@@ -110,6 +114,19 @@ function avproduct_query_load($param_where, $param_args = array()) {
     if (isset($row->data)) {
       $row->data = unserialize($row->data);
     }
+
+    $discount = array();
+    $sales_discount = array();
+    for ($x = 1; $x <= 4; $x++) {
+      $_discount_name = "discount$x";
+      if (isset($row->$_discount_name)) {
+        $discount[] = round($row->$_discount_name, 2);
+        $sales_discount[] = round($row->$_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
+      }
+    }
+    $row->discount_text = implode('/', $discount);
+    $row->sales_discount_text = implode('/', $sales_discount);
+
     $rows[$row->id] = $row;
   }
 
@@ -172,20 +189,37 @@ function avproducts_autocomplete($string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
-    $db_or = db_or();
-    $db_or->condition('avprod.title', '%' . db_like($string) . '%', 'LIKE');
-    $db_or->condition('avprod.code', '%' . db_like($string) . '%', 'LIKE');
+    //$db_or = db_or();
+    //$db_or->condition('avprod.title', '%' . db_like($string) . '%', 'LIKE');
+    //$db_or->condition('avprod.code', '%' . db_like($string) . '%', 'LIKE');
+    //
+    //$query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'cost', 'price', 'data'));
+    //$query->condition($db_or);
+    //$query->range(0, 8);
+    //$result = $query->execute();
+    //
+    //foreach ($result as $row) {
+    //  $code = check_plain($row->code);
+    //  $title = check_plain($row->title);
+    //  $row->data = unserialize($row->data);
+    //  //$uoms = empty($data['uoms']) ? array() : $data['uoms'];
+    //  $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;
+    //  $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
+    //  $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
+    //  $matches[$row->title] = $row_html;
+    //}
 
-    $query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'cost', 'price', 'data'));
-    $query->condition($db_or);
-    $query->range(0, 8);
-    $result = $query->execute();
-
-    foreach ($result as $row) {
+    $where_or = array(
+      'avprod.title LIKE :string',
+      'avprod.code LIKE :string',
+    );
+    $where_or_str = '(' . implode(' OR ', $where_or) . ')';
+    $where = array($where_or_str);
+    $args = array(':string' => '%' . db_like($string) . '%');
+    $rows = avproduct_query_load($where, $args, '8');
+    foreach ($rows as $row) {
       $code = check_plain($row->code);
       $title = check_plain($row->title);
-      $row->data = unserialize($row->data);
-      //$uoms = empty($data['uoms']) ? array() : $data['uoms'];
       $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;
       $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';

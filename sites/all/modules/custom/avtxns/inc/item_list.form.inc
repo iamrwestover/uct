@@ -520,7 +520,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       '#title' => 'Discount',
       '#maxlength' => 10,
       '#element_validate' => array('avtxns_item_list_row_element_validate'),
-      '#av_prod_element_validate' => array('avtxns_element_validate_product_discount'),
+      '#av_prod_element_validate' => array('avbase_element_validate_product_discount'),
       '#attributes' => array(
         'data-column-name' => 'discount',
         'class' => array('prod-column-discount'),
@@ -610,7 +610,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         'effect' => 'none',
         'event' => 'click',
       ),
-      '#access' => empty($row->id),
+      '#access' => $transaction_type != AVTXNS_TXN_TYPE_INVOICE,
     );
 
     if (!empty($_item_rows[$prod_key]['item_id'])) {
@@ -694,7 +694,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     '#id' => 'prod-add-btn',
     '#name' => 'prod_add_btn',
     '#type' => 'submit',
-    '#value' => t('Add new row'),
+    '#value' => t('Add new rows'),
     '#limit_validation_errors' => array(),
     '#submit' => array('avtxns_item_list_prod_submit'),
     '#ajax' => array(

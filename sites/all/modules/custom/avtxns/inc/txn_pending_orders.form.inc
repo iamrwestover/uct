@@ -193,7 +193,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $pos = avtxns_txn_query_load($conditions);
       $floating_pos = array();
       foreach ($pos as $po_k => $po_v) {
-        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && $po_v->grand_total <= 0) {
+        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && round($po_v->balance, 2) <= 0) {
           continue;
         }
         $trimmed_po = new stdClass();
@@ -273,6 +273,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           $transaction_arr['ref_txn_dtl_id'] = $transaction->id;
           // Remember Invoice ID to immediately close invoice after payment, regardless of amount paid.
           $transaction_arr['ref_txn_id'] = $transaction->id;
+          $transaction_arr['ref_txn_type'] = $transaction->transaction_type;
           if (!empty($trigger['#reference_type'])) {
             $transaction_arr['reference_type'] = $trigger['#reference_type'];
           }
@@ -281,13 +282,13 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           unset($transaction_arr['id']);
           unset($transaction_arr['items']);
           $transaction_arr['transaction_date_formatted'] = format_date($transaction_arr['transaction_date'], 'custom', 'Y M d');
-          $query = "SELECT SUM(paid_amount) FROM {avtbl_transaction_details} WHERE ref_txn_dtl_id = :invoice_id";
-          $total_paid_for_invoice = db_query($query, array(':invoice_id' => $transaction->id))->fetchField();
-          $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
+          //$query = "SELECT SUM(paid_amount) FROM {avtbl_transaction_details} WHERE ref_txn_dtl_id = :invoice_id";
+          //$total_paid_for_invoice = db_query($query, array(':invoice_id' => $transaction->id))->fetchField();
+          //$total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
           //$transaction_arr['balance'] = avbase_number_format(round($transaction->grand_total - $total_paid_for_invoice, 2), 2);
           $transaction_arr['balance'] = avbase_number_format($transaction_arr['balance'], 2);
           $transaction_arr['paid_amount'] = $transaction_arr['balance'];
-          $transaction_arr['previous_payment'] = avbase_number_format($total_paid_for_invoice, 2);
+          $transaction_arr['previous_payment'] = avbase_number_format($transaction_arr['total_paid'], 2);
           $receive_pos[$item_row_id] = $transaction_arr;
         }
         else {
@@ -298,7 +299,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
             unset($item_row_arr['id']);
             $item_row_arr['ref_txn_dtl_id'] = $item_row->id;
             $item_row_arr['ref_txn_id'] = $transaction->id;
-            //$item_row_arr['ref_txn_type'] = $transaction->transaction_type;
+            $item_row_arr['ref_txn_type'] = $transaction->transaction_type;
 
             if (!empty($trigger['#reference_type'])) {
               $item_row_arr['reference_type'] = $trigger['#reference_type'];

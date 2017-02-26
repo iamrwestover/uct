@@ -688,3 +688,101 @@ function avbase_user_extra_details(&$user) {
   $row->full_name = empty($full_name) ? $user->name : $full_name;
   $user->avdata = $row;
 }
+
+/**
+ * Check if element value is in a valid discount format.
+ * @param $element
+ * @param $form_state
+ */
+function avbase_element_validate_product_discount($element, &$form_state) {
+  $element_value = trim($element['#value']);
+  if ($element_value == '') {
+    return;
+  }
+
+  $parts = explode('/', $element_value);
+  if (count($parts) > 4) {
+    form_error($element, t('Only up to 4 discount parts is allowed.'));
+    return;
+  }
+
+  foreach ($parts as $k => $v) {
+    $error = !is_numeric($v);
+    if (!$error) {
+      $v = (float) $v;
+      $error = $v < 0 || $v > 99;
+    }
+    if ($error) {
+      form_error($element, t('Invalid discount format. Valid format is positive numbers separated by /.'));
+      return;
+    }
+    $parts[$k] = (float) $v;
+  }
+
+  //$parents = $element['#parents'];
+  //drupal_array_set_nested_value($form_state['values'], $parents, implode('/', $parts));
+}
+
+/**
+ * Update product quantities accordingly.
+ * @param $item_rows
+ * @param $transaction_row
+ * @param bool $from_void
+ */
+function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FALSE) {
+  $transaction_row = (object) $transaction_row;
+  $transaction_type = empty($transaction_row->transaction_type) ? '' : $transaction_row->transaction_type;
+  $ttd = avtxns_txn_types($transaction_type);
+
+  // No need to update inventory for specific transactions.
+  if (!isset($ttd['qty_change'])) {
+    return;
+  }
+
+  $incoming_base_qty = array();
+  foreach ($item_rows as $item_row) {
+    $item_row = (array) $item_row;
+    $item_id = isset($item_row['item_id']) ? $item_row['item_id'] : NULL;
+    $item_id = empty($item_id) ? (isset($item_row['product_id']) ? $item_row['product_id'] : NULL) : $item_id;
+
+    $this_prod_total_incoming_base_qty = empty($incoming_base_qty[$item_id]) ? 0 : $incoming_base_qty[$item_id];
+    $previous_incoming_base_qty = empty($item_row['incoming_base_qty']) ? 0 : $item_row['incoming_base_qty'];
+    $previous_incoming_base_qty = empty($item_row['id']) ? 0 : $previous_incoming_base_qty;
+    $previous_incoming_base_qty = $from_void ? 0 : $previous_incoming_base_qty;
+    $item_row_incoming_base_qty = ($item_row['qty'] * $item_row['qty_per_uom']);
+    if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item_row['good_stock'])) {
+      $item_row_incoming_base_qty = 0;
+    }
+
+    if (!empty($item_id)) {
+      $incoming_base_qty[$item_id] = $this_prod_total_incoming_base_qty + $item_row_incoming_base_qty - $previous_incoming_base_qty;
+    }
+  }
+
+  if (!empty($incoming_base_qty)) {
+    $qty_update_query = '';
+    if (isset($ttd['qty_change'])) {
+      if ($ttd['qty_change'] == 'increment') {
+        $operator = $from_void ? '-' : '+';
+        $qty_update_query = "UPDATE {avtbl_products} SET qty = qty $operator CASE id";
+      }
+      elseif ($ttd['qty_change'] == 'decrement') {
+        $operator = $from_void ? '+' : '-';
+        $qty_update_query = "UPDATE {avtbl_products} SET qty = qty $operator CASE id";
+      }
+    }
+    if (!empty($qty_update_query)) {
+      foreach ($incoming_base_qty as $k => $v) {
+        $qty_update_query .= " WHEN $k THEN $v";
+      }
+      $qty_update_query .= " END WHERE id IN (" . implode(', ', array_keys($incoming_base_qty)) . ")";
+      if (db_query($qty_update_query)) {
+        avbase_custom_watchdog("{$transaction_type}__qty_update", "ID: {$transaction_row->id}", array('#row' => $transaction_row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
+      }
+    }
+    else {
+      drupal_set_message('Product quantities were not updated', 'warning');
+      avbase_custom_watchdog("{$transaction_type}__qty_update_warn1", "ID: {$transaction_row->id}", array('#row' => $transaction_row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
+    }
+  }
+}

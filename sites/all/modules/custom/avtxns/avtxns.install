@@ -154,7 +154,7 @@ function avtxns_schema() {
         'not null' => FALSE,
       ),
       'qty' => array(
-        'description' => 'TODO: please describe this field!',
+        'description' => 'Qty',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,
@@ -215,12 +215,25 @@ function avtxns_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'ref_txn_id' => array(
+        'description' => 'Reference Transaction ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'ref_txn_type' => array(
+        'description' => 'Reference Transaction Type',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'transaction_id' => array('transaction_id'),
       'item_id' => array('item_id'),
       'ref_txn_dtl_id' => array('ref_txn_dtl_id'),
+      'ref_txn_id' => array('ref_txn_id'),
+      'transaction_id' => array('transaction_id'),
     ),
   );
 

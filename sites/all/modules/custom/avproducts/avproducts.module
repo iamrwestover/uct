@@ -400,7 +400,7 @@ function avproducts_product_list_filter_form_submit($form, &$form_state) {
   $filter_values = empty($form_state['values']['avproducts_pl_filter']) ? array() : $form_state['values']['avproducts_pl_filter'];
   $and = $or = $where = array();
   foreach ($filter_values as $k => $v) {
-    if ($k == 'buttons') {
+    if ($k == 'buttons' || $k == 'settings') {
       continue;
     }
     $v = trim($v);

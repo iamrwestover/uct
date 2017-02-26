@@ -103,6 +103,9 @@
           //$qtyCheckEl.trigger('change');
           $UOMEl.trigger('change');
         }
+        var transaction = Drupal.settings.avtxns.transaction || '';
+        var discount_text = transaction == 'purchase' ?  (productDetails.discount_text || '') : (productDetails.sales_discount_text || '')
+        $discountEl.val(discount_text);
       });
       // Trigger adding new row when last Product field is reached.
       $productTitleEl.focus(function() {
@@ -273,7 +276,6 @@
             }
           });
           request.done(function (response) {
-            console.log(response);
             Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
             if ($.isNumeric(response.user_available)) {
               Drupal.settings.avbase.availableQty[itemID] = response.user_available;
