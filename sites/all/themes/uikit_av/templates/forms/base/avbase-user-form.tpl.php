@@ -2,8 +2,8 @@
 $form['picture']['#title'] = '';
 ?>
 <div class="uk-grid">
-  <div class="uk-width-1-3"><?php print drupal_render($form['account']['name']); ?></div>
   <div class="uk-width-1-3"><?php print drupal_render($form['account']['mail']); ?></div>
+  <div class="uk-width-1-3"><?php print drupal_render($form['account']['name']); ?></div>
   <div class="uk-width-1-3"></div>
 
   <div class="uk-width-1-3 uk-margin-top"><?php print drupal_render($form['avuser']['first_name']); ?></div>
@@ -12,8 +12,9 @@ $form['picture']['#title'] = '';
   <!--<div class="uk-width-1-3"></div>-->
   <!--<div class="uk-width-1-3"></div>-->
 
+  <div class="uk-width-1-3 uk-margin-top"><?php print drupal_render($form['account']['current_pass']); ?></div>
   <div class="uk-width-1-3 uk-margin-top"><?php print drupal_render($form['account']['pass']); ?></div>
-  <div class="uk-width-2-3 uk-margin-top"><?php print drupal_render($form['avuser']['address']); ?></div>
+  <div class="uk-width-1-3 uk-margin-top"><?php print drupal_render($form['avuser']['address']); ?></div>
 
   <div class="uk-width-1-3">
       <div class="uk-grid">

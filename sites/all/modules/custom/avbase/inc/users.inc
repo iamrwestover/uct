@@ -9,7 +9,10 @@
  */
 function avbase_users_home_form($form, &$form_state) {
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
-  $form['new_button'] = array('#markup' => l('New user', 'av/users/add', $btn_options));
+  $form['new_button'] = array(
+    '#markup' => l('New user', 'av/users/add', $btn_options),
+    '#access' => user_access('administer users'),
+  );
 
   $header = array(
     array('data' => 'ID', 'field' => 'uid', 'sort' => 'desc', 'class' => array('uk-hidden')),
@@ -113,7 +116,7 @@ function avbase_user_form($form, &$form_state, $row) {
     $form['actions']['cancel']['#value'] = 'Delete user';
     $form['actions']['cancel']['#attributes']['class'][] = 'uk-button-danger';
   }
-  $form['account']['roles']['#access'] = TRUE;
+//  $form['account']['roles']['#access'] = TRUE;
   $form['account']['mail']['#description'] = '';
 
   // Set crud settings.
@@ -193,14 +196,9 @@ function avbase_user_form_settings(&$form) {
  * @param $langcode
  */
 function avbase_user_view($account, $view_mode, $langcode) {
-  $avuser_row = avbase_avuser_load($account);
-  $name = array(
-    'first_name' => empty($avuser_row->first_name) ? '' : $avuser_row->first_name,
-    'last_name' => empty($avuser_row->last_name) ? '' : $avuser_row->last_name,
-  );
-  $name = array_filter($name);
-  $page_title = empty($name) ? $account->name : implode(' ', $name);
-  drupal_set_title(check_plain($page_title));
+  avbase_user_extra_details($account);
+  $avuser_row = empty($account->avdata) ? NULL : $account->avdata;
+  drupal_set_title($avuser_row->full_name);
 
   //$account->content['avuser']['first_name'] = array(
   //  '#type' => 'user_profile_item',

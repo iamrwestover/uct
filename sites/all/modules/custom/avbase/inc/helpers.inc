@@ -293,9 +293,9 @@ function avbase_avuser_load($account = NULL) {
     return $data[$account->uid];
   }
 
-  $query = "SELECT * FROM {avtbl_users} WHERE uid = :uid";
-  $rs = db_query($query, array(':uid' => $account->uid));
-  $row = $rs->fetchObject();
+  $query = "SELECT * FROM {avtbl_users} avusers WHERE uid = :uid";
+  $row = db_query($query, array(':uid' => $account->uid))->fetch();
+
   $data[$account->uid] = $row;
   return $row;
 }
@@ -669,13 +669,12 @@ function avbase_element_validate_non_negative_number($element, &$form_state) {
  * Append extra user details to user object.
  * @param $user
  */
-function avbase_user_extra_details(&$user) {
-  if (empty($user->uid) || !empty($user->avdata)) {
+function avbase_user_extra_details(&$account) {
+  if (empty($account->uid) || !empty($account->avdata)) {
     return;
   }
 
-  $query = "SELECT * FROM {avtbl_users} avusers WHERE uid = :uid";
-  $row = db_query($query, array(':uid' => $user->uid))->fetch();
+  $row = avbase_avuser_load($account);
   if (empty($row->id)) {
     return;
   }
@@ -685,8 +684,8 @@ function avbase_user_extra_details(&$user) {
   );
   $name_details = array_filter($name_details);
   $full_name = implode(' ', $name_details);
-  $row->full_name = empty($full_name) ? $user->name : $full_name;
-  $user->avdata = $row;
+  $row->full_name = empty($full_name) ? $account->name : $full_name;
+  $account->avdata = $row;
 }
 
 /**

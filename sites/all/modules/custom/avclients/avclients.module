@@ -16,6 +16,14 @@ define('AVCLIENT_STATUS_DISABLED', 0);
 define('AVCLIENT_STATUS_ACTIVE', 1);
 define('AVCLIENT_STATUS_SUSPENDED', 2);
 
+// Permissions.
+define('AVCLIENT_PERM_CUSTOMER_CREATE', 'avbase customer create');
+define('AVCLIENT_PERM_CUSTOMER_EDIT', 'avbase customer edit');
+define('AVCLIENT_PERM_CUSTOMER_VIEW', 'avbase customer view');
+define('AVCLIENT_PERM_VENDOR_CREATE', 'avbase vendor create');
+define('AVCLIENT_PERM_VENDOR_EDIT', 'avbase vendor edit');
+define('AVCLIENT_PERM_VENDOR_VIEW', 'avbase vendor view');
+
 /**
  * Implementation of hook_menu().
  */
@@ -86,6 +94,20 @@ function avclients_menu() {
     'file' => 'inc/helpers.inc',
   );
   return $items;
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function avclients_permission() {
+  $permissions = array();
+  $client_types = avclients_client_types();
+  foreach ($client_types as $ct) {
+    if (!empty($ct['permissions'])) {
+      $permissions += $ct['permissions'];
+    }
+  }
+  return $permissions;
 }
 
 /**
@@ -224,12 +246,34 @@ function avclients_client_types($client_type = NULL) {
       'base_path' => 'av/customers',
       'name' => 'Customer',
       'plural_name' => 'Customers',
+      'permissions' => array(
+        AVCLIENT_PERM_CUSTOMER_CREATE => array(
+          'title' => 'Create customers',
+        ),
+        AVCLIENT_PERM_CUSTOMER_EDIT => array(
+          'title' => 'Edit customers',
+        ),
+        AVCLIENT_PERM_CUSTOMER_VIEW => array(
+          'title' => 'View customers',
+        ),
+      ),
     );
     $ret[AVCLIENT_TYPE_VENDOR] = array(
       'type' => AVCLIENT_TYPE_VENDOR,
       'base_path' => 'av/vendors',
       'name' => 'Vendor',
       'plural_name' => 'Vendors',
+      'permissions' => array(
+        AVCLIENT_PERM_VENDOR_CREATE => array(
+          'title' => 'Create vendors',
+        ),
+        AVCLIENT_PERM_VENDOR_EDIT => array(
+          'title' => 'Edit vendors',
+        ),
+        AVCLIENT_PERM_VENDOR_VIEW => array(
+          'title' => 'View vendors',
+        ),
+      ),
     );
   }
 
