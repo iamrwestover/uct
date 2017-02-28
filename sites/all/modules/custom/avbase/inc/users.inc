@@ -8,18 +8,20 @@
  * @return array
  */
 function avbase_users_home_form($form, &$form_state) {
-  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
   $form['new_button'] = array(
-    '#markup' => l('New user', 'av/users/add', $btn_options),
+    '#markup' => l('New user', 'admin/people/create', array('attributes' => array('class' => 'uk-button uk-margin-small-right uk-button-primary'))),
+    '#access' => user_access('administer users'),
+  );
+  $form['permissions_button'] = array(
+    '#markup' => l('Permissions', 'av/users/permissions', array('attributes' => array('class' => 'uk-button uk-margin-small-right'))),
     '#access' => user_access('administer users'),
   );
 
   $header = array(
     array('data' => 'ID', 'field' => 'uid', 'sort' => 'desc', 'class' => array('uk-hidden')),
+    array('data' => 'Name', 'field' => 'first_name'),
     array('data' => 'Username', 'field' => 'name'),
-    array('data' => 'First name', 'field' => 'first_name'),
-    array('data' => 'Last name', 'field' => 'last_name'),
-    array('data' => 'Roles', 'field' => ''),
+    array('data' => 'Roles'),
     '&nbsp;',
   );
 
@@ -48,20 +50,23 @@ function avbase_users_home_form($form, &$form_state) {
 
     $row_data = unserialize($row->data);
     $action_links = array('links' => array(
-      'edit' => array('title' => 'edit', 'href' => 'av/users/' . $row->uid . '/edit', 'query' => drupal_get_destination()),
+      'edit' => array('title' => 'edit', 'href' => 'user/' . $row->uid . '/edit', 'query' => drupal_get_destination()),
       'delete' => array('title' => 'delete', 'href' => 'user/' . $row->uid . '/cancel', 'query' => drupal_get_destination()),
     ));
 
     $actions_html = theme('links__bare', $action_links);
-    $first_name = isset($row->first_name) ? check_plain($row->first_name) : '';
-    $last_name = isset($row->last_name) ? check_plain($row->last_name) : '';
-    $user_view_link = l($row->name, 'av/users/' . $row->uid . '/view');
+    $name_details = array(
+      'first_name' => empty($row->first_name) ? NULL : $row->first_name,
+      'last_name' => empty($row->last_name) ? NULL : $row->last_name,
+    );
+    $name_details = array_filter($name_details);
+    $full_name = implode(' ', $name_details);
+    $user_view_link = l($full_name, 'user/' . $row->uid);
     $rows[] = array(
       'data' => array(
         'id' => array('data' => $row->uid, 'class' => array('uk-hidden')),
         'name' => array('data' => $user_view_link),
-        'first_name' => array('data' => $first_name),
-        'last_name' => array('data' => $last_name),
+        'username' => array('data' => check_plain($row->name)),
         'roles' => array('data' => implode(', ', $users_roles)),
         'actions' => $actions_html,
       ),
@@ -78,6 +83,95 @@ function avbase_users_home_form($form, &$form_state) {
   }
   $form['table']['#markup'] = $table_markup;
   $form['pager']['#markup'] = theme('pager', array('tags' => array()));
+  return $form;
+}
+
+function avbase_user_permissions_form($form, &$form_state, $rid = NULL) {
+  drupal_set_title('Permissions');
+
+  // Retrieve role names for columns.
+  $role_names = user_roles();
+  unset($role_names[1]);
+  unset($role_names[2]);
+  unset($role_names[3]);
+  if (is_numeric($rid)) {
+    $role_names = array($rid => $role_names[$rid]);
+  }
+  // Fetch permissions for all roles or the one selected role.
+  $role_permissions = user_role_permissions($role_names);
+
+  // Store $role_names for use when saving the data.
+  $form['role_names'] = array(
+    '#type' => 'value',
+    '#value' => $role_names,
+  );
+  // Render role/permission overview:
+  $options = array();
+  //$hide_descriptions = system_admin_compact_mode();
+
+  // Get a list of all the modules implementing a hook_permission() and sort by
+  // display name.
+  //$modules = array();
+  //foreach (module_implements('permission') as $module) {
+  //  $modules[$module] = $module_info[$module]['name'];
+  //}
+  $modules = array(
+    'avclients' => 'CLIENTS',
+    'avproducts' => 'PRODUCTS',
+    'avtxns' => 'TRANSACTIONS',
+    'avreports' => 'REPORTS',
+    'avbase' => 'GENERAL',
+  );
+  //asort($modules);
+
+  foreach ($modules as $module => $display_name) {
+    if ($permissions = module_invoke($module, 'permission')) {
+      $form['permission'][] = array(
+        '#markup' => $display_name,
+        '#id' => $module,
+      );
+      foreach ($permissions as $perm => $perm_item) {
+        // Fill in default values for the permission.
+        $perm_item += array(
+          'description' => '',
+          'restrict access' => FALSE,
+          'warning' => !empty($perm_item['restrict access']) ? t('Warning: Give to trusted roles only; this permission has security implications.') : '',
+        );
+        $options[$perm] = '';
+        $form['permission'][$perm] = array(
+          '#type' => 'item',
+          '#markup' => $perm_item['title'],
+          '#description' => theme('user_permission_description', array('permission_item' => $perm_item)),
+        );
+        foreach ($role_names as $rid => $name) {
+          // Builds arrays for checked boxes for each role
+          if (isset($role_permissions[$rid][$perm])) {
+            $status[$rid][] = $perm;
+          }
+        }
+      }
+    }
+  }
+
+  // Have to build checkboxes here after checkbox arrays are built
+  foreach ($role_names as $rid => $name) {
+    $form['checkboxes'][$rid] = array(
+      '#type' => 'checkboxes',
+      '#options' => $options,
+      '#default_value' => isset($status[$rid]) ? $status[$rid] : array(),
+      '#attributes' => array('class' => array('rid-' . $rid)),
+    );
+    $form['role_names'][$rid] = array('#markup' => check_plain($name), '#tree' => TRUE);
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save permissions'));
+
+  $form['#attached']['js'][] = drupal_get_path('module', 'user') . '/user.permissions.js';
+  $form['#theme'] = 'user_admin_permissions';
+  $form['actions']['#theme'] = 'avbase_crud_button_group';
+  $form['#submit'][] = 'user_admin_permissions_submit';
+
   return $form;
 }
 
@@ -190,34 +284,24 @@ function avbase_user_form_settings(&$form) {
 }
 
 /**
- * Implementation of hook_user_view().
- * @param $account
- * @param $view_mode
- * @param $langcode
+ * After build alterations for user_profile_form.
+ * @param $form
+ * @param $form_state
+ *
+ * @return mixed
  */
-function avbase_user_view($account, $view_mode, $langcode) {
-  avbase_user_extra_details($account);
-  $avuser_row = empty($account->avdata) ? NULL : $account->avdata;
-  drupal_set_title($avuser_row->full_name);
+function avbase_form_user_profile_form_after_build(&$form, $form_state) {
+  $form['account']['notify']['#access'] = FALSE;
 
-  //$account->content['avuser']['first_name'] = array(
-  //  '#type' => 'user_profile_item',
-  //  '#title' => t('First name'),
-  //  '#markup' => empty($avuser_row->first_name) ? '' : $avuser_row->first_name,
-  //);
-  //$account->content['avuser']['last_name'] = array(
-  //  '#type' => 'user_profile_item',
-  //  '#title' => t('Address'),
-  //  '#markup' => empty($avuser_row->last_name) ? '' : $avuser_row->last_name,
-  //);
-  $account->content['avuser']['contact_number'] = array(
-    '#type' => 'user_profile_item',
-    '#title' => t('Contact number'),
-    '#markup' => empty($avuser_row->contact_number) ? '' : $avuser_row->contact_number,
+  $disallow_keys = array(
+    'mimemail',
+    'timezone',
+    'block',
   );
-  $account->content['avuser']['address'] = array(
-    '#type' => 'user_profile_item',
-    '#title' => t('Address'),
-    '#markup' => empty($avuser_row->address) ? '' : $avuser_row->address,
-  );
+  foreach ($disallow_keys as $k) {
+    if (isset($form[$k])) {
+      $form[$k]['#access'] = FALSE;
+    }
+  }
+  return $form;
 }

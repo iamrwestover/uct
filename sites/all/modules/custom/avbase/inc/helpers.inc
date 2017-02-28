@@ -667,7 +667,7 @@ function avbase_element_validate_non_negative_number($element, &$form_state) {
 
 /**
  * Append extra user details to user object.
- * @param $user
+ * @param $account
  */
 function avbase_user_extra_details(&$account) {
   if (empty($account->uid) || !empty($account->avdata)) {
@@ -676,6 +676,8 @@ function avbase_user_extra_details(&$account) {
 
   $row = avbase_avuser_load($account);
   if (empty($row->id)) {
+    $account->avdata = new stdClass();
+    $account->avdata->full_name = $account->name;
     return;
   }
   $name_details = array(

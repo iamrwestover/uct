@@ -4,10 +4,36 @@
  * @file
  * AV Products module.
  */
-
 define('AVPRODUCTS_MODULE_PATH', drupal_get_path('module', 'avproducts'));
+module_load_include('inc', 'avproducts', 'inc/helpers');
 
-require_once 'inc/helpers.inc';
+
+// Permissions.
+define('AVPRODUCTS_PERM_PRODUCT_CREATE', 'avbase product create');
+define('AVPRODUCTS_PERM_PRODUCT_EDIT', 'avbase product edit');
+define('AVPRODUCTS_PERM_PRODUCT_VIEW', 'avbase product view');
+define('AVPRODUCTS_PERM_CHANGE_QTY', 'avbase product qty change');
+
+/**
+ * Implementation of hook_permission().
+ */
+function avproducts_permission() {
+  $permissions = array(
+    AVPRODUCTS_PERM_PRODUCT_CREATE => array(
+      'title' => 'Product - CREATE',
+    ),
+    AVPRODUCTS_PERM_PRODUCT_EDIT => array(
+      'title' => 'Product - EDIT',
+    ),
+    AVPRODUCTS_PERM_PRODUCT_VIEW => array(
+      'title' => 'Product - CHANGE',
+    ),
+    //AVPRODUCTS_PERM_CHANGE_QTY => array(
+    //  'title' => 'Product Quantity - Change',
+    //),
+  );
+  return $permissions;
+}
 
 /**
  * Implementation of hook_menu().

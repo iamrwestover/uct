@@ -22,6 +22,50 @@ define('AVTXNS_TXN_STATUS_VOID', 3);
 
 define('AVTXN_DISCOUNT_MULTIPLIER', 0.4);
 
+// Permissions.
+$ttds = avtxns_txn_types();
+foreach ($ttds as $ttd) {
+  define('AVTXN_PERM_CREATE_' . strtoupper($ttd['type']), 'avbase create transaction ' . $ttd['type']);
+  define('AVTXN_PERM_EDIT_' . strtoupper($ttd['type']), 'avbase edit transaction ' . $ttd['type']);
+  define('AVTXN_PERM_VIEW_' . strtoupper($ttd['type']), 'avbase view transaction ' . $ttd['type']);
+  define('AVTXN_PERM_VOID_' . strtoupper($ttd['type']), 'avbase void transaction ' . $ttd['type']);
+  if (!empty($ttd['product_discount_check'])) {
+    define('AVTXN_PERM_OPEN_' . strtoupper($ttd['type']), 'avbase open transaction ' . $ttd['type']);
+  }
+}
+
+
+/**
+ * Implementation of hook_permission().
+ */
+function avtxns_permission() {
+  $permissions = array();
+  $ttds = avtxns_txn_types();
+  foreach ($ttds as $td_k => $ttd) {
+    $ttd_name = $ttd['name'];
+    $ttd_type = strtoupper($ttd['type']);
+    $permissions[constant('AVTXN_PERM_CREATE_' . $ttd_type)] = array(
+      'title' => t('@tdname - CREATE', array('@tdname' => $ttd_name)),
+    );
+    $permissions[constant('AVTXN_PERM_EDIT_' . $ttd_type)] = array(
+      'title' => t('@tdname - EDIT', array('@tdname' => $ttd_name)),
+    );
+    $permissions[constant('AVTXN_PERM_VIEW_' . $ttd_type)] = array(
+      'title' => t('@tdname - VIEW', array('@tdname' => $ttd_name)),
+    );
+    $permissions[constant('AVTXN_PERM_VOID_' . $ttd_type)] = array(
+      'title' => t('@tdname - VOID', array('@tdname' => $ttd_name)),
+    );
+    if (!empty($ttd['product_discount_check'])) {
+      $permissions[constant('AVTXN_PERM_OPEN_' . $ttd_type)] = array(
+        'title' => t('@tdname - APPROVE', array('@tdname' => $ttd_name)),
+        'description' => t('Approve pending @tdname', array('@tdname' => $ttd['plural_name'])),
+      );
+    }
+  }
+  return $permissions;
+}
+
 /**
  * Implementation of hook_menu().
  */

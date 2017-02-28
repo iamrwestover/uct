@@ -11,6 +11,25 @@ define('AVREPORTS_MODULE_PATH', drupal_get_path('module', 'avreports'));
 // Includes.
 module_load_include('inc', 'avreports', 'inc/helpers');
 
+// Permissions
+define('AVREPORTS_PERM_SOA', 'avbase reports soa');
+define('AVREPORTS_PERM_GENERAL', 'avbase reports general');
+
+/**
+ * Implementation of hook_permission().
+ */
+function avreports_permission() {
+  $permissions = array(
+    AVREPORTS_PERM_SOA => array(
+      'title' => 'Statement of Account',
+    ),
+    AVREPORTS_PERM_GENERAL => array(
+      'title' => 'Basic reports',
+    ),
+  );
+  return $permissions;
+}
+
 /**
  * Implementation of hook_menu().
  */

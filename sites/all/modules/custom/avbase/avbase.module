@@ -19,9 +19,7 @@ define('AVBASE_DIGITS_MAX', 12);
 define('AVBASE_DECIMAL_FORMAT_MAX', 4);
 
 // Permissions
-//define('AVBASE_PERM_USER_CREATE', 'avbase user create');
-//define('AVBASE_PERM_USER_EDIT', 'avbase user edit');
-//define('AVBASE_PERM_USER_VIEW', 'avbase user view');
+define('AVBASE_PERM_SYSTEM_SETTINGS', 'avbase system settings');
 
 /**
  * Implementation of hook_theme().
@@ -174,33 +172,41 @@ function avbase_menu() {
     'expanded' => TRUE,
     'file' => 'inc/users.inc',
   );
-  $items['av/users/add'] = array(
-    'title' => 'New user',
-    'page callback' => 'avbase_user_form_load',
-    'page arguments' => array(NULL),
+  $items['av/users/permissions'] = array(
+    'title' => 'User permissions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avbase_user_permissions_form'),
     'access arguments' => array('administer users'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/users.inc',
   );
-  $items['av/users/%user/edit'] = array(
-    'title' => 'Edit',
-    'page callback' => 'avbase_user_form_load',
-    'page arguments' => array(2),
-    'access callback' => 'user_is_logged_in',
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'inc/users.inc',
-  );
-  $items['av/users/%user/view'] = array(
-    'title' => 'My account',
-    'title callback' => 'user_page_title',
-    'title arguments' => array(2),
-    'page callback' => 'user_view_page',
-    'page arguments' => array(2),
-    'access callback' => 'user_view_access',
-    'access arguments' => array(2),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'inc/users.inc',
-  );
+  //$items['av/users/add'] = array(
+  //  'title' => 'New user',
+  //  'page callback' => 'avbase_user_form_load',
+  //  'page arguments' => array(NULL),
+  //  'access arguments' => array('administer users'),
+  //  'type' => MENU_LOCAL_TASK,
+  //  'file' => 'inc/users.inc',
+  //);
+  //$items['av/users/%user/edit'] = array(
+  //  'title' => 'Edit',
+  //  'page callback' => 'avbase_user_form_load',
+  //  'page arguments' => array(2),
+  //  'access callback' => 'user_is_logged_in',
+  //  'type' => MENU_LOCAL_TASK,
+  //  'file' => 'inc/users.inc',
+  //);
+  //$items['av/users/%user/view'] = array(
+  //  'title' => 'My account',
+  //  'title callback' => 'user_page_title',
+  //  'title arguments' => array(2),
+  //  'page callback' => 'user_view_page',
+  //  'page arguments' => array(2),
+  //  'access callback' => 'user_view_access',
+  //  'access arguments' => array(2),
+  //  'type' => MENU_LOCAL_TASK,
+  //  'file' => 'inc/users.inc',
+  //);
 //  $items['av/users/permissions'] = array(
 //      'title' => 'User permissions',
 //      'page callback' => 'drupal_get_form',
@@ -223,10 +229,14 @@ function avbase_menu() {
 /**
  * Implementation of hook_permission().
  */
-//function avbase_permission() {
-//  $permissions = array();
-//  return $permissions;
-//}
+function avbase_permission() {
+  $permissions = array(
+    AVBASE_PERM_SYSTEM_SETTINGS => array(
+      'title' => 'Modify system settings',
+    ),
+  );
+  return $permissions;
+}
 
 /**
  * Implementation of hook_form_alter().
@@ -256,24 +266,105 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
   }
 }
 
-//function avbase_form_user_admin_permissions_alter(&$form, $form_state) {
-//  global $user;
-//  if ($user->uid == 1) {
-//    return;
-//  }
-//  $form['role_names'][1]['#access'] = FALSE;
-//  $form['checkboxes'][1]['#access'] = FALSE;
-//  $form['role_names'][2]['#access'] = FALSE;
-//  $form['checkboxes'][2]['#access'] = FALSE;
-//
-//  foreach ($form['permission'] as $perm_k => $perm) {
-//    $form['permission'][$perm_k]['#access'] = FALSE;
-//    foreach ($form['checkboxes'] as $chk_k => $chk) {
-//      unset($form['checkboxes'][$chk_k]['#options'][$perm_k]);
-//    }
-//  }
-//  dpm($form);
-//}
+/**
+ * Alter user_cancel_confirm_form.
+ * @param $form
+ * @param $form_state
+ */
+function avbase_form_user_cancel_confirm_form_alter(&$form, $form_state) {
+  global $user;
+  // No need to alter form for super admin.
+  if ($user->uid == 1) {
+    return;
+  }
+  $form['user_cancel_method']['#access'] = FALSE;
+  $form['user_cancel_confirm']['#access'] = FALSE;
+  $form['user_cancel_notify']['#access'] = FALSE;
+  $form['description']['#markup'] = t('This action cannot be undone.');
+  $form['actions']['submit']['#value'] = t('Delete user');
+}
+
+/**
+ * Alter user_register_form.
+ * @param $form
+ * @param $form_state
+ */
+function avbase_form_user_register_form_alter(&$form, $form_state) {
+  global $user;
+  // No need to alter form for super admin.
+  if ($user->uid == 1) {
+    return;
+  }
+
+  drupal_set_title('New user');
+  $breadcrumb = drupal_get_breadcrumb();
+  $breadcrumb = array($breadcrumb[0]);
+  $breadcrumb[] = l('Users', 'av/users');
+
+  drupal_set_breadcrumb($breadcrumb);
+  avbase_form_user_profile_form_alter($form, $form_state);
+}
+
+/**
+ * Alter user_profile_form.
+ * @param $form
+ * @param $form_state
+ */
+function avbase_form_user_profile_form_alter(&$form, $form_state) {
+  global $user;
+  // No need to alter form for super admin.
+  if ($user->uid == 1) {
+    return;
+  }
+
+  $account = empty($form['#user']) ? NULL : $form['#user'];
+  // Prevent modification of super admin.
+  if ($account->uid == 1) {
+    drupal_access_denied();
+    drupal_exit();
+  }
+
+  // After build.
+  $form['#after_build'][] = 'avbase_form_user_profile_form_after_build';
+
+  // User inc file.
+  module_load_include('inc', 'avbase', 'inc/users');
+
+  $form['account']['roles']['#access'] = TRUE;
+  $form['account']['mail']['#description'] = '';
+
+  // Set crud settings.
+  $avuser_row = avbase_avuser_load($account);
+  $form['id'] = array('#type' => 'value', '#value' => isset($avuser_row->id) ? $avuser_row->id : NULL);
+  avbase_user_form_settings($form);
+
+  $form['avuser']['first_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'First name',
+    '#default_value' => isset($avuser_row->first_name) ? check_plain($avuser_row->first_name) : '',
+    '#maxlength' => 32,
+  );
+  $form['avuser']['last_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Last name',
+    '#default_value' => isset($avuser_row->last_name) ? check_plain($avuser_row->last_name) : '',
+    '#maxlength' => 32,
+  );
+  $form['avuser']['contact_number'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Contact number',
+    '#default_value' => isset($avuser_row->contact_number) ? check_plain($avuser_row->contact_number) : '',
+    '#maxlength' => 255,
+  );
+  $form['avuser']['address'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Address',
+    '#default_value' => isset($avuser_row->address) ? check_plain($avuser_row->address) : '',
+    '#maxlength' => 255,
+  );
+  //$form['#theme'] = 'avbase_user_form';
+  $form['actions']['#theme'] = 'avbase_crud_button_group';
+}
 
 /**
  * Return list of system category groups.
@@ -443,4 +534,37 @@ function avbase_entity_overview_form($form, &$form_state, $entity_type = NULL) {
   //$form['buttons'] = avbase_entity_overview_buttons_form($form_state, $entity_name);
   $form['entity_info'] = avbase_entity_overview_info_form($form_state, $entity_type);
   return $form;
+}
+
+/**
+ * Implementation of hook_user_view().
+ * @param $account
+ * @param $view_mode
+ * @param $langcode
+ */
+function avbase_user_view($account, $view_mode, $langcode) {
+  avbase_user_extra_details($account);
+  $avuser_row = empty($account->avdata) ? NULL : $account->avdata;
+  drupal_set_title($avuser_row->full_name);
+
+  //$account->content['avuser']['first_name'] = array(
+  //  '#type' => 'user_profile_item',
+  //  '#title' => t('First name'),
+  //  '#markup' => empty($avuser_row->first_name) ? '' : $avuser_row->first_name,
+  //);
+  //$account->content['avuser']['last_name'] = array(
+  //  '#type' => 'user_profile_item',
+  //  '#title' => t('Address'),
+  //  '#markup' => empty($avuser_row->last_name) ? '' : $avuser_row->last_name,
+  //);
+  $account->content['avuser']['contact_number'] = array(
+    '#type' => 'user_profile_item',
+    '#title' => t('Contact number'),
+    '#markup' => empty($avuser_row->contact_number) ? '' : $avuser_row->contact_number,
+  );
+  $account->content['avuser']['address'] = array(
+    '#type' => 'user_profile_item',
+    '#title' => t('Address'),
+    '#markup' => empty($avuser_row->address) ? '' : $avuser_row->address,
+  );
 }

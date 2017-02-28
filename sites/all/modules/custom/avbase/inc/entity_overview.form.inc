@@ -184,19 +184,21 @@ function avbase_entity_overview_buttons_form(&$form_state, $row) {
 HTML;
 
 
-  $other_buttons = array(
-    'new_entity' => l(t('New') . ' ' . $entity_title, "$menu_path/add", array('attributes' => array(
+  $other_buttons = array();
+  if (user_access(constant("AVCLIENTS_PERM_CREATE_{$ctd['type']}"))) {
+    $other_buttons['new_entity'] = l(t('New') . ' ' . $entity_title, "$menu_path/add", array('attributes' => array(
       'class' => array('uk-button uk-button-success uk-margin-small-left')
-    ))),
-  );
-  if ($entity_id) {
+    )));
+  }
+
+  if ($entity_id && user_access(constant("AVCLIENTS_PERM_EDIT_{$ctd['type']}"))) {
     $other_buttons['edit_entity'] = l(t('Edit'), "$menu_path/{$row->id}/edit", array('attributes' => array(
       'class' => array('uk-button uk-button-success uk-margin-small-left')
     )));
   }
 
   $form = array(
-    'new_transaction' => array('#markup' => $transaction_buttons_markup),
+    //'new_transaction' => array('#markup' => $transaction_buttons_markup),
   );
   foreach ($other_buttons as $k => $btn) {
     $form[$k]['#markup'] = $btn;

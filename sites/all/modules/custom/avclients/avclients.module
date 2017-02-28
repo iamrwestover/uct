@@ -5,9 +5,9 @@
  * AV Clients module.
  */
 
+define('AVCLIENTS_MODULE_PATH', drupal_get_path('module', 'avclients'));
 module_load_include('inc', 'avclients', 'inc/helpers');
 
-define('AVCLIENTS_MODULE_PATH', drupal_get_path('module', 'avclients'));
 
 define('AVCLIENT_TYPE_CUSTOMER', 1);
 define('AVCLIENT_TYPE_VENDOR', 2);
@@ -17,12 +17,13 @@ define('AVCLIENT_STATUS_ACTIVE', 1);
 define('AVCLIENT_STATUS_SUSPENDED', 2);
 
 // Permissions.
-define('AVCLIENT_PERM_CUSTOMER_CREATE', 'avbase customer create');
-define('AVCLIENT_PERM_CUSTOMER_EDIT', 'avbase customer edit');
-define('AVCLIENT_PERM_CUSTOMER_VIEW', 'avbase customer view');
-define('AVCLIENT_PERM_VENDOR_CREATE', 'avbase vendor create');
-define('AVCLIENT_PERM_VENDOR_EDIT', 'avbase vendor edit');
-define('AVCLIENT_PERM_VENDOR_VIEW', 'avbase vendor view');
+// Permissions.
+$ctds = avclients_client_types();
+foreach ($ctds as $ctd) {
+  define('AVCLIENTS_PERM_CREATE_' . $ctd['type'], 'avbase create client_' . $ctd['type']);
+  define('AVCLIENTS_PERM_EDIT_' . $ctd['type'], 'avbase edit client_' . $ctd['type']);
+  define('AVCLIENTS_PERM_VIEW_' . $ctd['type'], 'avbase view client_' . $ctd['type']);
+}
 
 /**
  * Implementation of hook_menu().
@@ -31,11 +32,12 @@ function avclients_menu() {
   $items = array();
   $client_types = avclients_client_types();
   foreach ($client_types as $k => $v) {
+    $v_type = $v['type'];
     $items["{$v['base_path']}"] = array(
       'title' => $v['plural_name'],
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_entity_overview_form', "$k"),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant("AVCLIENTS_PERM_VIEW_{$v_type}")),
       'menu_name' => 'av',
       'expanded' => TRUE,
     );
@@ -44,7 +46,7 @@ function avclients_menu() {
       'title' => "New {$v['name']}",
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_form', "$k", NULL),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant("AVCLIENTS_PERM_CREATE_{$v_type}")),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/crud.inc',
       'weight' => 10,
@@ -101,11 +103,18 @@ function avclients_menu() {
  */
 function avclients_permission() {
   $permissions = array();
-  $client_types = avclients_client_types();
-  foreach ($client_types as $ct) {
-    if (!empty($ct['permissions'])) {
-      $permissions += $ct['permissions'];
-    }
+  $ctds = avclients_client_types();
+  foreach ($ctds as $ctd_k => $ctd) {
+    $ctd_name = $ctd['name'];
+    $permissions[constant('AVCLIENTS_PERM_CREATE_' . $ctd['type'])] = array(
+      'title' => t('@ctdname - CREATE', array('@ctdname' => $ctd_name)),
+    );
+    $permissions[constant('AVCLIENTS_PERM_EDIT_' . $ctd['type'])] = array(
+      'title' => t('@ctdname - EDIT', array('@ctdname' => $ctd_name)),
+    );
+    $permissions[constant('AVCLIENTS_PERM_VIEW_' . $ctd['type'])] = array(
+      'title' => t('@ctdname - VIEW', array('@ctdname' => $ctd_name)),
+    );
   }
   return $permissions;
 }
@@ -246,34 +255,12 @@ function avclients_client_types($client_type = NULL) {
       'base_path' => 'av/customers',
       'name' => 'Customer',
       'plural_name' => 'Customers',
-      'permissions' => array(
-        AVCLIENT_PERM_CUSTOMER_CREATE => array(
-          'title' => 'Create customers',
-        ),
-        AVCLIENT_PERM_CUSTOMER_EDIT => array(
-          'title' => 'Edit customers',
-        ),
-        AVCLIENT_PERM_CUSTOMER_VIEW => array(
-          'title' => 'View customers',
-        ),
-      ),
     );
     $ret[AVCLIENT_TYPE_VENDOR] = array(
       'type' => AVCLIENT_TYPE_VENDOR,
       'base_path' => 'av/vendors',
       'name' => 'Vendor',
       'plural_name' => 'Vendors',
-      'permissions' => array(
-        AVCLIENT_PERM_VENDOR_CREATE => array(
-          'title' => 'Create vendors',
-        ),
-        AVCLIENT_PERM_VENDOR_EDIT => array(
-          'title' => 'Edit vendors',
-        ),
-        AVCLIENT_PERM_VENDOR_VIEW => array(
-          'title' => 'View vendors',
-        ),
-      ),
     );
   }
 
