@@ -51,7 +51,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $_item_rows = $merged;
 
   // Make sure all included reference transaction IDs are still open.
-  if (empty($form_state['values']['id']) && $transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
+  if (empty($form_state['values']['id'])) {
     $ref_txn_ids = array();
     foreach ($_item_rows as $k => $v) {
       $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];
@@ -63,9 +63,13 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     if (!empty($ref_txn_ids)) {
       $query = "SELECT id, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
       $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
+      $valid_statuses = array(AVTXNS_TXN_STATUS_OPEN);
+      if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+        $valid_statuses[] = AVTXNS_TXN_STATUS_CLOSED;
+      }
       foreach ($rs as $txn) {
-        if ($txn->status != AVTXNS_TXN_STATUS_OPEN) {
-          form_set_error('', t('Cannot proceed with items from Transaction # @txn_id. Transaction is not OPEN anymore. Try removing these items before proceeding.', array('@txn_id' => $txn->id)));
+        if (!in_array($txn->status, $valid_statuses)) {
+          form_set_error('', t('Cannot proceed with items from Transaction # @txn_id. Transaction is not available anymore. Try removing these items before proceeding.', array('@txn_id' => $txn->id)));
         }
       }
     }
