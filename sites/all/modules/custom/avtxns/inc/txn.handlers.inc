@@ -218,10 +218,11 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         }
       }
 
+      $now = time();
       if (!empty($close_transaction_ids) && $transaction_type != AVTXNS_TXN_TYPE_SALES_RETURN) {
         //if ($transaction_type != 'spay') {
         //  foreach ($close_transaction_ids as $ttype => $tids) {
-            if (db_query("UPDATE {avtbl_transactions} SET status = 0 WHERE id IN (:ids)", array(':ids' => $close_transaction_ids))) {
+            if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => $close_transaction_ids, ':changed' => $now))) {
               avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => $close_transaction_ids, '#manner' => 'transaction-auto'));
             }
           //}
