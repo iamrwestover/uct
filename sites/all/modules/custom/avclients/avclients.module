@@ -55,7 +55,7 @@ function avclients_menu() {
       'title' => 'View',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_form', "$k", 2, TRUE),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant("AVCLIENTS_PERM_VIEW_{$v_type}")),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/crud.inc',
       'weight' => 0,
@@ -64,25 +64,25 @@ function avclients_menu() {
       'title' => 'Edit',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_form', "$k", 2),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant("AVCLIENTS_PERM_EDIT_{$v_type}")),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/crud.inc',
       'weight' => 1,
     );
-    $items["{$v['base_path']}/%avclient/delete"] = array(
-      'title' => 'Delete',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('avclients_client_delete_confirm_form', 2),
-      'access callback' => 'user_is_logged_in',
-      'type' => MENU_CALLBACK,
-      'file' => 'inc/crud.inc',
-      'weight' => 2,
-    );
+    //$items["{$v['base_path']}/%avclient/delete"] = array(
+    //  'title' => 'Delete',
+    //  'page callback' => 'drupal_get_form',
+    //  'page arguments' => array('avclients_client_delete_confirm_form', 2),
+    //  'access callback' => 'user_is_logged_in',
+    //  'type' => MENU_CALLBACK,
+    //  'file' => 'inc/crud.inc',
+    //  'weight' => 2,
+    //);
     $items["{$v['base_path']}/%avclient/%/change-status"] = array(
       'title' => 'Suspend',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_change_status_confirm_form', 2, 3),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant("AVCLIENTS_PERM_EDIT_{$v_type}")),
       //'type' => MENU_LOCAL_TASK,
       'file' => 'inc/crud.inc',
     );

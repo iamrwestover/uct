@@ -15,12 +15,6 @@
     $('#avproducts-product-list-filter-form').once('avproductsProductListForm', function() {
       self.$searchEls = $(this).find('.trigger-ajax-search');
       self.$resetBtn = $(this).find('#product-list-reset-btn');
-
-      //
-      //var ajax = Drupal.ajax[self.searchBtnID] || {};
-      //self.$targetWrapper = $(ajax.wrapper);
-
-
       self.searchEvents();
     });
 
@@ -39,7 +33,6 @@
       if ($(this).hasClass('trigger-search-on-keyup')) {
         return;
       }
-      $('#product-list-page-num').val('');
       self.$searchBtn.trigger('click');
     });
 
@@ -49,13 +42,11 @@
       }
       clearTimeout(typingTimer);
       typingTimer = setTimeout(function() {
-        $('#product-list-page-num').val('');
         self.$searchBtn.trigger('click');
       }, doneTypingInterval);
     });
 
     self.$searchEls.on('autocompleteSelect', function(e, node) {
-      $('#product-list-page-num').val('');
       self.$searchBtn.trigger('click');
     });
 

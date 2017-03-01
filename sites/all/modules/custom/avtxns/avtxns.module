@@ -25,12 +25,12 @@ define('AVTXN_DISCOUNT_MULTIPLIER', 0.4);
 // Permissions.
 $ttds = avtxns_txn_types();
 foreach ($ttds as $ttd) {
-  define('AVTXN_PERM_CREATE_' . strtoupper($ttd['type']), 'avbase create transaction ' . $ttd['type']);
-  define('AVTXN_PERM_EDIT_' . strtoupper($ttd['type']), 'avbase edit transaction ' . $ttd['type']);
-  define('AVTXN_PERM_VIEW_' . strtoupper($ttd['type']), 'avbase view transaction ' . $ttd['type']);
-  define('AVTXN_PERM_VOID_' . strtoupper($ttd['type']), 'avbase void transaction ' . $ttd['type']);
+  define('AVTXNS_PERM_CREATE_' . strtoupper($ttd['type']), 'avbase create transaction ' . $ttd['type']);
+  define('AVTXNS_PERM_EDIT_' . strtoupper($ttd['type']), 'avbase edit transaction ' . $ttd['type']);
+  define('AVTXNS_PERM_VIEW_' . strtoupper($ttd['type']), 'avbase view transaction ' . $ttd['type']);
+  define('AVTXNS_PERM_VOID_' . strtoupper($ttd['type']), 'avbase void transaction ' . $ttd['type']);
   if (!empty($ttd['product_discount_check'])) {
-    define('AVTXN_PERM_OPEN_' . strtoupper($ttd['type']), 'avbase open transaction ' . $ttd['type']);
+    define('AVTXNS_PERM_OPEN_' . strtoupper($ttd['type']), 'avbase open transaction ' . $ttd['type']);
   }
 }
 
@@ -44,20 +44,20 @@ function avtxns_permission() {
   foreach ($ttds as $td_k => $ttd) {
     $ttd_name = $ttd['name'];
     $ttd_type = strtoupper($ttd['type']);
-    $permissions[constant('AVTXN_PERM_CREATE_' . $ttd_type)] = array(
+    $permissions[constant('AVTXNS_PERM_CREATE_' . $ttd_type)] = array(
       'title' => t('@tdname - CREATE', array('@tdname' => $ttd_name)),
     );
-    $permissions[constant('AVTXN_PERM_EDIT_' . $ttd_type)] = array(
+    $permissions[constant('AVTXNS_PERM_EDIT_' . $ttd_type)] = array(
       'title' => t('@tdname - EDIT', array('@tdname' => $ttd_name)),
     );
-    $permissions[constant('AVTXN_PERM_VIEW_' . $ttd_type)] = array(
+    $permissions[constant('AVTXNS_PERM_VIEW_' . $ttd_type)] = array(
       'title' => t('@tdname - VIEW', array('@tdname' => $ttd_name)),
     );
-    $permissions[constant('AVTXN_PERM_VOID_' . $ttd_type)] = array(
+    $permissions[constant('AVTXNS_PERM_VOID_' . $ttd_type)] = array(
       'title' => t('@tdname - VOID', array('@tdname' => $ttd_name)),
     );
     if (!empty($ttd['product_discount_check'])) {
-      $permissions[constant('AVTXN_PERM_OPEN_' . $ttd_type)] = array(
+      $permissions[constant('AVTXNS_PERM_OPEN_' . $ttd_type)] = array(
         'title' => t('@tdname - APPROVE', array('@tdname' => $ttd_name)),
         'description' => t('Approve pending @tdname', array('@tdname' => $ttd['plural_name'])),
       );
@@ -88,17 +88,18 @@ function avtxns_menu() {
 
   $transaction_types = avtxns_txn_types();
   foreach ($transaction_types as $k => $v) {
+    $ttype = strtoupper($k);
     $items[$v['base_path']] = array(
       'title' => 'Transactions',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avtxns_txns_home_form'),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant('AVTXNS_PERM_VIEW_' . $ttype)),
     );
     $items["{$v['base_path']}/new"] = array(
       'title' => "New {$v['name']}",
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avtxns_txn_form', $k, NULL),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant('AVTXNS_PERM_CREATE_' . $ttype)),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/txn.form.inc',
       'weight' => 10,
@@ -107,7 +108,7 @@ function avtxns_menu() {
       'title' => "View {$v['name']}",
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avtxns_txn_form', $k, 2, TRUE),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant('AVTXNS_PERM_VIEW_' . $ttype)),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/txn.form.inc',
       'weight' => 0,
@@ -116,7 +117,7 @@ function avtxns_menu() {
       'title' => "Edit {$v['name']}",
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avtxns_txn_form', $k, 2),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(constant('AVTXNS_PERM_EDIT_' . $ttype)),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/txn.form.inc',
       'weight' => 1,
@@ -127,7 +128,8 @@ function avtxns_menu() {
     'title' => 'Transaction Status Change',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_txn_change_status_confirm_form', 2, 4),
-    'access callback' => 'user_is_logged_in',
+    'access callback' => 'avtxns_txn_can_status_change',
+    'access arguments' => array(2, 4),
     'type' => MENU_CALLBACK,
     'file' => 'inc/txn.form.inc',
   );
@@ -207,8 +209,13 @@ function avtxns_txns_home_form($form, &$form_state) {
   $form['#attributes']['autocomplete'] = 'off';
   $transaction_types = avtxns_txn_types();
   foreach ($transaction_types as $k => $type) {
+    $ttype = strtoupper($k);
+    $can_create = user_access(constant('AVTXNS_PERM_CREATE_' . $ttype));
     $button_color_class = $type['transaction'] == 'sales' ? 'uk-button-success' : 'uk-button-primary';
-    $form["new_$k"] = array('#markup' => l($type['name'], "{$transaction_types[$k]['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))));
+    $form["new_$k"] = array(
+      '#markup' => l($type['name'], "{$transaction_types[$k]['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))),
+      '#access' => $can_create,
+    );
   }
   //$form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
   //$form['new_gr'] = array('#markup' => l('Receive items', 'av/txns/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
@@ -346,33 +353,70 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //  $client_header = 'Customer';
   //}
   $header = array(
-    array('data' => 'Date'),
-    array('data' => 'Type'),
-    array('data' => 'Transaction #'),
-    array('data' => $client_header),
-    array('data' => 'Agent'),
+    'transaction_id' => array('data' => '#', 'field' => 'avtxn.id'),
+    'date' => array('data' => 'Date', 'field' => 'avtxn.transaction_date'),
+    'transaction_type' => array('data' => 'Type', 'field' => 'avtxn.transaction_type'),
+    'client_name' => array('data' => $client_header, 'field' => 'avclients.display_name'),
+    'agent_name' => array('data' => 'Agent', 'field' => 'avcat_agent.title'),
   );
 
+  if (!empty($options['#hide_filter_form'])) {
+    foreach ($header as $h_k => $h) {
+      unset($header[$h_k]['field']);
+    }
+  }
+
   $required_filter_query = empty($options['#filter_query']) ? array() : $options['#filter_query'];
-  $filter_query = empty($form_state['values']['avtxns_tl_filter']['filter_query']) ? array() : $form_state['values']['avtxns_tl_filter']['filter_query'];
+  $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
+  $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $filter_query = array_merge_recursive($filter_query, $required_filter_query);
+
+  // Set table pagination and sort settings.
+  if (!empty($user_filter['settings']['table_href'])) {
+    $table_ajax_href = $user_filter['settings']['table_href'];
+    $href_parts = parse_url($table_ajax_href);
+    if (!empty($href_parts['query'])) {
+      parse_str($href_parts['query'], $href_query);
+      foreach ($href_query as $k => $v) {
+        $_GET[$k] = $v;
+      }
+    }
+  }
+
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
-  $transactions = avtxns_txns_query_load($where, $args, '15');
-  $index = 0;
+  $rows_per_page = empty($options['#hide_filter_form']) ? 20 : 10;
+  $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, array(), array(), array(), TRUE);
+  $page = pager_default_initialize($total_count, $rows_per_page);
+  $offset = $rows_per_page * $page;
+  $order_by = NULL;
+  if (isset($_GET['order'])) {
+    $order_by = array();
+    $order_by_field_name = '';
+    foreach ($header as $h) {
+      if ($h['data'] == $_GET['order'] && isset($h['field'])) {
+        $order_by_field_name = $h['field'];
+        break;
+      }
+    }
+    if (!empty($order_by_field_name)) {
+      $order_by[] = $order_by_field_name . ' ' . strtoupper($_GET['sort']);
+    }
+  }
+
+  $transactions = avtxns_txns_query_load($where, $args, $rows_per_page, $offset, $order_by);
+  //$index = 0;
+  $rows = array();
   foreach ($transactions as $row) {
-    $index++;
+    //$index++;
     $transaction_type = avtxns_txn_types($row->transaction_type);
     $view_path = "{$transaction_type['base_path']}/$row->id/view";
-    $rows[$index] = array(
-      'data' => array(
-        l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
-        l($transaction_type['name'], $view_path),
-        l($row->id, $view_path),
-        $rows[$index]['data'][] = check_plain($row->display_name),
-        check_plain($row->agent_name),
-      ),
-      'class' => array('uk-table-middle'),
+    $rows[$row->id] = array(
+      'transaction_id' => l($row->id, $view_path),
+      'date' => l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
+      'transaction_type' => l($transaction_type['name'], $view_path),
+      'client_name' => /*$rows[$index]['data'][] =*/ check_plain($row->display_name),
+      'agent_name' => check_plain($row->agent_name),
     );
   }
 
@@ -380,13 +424,25 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     'id' => 'transaction-list-table',
     'class' => array(),
   );
-  if (empty($rows)) {
-    $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
-  }
-  else {
-    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
-  }
-  $form['transaction_list_table']['#markup'] = '<div id="transaction-list-table-wrapper">' . $table_markup . '<!--Do not remove me--></div>';
+
+  $pager_html = empty($options['#hide_filter_form']) ? theme('pager', array('tags' => array())) : '';
+  $form['transaction_list_table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
+    '#attributes' => $table_attributes,
+    '#prefix' => '<div id="transaction-list-table-wrapper">',
+    '#suffix' => $pager_html . '<!--Do not remove me.--></div>',
+  );
+
+  //if (empty($rows)) {
+  //  $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
+  //}
+  //else {
+  //  $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
+  //}
+  //$form['transaction_list_table']['#markup'] = '<div id="transaction-list-table-wrapper">' . $table_markup . '<!--Do not remove me--></div>';
   return $form;
 }
 
@@ -527,6 +583,14 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
+  $fields['settings']['table_href'] = array(
+    '#type' => 'hidden',
+    '#attributes' => array(
+      'id' => 'transaction-list-table-href',
+      'class' => array('trigger-ajax-search'),
+    ),
+  );
+
   $form['avtxns_tl_filter'] = $fields;
   return $form;
 }
@@ -537,7 +601,7 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state) {
   $arg_index = 0;
   $where = $args = array();
   foreach ($filter_values as $k => $v) {
-    if ($k == 'buttons') {
+    if ($k == 'buttons' || $k == 'settings') {
       continue;
     }
     $v = trim($v);
@@ -608,3 +672,28 @@ function avtxns_txn_form_ajax_search($form, $form_state) {
 
   return $form;
 }
+
+/**
+ * Check if user is allowed to change transaction status.
+ * @param $transaction
+ * @param $status
+ * @return bool
+ */
+function avtxns_txn_can_status_change($transaction, $status) {
+  if (empty($transaction->transaction_type)) {
+    return FALSE;
+  }
+
+  $transaction_type = strtoupper($transaction->transaction_type);
+
+  if ($status == AVTXNS_TXN_STATUS_VOID) {
+    return user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type));
+  }
+  elseif ($status == AVTXNS_TXN_STATUS_OPEN || $status == AVTXNS_TXN_STATUS_PENDING) {
+    return user_access(constant('AVTXNS_PERM_OPEN_' . $transaction_type));
+  }
+  else {
+    return TRUE;
+  }
+}
+

@@ -49,7 +49,7 @@ function avreports_menu() {
       'title' => $v['name'] . ' List',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avreports_txn_list_form', $k),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(AVREPORTS_PERM_GENERAL),
       'type' => MENU_CALLBACK,
       //'menu_name' => 'av',
       //'expanded' => TRUE,
@@ -60,7 +60,7 @@ function avreports_menu() {
     'title' => 'Statement of Account',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avreports_soa_form'),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVREPORTS_PERM_SOA),
     'type' => MENU_CALLBACK,
     //'menu_name' => 'av',
     //'expanded' => TRUE,
@@ -188,25 +188,63 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
 
-  $transactions = avtxns_txns_query_load($where, $args);
+  $select = array();
+  $select[] = 'avtxn_detail.ref_txn_type';
+  $select[] = "IF (
+      avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
+      SUM(avtxn_detail.paid_amount),
+      (SUM(
+          avtxn_detail.qty
+          * avtxn_detail.cost
+          * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+          * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+          * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+          * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+        )
+      )
+    ) AS grand_total";
+  $joins = array();
+  $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
+  $transactions = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, $select, $joins, $group_by);
   $total_receivables = 0;
+  $row_totals = array();
   foreach ($transactions as $row) {
     $transaction_type = avtxns_txn_types($row->transaction_type);
     $view_path = "{$transaction_type['base_path']}/$row->id/view";
+
+    if ($transaction_type['type'] == AVTXNS_TXN_TYPE_INVOICE) {
+      $row_total = empty($row_totals[$row->id]) ? 0 : $row_totals[$row->id];
+      switch ($row->ref_txn_type) {
+        case AVTXNS_TXN_TYPE_DELIVERY:
+        case AVTXNS_TXN_TYPE_PAYMENT:
+          $row_total += $row->grand_total;
+          break;
+        case AVTXNS_TXN_TYPE_SALES_RETURN:
+          $row_total -= $row->grand_total;
+          break;
+      }
+    }
+    else {
+      $row_total = $row->grand_total;
+    }
+    $row_totals[$row->id] = $row_total;
     $data = array(
       'id' => array('data' => l($row->id, $view_path), 'class' => array('uk-text-center')),
       'customer' => check_plain($row->display_name),
-      'total' => array('data' => l(number_format($row->grand_total, 2), $view_path), 'class' => array('uk-text-right')),
+      'total' => array('data' => l(number_format($row_total, 2), $view_path), 'class' => array('uk-text-right')),
       'terms' => array('data' => check_plain($row->term_name), 'class' => array('uk-text-center')),
       'agent' => array('data' => check_plain($row->agent_name), 'class' => array('')),
     );
     if (!empty($agent_name)) {
       unset($data['agent']);
     }
-    $rows[] = array('data' => $data, 'class' => array('uk-table-middle'));
-    $total_receivables += $row->grand_total;
+    $rows[$row->id] = array('data' => $data, 'class' => array('uk-table-middle'));
   }
 
+  foreach ($row_totals as $rt) {
+    $total_receivables += $rt;
+  }
 
   if (empty($rows)) {
     $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
@@ -343,8 +381,25 @@ function avreports_soa_form($form, &$form_state) {
     $client = array_shift($client);
   }
 
-  $order_by = array('avtxn.transaction_date ASC', 'avtxn.id ASC', 'ref_txn_type ASC');
-  $transactions = empty($client->id) ? array() : avtxns_txns_query_load($where, $args, NULL, $order_by);
+  $select[] = 'avtxn_detail.ref_txn_type';
+  $select[] = "IF (
+      avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
+      SUM(avtxn_detail.paid_amount),
+      (SUM(
+          avtxn_detail.qty
+          * avtxn_detail.cost
+          * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+          * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+          * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+          * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+        )
+      )
+    ) AS grand_total";
+  $joins = array();
+  $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
+  $order_by = array('avtxn.transaction_date ASC', 'avtxn.id ASC', 'avtxn_detail.ref_txn_type ASC');
+  $transactions = empty($client->id) ? array() : avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
   $rows = array();
   $total_receivables = 0;
   $balance = 0;

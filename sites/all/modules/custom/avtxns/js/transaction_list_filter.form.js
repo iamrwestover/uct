@@ -11,14 +11,14 @@
 
   Drupal.avtxnsTransactionListForm = function() {
     var self = this;
+    self.$searchBtn = $('#transaction-search-btn');
     $('#avtxns-txn-list-filter-form').once('avtxnsTransactionListForm', function() {
       self.$searchEls = $(this).find('.trigger-ajax-search');
-      self.$searchBtn = $(this).find('#transaction-search-btn');
       self.$resetBtn = $(this).find('#transaction-reset-btn');
       self.searchEvents();
     });
 
-    //this.tableEvents();
+    self.pagerLinkEvents();
   };
 
   /**
@@ -53,14 +53,38 @@
     self.$resetBtn.click(function(e) {
       self.$searchEls.each(function() {
         if ($(this).prop('readonly')) {
-          //console.log($(this).attr('value'));
           $(this).val($(this).attr('value'));
           return;
         }
-        $(this).val('');
+        if ($(this).attr('type') == 'checkbox') {
+          $(this).prop('checked', '');
+          if ($(this).attr('checked')) {
+            $(this).prop('checked', 'checked');
+          }
+        }
+        else {
+          $(this).val('');
+        }
       });
       self.$searchBtn.trigger('click');
       e.preventDefault();
+    });
+  };
+
+  /**
+   * Bind events to pager links feature.
+   */
+  Drupal.avtxnsTransactionListForm.prototype.pagerLinkEvents = function () {
+    var self = this;
+    var ajax = Drupal.ajax[self.$searchBtn.attr('id')] || {};
+    self.$targetWrapper = $(ajax.wrapper);
+    self.$targetWrapper.once('avtxnsTransactionListForm', function() {
+      $(this).find('.uk-pagination a, th a').click(function(e) {
+        var href = $(this).attr('href');
+        $('#transaction-list-table-href').val(href);
+        self.$searchBtn.trigger('click');
+        e.preventDefault();
+      });
     });
   };
 

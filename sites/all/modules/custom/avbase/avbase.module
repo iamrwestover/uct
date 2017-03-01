@@ -20,6 +20,8 @@ define('AVBASE_DECIMAL_FORMAT_MAX', 4);
 
 // Permissions
 define('AVBASE_PERM_SYSTEM_SETTINGS', 'avbase system settings');
+define('AVBASE_PERM_SYSTEM_CATEGORIES', 'avbase system categories');
+define('AVBASE_PERM_IMPORT', 'avbase system import');
 
 /**
  * Implementation of hook_theme().
@@ -99,7 +101,7 @@ function avbase_menu() {
   $items['av/categories'] = array(
     'title' => 'Categories',
     'page callback' => 'avbase_categories_home',
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVBASE_PERM_SYSTEM_CATEGORIES),
     'menu_name' => 'av',
     'expanded' => TRUE,
     'file' => 'inc/categories.inc',
@@ -114,7 +116,7 @@ function avbase_menu() {
       'title' => $category_title,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_categories_form', $k),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(AVBASE_PERM_SYSTEM_CATEGORIES),
       'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
       'weight' => $x,
@@ -123,7 +125,7 @@ function avbase_menu() {
       'title' => 'New',
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, NULL),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(AVBASE_PERM_SYSTEM_CATEGORIES),
       'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
     );
@@ -131,7 +133,7 @@ function avbase_menu() {
       'title' => 'Edit',
       'page callback' => 'avbase_category_form_load',
       'page arguments' => array($k, 3),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(AVBASE_PERM_SYSTEM_CATEGORIES),
       'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
     );
@@ -139,7 +141,7 @@ function avbase_menu() {
       'title' => 'Delete',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avbase_category_delete_confirm_form', $k, 3),
-      'access callback' => 'user_is_logged_in',
+      'access arguments' => array(AVBASE_PERM_SYSTEM_CATEGORIES),
       'type' => MENU_CALLBACK,
       'file' => 'inc/categories.inc',
     );
@@ -159,7 +161,7 @@ function avbase_menu() {
     'description' => 'System settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avbase_general_settings_form'),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVBASE_PERM_SYSTEM_SETTINGS),
     'menu_name' => 'av',
   );
 
@@ -233,6 +235,9 @@ function avbase_permission() {
   $permissions = array(
     AVBASE_PERM_SYSTEM_SETTINGS => array(
       'title' => 'Modify system settings',
+    ),
+    AVBASE_PERM_SYSTEM_CATEGORIES => array(
+      'title' => 'Modify system categories',
     ),
   );
   return $permissions;
@@ -330,7 +335,7 @@ function avbase_form_user_profile_form_alter(&$form, $form_state) {
   // User inc file.
   module_load_include('inc', 'avbase', 'inc/users');
 
-  $form['account']['roles']['#access'] = TRUE;
+  $form['account']['roles']['#access'] = $user->uid != $account->uid;
   $form['account']['mail']['#description'] = '';
 
   // Set crud settings.
@@ -453,6 +458,7 @@ function avbase_category_groups($category_id = '') {
  * @return mixed
  */
 function avbase_general_settings_form() {
+  global $user;
   $form['company_information'] = array(
     '#type' => 'fieldset',
     '#title' => t('Site details'),
@@ -461,7 +467,8 @@ function avbase_general_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Company name'),
     '#default_value' => variable_get('site_name', 'Drupal'),
-    '#required' => TRUE
+    '#required' => TRUE,
+    '#access' => $user->uid == 1,
   );
   $form['company_information']['site_mail'] = array(
     '#type' => 'textfield',
@@ -476,6 +483,12 @@ function avbase_general_settings_form() {
     '#maxlength' => 255,
     '#title' => 'Address',
     '#default_value' => variable_get('av_company_address', ''),
+  );
+  $form['company_information']['av_company_contact_number'] = array(
+    '#type' => 'textfield',
+    '#maxlength' => 255,
+    '#title' => 'Contact Number(s)',
+    '#default_value' => variable_get('av_company_contact_number', ''),
   );
 
   return system_settings_form($form);

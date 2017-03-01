@@ -36,7 +36,7 @@ function avproducts_product_form($form, &$form_state, $row, $view_mode = FALSE) 
 
   //drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
   $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  $page_title = empty($form['id']['#value']) ? 'New product' : 'Edit product';
+  $page_title = empty($form['id']['#value']) ? 'New product' : 'Product';
   drupal_set_title($page_title);
 
   // Set crud settings.

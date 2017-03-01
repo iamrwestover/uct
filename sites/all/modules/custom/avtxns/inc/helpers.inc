@@ -310,9 +310,16 @@ function avtxns_send_txn_to_email($transaction_id, $email = '') {
 
 /**
  * Advanced transaction load.
+ * @param array $param_where
+ * @param array $param_args
+ * @param null $limit
+ * @param null $offset
+ * @param null $order_by
+ * @param $count_query
+ *
  * @return array
  */
-function avtxns_txns_query_load($param_where = array(), $param_args = array(), $limit_string = NULL, $order_by = NULL) {
+function avtxns_txns_query_load($param_where = array(), $param_args = array(), $limit = NULL, $offset = NULL, $order_by = NULL, $more_select = array(), $more_joins = array(), $group_by = array(), $count_query = FALSE) {
   // Load vendors static variable.
   //$avbase = &drupal_static('avbase', array());
   //$avbase['vendors'] = empty($avbase['vendors']) ? array() : $avbase['vendors'];
@@ -320,10 +327,17 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
 
   // Set / load static variable for this query.
   $data = &drupal_static(__FUNCTION__, array());
-  $_data_id = $param_where;
-  sort($_data_id);
-  $data_id = md5(json_encode($_data_id) . json_encode($param_args) . json_encode($limit_string));
+  //$_data_id = $param_where;
+  //sort($_data_id);
 
+  // Set and check if data for data_id already exists.
+  $func_args = func_get_args();
+  foreach ($func_args as $func_k => $func_arg) {
+    if (is_array($func_arg)) {
+      asort($func_args[$func_k]);
+    }
+  }
+  $data_id = md5(json_encode($func_args));
   if (isset($data[$data_id])) {
     return $data[$data_id];
   }
@@ -333,62 +347,78 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
 
   //$queries = array();
   $select = array();
-  $select[] = 'avtxn.id';
-  $select[] = 'avtxn.status';
-  $select[] = 'avtxn.transaction_type';
-  $select[] = 'avtxn.transaction_date';
-  $select[] = 'avtxn.term_id';
-  $select[] = 'avtxn_detail.ref_txn_dtl_id';
-  $select[] = 'avcat_agent.title AS agent_name';
-  $select[] = 'avcat_term.title AS term_name';
-  $select[] = 'avclients.display_name';
-  //$select[] = 'avcat_client_term.title AS client_term_name';
-  $select[] = 'avtxn_ref.transaction_type AS ref_txn_type';
-  $select[] = "IF (
-      avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
-      SUM(avtxn_detail.paid_amount),
-      (SUM(
-          avtxn_detail.qty
-          * avtxn_detail.cost
-          * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
-          * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
-          * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
-          * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
-        )
-      )
-    ) AS grand_total";
+  if ($count_query) {
+    $select[] = 'COUNT(avtxn.id)';
+  }
+  else {
+    $select[] = 'avtxn.id';
+    $select[] = 'avtxn.status';
+    $select[] = 'avtxn.transaction_type';
+    $select[] = 'avtxn.transaction_date';
+    $select[] = 'avcat_agent.title AS agent_name';
+    $select[] = 'avclients.display_name';
+    //$select[] = 'avtxn.term_id';
+    $select[] = 'avcat_term.title AS term_name';
+    //$select[] = 'avtxn_detail.ref_txn_type';
+    //$select[] = 'avtxn_detail.ref_txn_dtl_id';
+    //$select[] = "IF (
+    //    avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
+    //    SUM(avtxn_detail.paid_amount),
+    //    (SUM(
+    //        avtxn_detail.qty
+    //        * avtxn_detail.cost
+    //        * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+    //        * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+    //        * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+    //        * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+    //      )
+    //    )
+    //  ) AS grand_total";
+  }
+  $select = array_merge($select, $more_select);
 
   $joins = array();
   $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
-  $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
-  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_client_term ON avcat_client_term.id = avclients.term_id';
-  $joins[] = "LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_ref ON
-    IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', 0, avtxn_detail_ref.id = avtxn_detail.ref_txn_dtl_id)";
-  $joins[] = "LEFT JOIN {avtbl_transactions} AS avtxn_ref ON
-    avtxn_ref.id = IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', avtxn_detail.ref_txn_dtl_id , avtxn_detail_ref.transaction_id)";
+  $joins = array_merge($joins, $more_joins);
+  //$joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  //$joins[] = "LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_ref ON
+  //  IF (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "', 0, avtxn_detail_ref.id = avtxn_detail.ref_txn_dtl_id)";
 
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
-  $query .= " GROUP BY avtxn.id, avtxn_ref.transaction_type";
 
-  $order_by = is_null($order_by) ? array('avtxn.transaction_date DESC', 'avtxn.id DESC') : $order_by;
-  if (!empty($order_by)) {
-    $query .= " ORDER BY " . implode(', ', $order_by);
+  if (empty($count_query)) {
+    if (!empty($group_by)) {
+      $query .= " GROUP BY " . implode(', ', $group_by);
+    }
+    //$query .= " GROUP BY avtxn.id, avtxn_detail.ref_txn_type";
+    $order_by = is_null($order_by) ? array('avtxn.transaction_date DESC', 'avtxn.id DESC') : $order_by;
+    if (!empty($order_by)) {
+      $query .= " ORDER BY " . implode(', ', $order_by);
+    }
+
+    if (!is_null($limit)) {
+      $query .= " LIMIT $limit";
+      if (!is_null($offset)) {
+        $query .= " OFFSET $offset";
+      }
+    }
   }
 
-  if (!is_null($limit_string)) {
-    $query .= " LIMIT " . $limit_string;
+
+  if ($count_query) {
+    $rows = db_query($query, $param_args)->fetchField();
   }
-
-
-  $rs = db_query($query, $param_args);
-  $rows = array();
-  foreach ($rs as $row) {
-    $rows[] = $row;
+  else {
+    $rs = db_query($query, $param_args);
+    $rows = array();
+    foreach ($rs as $row) {
+      $rows[] = $row;
+    }
   }
 
   $data[$data_id] = $rows;

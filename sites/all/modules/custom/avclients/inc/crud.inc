@@ -377,7 +377,7 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
     '#default_value' => isset($row->credit_limit) ? ($view_mode ? number_format($row->credit_limit, 2) : avbase_number_format($row->credit_limit)) : '',
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
-    '#access' => $ctd['type'] == AVCLIENT_TYPE_VENDOR,
+    '#access' => $ctd['type'] == AVCLIENT_TYPE_CUSTOMER,
   );
   $payment['opening_balance'] = array(
     '#type' => 'textfield',

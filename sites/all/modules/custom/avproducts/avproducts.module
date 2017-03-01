@@ -26,7 +26,7 @@ function avproducts_permission() {
       'title' => 'Product - EDIT',
     ),
     AVPRODUCTS_PERM_PRODUCT_VIEW => array(
-      'title' => 'Product - CHANGE',
+      'title' => 'Product - VIEW',
     ),
     //AVPRODUCTS_PERM_CHANGE_QTY => array(
     //  'title' => 'Product Quantity - Change',
@@ -43,7 +43,7 @@ function avproducts_menu() {
     'title' => 'Products',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avproducts_home_form'),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_VIEW),
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
@@ -51,7 +51,7 @@ function avproducts_menu() {
     'title' => 'New product',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avproducts_product_form', NULL),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_CREATE),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
     'weight' => 10,
@@ -60,7 +60,7 @@ function avproducts_menu() {
     'title' => 'View',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avproducts_product_form', 2, TRUE),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_VIEW),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
     'weight' => 0,
@@ -69,20 +69,20 @@ function avproducts_menu() {
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avproducts_product_form', 2),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_EDIT),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/crud.inc',
     'weight' => 1,
   );
-  $items['av/products/%avproduct/delete'] = array(
-    'title' => 'Delete',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('avproducts_product_delete_confirm_form', 2),
-    'access callback' => 'user_is_logged_in',
-    'type' => MENU_CALLBACK,
-    'file' => 'inc/crud.inc',
-    'weight' => 2,
-  );
+  //$items['av/products/%avproduct/delete'] = array(
+  //  'title' => 'Delete',
+  //  'page callback' => 'drupal_get_form',
+  //  'page arguments' => array('avproducts_product_delete_confirm_form', 2),
+  //  'access arguments' => array(),
+  //  'type' => MENU_CALLBACK,
+  //  'file' => 'inc/crud.inc',
+  //  'weight' => 2,
+  //);
   $items['av/products/autocomplete'] = array(
     'title' => 'Products Autocomplete',
     'page callback' => 'avproducts_autocomplete',
@@ -161,13 +161,17 @@ function avproducts_home_form($form, &$form_state) {
 
   $form['filter'] = avproduct_list_filter_form(NULL, $form_state);
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
-  $form['new_button'] = array('#markup' => l('New product', 'av/products/add', $btn_options));
+  $form['new_button'] = array(
+    '#markup' => l('New product', 'av/products/add', $btn_options),
+    '#access' => user_access(AVPRODUCTS_PERM_PRODUCT_CREATE),
+  );
   $form['order_button'] = array(
     '#type' => 'submit',
     '#value' => t('Order selected products'),
     '#attributes' => array(
       'class' => array('uk-margin-small-left'),
     ),
+    '#access' => user_access(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_PURCHASE_ORDER))),
   );
 
   $header = array(
@@ -212,15 +216,16 @@ function avproducts_home_form($form, &$form_state) {
 
   $categories = avbase_get_categories_multiple(array('product_cat', 'uom'));
   $rows = array();
+  $can_edit = user_access(AVPRODUCTS_PERM_PRODUCT_EDIT);
   foreach ($result as $row) {
     $menu_prefix = 'av/products/' . $row->id;
     $destination = url('av/products', array('query' => drupal_get_query_parameters()));
-    $action_links = array('links' => array(
-      'edit' => array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'icon_kedy' => 'edit', 'query' => array('destination' => $destination)),
-      //'delete' => array('title' => 'delete', 'href' => $menu_prefix . '/delete', 'icond_key' => 'remove', 'query' => drupal_get_destination()),
-    ));
+    $action_links =  array();
+    if ($can_edit) {
+      $action_links['edit'] = array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'query' => array('destination' => $destination));
+    }
 
-    $actions_html = theme('links__bare', $action_links);
+    $actions_html = theme('links__bare', array('links' => $action_links));
     $linked_name = l($row->title, $menu_prefix . '/view');
     $rows[$row->id] = array(
       //'data' => array(

@@ -14,7 +14,7 @@ function avimport_menu() {
     'title' => 'Import',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avimport_import_form'),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVBASE_PERM_IMPORT),
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
@@ -22,7 +22,7 @@ function avimport_menu() {
     'title' => 'Import',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avimport_prepare_form'),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVBASE_PERM_IMPORT),
     //'menu_name' => 'av',
     //'expanded' => TRUE,
     'type' => MENU_CALLBACK,

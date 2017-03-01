@@ -1,4 +1,4 @@
-name = Report Modules
+name = AV AIS Report Modules
 description = Reports for AV AIS
 core = 7.x
 package = AV
