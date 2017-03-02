@@ -341,6 +341,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   if (empty($options['#hide_filter_form'])) {
     $filter_form_settings = array(
       //'avcat_agent.title' => array('#access' => TRUE),
+      'avtxn.transaction_type' => array('#access' => TRUE),
     );
     $form['transaction_list_filter'] = avtxns_txn_list_filter_form(NULL, $form_state, $filter_form_settings);
     $form['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'search agent, customer, vendor';
@@ -408,21 +409,38 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //$index = 0;
   $rows = array();
   foreach ($transactions as $row) {
-    //$index++;
+    $sd = avtxns_txn_status_details($row->status);
+    $row_class = '';
+    $status_text = '';
+    switch ($row->status) {
+      case AVTXNS_TXN_STATUS_PENDING:
+        $row_class = 'uk-alert-warning';
+        $status_text = empty($sd['title']) ? '' : ('<span class="uk-badge uk-badge-warning uk-margin-small-right" style="position: relative; top: -2px;">' . strtoupper($sd['title']) . '</span>');
+        break;
+      case AVTXNS_TXN_STATUS_VOID:
+        $row_class = 'uk-row-mute';
+        $status_text = empty($sd['title']) ? '' : ('<span class="uk-badge uk-badge-danger uk-margin-small-right" style="position: relative; top: -2px;">' . strtoupper($sd['title']) . '</span>');
+        break;
+    }
+
+
     $transaction_type = avtxns_txn_types($row->transaction_type);
     $view_path = "{$transaction_type['base_path']}/$row->id/view";
     $rows[$row->id] = array(
-      'transaction_id' => l($row->id, $view_path),
-      'date' => l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
-      'transaction_type' => l($transaction_type['name'], $view_path),
-      'client_name' => /*$rows[$index]['data'][] =*/ check_plain($row->display_name),
-      'agent_name' => check_plain($row->agent_name),
+      'data' => array(
+        'transaction_id' => l($row->id, $view_path),
+        'date' => l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
+        'transaction_type' => $status_text . l($transaction_type['name'], $view_path),
+        'client_name' => /*$rows[$index]['data'][] =*/ check_plain($row->display_name),
+        'agent_name' => check_plain($row->agent_name),
+      ),
+      'class' => array($row_class),
     );
   }
 
   $table_attributes = array(
     'id' => 'transaction-list-table',
-    'class' => array(),
+    'class' => array('uk-table-condensed'),
   );
 
   $pager_html = empty($options['#hide_filter_form']) ? theme('pager', array('tags' => array())) : '';
@@ -472,7 +490,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     '#type' => 'textfield',
     '#attributes' => array(
       'class' => array('trigger-ajax-search trigger-search-on-keyup'),
-      'placeholder' => 'transaction #',
+      'placeholder' => '#',
     ),
     '#icon_key' => 'search',
     '#access' => empty($settings['hide'][''])
@@ -482,7 +500,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     '#type' => 'textfield',
     '#attributes' => array(
       'class' => array('trigger-ajax-search trigger-search-on-keyup'),
-      'placeholder' => 'search by customer / vendor / agent',
+      'placeholder' => 'customer / vendor / agent name',
     ),
     '#icon_key' => 'search',
   );
@@ -546,6 +564,18 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
       'class' => array('trigger-ajax-search'),
       'readonly' => 'readonly',
+    ),
+    '#access' => FALSE,
+  );
+
+  $fields['avtxn.transaction_type'] = empty($settings['avtxn.transaction_type']) ? array() : $settings['avtxn.transaction_type'];
+  $fields['avtxn.transaction_type'] += array(
+    '#type' => 'select',
+    '#options' => avtxns_txn_types_options_array(),
+    '#empty_value' => '',
+    '#empty_option' => '- Transaction type -',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
     ),
     '#access' => FALSE,
   );

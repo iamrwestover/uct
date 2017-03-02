@@ -873,7 +873,7 @@ function avtxns_txn_status_details($status) {
   $statuses = array(
     AVTXNS_TXN_STATUS_CLOSED => array(
       'status' => AVTXNS_TXN_STATUS_CLOSED,
-      'title' => t('Closed'),
+      'title' => t('Locked'),
     ),
     AVTXNS_TXN_STATUS_OPEN => array(
       'status' => AVTXNS_TXN_STATUS_OPEN,
@@ -972,7 +972,7 @@ function avtxns_txn_change_status($id, $status) {
     }
 
     // Refresh product quantities.
-    avbase_product_qty_update($row->items, $row, TRUE);
+    avbase_product_qty_update($item_rows, $row, TRUE);
   }
 
   $now = time();
@@ -987,4 +987,16 @@ function avtxns_txn_change_status($id, $status) {
     return TRUE;
   }
   return FALSE;
+}
+
+/**
+ * Return transaction type list as options array.
+ */
+function avtxns_txn_types_options_array() {
+  $options = array();
+  $types = avtxns_txn_types();
+  foreach ($types as $t_k => $t) {
+    $options[$t_k] = $t['name'];
+  }
+  return $options;
 }

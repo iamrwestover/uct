@@ -113,7 +113,8 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   if (isset($row->status) && $row->status != AVTXNS_TXN_STATUS_OPEN) {
     $tsd = avtxns_txn_status_details($row->status);
     $badge_color = $row->status == AVTXNS_TXN_STATUS_PENDING ? 'uk-badge-warning' : 'uk-badge-danger';
-    $form['#prefix'] .= '<span class="not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0; right: 0;">' . strtoupper($tsd['title']) . '</span>';
+    $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">' . strtoupper($tsd['title']) . '</span>&nbsp;';
+    $form['#attributes']['class'][] = 'not-printable';
     //$page_title .= ' - ' . strtoupper($tsd['title']);
   }
 

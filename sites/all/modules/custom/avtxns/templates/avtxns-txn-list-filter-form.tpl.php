@@ -5,12 +5,19 @@ $agent_html = drupal_render($form['avcat_agent.title']);
 $transaction_date = drupal_render($form['avtxn.transaction_date']);
 $date_to = drupal_render($form['date_to']);
 $transaction_id_html = drupal_render($form['avtxn.id']);
+$transaction_type_html = drupal_render($form['avtxn.transaction_type']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
 ?>
 <div class="uk-grid uk-grid-small uk-margin-top">
   <?php if ($transaction_id_html): ?>
     <div class="uk-width-1-10">
       <?php print $transaction_id_html; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($transaction_type_html): ?>
+    <div class="uk-width-2-10">
+      <?php print $transaction_type_html; ?>
     </div>
   <?php endif; ?>
 

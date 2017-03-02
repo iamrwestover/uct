@@ -242,3 +242,14 @@ th > a > img {
 table tr.selected {
   background: ivory !important;
 }
+table tr.uk-row-mute {
+  background: #f4f4f4;
+  color: #aaa;
+}
+table tr.uk-row-mute a {
+  color: #aaa;
+}
+table tr.uk-alert-danger,
+table tr.uk-alert-warning {
+  color: inherit;
+}
