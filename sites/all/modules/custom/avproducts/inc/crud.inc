@@ -35,12 +35,12 @@ function avproducts_product_form($form, &$form_state, $row, $view_mode = FALSE) 
   );
 
   //drupal_add_js('sites/all/libraries/repeater/jquery.repeater.js');
-  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $form['id'] = array('#type' => 'value', '#value' => (isset($row->id) ? $row->id : NULL));
   $page_title = empty($form['id']['#value']) ? 'New product' : 'Product';
   drupal_set_title($page_title);
 
   // Set crud settings.
-  avproducts_product_form_settings($form, $view_mode);
+  avproducts_product_form_settings($form, $row, $view_mode);
 
   // Info group.
   avproducts_product_form_info_fields($form, $form_state, $row, $view_mode);
@@ -65,13 +65,18 @@ function avproducts_product_form($form, &$form_state, $row, $view_mode = FALSE) 
  * Set crud form settings.
  * @param $form
  */
-function avproducts_product_form_settings(&$form, $view_mode = FALSE) {
+function avproducts_product_form_settings(&$form, $row, $view_mode = FALSE) {
   $table_name = 'avtbl_products';
+
+  $form['last_changed'] = array('#type' => 'hidden', '#default_value' => (isset($row->changed) ? $row->changed : NULL));
 
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'product');
+
+  // Generic form validator.
+  $form['#validate'][] = 'avbase_crud_form_validate';
 
   // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
@@ -119,6 +124,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#attributes' => array(
       'class' => array('uk-text-uppercase'),
     ),
+    '#required' => TRUE,
   );
   $info['category_id'] = array(
     '#type' => 'select',

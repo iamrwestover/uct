@@ -6,6 +6,8 @@
  * @param $form_state
  */
 function avtxns_item_list_fields_validate(&$form, &$form_state) {
+  $row_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
+
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
@@ -51,7 +53,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $_item_rows = $merged;
 
   // Make sure all included reference transaction IDs are still open.
-  if (empty($form_state['values']['id'])) {
+  if (empty($row_id)) {
     $ref_txn_ids = array();
     foreach ($_item_rows as $k => $v) {
       $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];

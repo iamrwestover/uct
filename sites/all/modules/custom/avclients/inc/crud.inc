@@ -17,7 +17,7 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     drupal_exit();
   }
 
-  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
+  $form['id'] = array('#type' => 'value', '#value' => (isset($row->id) ? $row->id : NULL));
 
   $ctd = avclients_client_types($client_type);
 
@@ -44,6 +44,7 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     '#type' => 'fieldset',
     '#title' => 'Miscellaneous',
   );
+  //$form['last_changed'] = array('#title' => 'fff', '#type' => 'textfield', '#default_value' => 'rr');
   //$form['misc']['notes'] = array(
   //  '#type' => 'textarea',
   //  '#title' => 'Miscellaneous',
@@ -108,11 +109,16 @@ function avclients_client_form_settings(&$form, $ctd, $row, $view_mode = FALSE) 
     drupal_set_title($page_title);
   }
 
+  $form['last_changed'] = array('#type' => 'hidden', '#default_value' => (isset($row->changed) ? $row->changed : NULL));
+
   // Set generic submit handler.
   $form['#submit'] = array('avbase_crud_form_submit');
   $form['table_name'] = array('#type' => 'value', '#value' => $table_name);
   $form['client_type'] = array('#type' => 'value', '#value' => $ctd['type']);
   $form['entity_name'] = array('#type' => 'value', '#value' => 'client');
+
+  // Generic form validator.
+  $form['#validate'][] = 'avbase_crud_form_validate';
 
   //$form['#attached']['js'] = array(
   //  AVCLIENTS_MODULE_PATH . '/js/client_form.js',

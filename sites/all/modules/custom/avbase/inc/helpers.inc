@@ -365,6 +365,11 @@ function avbase_element_validate_unique_field($element, &$form_state, $form) {
   $record_id = isset($values['id']) ? $values['id'] : 0;
   $table_name = $values['table_name'];
   $element_value = $element['#value'];
+  $element_value = trim($element_value);
+  if ($element_value == '') {
+    return;
+  }
+
   $element_name = $element['#name'];
   $exists = db_query("SELECT id FROM {{$table_name}} WHERE $element_name = :element_value AND id <> :id", array(':element_value' => $element_value, ':id' => $record_id))->fetch();
   if ($exists) {
@@ -784,6 +789,25 @@ function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FA
     else {
       drupal_set_message('Product quantities were not updated', 'warning');
       avbase_custom_watchdog("{$transaction_type}__qty_update_warn1", "ID: {$transaction_row->id}", array('#row' => $transaction_row, '#incoming_base_qty' => $incoming_base_qty, '#entity_name' => $transaction_type));
+    }
+  }
+}
+
+/**
+ * Generic crud form validation.
+ * @param $form
+ * @param $form_state
+ */
+function avbase_crud_form_validate($form, $form_state) {
+  $row_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
+  $table_name = isset($form_state['values']['table_name']) ? $form_state['values']['table_name'] : NULL;
+  $last_changed = isset($form_state['values']['last_changed']) ? $form_state['values']['last_changed'] : '-';
+  // Check if no other user saved changes on this record.
+  if (!empty($row_id) && $last_changed != '-') {
+    $query = "SELECT changed FROM {{$table_name}} WHERE id = :row_id";
+    $db_last_changed = db_query($query, array(':row_id' => $row_id))->fetchField();
+    if ($db_last_changed != $last_changed) {
+      form_set_error('', t('Changes cannot be saved. Someone has recently saved changes on this record while you were editing it.'));
     }
   }
 }

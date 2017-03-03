@@ -124,6 +124,8 @@ function avproduct_query_load($param_where, $param_args = array(), $limit_string
         $sales_discount[] = round($row->$_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
       }
     }
+    $discount = array_filter($discount);
+    $sales_discount = array_filter($sales_discount);
     $row->discount_text = implode('/', $discount);
     $row->sales_discount_text = implode('/', $sales_discount);
 
@@ -281,6 +283,8 @@ function avproducts_table_fields_to_save($db_op = 'insert') {
     'data' => array(
       'uoms' => array('type' => 'array'),
     ),
+    'uid',
+    'changed',
   );
 
   if ($db_op == 'update') {

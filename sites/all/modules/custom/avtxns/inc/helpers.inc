@@ -523,6 +523,7 @@ function avtxns_txn_form_ajax($form, $form_state) {
   if (form_get_errors()) {
     // Prevent modal from popping out.
     unset($form['cost_changes']['product_cost_changes']);
+    unset($form['pending_orders']['selected_pos']);
   }
 
   if (!empty($form_state['redirect'])) {

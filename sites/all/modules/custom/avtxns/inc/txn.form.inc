@@ -133,8 +133,9 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   $form['table_name'] = array('#type' => 'value', '#value' => 'avtbl_transactions');
   $form['entity_name'] = array('#type' => 'value', '#value' => 'txn');
   $form['transaction_type'] = array('#type' => 'value', '#value' => $transaction_type);
-  $form['id'] = array('#type' => 'value', '#value' => isset($row->id) ? $row->id : NULL);
-  $form['status'] = array('#type' => 'value', '#value' => isset($row->status) ? $row->status : NULL);
+  $form['id'] = array('#type' => 'value', '#value' => (isset($row->id) ? $row->id : NULL));
+  $form['last_changed'] = array('#type' => 'hidden', '#default_value' => (isset($row->changed) ? $row->changed : NULL));
+  //$form['status'] = array('#type' => 'value', '#value' => (isset($row->status) ? $row->status : NULL));
   $form['#success_message'] = t('@type details saved.', array('@type' => $ttd['name']));
   $form['#theme'] = 'avtxns_item_list_form';
 
@@ -145,6 +146,8 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   else {
     $form['#submit'] = array('avtxns_txn_form_submit2');
   }
+  // Generic form validator.
+  $form['#validate'][] = 'avbase_crud_form_validate';
 
   // Js settings.
   $js_settings = array('avtxns' => array('transaction' => $ttd['transaction']));
@@ -178,6 +181,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
     'message',
     'created',
     'changed',
+    'uid',
   );
 
   $form['save_field_ids'] = array(

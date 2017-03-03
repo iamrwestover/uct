@@ -252,6 +252,7 @@ function avclients_table_fields_to_save($db_op = 'insert') {
     'opening_balance' => array('type' => 'float'),
     'contact_number',
     'website',
+    'uid',
   );
 
   if ($db_op == 'update') {

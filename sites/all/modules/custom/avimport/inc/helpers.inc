@@ -130,6 +130,8 @@ function avimport_db_insert(&$results, $row, $type) {
  * @return bool
  */
 function avimport_db_insert_products_row($excel_row) {
+  global $user;
+
   // Build insert row.
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'products');
 
@@ -203,6 +205,7 @@ function avimport_db_insert_products_row($excel_row) {
   $insert_row['initial_qty'] = (int) str_replace(',', '', $insert_row['initial_qty']);
   $insert_row['qty'] = $insert_row['initial_qty'];
 
+  $insert_row['uid'] = $user->uid;
   return avimport_db_insert_row($insert_row, 'products');
 }
 
@@ -312,6 +315,8 @@ function avimport_db_insert_customers_row($excel_row) {
  * @return bool
  */
 function avimport_db_insert_clients_row($excel_row, $client_type) {
+  global $user;
+
   // Build insert row.
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'clients', $client_type);
   $ctd = avclients_client_types($client_type);
@@ -348,6 +353,7 @@ function avimport_db_insert_clients_row($excel_row, $client_type) {
   $insert_row['created'] = time();
   $insert_row['changed'] = $insert_row['created'];
 
+  $insert_row['uid'] = $user->uid;
   return avimport_db_insert_row($insert_row, 'clients');
 }
 

@@ -8,7 +8,7 @@
  * @throws
  */
 function avbase_crud_form_submit($form, &$form_state) {
-  //dpm($form_state);
+  global $user;
   $transaction = db_transaction();
   try {
     $values = $form_state['values'];
@@ -67,9 +67,10 @@ function avbase_crud_form_submit($form, &$form_state) {
         }
       }
 
+      $now = time();
       // Set "changed" timestamp.
       if (array_search('changed', $save_field_ids) !== FALSE) {
-        $row['changed'] = time();
+        $row['changed'] = $now;
       }
 
       // Do save.
@@ -79,7 +80,10 @@ function avbase_crud_form_submit($form, &$form_state) {
         $op = 'insert';
         // Save timestamp when record is created.
         if (array_search('created', $save_field_ids) !== FALSE) {
-          $row['created'] = time();
+          $row['created'] = $now;
+        }
+        if (array_search('uid', $save_field_ids) !== FALSE) {
+          $row['uid'] = $user->uid;
         }
         if ($row['id'] = db_insert($table_name)->fields($row)->execute()) {
           $form_state['#new_record'] = TRUE;
