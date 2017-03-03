@@ -153,6 +153,12 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         //$query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_reference.transaction_id');
         $query->addField('avprod', 'title', 'product_title');
         $query->addField('avprod', 'uom_id', 'base_uom_id');
+        if ($row->status == AVTXNS_TXN_STATUS_PENDING) {
+          $query->addField('avprod', 'discount1', 'prod_discount1');
+          $query->addField('avprod', 'discount2', 'prod_discount2');
+          $query->addField('avprod', 'discount3', 'prod_discount3');
+          $query->addField('avprod', 'discount4', 'prod_discount4');
+        }
         $query->addField('avcat', 'title', 'uom_title');
         $query->addField('avcat_base', 'title', 'base_uom_title');
         $query->addField('avcat_catprod', 'title', 'category_title');
@@ -167,13 +173,30 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $item->transaction_date_formatted = $transaction_date_formatted;
         $item->total = $item->cost * $item->qty;
         $discount = array();
+        $prod_discount = array();
         for ($x = 1; $x <= 4; $x++) {
+          $_discount = 0;
+          $_max_discount = 0;
           $_discount_name = "discount$x";
           if (isset($item->$_discount_name)) {
-            $discount[] = round($item->$_discount_name, 2);
+            $_discount = round($item->$_discount_name, 2);
+            $discount[] = $_discount;
+          }
+
+          $_prod_discount_name = "prod_discount$x";
+          if (isset($item->$_prod_discount_name)) {
+            $_max_discount = round($item->$_prod_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
+            $prod_discount[] = $_max_discount;
+          }
+
+          if ($row->status == AVTXNS_TXN_STATUS_PENDING && $_max_discount && $_discount > $_max_discount) {
+            $item->discount_over_limit = TRUE;
           }
         }
+        $discount = array_filter($discount);
+        $prod_discount = array_filter($prod_discount);
         $item->discount_text = implode('/', $discount);
+        $item->max_discount_text = implode('/', $prod_discount);
         foreach ($discount as $v) {
           if (is_numeric($v)) {
             $v = (float)$v;
@@ -869,7 +892,7 @@ function avtxns_special_discount_form($term_days) {
  *
  * @return array
  */
-function avtxns_txn_status_details($status) {
+function avtxns_txn_status_details($status = NULL) {
   $statuses = array(
     AVTXNS_TXN_STATUS_CLOSED => array(
       'status' => AVTXNS_TXN_STATUS_CLOSED,
@@ -997,6 +1020,18 @@ function avtxns_txn_types_options_array() {
   $types = avtxns_txn_types();
   foreach ($types as $t_k => $t) {
     $options[$t_k] = $t['name'];
+  }
+  return $options;
+}
+
+/**
+ * Return transaction type list as options array.
+ */
+function avtxns_txn_status_options_array() {
+  $options = array();
+  $statuses = avtxns_txn_status_details();
+  foreach ($statuses as $s_k => $s) {
+    $options[$s_k] = $s['title'];
   }
   return $options;
 }

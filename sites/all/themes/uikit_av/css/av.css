@@ -128,6 +128,9 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 #page-title {
   /*text-shadow: 0 1px 1px #fff;*/
 }
+.uk-badge-void {
+  background-color: #aaa;
+}
 
 /* Forms */
 .av-button-checkbox input:checked {
@@ -230,6 +233,7 @@ input.av-no-border {
   position: relative;
   top: 4px;
 }
+
 /* Tables */
 th > a > img {
   position: relative;

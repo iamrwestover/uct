@@ -70,8 +70,10 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         $item_row['transaction_id'] = $row['id'];
 
         // Initialize variables.
-        $item_ids[] = $item_row['item_id'] = $item_row['product_id'];
-        $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = NULL;
+        $item_id = $item_row['item_id'] = $item_row['product_id'];
+        $item_ids[] = $item_id;
+        $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = 0;
+        $discount_updates['discount1'][$item_id] = $discount_updates['discount2'][$item_id] = $discount_updates['discount3'][$item_id] = $discount_updates['discount4'][$item_id] = 0;
         $insert_arr = $update_arr = array();
 
         // Overwrite paid amount.
@@ -89,7 +91,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           }
           $discount_field_name = 'discount' . $x++;
           $item_row[$discount_field_name] = (float) $v;
-          $discount_updates[$discount_field_name][$item_row['item_id']] = $item_row[$discount_field_name];
+          $discount_updates[$discount_field_name][$item_id] = $item_row[$discount_field_name];
         }
 
         // Remember transaction detail id to know which rows to insert/update.
@@ -120,6 +122,17 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         }
       }
 
+      // Delete transaction detail ids that were removed.
+      if (empty($form_state['#new_record'])) {
+        $delete_query = "DELETE FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
+        $delete_args = array(':txn_id' => $row['id']);
+        if (!empty($transaction_detail_ids)) {
+          $delete_query .= " AND id NOT IN (:txn_dtl_ids)";
+          $delete_args[':txn_dtl_ids'] = $transaction_detail_ids;
+        }
+        db_query($delete_query, $delete_args);
+      }
+
       // Insert new rows.
       if (!empty($insert_rows)) {
         $query = "INSERT INTO {avtbl_transaction_details} (" . implode(', ', $all_table_field_names) . ") VALUES " . implode(', ', $insert_rows);
@@ -145,17 +158,6 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           $update_args[':transaction_detail_ids'] = $transaction_detail_ids;
           db_query($query, $update_args);
         }
-      }
-
-      // Delete transaction detail ids that were removed.
-      if (empty($form_state['#new_record'])) {
-        $delete_query = "DELETE FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
-        $delete_args = array(':txn_id' => $row['id']);
-        if (!empty($transaction_detail_ids)) {
-          $delete_query .= " AND id NOT IN (:txn_dtl_ids)";
-          $delete_args[':txn_dtl_ids'] = $transaction_detail_ids;
-        }
-        db_query($delete_query, $delete_args);
       }
 
       // Update product on-hand qty.

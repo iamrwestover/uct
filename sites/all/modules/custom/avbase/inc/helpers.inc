@@ -711,7 +711,7 @@ function avbase_element_validate_product_discount($element, &$form_state) {
     $error = !is_numeric($v);
     if (!$error) {
       $v = (float) $v;
-      $error = $v < 0 || $v > 99;
+      $error = $v == 0 || $v < 0 || $v > 99;
     }
     if ($error) {
       form_error($element, t('Invalid discount format. Valid format is positive numbers separated by /.'));

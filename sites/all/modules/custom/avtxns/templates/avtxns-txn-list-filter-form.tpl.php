@@ -6,6 +6,7 @@ $transaction_date = drupal_render($form['avtxn.transaction_date']);
 $date_to = drupal_render($form['date_to']);
 $transaction_id_html = drupal_render($form['avtxn.id']);
 $transaction_type_html = drupal_render($form['avtxn.transaction_type']);
+$status_html = drupal_render($form['avtxn.status']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
 ?>
 <div class="uk-grid uk-grid-small uk-margin-top">
@@ -15,15 +16,21 @@ $reset_btn_html = drupal_render($form['buttons']['reset_button']);
     </div>
   <?php endif; ?>
 
+  <?php if ($search_text_html): ?>
+    <div class="uk-width-3-10">
+      <?php print $search_text_html; ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($transaction_type_html): ?>
     <div class="uk-width-2-10">
       <?php print $transaction_type_html; ?>
     </div>
   <?php endif; ?>
 
-  <?php if ($search_text_html): ?>
-    <div class="uk-width-3-10">
-      <?php print $search_text_html; ?>
+  <?php if ($status_html): ?>
+    <div class="uk-width-1-10">
+      <?php print $status_html; ?>
     </div>
   <?php endif; ?>
 

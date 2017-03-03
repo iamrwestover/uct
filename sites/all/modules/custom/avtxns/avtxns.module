@@ -342,6 +342,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $filter_form_settings = array(
       //'avcat_agent.title' => array('#access' => TRUE),
       'avtxn.transaction_type' => array('#access' => TRUE),
+      'avtxn.status' => array('#access' => TRUE),
     );
     $form['transaction_list_filter'] = avtxns_txn_list_filter_form(NULL, $form_state, $filter_form_settings);
     $form['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'search agent, customer, vendor';
@@ -354,6 +355,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //  $client_header = 'Customer';
   //}
   $header = array(
+    //'status' => array('data' => '&nbsp;', 'style' => 'width: 65px;'),
     'transaction_id' => array('data' => '#', 'field' => 'avtxn.id'),
     'date' => array('data' => 'Date', 'field' => 'avtxn.transaction_date'),
     'transaction_type' => array('data' => 'Type', 'field' => 'avtxn.transaction_type'),
@@ -411,16 +413,29 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   foreach ($transactions as $row) {
     $sd = avtxns_txn_status_details($row->status);
     $row_class = '';
-    $status_text = '';
+    $badge_html = '';
+    $badge_class = '';
+    $badge_icon_html = '';
+    $badge_icon = '';
     switch ($row->status) {
       case AVTXNS_TXN_STATUS_PENDING:
         $row_class = 'uk-alert-warning';
-        $status_text = empty($sd['title']) ? '' : ('<span class="uk-badge uk-badge-warning uk-margin-small-right" style="position: relative; top: -2px;">' . strtoupper($sd['title']) . '</span>');
+        $badge_class = 'uk-badge-warning';
+        $badge_icon = 'minus-circle';
         break;
       case AVTXNS_TXN_STATUS_VOID:
         $row_class = 'uk-row-mute';
-        $status_text = empty($sd['title']) ? '' : ('<span class="uk-badge uk-badge-danger uk-margin-small-right" style="position: relative; top: -2px;">' . strtoupper($sd['title']) . '</span>');
+        $badge_class = 'uk-badge-danger uk-badge-void';
+        $badge_icon = 'minus-circle';
         break;
+      case AVTXNS_TXN_STATUS_CLOSED:
+        $badge_class = 'uk-badge-success';
+        $badge_icon = 'lock';
+        break;
+    }
+    if (!empty($badge_class)) {
+      $badge_icon_html = '<i class="uk-icon-justify uk-icon-' . $badge_icon . '"></i>';
+      $badge_html = empty($sd['title']) ? '' : ('<span title="' . $sd['title'] . '" class="uk-badge ' . $badge_class . ' uk-margin-small-right" style="position: relative; top: -2px;">' . $badge_icon_html . '</span>');
     }
 
 
@@ -428,9 +443,10 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $view_path = "{$transaction_type['base_path']}/$row->id/view";
     $rows[$row->id] = array(
       'data' => array(
+        //'status' => $badge_html,
         'transaction_id' => l($row->id, $view_path),
         'date' => l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
-        'transaction_type' => $status_text . l($transaction_type['name'], $view_path),
+        'transaction_type' => $badge_html . l($transaction_type['name'], $view_path),
         'client_name' => /*$rows[$index]['data'][] =*/ check_plain($row->display_name),
         'agent_name' => check_plain($row->agent_name),
       ),
@@ -573,7 +589,19 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     '#type' => 'select',
     '#options' => avtxns_txn_types_options_array(),
     '#empty_value' => '',
-    '#empty_option' => '- Transaction type -',
+    '#empty_option' => '- transaction type -',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+    '#access' => FALSE,
+  );
+
+  $fields['avtxn.status'] = empty($settings['avtxn.status']) ? array() : $settings['avtxn.status'];
+  $fields['avtxn.status'] += array(
+    '#type' => 'select',
+    '#options' => avtxns_txn_status_options_array(),
+    '#empty_value' => '',
+    '#empty_option' => '- status -',
     '#attributes' => array(
       'class' => array('trigger-ajax-search'),
     ),

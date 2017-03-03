@@ -112,9 +112,20 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   // Transaction status.
   if (isset($row->status) && $row->status != AVTXNS_TXN_STATUS_OPEN) {
     $tsd = avtxns_txn_status_details($row->status);
-    $badge_color = $row->status == AVTXNS_TXN_STATUS_PENDING ? 'uk-badge-warning' : 'uk-badge-danger';
-    $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">' . strtoupper($tsd['title']) . '</span>&nbsp;';
-    $form['#attributes']['class'][] = 'not-printable';
+    $badge_color = 'uk-badge-success';
+    $icon_html = '';
+    switch ($row->status) {
+      case AVTXNS_TXN_STATUS_PENDING:
+        $badge_color = 'uk-badge-warning';
+        break;
+      case AVTXNS_TXN_STATUS_VOID:
+        $badge_color = 'uk-badge-danger uk-badge-void';
+        break;
+    }
+    $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">&nbsp;' . $icon_html . strtoupper($tsd['title']) . '&nbsp;</span>&nbsp;';
+    if ($row->status != AVTXNS_TXN_STATUS_CLOSED) {
+      $form['#attributes']['class'][] = 'not-printable';
+    }
     //$page_title .= ' - ' . strtoupper($tsd['title']);
   }
 
@@ -238,7 +249,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#markup' => l('Void transaction', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_VOID, array(
         'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right'),
         'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
-        'icon_key' => 'ban',
+        'icon_key' => 'minus-circle',
         'icon_classes' => array('uk-margin-small-right'),
       )),
       '#visible_in_view_mode' => TRUE,

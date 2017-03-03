@@ -513,6 +513,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost'], 2) : '',
     );
 
+    $max_discount_html = '';
+    if (!empty($prod_row['discount_over_limit'])) {
+      $max_discount_html = '<br /><div class="uk-text-small">' . ($view_mode ? 'Limit: ' : '') . '<em>' . $prod_row['max_discount_text'] . '</em></div>';
+    }
     $fields['discount'] = array(
       '#id' => 'product-discount-' . $prod_key,
       '#item_row_key' => $prod_key,
@@ -528,6 +532,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       '#default_value' => isset($prod_row['discount_text']) ? $prod_row['discount_text'] : '',
       '#dont_require' => TRUE,
       //'#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN)),
+      '#field_suffix' => $max_discount_html,
     );
 
     $fields['total'] = array(
