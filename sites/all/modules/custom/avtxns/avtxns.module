@@ -361,6 +361,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     'transaction_type' => array('data' => 'Type', 'field' => 'avtxn.transaction_type'),
     'client_name' => array('data' => $client_header, 'field' => 'avclients.display_name'),
     'agent_name' => array('data' => 'Agent', 'field' => 'avcat_agent.title'),
+    'created_by' => array('data' => 'Created by', 'field' => 'u.name'),
   );
 
   if (!empty($options['#hide_filter_form'])) {
@@ -438,7 +439,12 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
       $badge_html = empty($sd['title']) ? '' : ('<span title="' . $sd['title'] . '" class="uk-badge ' . $badge_class . ' uk-margin-small-right" style="position: relative; top: -2px;">' . $badge_icon_html . '</span>');
     }
 
-
+    $created_by_user = array(
+      'account' => (object) array('name' => $row->name, 'uid' => $row->uid),
+    );
+    if ($row->uid) {
+      $created_by_user['link_path'] = "user/{$row->uid}";
+    }
     $transaction_type = avtxns_txn_types($row->transaction_type);
     $view_path = "{$transaction_type['base_path']}/$row->id/view";
     $rows[$row->id] = array(
@@ -449,6 +455,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
         'transaction_type' => $badge_html . l($transaction_type['name'], $view_path),
         'client_name' => /*$rows[$index]['data'][] =*/ check_plain($row->display_name),
         'agent_name' => check_plain($row->agent_name),
+        'created_by' => $row->uid ? theme('username', $created_by_user) : '',
       ),
       'class' => array($row_class),
     );
