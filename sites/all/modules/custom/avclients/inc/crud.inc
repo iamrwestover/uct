@@ -61,33 +61,47 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', $ctd['base_path'] , array('attributes' => array('class' => array('uk-button')))),
   );
-  if (!empty($row->id) && $row->client_type == AVCLIENT_TYPE_CUSTOMER) {
-    if ($row->status != AVCLIENT_STATUS_SUSPENDED) {
-      $form['buttons']['suspend'] = array(
-        '#markup' => l('Suspend', $ctd['base_path'] . '/' . $row->id . '/2/change-status', array(
-          'attributes' => array('class' => 'uk-button'),
-          'query' => array('destination' => $ctd['base_path']),
-        )),
-        '#avposition' => 'opposite',
-      );
-    }
-    else {
-      $form_prefix = empty($form['#prefix']) ? '' : $form['#prefix'];
-      $form_prefix = '<div class="uk-alert uk-alert-warning"><span class="uk-badge uk-badge-warning" style="position: absolute;top:10px;left:10px;">Suspended Account</span>' . $form_prefix;
-      $form['#prefix'] = $form_prefix;
-      $form_suffix = empty($form['#suffix']) ? '' : $form['#suffix'];
-      $form_suffix .= '</div>';
-      $form['#suffix'] = $form_suffix;
-      //drupal_set_message('This account is currently suspended.', 'error', FALSE);
-      $form['buttons']['activate'] = array(
-        '#markup' => l('Activate', $ctd['base_path'] . '/' . $row->id . '/1/change-status', array(
-          'attributes' => array('class' => 'uk-button uk-button-primary'),
-          'query' => array('destination' => $ctd['base_path']),
-        )),
-        '#avposition' => 'opposite',
-      );
-    }
+  if (!empty($row->id) && $row->status != AVCLIENT_STATUS_ACTIVE) {
+    $csd = avclients_client_status_details($row->status);
+    $form_prefix = empty($form['#prefix']) ? '' : $form['#prefix'];
+    $form_prefix = '<div class="uk-alert ' . $csd['color_class'] . '"><span class="uk-badge ' . $csd['badge_class'] . '" style="position: absolute;top:10px;left:10px;">' . $csd['title'] . ' Account</span>' . $form_prefix;
+    $form['#prefix'] = $form_prefix;
+    $form_suffix = empty($form['#suffix']) ? '' : $form['#suffix'];
+    $form_suffix .= '</div>';
+    $form['#suffix'] = $form_suffix;
   }
+
+  $can_change_status = constant('AVCLIENTS_PERM_CHANGE_STATUS_' . $ctd['type']);
+  $form['buttons']['suspend'] = array(
+    '#markup' => l('Suspend', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_SUSPENDED . "/change-status", array(
+      'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right'),
+      'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
+      'icon_key' => 'minus-circle',
+      'icon_classes' => array('uk-margin-small-right'),
+    )),
+    '#avposition' => 'opposite',
+    '#access' => $can_change_status && $view_mode && $client_type == AVCLIENT_TYPE_CUSTOMER && isset($row->status) && $row->status != AVCLIENT_STATUS_SUSPENDED,
+  );
+  $form['buttons']['activate'] = array(
+    '#markup' => l('Enable', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_ACTIVE . "/change-status", array(
+      'attributes' => array('class' => 'uk-button uk-button-primary uk-margin-small-right'),
+      'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
+      'icon_key' => 'check',
+      'icon_classes' => array('uk-margin-small-right'),
+    )),
+    '#avposition' => 'opposite',
+    '#access' => $can_change_status && $view_mode && isset($row->status) && $row->status != AVCLIENT_STATUS_ACTIVE,
+  );
+  $form['buttons']['disable'] = array(
+    '#markup' => l('Disable', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_DISABLED . "/change-status", array(
+      'attributes' => array('class' => 'uk-button uk-margin-small-right'),
+      'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
+      'icon_key' => 'ban',
+      'icon_classes' => array('uk-margin-small-right'),
+    )),
+    '#avposition' => 'opposite',
+    '#access' => $can_change_status && $view_mode && isset($row->status) && $row->status == AVCLIENT_STATUS_ACTIVE,
+  );
 
   // Convert form to non-edit mode if we are on View page.
   avbase_allow_form_view_mode($form, $view_mode);
@@ -452,7 +466,7 @@ function avclients_client_change_status_confirm_form($form, &$form_state, $row, 
       $prompt = 'Are you sure you want to suspend this client\'s account?';
       break;
     case AVCLIENT_STATUS_ACTIVE:
-      $prompt = 'Are you sure you want to activate this client\'s account?';
+      $prompt = 'Are you sure you want to enable this client\'s account?';
       break;
     default:
       $prompt = 'Are you sure?';
@@ -487,7 +501,7 @@ function avclients_client_change_status_confirm_form_submit($form, &$form_state)
           //drupal_set_message('Client\'s account has been suspended.');
           break;
         case AVCLIENT_STATUS_ACTIVE:
-          drupal_set_message('Client\'s account has been activated.');
+          drupal_set_message('Client\'s account has been enabled.');
           break;
         default:
           break;

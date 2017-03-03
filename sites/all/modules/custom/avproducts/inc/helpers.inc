@@ -218,6 +218,8 @@ function avproducts_autocomplete($string = '') {
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where = array($where_or_str);
     $args = array(':string' => '%' . db_like($string) . '%');
+    $where[] = 'avprod.status = :active_status';
+    $args[':active_status'] = AVPRODUCTS_STATUS_ACTIVE;
     $rows = avproduct_query_load($where, $args, '8');
     foreach ($rows as $row) {
       $code = check_plain($row->code);
@@ -294,4 +296,56 @@ function avproducts_table_fields_to_save($db_op = 'insert') {
     unset($fields['initial_qty_date']);
   }
   return $fields;
+}
+
+/**
+ * Product status details.
+ * @param null $status
+ *
+ * @return null
+ */
+function avproducts_product_status_details($status = NULL) {
+  $ret = &drupal_static(__FUNCTION__, array());
+  if (empty($ret)) {
+    $ret[AVCLIENT_STATUS_ACTIVE] = array(
+      'status' => AVCLIENT_STATUS_ACTIVE,
+      'title' => 'Active',
+    );
+    $ret[AVCLIENT_STATUS_DISABLED] = array(
+      'status' => AVCLIENT_STATUS_DISABLED,
+      'title' => 'Disabled',
+      'color_class' => 'uk-alert-mute',
+      'badge_class' => 'uk-badge-void',
+    );
+  }
+
+  if (isset($ret[$status])) {
+    return $ret[$status];
+  }
+  elseif (is_null($status)) {
+    return $ret;
+  }
+  return NULL;
+}
+
+/**
+ * Change product status.
+ * @param $id
+ * @param $status
+ *
+ * @return bool
+ */
+function avproducts_product_change_status($id, $status) {
+  if (empty($id) || !is_numeric($id)) {
+    return FALSE;
+  }
+  if (!array_key_exists($status, avproducts_product_status_details())) {
+    return FALSE;
+  }
+
+  if (db_query("UPDATE {avtbl_products} SET status = :status WHERE id = :product_id", array(':product_id' => $id, ':status' => $status))) {
+    avbase_custom_watchdog("product__status_change", "ID: {$id}", array('#status' => $status));
+    return TRUE;
+  }
+  return FALSE;
 }

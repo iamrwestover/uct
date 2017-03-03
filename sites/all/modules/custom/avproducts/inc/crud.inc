@@ -56,6 +56,43 @@ function avproducts_product_form($form, &$form_state, $row, $view_mode = FALSE) 
     '#markup' => l('Cancel', 'av/products'),
   );
 
+  // Status buttons.
+  if ($view_mode && !empty($row->id)) {
+    $rsd = avproducts_product_status_details($row->status);
+    $can_change_status = user_access(AVPRODUCTS_PERM_CHANGE_STATUS);
+    $form['buttons']['activate'] = array(
+      '#markup' => l('Enable', "av/products/{$row->id}/" . AVPRODUCTS_STATUS_ACTIVE . "/change-status", array(
+        'attributes' => array('class' => 'uk-button uk-button-primary uk-margin-small-right'),
+        'query' => array('destination' => 'av/products/' . $row->id . '/view'),
+        'icon_key' => 'check',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#avposition' => 'opposite',
+      '#access' => $can_change_status && $row->status != AVPRODUCTS_STATUS_ACTIVE,
+    );
+    $form['buttons']['disable'] = array(
+      '#markup' => l('Disable', "av/products/{$row->id}/" . AVPRODUCTS_STATUS_DISABLED . "/change-status", array(
+        'attributes' => array('class' => 'uk-button uk-margin-small-right'),
+        'query' => array('destination' => 'av/products/' . $row->id . '/view'),
+        'icon_key' => 'ban',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#avposition' => 'opposite',
+      '#access' => $can_change_status && $row->status == AVPRODUCTS_STATUS_ACTIVE,
+    );
+
+    if ($row->status != AVPRODUCTS_STATUS_ACTIVE) {
+      $form_prefix = empty($form['#prefix']) ? '' : $form['#prefix'];
+      $form_prefix = '<div class="uk-alert ' . $rsd['color_class'] . '"><span class="uk-badge ' . $rsd['badge_class'] . '" style="position: absolute;top:10px;left:10px;">' . $rsd['title'] . '</span>' . $form_prefix;
+      $form['#prefix'] = $form_prefix;
+      $form_suffix = empty($form['#suffix']) ? '' : $form['#suffix'];
+      $form_suffix .= '</div>';
+      $form['#suffix'] = $form_suffix;
+    }
+  }
+
+
+
   // Convert form to non-edit mode if we are on View page.
   avbase_allow_form_view_mode($form, $view_mode);
   return $form;
@@ -592,4 +629,60 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
       return $row;
       break;
   }
+}
+
+/**
+ * Menu callback: confirm product status change.
+ * @param $form
+ * @param $form_state
+ * @param object $row
+ * @param $status
+ *
+ * @return array
+ */
+function avproducts_product_change_status_confirm_form($form, &$form_state, $row, $status) {
+  switch ($status) {
+    case AVCLIENT_STATUS_DISABLED:
+      $prompt = 'Are you sure you want to disable this product?';
+      break;
+    case AVCLIENT_STATUS_ACTIVE:
+      $prompt = 'Are you sure you want to enable this product?';
+      break;
+    default:
+      $prompt = 'Are you sure?';
+      break;
+  }
+
+  $display_name = check_plain($row->title);
+  $description = <<<HTML
+  <h1 class="uk-article-title">$display_name</h1>
+HTML;
+  $form_state['row'] = $row;
+  $form_state['status'] = $status;
+  return confirm_form(array(), $prompt, '', $description);
+}
+
+/**
+ * Handler for product status change.
+ *
+ * @see avproducts_product_change_status_confirm_form()
+ */
+function avproducts_product_change_status_confirm_form_submit($form, &$form_state) {
+  if (isset($form_state['row']->id)) {
+    $status = isset($form_state['status']) ? $form_state['status'] : '';
+    if (avproducts_product_change_status($form_state['row']->id, $status)) {
+
+      switch ($status) {
+        case AVCLIENT_STATUS_DISABLED:
+          //drupal_set_message('Client\'s account has been disabled.');
+          break;
+        case AVCLIENT_STATUS_ACTIVE:
+          drupal_set_message('Product has been enabled.');
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  $form_state['redirect'] = '';
 }

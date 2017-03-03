@@ -44,6 +44,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       'entity_group' => 'clients',
     ),
   );
+  if (!empty($row->id) && $view_mode && $row->client_status != AVCLIENT_STATUS_ACTIVE) {
+    $csd = avclients_client_status_details($row->client_status);
+    $form['client_name']['#field_suffix'] = '<em class="uk-margin-small-left">[ACCOUNT IS ' . strtoupper($csd['title']) . ']</em>';
+  }
   $form['client_address_string'] = array(
     '#id' => 'client-address',
     '#type' => 'textarea',

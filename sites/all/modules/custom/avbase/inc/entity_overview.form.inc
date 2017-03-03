@@ -84,7 +84,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
   }
 
   $ctd = avclients_client_types($entity_type);
-  $result = avclient_query_load($where, $args, '12');
+  $result = avclient_query_load($where, $args, '10');
   $menu_path = $ctd['base_path'];
 
   $action_links_all = array();
@@ -100,20 +100,21 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
     $rows[$index] = array(
       'data' => array(
         'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
-        'display_name' => $linked_name . '<span class="uk-text-muted"> / ' . check_plain($row->company) .  '</span>',
+        'display_name' => $linked_name . '<div class="uk-text-muted uk-text-small">' . nl2br($row->address_string) .  '</div>',
       ),
       'class' => array('uk-table-middle'),
       'data-entity-id' => $row->id,
     );
-    if ($status == AVCLIENT_STATUS_SUSPENDED) {
-      $rows[$index]['class'][] = 'suk-alert uk-alert-warning';
-    }
+
+    $csd = avclients_client_status_details($status);
+    $color_class = empty($csd['color_class']) ? '' : $csd['color_class'];
+    $rows[$index]['class'][] = $color_class;
     $loaded_entities[] = $row;
   }
 
   $table_attributes = array(
     'id' => "entity-list-table",
-    'class' => array('uk-margin-top', 'uk-table-hover'),
+    'class' => array('uk-margin-top uk-table-condensed uk-table-hover'),
   );
   if (empty($rows)) {
     $table_markup = '<div class="uk-margin-top uk-text-muted">No match found</div>';

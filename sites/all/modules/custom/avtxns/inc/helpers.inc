@@ -114,6 +114,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query->addField('avclients', 'city');
   $query->addField('avclients', 'province');
   $query->addField('avclients', 'zip_code');
+  $query->addField('avclients', 'status', 'client_status');
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->addField('avcat_terms', 'title', 'term_name');
   $query->addField('avcat_terms', 'data', 'term_data');

@@ -248,12 +248,20 @@ table tr.selected {
 }
 table tr.uk-row-mute {
   background: #f4f4f4;
-  color: #aaa;
+  color: #ccc;
 }
 table tr.uk-row-mute a {
-  color: #aaa;
+  color: #ccc;
 }
 table tr.uk-alert-danger,
 table tr.uk-alert-warning {
   color: inherit;
+}
+
+.uk-alert-mute {
+  background-color: #fafafa;
+  color: #ccc;
+}
+.uk-alert-mute a {
+  color: #ccc;
 }

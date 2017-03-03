@@ -23,6 +23,7 @@ foreach ($ctds as $ctd) {
   define('AVCLIENTS_PERM_CREATE_' . $ctd['type'], 'avbase create client_' . $ctd['type']);
   define('AVCLIENTS_PERM_EDIT_' . $ctd['type'], 'avbase edit client_' . $ctd['type']);
   define('AVCLIENTS_PERM_VIEW_' . $ctd['type'], 'avbase view client_' . $ctd['type']);
+  define('AVCLIENTS_PERM_CHANGE_STATUS_' . $ctd['type'], 'avbase change status client_' . $ctd['type']);
 }
 
 /**
@@ -79,11 +80,11 @@ function avclients_menu() {
     //  'weight' => 2,
     //);
     $items["{$v['base_path']}/%avclient/%/change-status"] = array(
-      'title' => 'Suspend',
+      'title' => 'Status change',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('avclients_client_change_status_confirm_form', 2, 3),
-      'access arguments' => array(constant("AVCLIENTS_PERM_EDIT_{$v_type}")),
-      //'type' => MENU_LOCAL_TASK,
+      'access arguments' => array(constant("AVCLIENTS_PERM_CHANGE_STATUS_{$v_type}")),
+      'type' => MENU_CALLBACK,
       'file' => 'inc/crud.inc',
     );
   }
@@ -114,6 +115,9 @@ function avclients_permission() {
     );
     $permissions[constant('AVCLIENTS_PERM_VIEW_' . $ctd['type'])] = array(
       'title' => t('@ctdname - VIEW', array('@ctdname' => $ctd_name)),
+    );
+    $permissions[constant('AVCLIENTS_PERM_CHANGE_STATUS_' . $ctd['type'])] = array(
+      'title' => t('@ctdname - CHANGE STATUS', array('@ctdname' => $ctd_name)),
     );
   }
   return $permissions;

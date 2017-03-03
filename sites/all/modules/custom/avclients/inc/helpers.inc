@@ -282,3 +282,39 @@ function avclients_address_string_format($client) {
   $address_string = implode("\n", $address_details);
   return $address_string;
 }
+
+/**
+ * Client status details.
+ * @param null $status
+ *
+ * @return null
+ */
+function avclients_client_status_details($status = NULL) {
+  $ret = &drupal_static(__FUNCTION__, array());
+  if (empty($ret)) {
+    $ret[AVCLIENT_STATUS_ACTIVE] = array(
+      'status' => AVCLIENT_STATUS_ACTIVE,
+      'title' => 'Active',
+    );
+    $ret[AVCLIENT_STATUS_SUSPENDED] = array(
+      'status' => AVCLIENT_STATUS_SUSPENDED,
+      'title' => 'Suspended',
+      'color_class' => 'uk-alert-danger',
+      'badge_class' => 'uk-badge-danger',
+    );
+    $ret[AVCLIENT_STATUS_DISABLED] = array(
+      'status' => AVCLIENT_STATUS_DISABLED,
+      'title' => 'Disabled',
+      'color_class' => 'uk-alert-mute',
+      'badge_class' => 'uk-badge-void',
+    );
+  }
+
+  if (isset($ret[$status])) {
+    return $ret[$status];
+  }
+  elseif (is_null($status)) {
+    return $ret;
+  }
+  return NULL;
+}
