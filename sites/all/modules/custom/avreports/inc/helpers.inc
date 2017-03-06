@@ -56,6 +56,12 @@ function avreports_client_balance_aging_form($client_id) {
       $balance_ages_form[$k]['#title'] = t('@from++ days', array('@from' => $k - $term_days));
     }
   }
-  $balance_ages_form['#total_balance'] = number_format($total_balance, 2);
+
+  $credit_limit = empty($client->credit_limit) ? 0 : $client->credit_limit;
+  $balance_ages_form['#total_balance'] = $total_balance;
+  $balance_ages_form['#credit_limit'] = $credit_limit;
+  $balance_ages_form['#limit_reached'] = round($total_balance, 2) >= round($credit_limit, 2);
+  $balance_ages_form['#client_type'] = $client->client_type;
+  $balance_ages_form['#client_status'] = $client->status;
   return $balance_ages_form;
 }

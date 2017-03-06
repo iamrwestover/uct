@@ -70,34 +70,37 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         $item_row['transaction_id'] = $row['id'];
 
         // Initialize variables.
-        $item_id = $item_row['item_id'] = $item_row['product_id'];
-        $item_ids[] = $item_id;
-        $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = 0;
-        $discount_updates['discount1'][$item_id] = $discount_updates['discount2'][$item_id] = $discount_updates['discount3'][$item_id] = $discount_updates['discount4'][$item_id] = 0;
+        $transaction_detail_id = NULL;
         $insert_arr = $update_arr = array();
-
+        $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = 0;
         // Overwrite paid amount.
         if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
           $item_row['paid_amount'] = $item_row['total'];
         }
 
-        // Explode discount text to discount array.
-        $discount_text = isset($item_row['discount']) ? trim($item_row['discount']) : '';
-        $discount_parts = explode('/', $discount_text);
-        $x = 1;
-        foreach ($discount_parts as $k => $v) {
-          if (!is_numeric($v)) {
-            continue;
-          }
-          $discount_field_name = 'discount' . $x++;
-          $item_row[$discount_field_name] = (float) $v;
-          $discount_updates[$discount_field_name][$item_id] = $item_row[$discount_field_name];
-        }
+        if (isset($item_row['product_id'])) {
+          $item_id = $item_row['item_id'] = $item_row['product_id'];
+          $item_ids[] = $item_id;
+          $discount_updates['discount1'][$item_id] = $discount_updates['discount2'][$item_id] = $discount_updates['discount3'][$item_id] = $discount_updates['discount4'][$item_id] = 0;
 
-        // Remember transaction detail id to know which rows to insert/update.
-        $transaction_detail_id = empty($item_row['id']) ? 0 : $item_row['id'];
-        if (!empty($transaction_detail_id)) {
-          $transaction_detail_ids[] = $transaction_detail_id;
+          // Explode discount text to discount array.
+          $discount_text = isset($item_row['discount']) ? trim($item_row['discount']) : '';
+          $discount_parts = explode('/', $discount_text);
+          $x = 1;
+          foreach ($discount_parts as $k => $v) {
+            if (!is_numeric($v)) {
+              continue;
+            }
+            $discount_field_name = 'discount' . $x++;
+            $item_row[$discount_field_name] = (float)$v;
+            $discount_updates[$discount_field_name][$item_id] = $item_row[$discount_field_name];
+          }
+
+          // Remember transaction detail id to know which rows to insert/update.
+          $transaction_detail_id = empty($item_row['id']) ? 0 : $item_row['id'];
+          if (!empty($transaction_detail_id)) {
+            $transaction_detail_ids[] = $transaction_detail_id;
+          }
         }
 
         // Build insert and update array.
@@ -221,14 +224,29 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       }
 
       $now = time();
+      // Close transaction ids.
       if (!empty($close_transaction_ids) && $transaction_type != AVTXNS_TXN_TYPE_SALES_RETURN) {
-        //if ($transaction_type != 'spay') {
-        //  foreach ($close_transaction_ids as $ttype => $tids) {
-            if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => $close_transaction_ids, ':changed' => $now))) {
-              avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => $close_transaction_ids, '#manner' => 'transaction-auto'));
-            }
-          //}
-        //}
+        if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => $close_transaction_ids, ':changed' => $now))) {
+          avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => $close_transaction_ids, '#manner' => 'transaction-auto'));
+        }
+      }
+
+      // Suspend/re-activate customer if necessary.
+      if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+        $balance_ages_form = avreports_client_balance_aging_form($row['client_id']);
+        if ($balance_ages_form['#client_status'] != AVCLIENT_STATUS_SUSPENDED && !empty($balance_ages_form['#limit_reached']) && $balance_ages_form['#client_type'] == AVCLIENT_TYPE_CUSTOMER) {
+          if (avclients_client_change_status($row['client_id'], AVCLIENT_STATUS_SUSPENDED)) {
+            drupal_set_message(t('Client\'s @credit_limit credit limit has been reached. Account has been suspended.', array('@credit_limit' => number_format($balance_ages_form['#credit_limit'], 2))), 'warning');
+          }
+        }
+      }
+      elseif ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+        $balance_ages_form = avreports_client_balance_aging_form($row['client_id']);
+        if ($balance_ages_form['#client_status'] != AVCLIENT_STATUS_ACTIVE && empty($balance_ages_form['#limit_reached']) && $balance_ages_form['#client_type'] == AVCLIENT_TYPE_CUSTOMER) {
+          if (avclients_client_change_status($row['client_id'], AVCLIENT_STATUS_ACTIVE)) {
+            drupal_set_message(t('Account has been reactivated.'));
+          }
+        }
       }
       break;
   }

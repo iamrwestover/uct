@@ -148,10 +148,12 @@ function avclients_client_delete($id) {
  * Change client status.
  * @param $id
  * @param $status
+ * @param $where
+ * @param $more_args
  *
  * @return bool
  */
-function avclients_client_change_status($id, $status) {
+function avclients_client_change_status($id, $status, $where = array(), $more_args = array()) {
   if (empty($id) || !is_numeric($id)) {
     return FALSE;
   }
@@ -159,7 +161,13 @@ function avclients_client_change_status($id, $status) {
     return FALSE;
   }
 
-  if (db_query("UPDATE {avtbl_clients} SET status = :status WHERE id = :client_id", array(':client_id' => $id, ':status' => $status))) {
+  $query = "UPDATE {avtbl_clients} SET status = :status WHERE id = :client_id";
+  $args = array(':client_id' => $id, ':status' => $status);
+  if (!empty($where)) {
+    $query .= ' AND ' . implode(' AND ', $where);
+  }
+  $args = array_merge($args, $more_args);
+  if (db_query($query, $args)) {
     avbase_custom_watchdog("client__status_change", "ID: {$id}", array('#status' => $status));
     return TRUE;
   }
@@ -182,7 +190,7 @@ function avclients_statuses() {
  * @param $client_type
  * @param string $string
  */
-function avclients_autocomplete($client_type, $string = '') {
+function avclients_autocomplete($client_type, $status_string, $string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
@@ -205,8 +213,10 @@ function avclients_autocomplete($client_type, $string = '') {
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where = array($where_or_str, 'avclients.client_type = :client_type');
     $args = array(':string' => '%' . db_like($string) . '%', ':client_type' => $client_type);
-    $where[] = 'avclients.status = :active_status';
-    $args[':active_status'] = AVCLIENT_STATUS_ACTIVE;
+    $statuses = explode('-', $status_string);
+    $where[] = 'avclients.status IN(:client_status)';
+    $args[':client_status'] = $statuses;
+
     $rows = avclient_query_load($where, $args, '8');
     foreach ($rows as $row) {
       $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . $row->address_string .  '</div>';

@@ -26,6 +26,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   if (empty($view_mode)) {
     $form['#attached']['js'][] = AVTXNS_MODULE_PATH . '/js/item_list.form.js';
   }
+
+  $client_status_string = isset($ttd['client_statuses']) ? implode('-', $ttd['client_statuses']) : AVCLIENT_STATUS_ACTIVE;
   $form['client_name'] = array(
     '#type' => 'textfield',
     '#maxlength' => 255,
@@ -39,7 +41,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'placeholder' => $ttd['ctd']['name'],
     ),
     '#element_save_id' => 'client_id',
-    '#autocomplete_path' => "av/clients/autocomplete/{$ttd['ctd']['type']}",
+    '#autocomplete_path' => "av/clients/autocomplete/{$ttd['ctd']['type']}/$client_status_string",
     '#avbase_autocomplete' => array(
       'entity_group' => 'clients',
     ),

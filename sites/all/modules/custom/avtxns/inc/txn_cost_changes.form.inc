@@ -163,6 +163,10 @@ function avtxns_cost_changes_form_fields(&$form, &$form_state, $transaction_type
  * @param array $transaction_type
  */
 function avtxns_cost_changes_db_update($form_state, $row, $product_ids, $transaction_type) {
+  if (empty($product_ids)) {
+    return;
+  }
+
   // Get form storage.
   //$form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   //$_storage = &$form_state['storage'];

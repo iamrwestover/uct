@@ -35,6 +35,7 @@ $view_mode = !empty($form['#av_view_mode']);
 
 $transactions_html = drupal_render($form['transactions']);
 $payment_method_html = drupal_render($form['payment']['payment_method_id']);
+$balance_ages_html = drupal_render($form['payment']['balance_ages']);
 $area_html = drupal_render($form['info']['area_id']);
 $website_html = drupal_render($form['contact']['website']);
 ?>
@@ -136,6 +137,10 @@ $website_html = drupal_render($form['contact']['website']);
               <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['payment']['credit_limit']); ?></div>
             </div>
           </div>
+
+          <?php if ($balance_ages_html): ?>
+            <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print $balance_ages_html; ?></div>
+          <?php endif; ?>
         </div>
       </li>
     </ul>

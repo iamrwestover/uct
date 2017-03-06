@@ -409,6 +409,11 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
   if (!empty($row->id)) {
     $payment['opening_balance']['#disabled'] = TRUE;
   }
+
+  // Balance ages.
+  if ($row->client_type == AVCLIENT_TYPE_CUSTOMER) {
+    $payment['balance_ages'] = avreports_client_balance_aging_form($row->id);
+  }
   $form['payment'] += $payment;
 }
 
