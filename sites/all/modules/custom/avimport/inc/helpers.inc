@@ -15,10 +15,11 @@ function avimport_get_valid_headers($type) {
       $required['TITLE'] = 'title';
       $required['INITIAL QTY'] = 'initial_qty';
       $required['BASE UOM'] = 'uom_title';
-      $required['ROP'] = 'rop';
-      $required['EOQ'] = 'eoq';
+
 
       // Optional.
+      $optional['ROP'] = 'rop';
+      $optional['EOQ'] = 'eoq';
       $optional['CODE'] = 'code';
       $optional['COST'] = 'cost';
       $optional['SALES PRICE'] = 'price';
@@ -27,10 +28,14 @@ function avimport_get_valid_headers($type) {
       $optional['UOM 1 QTY'] = 'uom_1_qty';
       $optional['UOM 2'] = 'uom_2_title';
       $optional['UOM 2 QTY'] = 'uom_2_qty';
+      $optional['UOM 3'] = 'uom_3_title';
+      $optional['UOM 3 QTY'] = 'uom_3_qty';
       $optional['EXPIRY DATE'] = 'expiry_date';
       $optional['LOT NO'] = 'lot_no';
       $optional['SHELF LOCATION'] = 'shelf_title';
+      $optional['DISCOUNT'] = 'discount';
       $optional['PRINCIPAL'] = 'principal_title';
+      $optional['PREFERRED VENDOR'] = 'preferred_vendor';
       break;
     case 'vendors':
       // Required.
@@ -136,7 +141,8 @@ function avimport_db_insert_products_row($excel_row) {
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'products');
 
   // Check if product title already exists.
-  if (db_query('SELECT id FROM {avtbl_products} WHERE title = :title OR code = :code', array(':title' => $insert_row['title'], ':code' => $insert_row['code']))->fetchField()) {
+  $item_code = isset($insert_row['code']) ? $insert_row['code'] : '-~-';
+  if (db_query('SELECT id FROM {avtbl_products} WHERE title = :title OR code = :code', array(':title' => $insert_row['title'], ':code' => $item_code))->fetchField()) {
     return t('Product with same title and/or code already exists.');
   }
 
@@ -156,6 +162,30 @@ function avimport_db_insert_products_row($excel_row) {
   $title = empty($excel_row['PRINCIPAL']) ? '' : trim($excel_row['PRINCIPAL']);
   if (!empty($title)) {
     $insert_row['principal_id'] = avbase_get_category_id_by_title($title, 'principal', TRUE);
+  }
+
+  $title = empty($excel_row['PREFERRED VENDOR']) ? '' : trim($excel_row['PREFERRED VENDOR']);
+  if (!empty($title)) {
+    $preferred_vendor_id = db_query('SELECT id FROM {avtbl_clients} WHERE display_name = :title', array(':title' => $title))->fetchField();
+    $insert_row['vendor_id'] = empty($preferred_vendor_id) ? NULL : $preferred_vendor_id;
+  }
+
+  $title = empty($excel_row['DISCOUNT']) ? '' : trim($excel_row['DISCOUNT']);
+  $title = str_replace('%', '', $title);
+  if (!empty($title) && is_numeric($title)) {
+    // Explode discount text to discount array.
+    $discount_text = $title;
+    $discount_parts = explode('/', $discount_text);
+    $x = 1;
+    foreach ($discount_parts as $k => $v) {
+      if (!is_numeric($v)) {
+        continue;
+      }
+      $dc = (float) $v;
+      if ($dc > 0) {
+        $insert_row['discount' . $x++] = $dc;
+      }
+    }
   }
 
   //$test_uoms = array(
@@ -191,17 +221,17 @@ function avimport_db_insert_products_row($excel_row) {
   }
 
   // Add created and initial qty date timestamp.
-  $insert_row['created'] = $insert_row['initial_qty_date'] = time();
+  $insert_row['created'] = $insert_row['initial_qty_date'] = $insert_row['changed'] = time();
   if (!empty($insert_row['expiry_date'])) {
     $insert_row['expiry_date'] = strtotime($insert_row['expiry_date']);
   }
   if (!empty($insert_row['data'])) {
     $insert_row['data'] = serialize($insert_row['data']);
   }
+  $insert_row['rop'] = isset($insert_row['rop']) ? (int) str_replace(',', '', $insert_row['rop']) : NULL;
+  $insert_row['eoq'] = isset($insert_row['eoq']) ? (int) str_replace(',', '', $insert_row['eoq']) : NULL;
   $insert_row['cost'] = (float) str_replace(',', '', $insert_row['cost']);
   $insert_row['price'] = (float) str_replace(',', '', $insert_row['price']);
-  $insert_row['rop'] = (int) str_replace(',', '', $insert_row['rop']);
-  $insert_row['eoq'] = (int) str_replace(',', '', $insert_row['eoq']);
   $insert_row['initial_qty'] = (int) str_replace(',', '', $insert_row['initial_qty']);
   $insert_row['qty'] = $insert_row['initial_qty'];
 
@@ -319,10 +349,11 @@ function avimport_db_insert_clients_row($excel_row, $client_type) {
 
   // Build insert row.
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'clients', $client_type);
-  $ctd = avclients_client_types($client_type);
+  //$ctd = avclients_client_types($client_type);
   // Check if customer title already exists.
-  if (db_query('SELECT id FROM {avtbl_clients} WHERE display_name = :display_name', array(':display_name' => $insert_row['display_name']))->fetchField()) {
-    return t('@type with same name already exists.', array('@type' => $ctd['name']));
+  if ($same_name_count = db_query('SELECT COUNT(id) FROM {avtbl_clients} WHERE display_name LIKE :display_name', array(':display_name' => db_like($insert_row['display_name']) . '%'))->fetchField()) {
+    //return t('@type with same name already exists.', array('@type' => $ctd['name']));
+    $insert_row['display_name'] .= ' ' . ($same_name_count + 1);
   }
 
   $title = empty($excel_row['AGENT NAME']) ? '' : trim($excel_row['AGENT NAME']);

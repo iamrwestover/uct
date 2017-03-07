@@ -205,20 +205,27 @@ function avclients_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'uid' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
       'display_name' => array('display_name')
     ),
     'indexes' => array(
-      'client_type' => array('client_type'),
       'agent_id' => array('agent_id'),
       'area_id' => array('area_id'),
+      'client_type' => array('client_type'),
       'company' => array('company'),
       'first_name' => array('first_name'),
       'last_name' => array('last_name'),
       'status' => array('status'),
       'term_id' => array('term_id'),
+      'uid' => array('uid'),
     ),
   );
 

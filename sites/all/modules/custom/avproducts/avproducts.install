@@ -133,6 +133,38 @@ function avproducts_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'discount1' => array(
+        'description' => 'Discount 1',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'precision' => '4',
+        'scale' => '2',
+      ),
+      'discount2' => array(
+        'description' => 'Discount 2',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'precision' => '4',
+        'scale' => '2',
+      ),
+      'discount3' => array(
+        'description' => 'Discount 3',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'precision' => '4',
+        'scale' => '2',
+      ),
+      'discount4' => array(
+        'description' => 'Discount 4',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'precision' => '4',
+        'scale' => '2',
+      ),
       'data' => array(
         'description' => 'Miscellaneous product info',
         'type' => 'text',
@@ -142,6 +174,18 @@ function avproducts_schema() {
       'created' => array(
         'description' => 'Timestamp when the record is created',
         'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
         'not null' => TRUE,
       ),
     ),
@@ -155,6 +199,7 @@ function avproducts_schema() {
       'expiry_date' => array('expiry_date'),
       'status' => array('status'),
       'supplier_id' => array('vendor_id'),
+      'uid' => array('uid'),
     ),
   );
 
