@@ -362,7 +362,7 @@ function avreports_soa_form($form, &$form_state) {
     'avtxn.transaction_date' => array('#access' => FALSE),
     'date_to' => array('#default_value' => $today, '#access' => TRUE),
     'avclients.display_name' => array(
-      '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_CUSTOMER,
+      '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_STATUS_ACTIVE . '/' . AVCLIENT_TYPE_CUSTOMER,
       '#attributes' => array(
         'placeholder' => 'search customer',
         'class' => array('trigger-ajax-search'),

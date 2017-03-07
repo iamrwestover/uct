@@ -160,6 +160,9 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
  * @return array
  */
 function avbase_entity_overview_buttons_form(&$form_state, $row) {
+  if (empty($row->id)) {
+    return array();
+  }
   $entity_id = empty($row->id) ? '' : $row->id;
 
   $transaction_buttons = array();

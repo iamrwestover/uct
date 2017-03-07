@@ -293,7 +293,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#type' => 'textfield',
     '#title' => t('Preferred vendor'),
     '#maxlength' => 255,
-    '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_VENDOR,
+    '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_STATUS_ACTIVE . '/' . AVCLIENT_TYPE_VENDOR,
     '#element_validate' => array('avbase_element_validate_client_name_exists'),
     //'#table_name' => 'avtbl_vendors',
     '#default_value' => empty($row->vendor_name) ? '' : $row->vendor_name,

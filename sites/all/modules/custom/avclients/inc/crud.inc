@@ -71,37 +71,39 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     $form['#suffix'] = $form_suffix;
   }
 
-  $can_change_status = constant('AVCLIENTS_PERM_CHANGE_STATUS_' . $ctd['type']);
-  $form['buttons']['suspend'] = array(
-    '#markup' => l('Suspend', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_SUSPENDED . "/change-status", array(
-      'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right'),
-      'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
-      'icon_key' => 'minus-circle',
-      'icon_classes' => array('uk-margin-small-right'),
-    )),
-    '#avposition' => 'opposite',
-    '#access' => $can_change_status && $view_mode && $client_type == AVCLIENT_TYPE_CUSTOMER && isset($row->status) && $row->status != AVCLIENT_STATUS_SUSPENDED,
-  );
-  $form['buttons']['activate'] = array(
-    '#markup' => l('Enable', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_ACTIVE . "/change-status", array(
-      'attributes' => array('class' => 'uk-button uk-button-primary uk-margin-small-right'),
-      'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
-      'icon_key' => 'check',
-      'icon_classes' => array('uk-margin-small-right'),
-    )),
-    '#avposition' => 'opposite',
-    '#access' => $can_change_status && $view_mode && isset($row->status) && $row->status != AVCLIENT_STATUS_ACTIVE,
-  );
-  $form['buttons']['disable'] = array(
-    '#markup' => l('Disable', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_DISABLED . "/change-status", array(
-      'attributes' => array('class' => 'uk-button uk-margin-small-right'),
-      'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
-      'icon_key' => 'ban',
-      'icon_classes' => array('uk-margin-small-right'),
-    )),
-    '#avposition' => 'opposite',
-    '#access' => $can_change_status && $view_mode && isset($row->status) && $row->status == AVCLIENT_STATUS_ACTIVE,
-  );
+  if ($view_mode && !empty($row->id)) {
+    $can_change_status = constant('AVCLIENTS_PERM_CHANGE_STATUS_' . $ctd['type']);
+    $form['buttons']['suspend'] = array(
+      '#markup' => l('Suspend', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_SUSPENDED . "/change-status", array(
+        'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right'),
+        'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
+        'icon_key' => 'minus-circle',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#avposition' => 'opposite',
+      '#access' => $can_change_status && $view_mode && $client_type == AVCLIENT_TYPE_CUSTOMER && isset($row->status) && $row->status != AVCLIENT_STATUS_SUSPENDED,
+    );
+    $form['buttons']['activate'] = array(
+      '#markup' => l('Enable', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_ACTIVE . "/change-status", array(
+        'attributes' => array('class' => 'uk-button uk-button-primary uk-margin-small-right'),
+        'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
+        'icon_key' => 'check',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#avposition' => 'opposite',
+      '#access' => $can_change_status && $view_mode && isset($row->status) && $row->status != AVCLIENT_STATUS_ACTIVE,
+    );
+    $form['buttons']['disable'] = array(
+      '#markup' => l('Disable', "{$ctd['base_path']}/{$row->id}/" . AVCLIENT_STATUS_DISABLED . "/change-status", array(
+        'attributes' => array('class' => 'uk-button uk-margin-small-right'),
+        'query' => array('destination' => $ctd['base_path'] . '/' . $row->id . '/view'),
+        'icon_key' => 'ban',
+        'icon_classes' => array('uk-margin-small-right'),
+      )),
+      '#avposition' => 'opposite',
+      '#access' => $can_change_status && $view_mode && isset($row->status) && $row->status == AVCLIENT_STATUS_ACTIVE,
+    );
+  }
 
   // Convert form to non-edit mode if we are on View page.
   avbase_allow_form_view_mode($form, $view_mode);
@@ -411,7 +413,7 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
   }
 
   // Balance ages.
-  if ($row->client_type == AVCLIENT_TYPE_CUSTOMER) {
+  if ($view_mode && !empty($row->id) && $row->client_type == AVCLIENT_TYPE_CUSTOMER) {
     $payment['balance_ages'] = avreports_client_balance_aging_form($row->id);
   }
   $form['payment'] += $payment;
