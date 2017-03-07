@@ -342,7 +342,9 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
 
   if (empty($options['#hide_filter_form'])) {
     $filter_form_settings = array(
-      //'avcat_agent.title' => array('#access' => TRUE),
+      'avtxn.id' => array('#access' => TRUE),
+      'search_text' => array('#access' => TRUE),
+      'avtxn.transaction_date' => array('#access' => TRUE),
       'avtxn.transaction_type' => array('#access' => TRUE),
       'avtxn.status' => array('#access' => TRUE),
     );
@@ -395,21 +397,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, array(), array(), array(), TRUE);
   $page = pager_default_initialize($total_count, $rows_per_page);
   $offset = $rows_per_page * $page;
-  $order_by = NULL;
-  if (isset($_GET['order'])) {
-    $order_by = array();
-    $order_by_field_name = '';
-    foreach ($header as $h) {
-      if ($h['data'] == $_GET['order'] && isset($h['field'])) {
-        $order_by_field_name = $h['field'];
-        break;
-      }
-    }
-    if (!empty($order_by_field_name)) {
-      $order_by[] = $order_by_field_name . ' ' . strtoupper($_GET['sort']);
-    }
-  }
-
+  $order_by = avbase_build_header_order_array($header);
   $transactions = avtxns_txns_query_load($where, $args, $rows_per_page, $offset, $order_by);
   //$index = 0;
   $rows = array();
@@ -518,7 +506,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       'placeholder' => '#',
     ),
     '#icon_key' => 'search',
-    '#access' => empty($settings['hide'][''])
+    '#access' => FALSE,
   );
   $fields['search_text'] = empty($settings['search_text']) ? array() : $settings['search_text'];
   $fields['search_text'] += array(
@@ -528,13 +516,12 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       'placeholder' => 'customer / vendor / agent name',
     ),
     '#icon_key' => 'search',
+    '#access' => FALSE,
   );
 
   $fields['avcat_agent.title'] = empty($settings['avcat_agent.title']) ? array() : $settings['avcat_agent.title'];
   $fields['avcat_agent.title'] += array(
     '#type' => 'textfield',
-    '#title' => t('Agent'),
-    '#title_display' => 'none',
     '#maxlength' => 255,
     //'#autocomplete_path' => 'av/categories/agent1/autocomplete',
     //'#element_validate' => array('avbase_element_validate_category_exists'),
@@ -551,11 +538,8 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   $fields['avclients.display_name'] = empty($settings['avclients.display_name']) ? array() : $settings['avclients.display_name'];
   $fields['avclients.display_name'] += array(
     '#type' => 'textfield',
-    '#title' => t('Client'),
-    '#title_display' => 'none',
     '#maxlength' => 255,
     '#attributes' => array(
-      'placeholder' => 'filter by client',
       'class' => array('trigger-ajax-search'),
     ),
     '#access' => FALSE,
@@ -576,14 +560,23 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       'class' => array('trigger-ajax-search'),
       'readonly' => 'readonly',
     ),
+    '#access' => FALSE,
   );
 
   $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
   $fields['date_to'] += array(
     '#type' => 'textfield',
-    //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
-    //'#element_validate' => array('avbase_element_validate_date'),
-    //'#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+      'class' => array('trigger-ajax-search'),
+      'readonly' => 'readonly',
+    ),
+    '#access' => FALSE,
+  );
+  $fields['date_from'] = empty($settings['date_from']) ? array() : $settings['date_from'];
+  $fields['date_from'] += array(
+    '#type' => 'textfield',
     '#icon_key' => 'calendar',
     '#attributes' => array(
       'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
@@ -667,10 +660,12 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state) {
   $filter_values = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
   $arg_index = 0;
   $where = $args = array();
+  $query_exceptions = empty($form['#transaction_query_exceptions']) ? array() : $form['#transaction_query_exceptions'];
   foreach ($filter_values as $k => $v) {
     if ($k == 'buttons' || $k == 'settings') {
       continue;
     }
+    $query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
     $v = trim($v);
     $arg_name = 'arg_' . $arg_index++;
     if ($k == 'search_text' && $v != '') {
@@ -698,13 +693,57 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state) {
         continue;
       }
       $next_day_timestamp = strtotime('+1 day', $timestamp);
-      $where[] = 'avtxn.transaction_date < :stamp2';
+      //$query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
+      if (!empty($query_field_aliases)) {
+        $this_or = array();
+        foreach ($query_field_aliases as $qfa) {
+          $this_or[] = "$qfa < :stamp2";
+        }
+        if (!empty($this_or)) {
+          $where[] = '(' . implode(' OR ', $this_or) . ')';
+        }
+      }
+      else {
+        $where[] = 'avtxn.transaction_date < :stamp2';
+      }
       $args[':stamp2'] = $next_day_timestamp;
+      continue;
+    }
+    elseif ($k == 'date_from' && $v != '') {
+      $timestamp = strtotime($v);
+      if (empty($timestamp)) {
+        continue;
+      }
+      //$query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
+      if (!empty($query_field_aliases)) {
+        $this_or = array();
+        foreach ($query_field_aliases as $qfa) {
+          $this_or[] = "$qfa >= :stamp_from";
+        }
+        if (!empty($this_or)) {
+          $where[] = '(' . implode(' OR ', $this_or) . ')';
+        }
+      }
+      else {
+        $where[] = 'avtxn.transaction_date >= :stamp_from';
+      }
+      $args[':stamp_from'] = $timestamp;
       continue;
     }
 
     if ($v != '') {
-      $where[] = "{$k} = :$arg_name";
+      if (!empty($query_field_aliases)) {
+        $this_or = array();
+        foreach ($query_field_aliases as $qfa) {
+          $this_or[] = "$qfa = :$arg_name";
+        }
+        if (!empty($this_or)) {
+          $where[] = '(' . implode(' OR ', $this_or) . ')';
+        }
+      }
+      else {
+        $where[] = "{$k} = :$arg_name";
+      }
       $args[":$arg_name"] = $v;
     }
   }

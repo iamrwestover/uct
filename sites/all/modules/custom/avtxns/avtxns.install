@@ -245,6 +245,7 @@ function avtxns_schema() {
       'ref_txn_dtl_id' => array('ref_txn_dtl_id'),
       'ref_txn_id' => array('ref_txn_id'),
       'transaction_id' => array('transaction_id'),
+      'ref_txn_type' => array('ref_txn_type'),
     ),
   );
 

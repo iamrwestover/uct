@@ -811,3 +811,27 @@ function avbase_crud_form_validate($form, $form_state) {
     }
   }
 }
+
+/**
+ * Custom order by builder for static drupal queries.
+ * @param $header
+ *
+ * @return array|null
+ */
+function avbase_build_header_order_array($header) {
+  $order_by = NULL;
+  if (isset($_GET['order'])) {
+    $order_by = array();
+    $order_by_field_name = '';
+    foreach ($header as $h) {
+      if ($h['data'] == $_GET['order'] && isset($h['field'])) {
+        $order_by_field_name = $h['field'];
+        break;
+      }
+    }
+    if (!empty($order_by_field_name)) {
+      $order_by[] = $order_by_field_name . ' ' . strtoupper($_GET['sort']);
+    }
+  }
+  return $order_by;
+}

@@ -1040,3 +1040,141 @@ function avtxns_txn_status_options_array() {
   }
   return $options;
 }
+
+/**
+ * Advanced transaction load by products.
+ * @param array $param_where
+ * @param array $param_args
+ * @param null $limit
+ * @param null $offset
+ * @param null $order_by
+ * @param $count_query
+ *
+ * @return array
+ */
+function avtxns_product_query_load($param_where = array(), $param_args = array(), $limit = NULL, $offset = NULL, $order_by = NULL, $more_select = array(), $more_joins = array(), $group_by = array(), $count_query = FALSE) {
+  // Set / load static variable for this query.
+  $data = &drupal_static(__FUNCTION__, array());
+
+  // Set and check if data for data_id already exists.
+  $func_args = func_get_args();
+  foreach ($func_args as $func_k => $func_arg) {
+    if (is_array($func_arg)) {
+      asort($func_args[$func_k]);
+    }
+  }
+  $data_id = md5(json_encode($func_args));
+  if (isset($data[$data_id])) {
+    return $data[$data_id];
+  }
+
+  $select = array();
+  if ($count_query) {
+    $select[] = 'COUNT(avproducts.id)';
+  }
+  else {
+    $select[] = 'avproducts.id';
+    $select[] = 'avproducts.title';
+    $select[] = 'avproducts.title';
+    $select[] = 'IF(
+      avtxn.transaction_type = :txn_type_receive,
+      SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom),
+      NULL
+      ) AS qty_purchased';
+    $select[] = 'IF(
+      avtxn.transaction_type = :txn_type_invoice,
+      SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom),
+      NULL
+      ) AS qty_sold';
+    $select[] = 'IF(
+      avtxn.transaction_type = :txn_type_receive,
+      SUM(
+        avtxn_detail.qty
+        * avtxn_detail.cost
+        * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+        * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+        * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+        * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+      ),
+      NULL
+      ) AS total_cost';
+    $select[] = 'IF(
+      avtxn.transaction_type = :txn_type_invoice,
+      SUM(
+        avtxn_detail.qty
+        * avtxn_detail.cost
+        * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+        * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+        * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+        * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+      ),
+      NULL
+      ) AS total_sales';
+  }
+  $select = array_merge($select, $more_select);
+
+  $joins = array();
+  $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avproducts.id';
+  $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
+
+  //$joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_purchase ON avtxn_detail_purchase.item_id = avproducts.id';
+  //$joins[] = 'LEFT JOIN {avtbl_transactions} AS avtxn_purchase ON (avtxn_purchase.id = avtxn_detail_purchase.transaction_id AND avtxn_purchase.transaction_type = :avtxn_purchase_ttype)';
+  //$joins[] = 'LEFT JOIN {avtbl_clients} AS avclients_vendor ON avclients_vendor.id = avtxn_purchase.client_id';
+  //$joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_sales ON (avtxn_detail_sales.item_id = avproducts.id AND avtxn_detail_sales.ref_txn_type = :avtxn_detail_sales_ttype)';
+  //$joins[] = 'LEFT JOIN {avtbl_transactions} AS avtxn_sales ON (avtxn_sales.id = avtxn_detail_sales.transaction_id AND avtxn_sales.transaction_type = :avtxn_sales_ttype)';
+  //$joins[] = 'LEFT JOIN {avtbl_clients} AS avclients_customer ON avclients_customer.id = avtxn_sales.client_id';
+  //$joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON (avclients.id = avtxn_purchase.client_id OR avclients.id = avtxn_sales.client_id)';
+  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON (avcat_agent.id = avtxn_purchase.agent_id OR avcat_agent.id = avtxn_sales.agent_id)';
+  $joins = array_merge($joins, $more_joins);
+
+  // Args.
+  //$param_args[':avtxn_purchase_ttype'] = AVTXNS_TXN_TYPE_RECEIVE;
+  //$param_args[':avtxn_detail_sales_ttype'] = AVTXNS_TXN_TYPE_DELIVERY;
+  //$param_args[':avtxn_sales_ttype'] = AVTXNS_TXN_TYPE_INVOICE;
+
+
+  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avproducts " . implode(' ', $joins);
+
+  //$param_where[] = "avtxn_purchase.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
+  //$param_where[] = "avtxn_sales.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
+
+  $param_where[] = "avtxn.transaction_type = :txn_type_receive OR (avtxn.transaction_type = :txn_type_invoice AND avtxn_detail.ref_txn_type = :txn_type_delivery)";
+  $param_args[':txn_type_receive'] = AVTXNS_TXN_TYPE_RECEIVE;
+  $param_args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
+  $param_args[':txn_type_delivery'] = AVTXNS_TXN_TYPE_DELIVERY;
+  if (!empty($param_where)) {
+    $query .= " WHERE " . implode(' AND ', $param_where);
+  }
+
+  if (empty($count_query)) {
+    if (!empty($group_by)) {
+      $query .= " GROUP BY " . implode(', ', $group_by);
+    }
+    //$query .= " GROUP BY avtxn.id, avtxn_detail.ref_txn_type";
+    $order_by = is_null($order_by) ? array('avproducts.id DESC') : $order_by;
+    if (!empty($order_by)) {
+      $query .= " ORDER BY " . implode(', ', $order_by);
+    }
+
+    if (!is_null($limit)) {
+      $query .= " LIMIT $limit";
+      if (!is_null($offset)) {
+        $query .= " OFFSET $offset";
+      }
+    }
+  }
+
+  if ($count_query) {
+    $rows = db_query($query, $param_args)->fetchField();
+  }
+  else {
+    $rs = db_query($query, $param_args);
+    $rows = array();
+    foreach ($rs as $row) {
+      $rows[] = $row;
+    }
+  }
+
+  $data[$data_id] = $rows;
+  return $rows;
+}

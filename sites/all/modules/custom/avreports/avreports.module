@@ -62,8 +62,14 @@ function avreports_menu() {
     'page arguments' => array('avreports_soa_form'),
     'access arguments' => array(AVREPORTS_PERM_SOA),
     'type' => MENU_CALLBACK,
-    //'menu_name' => 'av',
-    //'expanded' => TRUE,
+  );
+
+  $items['av/reports/inventory-ranking/%'] = array(
+    'title' => 'Inventory Ranking',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_inventory_ranking_form', 3),
+    'access arguments' => array(AVREPORTS_PERM_GENERAL),
+    'type' => MENU_CALLBACK,
   );
 
   return $items;
@@ -130,6 +136,9 @@ function avreports_home_form($form, &$form_state) {
   foreach ($transaction_types as $k => $type) {
     $form[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right')))));
   }
+  $form['hr2'] = array('#markup' => '<hr />');
+  $form['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $form['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   return $form;
 }
 
@@ -566,5 +575,199 @@ function avreports_soa_form($form, &$form_state) {
     '#icon_key' => 'print',
   );
 
+  return $form;
+}
+
+function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind) {
+  $where = array(); $args = array();
+  $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
+  $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
+  $where = empty($filter_query['where']) ? array() : $filter_query['where'];
+  $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+
+  // Add today filter.
+  $today = format_date(time(), 'custom', 'F d, Y');
+  $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
+  $client_types = array(AVCLIENT_TYPE_CUSTOMER, AVCLIENT_TYPE_VENDOR);
+  $agent_categories = array('agent' . AVCLIENT_TYPE_CUSTOMER, 'agent' . AVCLIENT_TYPE_VENDOR);
+  $filter_form_settings = array(
+    'date_from' => array(
+      '#title' => t('Date from'),
+      //'#default_value' => $today,
+      '#access' => TRUE,
+    ),
+    'date_to' => array(
+      '#title' => t('Date to'),
+      //'#default_value' => $today,
+      '#access' => TRUE,
+    ),
+    'avclients.display_name' => array(
+      '#title' => t('Vendor / Customer'),
+      '#autocomplete_path' => 'av/clients/autocomplete/' . implode('-', $client_statuses) . '/' . implode('-', $client_types),
+      '#access' => TRUE,
+    ),
+    'avcat_agent.title' => array(
+      '#title' => t('Agent'),
+      '#access' => TRUE,
+      '#autocomplete_path' => 'av/categories/agent' . implode('-', $agent_categories) . '/autocomplete'),
+  );
+  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
+  $form['#transaction_query_exceptions'] = array(
+    'date_to' => array(
+      '#query_field_aliases' => array('avtxn_purchase.transaction_date', 'avtxn_sales.transaction_date')
+    ),
+    'date_from' => array(
+      '#query_field_aliases' => array('avtxn_purchase.transaction_date', 'avtxn_sales.transaction_date')
+    ),
+    //'avclients.display_name' => array(
+    //  '#query_field_aliases' => array('avclients_vendor.display_name', 'avclients_customer.display_name')
+    //),
+  );
+  // Set table pagination and sort settings.
+  if (!empty($user_filter['settings']['table_href'])) {
+    $table_ajax_href = $user_filter['settings']['table_href'];
+    $href_parts = parse_url($table_ajax_href);
+    if (!empty($href_parts['query'])) {
+      parse_str($href_parts['query'], $href_query);
+      foreach ($href_query as $k => $v) {
+        $_GET[$k] = $v;
+      }
+    }
+  }
+
+  $header = array(
+    'placeholder' => array('data' => '', 'class' => array('suk-hidden')),
+    'item_name' => array('data' => 'Product', 'field' => 'avproducts.title'),
+    'qty_purchased' => array('data' => 'Purchased', 'field' => 'qty_purchased', 'class' => array('uk-text-right')),
+    'total_cost' => array('data' => 'Total Cost', 'field' => 'total_cost', 'class' => array('uk-text-right')),
+    'qty_sold' => array('data' => 'Sold', 'field' => 'qty_sold', 'class' => array('uk-text-right')),
+    //'sales_cost' => array('data' => 'Cost of goods sold', 'field' => 'total_sales', 'class' => array('uk-text-right')),
+    'total_sales' => array('data' => 'Total Sales', 'field' => 'total_sales', 'class' => array('uk-text-right')),
+    //'profit' => array('data' => 'Gross Profit', 'class' => array('uk-text-right')),
+  );
+
+  $client_name = empty($user_filter['avclients.display_name']) ? '' : $user_filter['avclients.display_name'];
+  $list_type = '';
+  if (!empty($client_name)) {
+    $client_type = db_query("SELECT client_type FROM {avtbl_clients} WHERE display_name = :dn", array(':dn' => $client_name))->fetchfield();
+    if ($client_type == AVCLIENT_TYPE_CUSTOMER) {
+      $list_type = 'sales';
+    }
+    elseif ($client_type == AVCLIENT_TYPE_VENDOR) {
+      $list_type = 'purchase';
+    }
+  }
+  if ($list_type == 'sales') {
+    unset($header['purchased']);
+    unset($header['total_cost']);
+  }
+  elseif ($list_type == 'purchase') {
+    unset($header['sold']);
+    unset($header['total_sales']);
+  }
+
+
+  $order_by = avbase_build_header_order_array($header);
+  $group_by = array();
+  $group_by = array('avproducts.id', 'avtxn.transaction_type');
+  $records = avtxns_product_query_load($where, $args, NULL, NULL, $order_by, array(), array(), $group_by);
+  $rows = array();
+  $index = 0;
+  foreach ($records as $row) {
+    $rows[] = array(
+      'data' => array(
+        'placeholder' => array('data' => ++$index, 'class' => array('suk-hidden')),
+        'item_name' => check_plain($row->title),
+        'qty_purchased' => array('data' => number_format($row->qty_purchased), 'class' => array('uk-text-right')),
+        'total_cost' => array('data' => number_format($row->total_cost, 2), 'class' => array('uk-text-right')),
+        'qty_sold' => array('data' => number_format($row->qty_sold), 'class' => array('uk-text-right')),
+        //'sales_cost' => array('data' => '-', 'class' => array('uk-text-right')),
+        'total_sales' => array('data' => number_format($row->total_sales, 2), 'class' => array('uk-text-right')),
+        //'profit' => array('data' => number_format($row->total_sold), 'class' => array('uk-text-right')),
+      ),
+      //'class' => array($row_class),
+    );
+
+    //if ($list_type == 'sales') {
+    //  unset($rows[$row->id]['data']['purchased']);
+    //  unset($rows[$row->id]['data']['total_cost']);
+    //}
+    //elseif ($list_type == 'purchase') {
+    //  unset($rows[$row->id]['data']['sold']);
+    //  unset($rows[$row->id]['data']['total_sales']);
+    //}
+  }
+
+  //$remember_records = array();
+  //foreach ($records as $row) {
+  //  $remember_records[$row->id]['title'] = $row->title;
+  //  //$remembered_record = empty($remember_records[$row->id]) ? array() : $remember_records[$row->id];
+  //  if (!empty($row->qty_purchased) && empty($remember_records[$row->id]['qty_purchased'])) {
+  //    $remember_records[$row->id]['qty_purchased'] = $row->qty_purchased;
+  //  }
+  //  if (!empty($row->qty_sold) && empty($remember_records[$row->id]['qty_sold'])) {
+  //    $remember_records[$row->id]['qty_sold'] = $row->qty_sold;
+  //  }
+  //  if (!empty($row->total_cost) && empty($remember_records[$row->id]['total_cost'])) {
+  //    $remember_records[$row->id]['total_cost'] = $row->total_cost;
+  //  }
+  //  if (!empty($row->total_sales) && empty($remember_records[$row->id]['total_sales'])) {
+  //    $remember_records[$row->id]['total_sales'] = $row->total_sales;
+  //  }
+  //
+  //  //if ($list_type == 'sales') {
+  //  //  unset($rows[$row->id]['data']['purchased']);
+  //  //  unset($rows[$row->id]['data']['total_cost']);
+  //  //}
+  //  //elseif ($list_type == 'purchase') {
+  //  //  unset($rows[$row->id]['data']['sold']);
+  //  //  unset($rows[$row->id]['data']['total_sales']);
+  //  //}
+  //}
+  //foreach ($remember_records as $row) {
+  //  $qty_purchased = empty($row['qty_purchased']) ? NULL : $row['qty_purchased'];
+  //  $total_cost = empty($row['total_cost']) ? NULL : $row['total_cost'];
+  //  $qty_sold = empty($row['qty_sold']) ? NULL : $row['qty_sold'];
+  //  $total_sales = empty($row['total_sales']) ? NULL : $row['total_sales'];
+  //  $rows[] = array(
+  //    'data' => array(
+  //      'placeholder' => array('data' => ++$index, 'class' => array('suk-hidden')),
+  //      'item_name' => check_plain($row['title']),
+  //      'qty_purchased' => array('data' => number_format($qty_purchased), 'class' => array('uk-text-right')),
+  //      'total_cost' => array('data' => number_format($total_cost, 2), 'class' => array('uk-text-right')),
+  //      'qty_sold' => array('data' => number_format($qty_sold), 'class' => array('uk-text-right')),
+  //      //'sales_cost' => array('data' => '-', 'class' => array('uk-text-right')),
+  //      'total_sales' => array('data' => number_format($total_sales, 2), 'class' => array('uk-text-right')),
+  //      //'profit' => array('data' => number_format($row->total_sold), 'class' => array('uk-text-right')),
+  //    ),
+  //    //'class' => array($row_class),
+  //  );
+  //}
+
+  $table_attributes = array(
+    'id' => 'transaction-list-table',
+    'class' => array('uk-table-condensed printable'),
+  );
+
+  $pager_html = empty($options['#hide_filter_form']) ? theme('pager', array('tags' => array())) : '';
+  $form['transaction_list_table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
+    '#attributes' => $table_attributes,
+    '#prefix' => '<div id="transaction-list-table-wrapper">',
+    '#suffix' => $pager_html . '<!--Do not remove me.--></div>',
+  );
+
+  $form['buttons']['#theme'] = 'avbase_crud_button_group';
+  $form['buttons']['print'] = array(
+    '#id' => 'av-print-btn',
+    '#type' => 'button',
+    '#value' => t('Print...'),
+    '#visible_in_view_mode' => TRUE,
+    '#attributes' => array('class' => array('')),
+    '#icon_key' => 'print',
+  );
   return $form;
 }

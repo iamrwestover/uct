@@ -187,10 +187,10 @@ function avclients_statuses() {
 
 /**
  * Menu callback - retrieve a JSON object containing autocomplete suggestions for existing clients.
- * @param $client_type
+ * @param $client_type_string
  * @param string $string
  */
-function avclients_autocomplete($client_type, $status_string, $string = '') {
+function avclients_autocomplete($client_type_string, $status_string, $string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
@@ -211,8 +211,13 @@ function avclients_autocomplete($client_type, $status_string, $string = '') {
       'avclients.last_name LIKE :string',
     );
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
-    $where = array($where_or_str, 'avclients.client_type = :client_type');
-    $args = array(':string' => '%' . db_like($string) . '%', ':client_type' => $client_type);
+    $args = array(':string' => '%' . db_like($string) . '%');
+    $where = array($where_or_str);
+
+    $client_types = explode('-', $client_type_string);
+    $where[] = 'avclients.client_type IN(:client_types)';
+    $args[':client_types'] = $client_types;
+
     $statuses = explode('-', $status_string);
     $where[] = 'avclients.status IN(:client_status)';
     $args[':client_status'] = $statuses;

@@ -296,16 +296,18 @@ function avbase_category_agent_form_alter(&$form, $db_row) {
 
 /**
  * Menu callback - retrieve a JSON object containing autocomplete suggestions for existing categories.
- * @param $category_id
+ * @param $category_ids_string
  * @param string $string
  */
-function avbase_category_autocomplete($category_id, $string = '') {
+function avbase_category_autocomplete($category_ids_string, $string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
     $query = db_select('avtbl_categories', 'avc')->fields('avc', array('title'));
     $query->condition('avc.title', '%' . db_like($string) . '%', 'LIKE');
-    $query->condition('avc.group_id', $category_id);
+
+    $category_ids = explode('-', $category_ids_string);
+    $query->condition('avc.group_id', $category_ids, 'IN');
     $query->range(0, 10);
     $result = $query->execute();
 
