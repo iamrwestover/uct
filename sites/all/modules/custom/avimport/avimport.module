@@ -31,6 +31,18 @@ function avimport_menu() {
 }
 
 /**
+ * Implementation of hook_permission().
+ */
+function avimport_permission() {
+  $permissions = array(
+    AVBASE_PERM_IMPORT => array(
+      'title' => 'Import data',
+    ),
+  );
+  return $permissions;
+}
+
+/**
  * Build form for Import Page.
  * @param $form
  * @param $form_state
