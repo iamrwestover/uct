@@ -593,7 +593,7 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
   $header = array(
     'placeholder' => array('data' => '', 'class' => array('suk-hidden')),
     'item_name' => array('data' => 'Product', 'field' => 'avproducts.title'),
-    'onhand_qty' => array('data' => 'On-hand Qty.', 'field' => 'avproducts.qty'),
+    'onhand_qty' => array('data' => 'Available Qty.', 'field' => 'avproducts.qty'),
   );
   $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avproducts.id';
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
