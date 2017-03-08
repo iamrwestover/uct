@@ -523,15 +523,22 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   $fields['avcat_agent.title'] += array(
     '#type' => 'textfield',
     '#maxlength' => 255,
-    //'#autocomplete_path' => 'av/categories/agent1/autocomplete',
-    //'#element_validate' => array('avbase_element_validate_category_exists'),
-    //'#element_validate_conditions' => array('group_id' => 'agent_cust'),
     '#attributes' => array(
       'placeholder' => 'filter by agent',
       'class' => array('trigger-ajax-search'),
     ),
-    //'#element_save_id' => 'agent_id',
-    //'#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
+    '#access' => FALSE,
+  );
+
+  $fields['avcat_area.title'] = empty($settings['avcat_area.title']) ? array() : $settings['avcat_area.title'];
+  $fields['avcat_area.title'] += array(
+    '#title' => 'Area',
+    '#type' => 'textfield',
+    '#maxlength' => 255,
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+    '#autocomplete_path' => 'av/categories/area/autocomplete',
     '#access' => FALSE,
   );
 

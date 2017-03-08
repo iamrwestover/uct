@@ -1,26 +1,19 @@
 <div class="uk-grid">
   <div class="uk-width-4-6">
-    <strong><?php print drupal_render($form['client_name']); ?></strong>
+    <div class="uk-text-large"><?php print drupal_render($form['client_name']); ?></div>
     <?php print drupal_render($form['address']); ?>
     <?php print drupal_render($form['phone']); ?>
+    <?php print drupal_render($form['agent_name']); ?>
+    <div class="uk-text-large"><?php print drupal_render($form['area_name']); ?></div>
   </div>
   <div class="uk-width-2-6 uk-text-right">
+    <?php print drupal_render($form['date_from']); ?>
     <?php print drupal_render($form['date_to']); ?>
     <?php print drupal_render($form['term_name']); ?>
   </div>
 </div>
 
 <?php print drupal_render($form['table']); ?>
-<?php print drupal_render($form['balance_ages']); ?>
-
-<div class="uk-grid uk-margin-top">
-  <div class="uk-width-1-2">
-    <?php print drupal_render($form['prepared_by']); ?>
-  </div>
-  <div class="uk-width-1-2 uk-text-right">
-    <?php print drupal_render($form['received_by']); ?>
-  </div>
-</div>
 <?php
 //print drupal_render
 //dpm($form);
