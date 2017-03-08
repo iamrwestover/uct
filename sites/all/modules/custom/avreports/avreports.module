@@ -616,6 +616,10 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
     ) AS total_cost';
     $where[] = "avtxn.transaction_type = :txn_type_receive";
     $args[':txn_type_receive'] = AVTXNS_TXN_TYPE_RECEIVE;
+    if (empty($_GET['order'])) {
+      $_GET['order'] = 'Total Purchase Cost';
+      $_GET['sort'] = 'desc';
+    }
   }
   elseif ($transaction_kind == 'sales') {
     $ctd = avclients_client_types(AVCLIENT_TYPE_CUSTOMER);
@@ -635,6 +639,10 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
     $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
     $args[':txn_type_delivery'] = AVTXNS_TXN_TYPE_DELIVERY;
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
+    if (empty($_GET['order'])) {
+      $_GET['order'] = 'Total Sales';
+      $_GET['sort'] = 'desc';
+    }
   }
 
 
@@ -697,6 +705,7 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
   $records = avtxns_product_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
   $rows = array();
   $index = 0;
+  $total1 = $total2 = 0;
   foreach ($records as $row) {
     $rows[$row->id] = array(
       'data' => array(
@@ -710,12 +719,25 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
     if ($transaction_kind == 'purchase') {
       $rows[$row->id]['data']['qty_purchased'] = array('data' => number_format($row->qty_purchased), 'class' => array('uk-text-right'));
       $rows[$row->id]['data']['total_cost'] = array('data' => number_format($row->total_cost, 2), 'class' => array('uk-text-right'));
+      $total1 += $row->qty_purchased;
+      $total2 += $row->total_cost;
     }
     elseif ($transaction_kind == 'sales') {
       $rows[$row->id]['data']['qty_sold'] = array('data' => number_format($row->qty_sold), 'class' => array('uk-text-right'));
       $rows[$row->id]['data']['total_sales'] = array('data' => number_format($row->total_sales, 2), 'class' => array('uk-text-right'));
+      $total1 += $row->qty_sold;
+      $total2 += $row->total_sales;
     }
   }
+  $rows['spacer'] = array('data' => array('-' => array('colspan' => 10)));
+  $rows['total'] = array(
+    'data' => array(
+      '-' => array('data' => 'Total', 'colspan' => 4),
+      //'total1' => array('data' => number_format($total1), 'class' => array('uk-text-right uk-text-bold')),
+      'total2' => array('data' => number_format($total2, 2), 'class' => array('uk-text-right uk-text-bold')),
+    ),
+    //'class' => array(''),
+  );
 
   $table_attributes = array(
     'id' => 'transaction-list-table',
