@@ -271,29 +271,30 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
       'qty_change' => 'decrement',
     );
-    $ret[AVTXNS_TXN_TYPE_CREATE_BILL] = array(
-      'type' => AVTXNS_TXN_TYPE_CREATE_BILL,
-      'base_path' => 'av/' . AVTXNS_TXN_TYPE_CREATE_BILL,
-      'transaction' => 'purchase',
-      'name' => 'Create Bill',
-      'plural_name' => 'Bills Created',
-      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
-      'payable_type' => 'credit',
-      //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
-      'bill' => TRUE,
-    );
-    $ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
-      'type' => AVTXNS_TXN_TYPE_PAY_BILL,
-      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAY_BILL,
-      'transaction' => 'purchase',
-      'name' => 'Pay Bill',
-      'plural_name' => 'Paid Bills',
-      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_CREATE_BILL,
-      //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
-      'payment' => TRUE,
-    );
+    //$ret[AVTXNS_TXN_TYPE_CREATE_BILL] = array(
+    //  'type' => AVTXNS_TXN_TYPE_CREATE_BILL,
+    //  'base_path' => 'av/' . AVTXNS_TXN_TYPE_CREATE_BILL,
+    //  'transaction' => 'purchase',
+    //  'name' => 'Create Bill',
+    //  'plural_name' => 'Bills Created',
+    //  'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+    //  'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
+    //  'payable_type' => 'credit',
+    //  //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
+    //  'bill' => TRUE,
+    //);
+    //$ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
+    //  'type' => AVTXNS_TXN_TYPE_PAY_BILL,
+    //  'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAY_BILL,
+    //  'transaction' => 'purchase',
+    //  'name' => 'Pay Bill',
+    //  'plural_name' => 'Paid Bills',
+    //  'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+    //  'pending_txns_reference_type' => AVTXNS_TXN_TYPE_CREATE_BILL,
+    //  //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
+    //  'payment' => TRUE,
+    //);
+
     // Sales.
     $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
       'type' => AVTXNS_TXN_TYPE_SALES_ORDER,
