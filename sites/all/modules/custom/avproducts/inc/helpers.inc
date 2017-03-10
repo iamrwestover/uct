@@ -129,6 +129,8 @@ function avproduct_query_load($param_where, $param_args = array(), $limit_string
     $row->discount_text = implode('/', $discount);
     $row->sales_discount_text = implode('/', $sales_discount);
 
+    // Capitalize product name.
+    $row->title = strtoupper($row->title);
     $rows[$row->id] = $row;
   }
 

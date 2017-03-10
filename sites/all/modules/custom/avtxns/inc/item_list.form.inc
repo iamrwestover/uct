@@ -65,6 +65,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#resizable' => FALSE,
     '#access' => $view_mode,
   );
+  if (!empty($row->contact_number)) {
+    $form['client_address_string']['#default_value'] .= '<br />' . check_plain($row->contact_number);
+  }
 
   $agent_category_id = 'agent' . $ttd['ctd']['type'];
   $form['agent_name'] = array(
@@ -168,7 +171,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   );
   $form['memo'] = array(
     '#type' => 'textarea',
-    '#title' => 'Memo',
+    '#title' => 'Note',
     '#default_value' => isset($row->memo) ? $row->memo : '',
     '#maxlength' => 65000,
   );
@@ -224,7 +227,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#type' => 'item',
     '#title' => 'Transaction No.',
     '#title_display' => 'none',
-    '#markup' => (empty($row->id) ? '' : t('<strong>Transaction #</strong> @id<br />@date', array('@id' => $row->id, '@date' => $transaction_date_text))),
+    '#markup' => (empty($row->id) ? '' : t('<strong>@ttype #</strong> @id<br />@date @time',
+      array('@ttype' => strtoupper($ttd['type']), '@id' => $row->id, '@date' => $transaction_date_text, '@time' => format_date($row->created, 'custom', 'h:i A')))),
     '#access' => $view_mode,
   );
 
@@ -233,11 +237,11 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
 
   avbase_user_extra_details($user);
-  $form['prepared_by'] = array(
+  $form['encoded_by'] = array(
     '#type' => 'item',
-    '#title' => 'Prepared by',
+    '#title' => 'Encoded by',
     '#title_display' => 'inline-before',
-    '#markup' => $user->avdata->full_name,
+    '#markup' => $user->name,
     //'#maxlength' => 65000,
     '#access' => $view_mode,
   );
@@ -245,7 +249,31 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#type' => 'item',
     '#title' => 'Received by',
     '#title_display' => 'inline-before',
-    '#markup' => '_______________________________',
+    '#markup' => '____________________',
+    //'#maxlength' => 65000,
+    '#access' => $view_mode,
+  );
+  $form['received_by_date'] = array(
+    '#type' => 'item',
+    '#title' => 'Date',
+    '#title_display' => 'inline-before',
+    '#markup' => '____________________',
+    //'#maxlength' => 65000,
+    '#access' => $view_mode,
+  );
+  $form['prepared_by'] = array(
+    '#type' => 'item',
+    '#title' => 'Prepared by',
+    '#title_display' => 'inline-before',
+    '#markup' => '______________',
+    //'#maxlength' => 65000,
+    '#access' => $view_mode,
+  );
+  $form['checked_by'] = array(
+    '#type' => 'item',
+    '#title' => 'Checked by',
+    '#title_display' => 'inline-before',
+    '#markup' => '______________',
     //'#maxlength' => 65000,
     '#access' => $view_mode,
   );

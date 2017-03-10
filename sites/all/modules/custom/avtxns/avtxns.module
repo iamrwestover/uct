@@ -9,8 +9,8 @@ define('AVTXNS_RETURN_TYPE_RS', 2);
 define('AVTXNS_TXN_TYPE_PURCHASE_ORDER', 'po');
 define('AVTXNS_TXN_TYPE_RECEIVE', 'rcv');
 define('AVTXNS_TXN_TYPE_PURCHASE_RETURN', 'pr');
-define('AVTXNS_TXN_TYPE_CREATE_BILL', 'cb');
-define('AVTXNS_TXN_TYPE_PAY_BILL', 'pb');
+define('AVTXNS_TXN_TYPE_CREATE_BILL', 'bll');
+define('AVTXNS_TXN_TYPE_PAY_BILL', 'blp');
 define('AVTXNS_TXN_TYPE_SALES_ORDER', 'so');
 define('AVTXNS_TXN_TYPE_DELIVERY', 'dr');
 define('AVTXNS_TXN_TYPE_SALES_RETURN', 'sr');
@@ -275,8 +275,8 @@ function avtxns_txn_types($type = NULL) {
     //  'type' => AVTXNS_TXN_TYPE_CREATE_BILL,
     //  'base_path' => 'av/' . AVTXNS_TXN_TYPE_CREATE_BILL,
     //  'transaction' => 'purchase',
-    //  'name' => 'Create Bill',
-    //  'plural_name' => 'Bills Created',
+    //  'name' => 'Bill',
+    //  'plural_name' => 'Bills',
     //  'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
     //  'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
     //  'payable_type' => 'credit',
@@ -287,7 +287,7 @@ function avtxns_txn_types($type = NULL) {
     //  'type' => AVTXNS_TXN_TYPE_PAY_BILL,
     //  'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAY_BILL,
     //  'transaction' => 'purchase',
-    //  'name' => 'Pay Bill',
+    //  'name' => 'Bills Payment',
     //  'plural_name' => 'Paid Bills',
     //  'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
     //  'pending_txns_reference_type' => AVTXNS_TXN_TYPE_CREATE_BILL,

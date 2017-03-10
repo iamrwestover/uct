@@ -64,17 +64,18 @@ $balance_ages_html = drupal_render($form['balance_ages']);
 
     </div>
 
-    <div class="uk-width-2-10">
+    <div class="uk-width-2-10 uk-form-row-compact">
       <div class="<?php print ($view_mode ? 'uk-text-right' : ''); ?>">
         <?php print drupal_render($form['transaction_date']); ?>
         <?php
           $transaction_id_html = drupal_render($form['transaction_id']);
           print ($transaction_id_html ? $transaction_id_html : '');
         ?>
-        <?php //if ($term_html): ?>
-        <!--  --><?php //print $term_html; ?>
-        <!--  --><?php //print drupal_render($form['due_date']); ?>
-        <?php //endif; ?>
+        <div class="uk-hidden printable">
+          <?php print drupal_render($form['encoded_by']); ?>
+          <?php print drupal_render($form['prepared_by']); ?>
+          <?php print drupal_render($form['checked_by']); ?>
+        </div>
       </div>
       <!--<div class="uk-text-bold uk-text-uppercase">Grand Total</div>-->
       <!--<div><h1 class="product-form-grand-total" style="font-size: 50px; margin-bottom: 0;">--><?php //print $form['grand_total']['#value'] ?><!--</h1></div>-->
@@ -133,8 +134,8 @@ $balance_ages_html = drupal_render($form['balance_ages']);
     <?php if ($balance_ages_html): ?>
       <div class="uk-width-1-1 uk-margin-top"><?php print $balance_ages_html; ?></div>
     <?php endif; ?>
-    <div class="uk-width-1-2 uk-margin-top"><?php print drupal_render($form['prepared_by']); ?></div>
-    <div class="uk-width-1-2 uk-margin-top uk-text-right"><?php print drupal_render($form['received_by']); ?></div>
+    <div class="uk-width-1-4 uk-margin-top uk-hidden printable"><?php print drupal_render($form['received_by']); ?></div>
+    <div class="uk-width-1-4 uk-margin-top uk-hidden printable"><?php print drupal_render($form['received_by_date']); ?></div>
   </div>
 </div>
 <?php

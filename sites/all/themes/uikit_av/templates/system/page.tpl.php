@@ -119,10 +119,18 @@
 
 
 <div id="page-outer-wrapper" class="uk-margin-left uk-margin-right">
-  <div id="print-header" class="uk-hidden printable">
-    <div class="site-name"><?php print $site_name; ?></div>
-    <div class="site-address"><?php print check_plain(variable_get('av_company_address', NULL)); ?></div>
-    <div class="site-contact-number"><?php print check_plain(variable_get('av_company_contact_number', NULL)); ?></div>
+  <div class="uk-grid uk-grid-collapse uk-hidden printable">
+    <div class="uk-width-3-5">
+      <div id="print-header">
+        <div class="site-name uk-text-bold"><?php print strtoupper($site_name); ?></div>
+        <div class="site-address"><?php print check_plain(variable_get('av_company_address', NULL)); ?></div>
+        <div class="site-contact-number"><?php print check_plain(variable_get('av_company_contact_number', NULL)); ?></div>
+      </div>
+    </div>
+    <div class="uk-width-2-5 uk-text-right">
+      <?php if ($title): ?><div class="uk-article-title"><?php print $title; ?></div><?php endif; ?>
+    </div>
+    <hr class="uk-width-1-1 uk-margin-small" />
   </div>
 
   <div<?php print $page_container_attributes; ?>>
@@ -146,7 +154,7 @@
       <div<?php print $content_attributes; ?>>
         <?php print render($title_prefix); ?>
         <?php if ($title): ?>
-          <div id="page-title" class="printable uk-article-title uk-margin-bottom uk-margin-top"><?php print $title; ?></div><?php endif; ?>
+          <div id="page-title" class="not-printable uk-article-title uk-margin-bottom uk-margin-top"><?php print $title; ?></div><?php endif; ?>
         <?php print render($title_suffix); ?>
 
         <?php if ($page['intro']): ?>

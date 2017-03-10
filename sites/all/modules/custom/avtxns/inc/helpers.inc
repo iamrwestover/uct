@@ -115,6 +115,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query->addField('avclients', 'province');
   $query->addField('avclients', 'zip_code');
   $query->addField('avclients', 'status', 'client_status');
+  $query->addField('avclients', 'contact_number');
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->addField('avcat_terms', 'title', 'term_name');
   $query->addField('avcat_terms', 'data', 'term_data');
@@ -171,6 +172,9 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
+        // Capitalize item title.
+        $item->product_title = strtoupper($item->product_title);
+
         $item->transaction_date_formatted = $transaction_date_formatted;
         $item->total = $item->cost * $item->qty;
         $discount = array();

@@ -243,7 +243,7 @@ function avproducts_home_form($form, &$form_state) {
     }
 
     $actions_html = theme('links__bare', array('links' => $action_links));
-    $linked_name = l($row->title, $menu_prefix . '/view');
+    $linked_name = l(strtoupper($row->title), $menu_prefix . '/view');
     $rows[$row->id] = array(
       //'data' => array(
       'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
