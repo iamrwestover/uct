@@ -8,6 +8,7 @@ $date_from = drupal_render($form['date_from']);
 $transaction_id_html = drupal_render($form['avtxn.id']);
 $transaction_type_html = drupal_render($form['avtxn.transaction_type']);
 $area_html = drupal_render($form['avcat_area.title']);
+$principal_html = drupal_render($form['avcat_principal.title']);
 $status_html = drupal_render($form['avtxn.status']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
 ?>
@@ -54,8 +55,14 @@ $reset_btn_html = drupal_render($form['buttons']['reset_button']);
     </div>
   <?php endif; ?>
 
+  <?php if ($principal_html): ?>
+    <div class="uk-width-3-10">
+      <?php print $principal_html; ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($area_html): ?>
-    <div class="uk-width-4-10">
+    <div class="uk-width-3-10">
       <?php print $area_html; ?>
     </div>
   <?php endif; ?>

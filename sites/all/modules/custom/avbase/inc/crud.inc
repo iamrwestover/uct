@@ -82,7 +82,7 @@ function avbase_crud_form_submit($form, &$form_state) {
         if (array_search('created', $save_field_ids) !== FALSE) {
           $row['created'] = $now;
         }
-        if (array_search('uid', $save_field_ids) !== FALSE) {
+        if ($table_name != 'avtbl_users' && array_search('uid', $save_field_ids) !== FALSE) {
           $row['uid'] = $user->uid;
         }
         if ($row['id'] = db_insert($table_name)->fields($row)->execute()) {

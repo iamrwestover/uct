@@ -246,6 +246,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#visible_in_view_mode' => TRUE,
       '#attributes' => array('class' => array('suk-button-primary')),
       '#icon_key' => 'print',
+      '#access' => $row->status == AVTXNS_TXN_STATUS_OPEN,
     );
 
     // Add status change buttons.

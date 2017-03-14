@@ -138,8 +138,8 @@ function avreports_home_form($form, &$form_state) {
     $form[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right')))));
   }
   $form['hr2'] = array('#markup' => '<hr />');
-  $form['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $form['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $form['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   return $form;
 }
 
@@ -599,6 +599,7 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
   $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avproducts.principal_id';
 
   $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
   if ($transaction_kind == 'purchase') {
@@ -645,11 +646,13 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
     }
   }
 
-
-
-
   // Add today filter.
-  $today = format_date(time(), 'custom', 'F d, Y');
+  //if (empty($user_filter['date_to'])) {
+  //  $today = format_date(time(), 'custom', 'F d, Y');
+  //  $today_timestamp = strtotime($today);
+  //  $where[] = "avtxn.transaction_date >= $timestamp AND avtxn.transaction_date < $next_day_timestamp";
+  //}
+
   $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
   $filter_form_settings = array(
     'date_from' => array(
@@ -671,6 +674,11 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
       '#title' => t('Agent'),
       '#access' => TRUE,
       '#autocomplete_path' => 'av/categories/agent' . $ctd['type'] . '/autocomplete',
+    ),
+    'avcat_principal.title' => array(
+      '#title' => t('Principal'),
+      '#access' => TRUE,
+      '#autocomplete_path' => 'av/categories/principal/autocomplete',
     ),
     'avcat_area.title' => array('#access' => $transaction_kind == 'sales'),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
@@ -812,6 +820,13 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
       '#type' => 'item',
       '#markup' => empty($user_filter['avcat_agent.title']) ? '' : check_plain($user_filter['avcat_agent.title']),
       '#access' =>  !empty($user_filter['avcat_agent.title']),
+    );
+    $transaction_list_table['principal_name'] = array(
+      '#title' => 'Principal',
+      '#title_display' => 'inline-before',
+      '#type' => 'item',
+      '#markup' => empty($user_filter['avcat_principal.title']) ? '' : check_plain($user_filter['avcat_principal.title']),
+      '#access' =>  !empty($user_filter['avcat_principal.title']),
     );
     $transaction_list_table['area_name'] = array(
       '#title' => 'Area',

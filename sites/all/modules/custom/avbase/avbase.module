@@ -337,6 +337,7 @@ function avbase_form_user_profile_form_alter(&$form, $form_state) {
 
   $form['account']['roles']['#access'] = $user->uid != $account->uid;
   $form['account']['mail']['#description'] = '';
+  $form['account']['pass']['#access'] = user_access('administer users');
 
   // Set crud settings.
   $avuser_row = avbase_avuser_load($account);

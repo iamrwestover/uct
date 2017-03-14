@@ -570,6 +570,16 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     '#access' => FALSE,
   );
 
+  $fields['avcat_principal.title'] = empty($settings['avcat_principal.title']) ? array() : $settings['avcat_principal.title'];
+  $fields['avcat_principal.title'] += array(
+    '#type' => 'textfield',
+    '#maxlength' => 255,
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+    '#access' => FALSE,
+  );
+
   $fields['avclients.display_name'] = empty($settings['avclients.display_name']) ? array() : $settings['avclients.display_name'];
   $fields['avclients.display_name'] += array(
     '#type' => 'textfield',
