@@ -1,6 +1,5 @@
 <?php
 $view_mode = !empty($form['#av_view_mode']);
-//$show_discount_field =
 foreach (element_children($form) as $key) {
   $form[$key]['#title_display'] = 'none';
 }

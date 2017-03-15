@@ -20,6 +20,7 @@ $address_html = drupal_render($form['client_address_string']);
 $agent_html = drupal_render($form['agent_name']);
 $return_type_html = drupal_render($form['return_type']);
 $reference_id_html = drupal_render($form['reference_id']);
+$pmt_method_html = drupal_render($form['pmt_method_id']);
 $element_bottom_margin = $view_mode ? '' : ' uk-margin-small-bottom';
 
 $special_discount_html = drupal_render($form['special_discount']);
@@ -54,6 +55,9 @@ $balance_ages_html = drupal_render($form['balance_ages']);
             <?php endif; ?>
             <?php if ($due_date_html): ?>
               <div class="uk-width-1-2<?php print $element_bottom_margin; ?>"><?php print $due_date_html; ?></div>
+            <?php endif; ?>
+            <?php if ($pmt_method_html): ?>
+              <div class="uk-width-1-2<?php print $element_bottom_margin; ?>"><?php print $pmt_method_html; ?></div>
             <?php endif; ?>
             <?php if ($reference_id_html): ?>
               <div class="uk-width-1-2<?php print $element_bottom_margin; ?>"><?php print $reference_id_html; ?></div>

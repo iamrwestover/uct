@@ -27,24 +27,14 @@ $form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
   <div class="uk-width-5-10">
 
     <div class="uk-grid uk-grid-collapse">
-      <div class="uk-width-1-1">
+      <div class="uk-width-1-2 uk-text-center" style="width: 7%;">
         <div class="av-nestable-cell">
-
-          <div class="uk-grid uk-grid-collapse">
-            <div class="uk-width-1-10">
-
-              <div class="uk-grid uk-grid-collapse uk-text-center">
-                <?php if (empty($view_mode)): ?>
-                  <div class="uk-width-1-2"><i class="uk-nestable-handle uk-icon uk-icon-bars uk-margin-small-right"></i></div>
-                <?php endif; ?>
-                <div class="uk-width-<?php print $view_mode ? '2' : '1'; ?>-2"><span class="av-nestable-row-num" style="<?php print $view_mode ? 'top: 0;' : ''; ?>"><?php print $form['#prod_index'] + 1; ?></span></div>
-              </div>
-
-            </div>
-
-            <div class="uk-width-9-10"><?php print drupal_render($form['product_title']); ?></div>
-          </div>
-
+          <span class="av-nestable-row-num" style="<?php print $view_mode ? 'top: 0;' : ''; ?>"><?php print $form['#prod_index'] + 1; ?></span>
+        </div>
+      </div>
+      <div class="uk-width-1-2" style="width: 93%;">
+        <div class="av-nestable-cell">
+          <?php print drupal_render($form['product_title']); ?>
         </div>
       </div>
     </div>

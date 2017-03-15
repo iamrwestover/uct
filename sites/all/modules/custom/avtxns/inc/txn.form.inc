@@ -135,7 +135,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   $form['transaction_type'] = array('#type' => 'value', '#value' => $transaction_type);
   $form['id'] = array('#type' => 'value', '#value' => (isset($row->id) ? $row->id : NULL));
   $form['last_changed'] = array('#type' => 'hidden', '#default_value' => (isset($row->changed) ? $row->changed : NULL));
-  //$form['status'] = array('#type' => 'value', '#value' => (isset($row->status) ? $row->status : NULL));
+  $form['transaction_status'] = array('#type' => 'value', '#value' => (isset($row->status) ? $row->status : NULL));
   $form['#success_message'] = t('@type details saved.', array('@type' => $ttd['name']));
   $form['#theme'] = 'avtxns_item_list_form';
 
@@ -176,6 +176,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
     'reference_id',
     'return_type' => array('type' => 'int'),
     'due_date' => array('type' => 'int'),
+    'pmt_method_id' => array('type' => 'int'),
     'memo',
     'email',
     'message',
@@ -239,15 +240,16 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     );
   }
   else {
-    $buttons['print'] = array(
-      '#id' => 'av-print-btn',
-      '#type' => 'button',
-      '#value' => t('Print...'),
-      '#visible_in_view_mode' => TRUE,
-      '#attributes' => array('class' => array('suk-button-primary')),
-      '#icon_key' => 'print',
-      '#access' => $row->status == AVTXNS_TXN_STATUS_OPEN,
-    );
+    if (in_array($row->status, array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN))) {
+      $buttons['print'] = array(
+        '#id' => 'av-print-btn',
+        '#type' => 'button',
+        '#value' => t('Print...'),
+        '#visible_in_view_mode' => TRUE,
+        '#attributes' => array('class' => array('suk-button-primary')),
+        '#icon_key' => 'print',
+      );
+    }
 
     // Add status change buttons.
     $buttons['void_btn'] = array(
@@ -298,7 +300,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     $buttons['submit_and_print']['#ajax'] = $buttons['submit']['#ajax'];
   }
 
-  if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+  if (!empty($ttd['payment'])) {
     // Add extra button to load customer returns.
     $buttons['check_returns'] = array(
       '#id' => 'check-ret-btn',

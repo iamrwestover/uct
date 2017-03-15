@@ -18,6 +18,9 @@ define('AVBASE_DIGITS_MAX', 12);
 
 define('AVBASE_DECIMAL_FORMAT_MAX', 4);
 
+define('AVBASE_PMT_METHOD_CASH', 1);
+define('AVBASE_PMT_METHOD_CHECK', 2);
+
 // Permissions
 define('AVBASE_PERM_SYSTEM_SETTINGS', 'avbase system settings');
 define('AVBASE_PERM_SYSTEM_CATEGORIES', 'avbase system categories');

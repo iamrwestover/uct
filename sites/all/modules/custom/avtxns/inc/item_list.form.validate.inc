@@ -16,10 +16,10 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
   $_item_rows = &$_storage['item_rows'];
   $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
-
+  $ttd = avtxns_txn_types($transaction_type);
 
   // Make sure at least one product is added.
-  if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
+  if (empty($ttd['payment'])) {
     $detected_product_ids = array();
     foreach ($_item_rows as $k => $row) {
       if (!empty($row['product_id'])) {
@@ -66,7 +66,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
       $query = "SELECT id, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
       $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
       $valid_statuses = array(AVTXNS_TXN_STATUS_OPEN);
-      if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+      if (!empty($ttd['payment'])) {
         $valid_statuses[] = AVTXNS_TXN_STATUS_CLOSED;
       }
       foreach ($rs as $txn) {
@@ -77,7 +77,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     }
   }
 
-  if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && empty($_item_rows)) {
+  if (!empty($ttd['payment']) && empty($_item_rows)) {
     form_set_error('', t('No payment received.'));
   }
 }
@@ -114,3 +114,21 @@ function avtxns_item_list_row_element_validate($element, &$form_state, $form) {
   }
 }
 
+/**
+ * Check if reference id should be required.
+ * @param $element
+ * @param $form_state
+ */
+function avtxns_element_validate_reference_id_required($element, &$form_state) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  $pmt_method_id = empty($values['pmt_method_id']) ? NULL : $values['pmt_method_id'];
+
+  if ($pmt_method_id == AVBASE_PMT_METHOD_CHECK) {
+    $element_value = $element['#value'];
+    $element_value = trim($element_value);
+    $element_title = $element['#title'];
+    if ($element_value == '') {
+      form_error($element, t('@element_title  is required for Check payments.', array('@element_title' => $element_title)));
+    }
+  }
+}

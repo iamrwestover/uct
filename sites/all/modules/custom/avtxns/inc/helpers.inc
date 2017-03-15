@@ -116,6 +116,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query->addField('avclients', 'zip_code');
   $query->addField('avclients', 'status', 'client_status');
   $query->addField('avclients', 'contact_number');
+  $query->addField('avclients', 'credit_limit');
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->addField('avcat_terms', 'title', 'term_name');
   $query->addField('avcat_terms', 'data', 'term_data');
@@ -138,6 +139,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $rs = $query->execute();
   $rows = array();
   foreach ($rs as $row) {
+    $ttd = avtxns_txn_types($row->transaction_type);
     $subtotal = 0;
     $credit_total = 0;
     $debit_total = 0;
@@ -146,7 +148,8 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       //$row->term_data = unserialize($row->term_data);
       $query = db_select('avtbl_transaction_details', 'avtxn_details');
       $query->fields('avtxn_details');
-      if ($row->transaction_type != AVTXNS_TXN_TYPE_PAYMENT) {
+
+      if (empty($ttd['payment'])) {
         $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_details.item_id');
         $query->leftJoin('avtbl_categories', 'avcat', 'avcat.id = avtxn_details.uom_id');
         $query->leftJoin('avtbl_categories', 'avcat_base', 'avcat_base.id = avprod.uom_id');
@@ -173,7 +176,9 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
         // Capitalize item title.
-        $item->product_title = strtoupper($item->product_title);
+        if (!empty($item->product_title)) {
+          $item->product_title = strtoupper($item->product_title);
+        }
 
         $item->transaction_date_formatted = $transaction_date_formatted;
         $item->total = $item->cost * $item->qty;
@@ -227,7 +232,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $row->items[$item->id] = $item;
 
         // Special fields for payment transactions.
-        if ($row->transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+        if (!empty($ttd['payment'])) {
           $subtotal += $item->paid_amount;
           $invoice = avtxns_txn_load($item->ref_txn_dtl_id);
           if (!empty($invoice->id)) {
@@ -262,7 +267,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     // Attach received items.
     //avtxns_txn_attach_received_items($row);
 
-    if ($row->transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+    if (!empty($ttd['bill'])) {
       $query = "SELECT SUM(avtxn_details.paid_amount) FROM {avtbl_transaction_details} avtxn_details
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
         WHERE avtxn_details.ref_txn_dtl_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
@@ -976,7 +981,6 @@ function avtxns_txn_change_status($id, $status) {
       break;
   }
 
-  $ttd = avtxns_txn_types($row->transaction_type);
   if ($status == AVTXNS_TXN_STATUS_VOID) {
     // Re-open related transactions if possible.
     $item_rows = empty($row->items) ? array() : $row->items;
@@ -1014,6 +1018,16 @@ function avtxns_txn_change_status($id, $status) {
     if (!empty($can_be_reopened)) {
       if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id IN (:txn_ids)", array(':txn_ids' => $can_be_reopened, ':status' => AVTXNS_TXN_STATUS_OPEN, ':changed' => $now))) {
         avbase_custom_watchdog("txn__status_change", "Reopened, IDs: multiple", array('#ids' => $can_be_reopened, '#status' => AVTXNS_TXN_STATUS_OPEN, '#row' => $row));
+      }
+    }
+
+    // Suspend client if necessary.
+    if ($status == AVTXNS_TXN_STATUS_OPEN && in_array($row->transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_INVOICE))) {
+      if ($row->client_status == AVCLIENT_STATUS_ACTIVE) {
+        $limit_reached = avbase_client_limit_reached($row->client_id);
+        if ($limit_reached && avclients_client_change_status($row->client_id, AVCLIENT_STATUS_SUSPENDED)) {
+          drupal_set_message(t('Client\'s @credit_limit credit limit has been reached. Account has been suspended.', array('@credit_limit' => number_format($row->credit_limit, 2))), 'warning');
+        }
       }
     }
     return TRUE;

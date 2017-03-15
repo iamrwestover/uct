@@ -6,9 +6,15 @@
  * @return array|NULL
  */
 function avreports_client_balance_aging_form($client_id) {
+  $data = &drupal_static(__FUNCTION__, array());
+  if (isset($data[$client_id])) {
+    return $data[$client_id];
+  }
+
   $client = avclient_load($client_id);
   if (empty($client->id)) {
-    return NULL;
+    $data[$client_id] = NULL;
+    return $data[$client_id];
   }
 
   $invoice_where = array(
@@ -63,5 +69,7 @@ function avreports_client_balance_aging_form($client_id) {
   $balance_ages_form['#limit_reached'] = !empty($credit_limit) && round($total_balance, 2) >= round($credit_limit, 2);
   $balance_ages_form['#client_type'] = $client->client_type;
   $balance_ages_form['#client_status'] = $client->status;
-  return $balance_ages_form;
+
+  $data[$client_id] = $balance_ages_form;
+  return $data[$client_id];
 }

@@ -32,12 +32,12 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   );
 
   $header = array(
-    'transaction_id' => array('data' => t('Transaction #'), 'class' => 'suk-text-right'),
+    'transaction_id' => array('data' => t('@type #', array('@type' => strtoupper($reference_type))), 'class' => 'suk-text-right'),
     'agent_name' => array('data' => t('Agent'), 'class' => ''),
     'transaction_date' => array('data' => t('Order Date')),
     'total' => array('data' => t('Total'), 'class' => 'uk-text-right'),
   );
-  if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+  if (!empty($ttd['payment'])) {
     unset($header['agent_name']);
   }
   $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
@@ -51,7 +51,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       'transaction_date' => format_date($v->transaction_date, 'custom', 'Y M d'),
       'total' => array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right')),
     );
-    if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+    if (!empty($ttd['payment'])) {
       unset($table_rows[$v->id]['agent_name']);
     }
   }
@@ -67,7 +67,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       '#attributes' => array('class' => array('uk-table-striped')),
       //'#prefix' => '<div id="avtxns-pending-orders-form-wrapper">',
       //'#suffix' => '</div>',
-      '#multiple' => ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN || $transaction_type == AVTXNS_TXN_TYPE_PAYMENT),
+      '#multiple' => ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN || !empty($ttd['payment'])),
     );
   }
   // Buttons
@@ -133,6 +133,12 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
     case AVTXNS_TXN_TYPE_PAYMENT:
       $modal_title = t('Recent invoices for this customer');
       break;
+    case AVTXNS_TXN_TYPE_BILL:
+      $modal_title = t('Recent items received from this vendor');
+      break;
+    case AVTXNS_TXN_TYPE_PAY_BILL:
+      $modal_title = t('Recent bills for this vendor');
+      break;
   }
   $pending_orders_form = $fields;
   $pending_orders_form['#type'] = 'container';
@@ -166,7 +172,9 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
 
   // Get transaction type.
   $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
+  $ttd = avtxns_txn_types($transaction_type);
   $reference_type = empty($trigger['#reference_type']) ? '' : $trigger['#reference_type'];
+  $rtd = avtxns_txn_types($reference_type);
   switch ($trigger['#id']) {
     case 'check-po-btn':
     case 'check-ret-btn':
@@ -183,7 +191,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
 
       $conditions = array();
       $conditions[] = array('avtxns.client_id', $client_id);
-      if ($reference_type == AVTXNS_TXN_TYPE_INVOICE) {
+      if (!empty($rtd['bill'])) {
         $conditions[] = array('avtxns.status', array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), 'IN');
       }
       else {
@@ -193,7 +201,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $pos = avtxns_txn_query_load($conditions);
       $floating_pos = array();
       foreach ($pos as $po_k => $po_v) {
-        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT && round($po_v->balance, 2) <= 0) {
+        if (!empty($ttd['payment']) && round($po_v->balance, 2) <= 0) {
           continue;
         }
         $trimmed_po = new stdClass();
@@ -267,7 +275,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       // Select po items and add them to $_item_rows.
       $receive_pos = array();
       foreach ($selected_transaction_details as $transaction) {
-        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+        if (!empty($ttd['payment'])) {
           $item_row_id = "{$reference_type}_db_item_{$transaction->id}";
           $transaction_arr = (array) $transaction;
           $transaction_arr['ref_txn_dtl_id'] = $transaction->id;

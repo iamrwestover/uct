@@ -835,3 +835,45 @@ function avbase_build_header_order_array($header) {
   }
   return $order_by;
 }
+
+/**
+ * Check if client reached the set credit limit.
+ * @param $client_id
+ * @param null $transaction_id
+ * @return bool
+ */
+function avbase_client_limit_reached($client_id, $transaction_id = NULL) {
+  $data = &drupal_static(__FUNCTION__, array());
+  $static_key = "$client_id:$transaction_id";
+  if (isset($data[$static_key])) {
+    return $data[$static_key];
+  }
+
+  $balance_ages_form = avreports_client_balance_aging_form($client_id);
+  if (empty($balance_ages_form)) {
+    return FALSE;
+  }
+
+  $transaction_row = NULL;
+  if (!empty($transaction_id)) {
+    $transaction_row = avtxns_txn_load($transaction_id);
+  }
+
+  $credit_limit = $balance_ages_form['#credit_limit'];
+  $client_balance = $balance_ages_form['#total_balance'];
+  $this_transaction_total = empty($transaction_row->grand_total) ? 0 : $transaction_row->grand_total;
+  $limit_reached = !empty($credit_limit) && round(($client_balance + $this_transaction_total), 2) >= round($credit_limit, 2);
+
+  $data[$static_key] = $limit_reached;
+  return $data[$static_key];
+}
+
+/**
+ * Return payment method array list.
+ */
+function avbase_payment_method_array() {
+  return array(
+    AVBASE_PMT_METHOD_CASH => t('Cash'),
+    AVBASE_PMT_METHOD_CHECK => t('Check'),
+  );
+}

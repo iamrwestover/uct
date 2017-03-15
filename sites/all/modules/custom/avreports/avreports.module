@@ -135,7 +135,7 @@ function avreports_home_form($form, &$form_state) {
   $form['hr1'] = array('#markup' => '<hr />');
   $transaction_types = avtxns_txn_types();
   foreach ($transaction_types as $k => $type) {
-    $form[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right')))));
+    $form[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   }
   $form['hr2'] = array('#markup' => '<hr />');
   $form['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
@@ -615,8 +615,8 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
       * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
       * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
     ) AS total_cost';
-    $where[] = "avtxn.transaction_type = :txn_type_receive";
-    $args[':txn_type_receive'] = AVTXNS_TXN_TYPE_RECEIVE;
+    $where[] = "avtxn.transaction_type = :txn_type_bill";
+    $args[':txn_type_bill'] = AVTXNS_TXN_TYPE_BILL;
     if (empty($_GET['order'])) {
       $_GET['order'] = 'Total Purchase Cost';
       $_GET['sort'] = 'desc';

@@ -28,6 +28,9 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
       $ttd = avtxns_txn_types($transaction_type);
 
+      // Get current transaction status.
+      $transaction_status = isset($form_state['values']['transaction_status']) ? $form_state['values']['transaction_status'] : NULL;
+
       // Set table field names.
       $all_table_field_names = array(
         'transaction_id',
@@ -58,7 +61,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $item_ids = array();
       $discount_updates = array();
       foreach ($item_rows as $item_row) {
-        if ($transaction_type != AVTXNS_TXN_TYPE_PAYMENT && empty($item_row['product_id'])) {
+        if (empty($ttd['payment']) && empty($item_row['product_id'])) {
           continue;
         }
         // Make sure only item rows owned by this owner get saved.
@@ -74,7 +77,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         $insert_arr = $update_arr = array();
         $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = 0;
         // Overwrite paid amount.
-        if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+        if (!empty($ttd['payment'])) {
           $item_row['paid_amount'] = $item_row['total'];
         }
 
@@ -194,8 +197,8 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         }
 
         // Send transaction status to PENDING if one of the products' discount is over the limit.
-        $transaction_row = avtxns_txn_load($row['id']);
-        if (!empty($ttd['product_discount_check']) && $transaction_row->status != AVTXNS_TXN_STATUS_PENDING) {
+        //$transaction_row = avtxns_txn_load($row['id']);
+        if (!empty($ttd['product_discount_check']) && (is_null($transaction_status) || $transaction_status == AVTXNS_TXN_STATUS_OPEN)) {
           $set_to_pending = FALSE;
           $query = "SELECT id, discount1, discount2, discount3, discount4 FROM {avtbl_products}
             WHERE id IN (:ids)";
@@ -216,7 +219,8 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           }
 
           if ($set_to_pending) {
-            if (avtxns_txn_change_status($transaction_row->id, AVTXNS_TXN_STATUS_PENDING)) {
+            if (avtxns_txn_change_status($row['id'], AVTXNS_TXN_STATUS_PENDING)) {
+              $transaction_status = AVTXNS_TXN_STATUS_PENDING;
               drupal_set_message('Some item discounts exceeded the maximum allowed. This transaction has been sent for approval.', 'warning');
             }
           }
@@ -232,12 +236,13 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       }
 
       // Suspend/re-activate customer if necessary.
-      if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
-        $balance_ages_form = avreports_client_balance_aging_form($row['client_id']);
-        if ($balance_ages_form['#client_status'] != AVCLIENT_STATUS_SUSPENDED && !empty($balance_ages_form['#limit_reached']) && $balance_ages_form['#client_type'] == AVCLIENT_TYPE_CUSTOMER) {
-          if (avclients_client_change_status($row['client_id'], AVCLIENT_STATUS_SUSPENDED)) {
-            drupal_set_message(t('Client\'s @credit_limit credit limit has been reached. Account has been suspended.', array('@credit_limit' => number_format($balance_ages_form['#credit_limit'], 2))), 'warning');
-          }
+      if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY && (is_null($transaction_status) || $transaction_status == AVTXNS_TXN_STATUS_OPEN)) {
+        // Make this transaction pending if limit is reached.
+        $limit_reached = avbase_client_limit_reached($row['client_id'], $row['id']);
+        if ($limit_reached && avtxns_txn_change_status($row['id'], AVTXNS_TXN_STATUS_PENDING)) {
+          $transaction_status = AVTXNS_TXN_STATUS_PENDING;
+          $balance_ages_form = avreports_client_balance_aging_form($row['client_id']);
+          drupal_set_message(t('This transaction has been sent for approval. Client\'s @credit_limit credit limit will be reached if this transaction is approved.', array('@credit_limit' => number_format($balance_ages_form['#credit_limit'], 2))), 'warning');
         }
       }
       elseif ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {

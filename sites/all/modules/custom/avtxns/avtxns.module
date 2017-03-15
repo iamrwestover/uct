@@ -9,8 +9,8 @@ define('AVTXNS_RETURN_TYPE_RS', 2);
 define('AVTXNS_TXN_TYPE_PURCHASE_ORDER', 'po');
 define('AVTXNS_TXN_TYPE_RECEIVE', 'rcv');
 define('AVTXNS_TXN_TYPE_PURCHASE_RETURN', 'pr');
-define('AVTXNS_TXN_TYPE_CREATE_BILL', 'bll');
-define('AVTXNS_TXN_TYPE_PAY_BILL', 'blp');
+define('AVTXNS_TXN_TYPE_BILL', 'bill');
+define('AVTXNS_TXN_TYPE_PAY_BILL', 'bpmt');
 define('AVTXNS_TXN_TYPE_SALES_ORDER', 'so');
 define('AVTXNS_TXN_TYPE_DELIVERY', 'dr');
 define('AVTXNS_TXN_TYPE_SALES_RETURN', 'sr');
@@ -215,7 +215,7 @@ function avtxns_txns_home_form($form, &$form_state) {
     $can_create = user_access(constant('AVTXNS_PERM_CREATE_' . $ttype));
     $button_color_class = $type['transaction'] == 'sales' ? 'uk-button-success' : 'uk-button-primary';
     $form["new_$k"] = array(
-      '#markup' => l($type['name'], "{$transaction_types[$k]['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))),
+      '#markup' => l($type['name'], "{$type['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))),
       '#access' => $can_create,
     );
   }
@@ -241,60 +241,6 @@ function avtxns_txns_home_form($form, &$form_state) {
 function avtxns_txn_types($type = NULL) {
   $ret = &drupal_static(__FUNCTION__, array());
   if (empty($ret)) {
-    // Purchase.
-    $ret[AVTXNS_TXN_TYPE_PURCHASE_ORDER] = array(
-      'type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
-      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
-      'transaction' => 'purchase',
-      'name' => 'Purchase Order',
-      'plural_name' => 'Purchase Orders',
-      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-    );
-    $ret[AVTXNS_TXN_TYPE_RECEIVE] = array(
-      'type' => AVTXNS_TXN_TYPE_RECEIVE,
-      'base_path' => 'av/' . AVTXNS_TXN_TYPE_RECEIVE,
-      'transaction' => 'purchase',
-      'name' => 'Received Items',
-      'plural_name' => 'Received items',
-      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
-      'qty_change' => 'increment',
-      'cost_change' => TRUE,
-      'product_discount_overwrite' => TRUE,
-    );
-    $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
-      'type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
-      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN,
-      'transaction' => 'purchase',
-      'name' => 'Purchase Return',
-      'plural_name' => 'Purchase Returns',
-      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-      'qty_change' => 'decrement',
-    );
-    //$ret[AVTXNS_TXN_TYPE_CREATE_BILL] = array(
-    //  'type' => AVTXNS_TXN_TYPE_CREATE_BILL,
-    //  'base_path' => 'av/' . AVTXNS_TXN_TYPE_CREATE_BILL,
-    //  'transaction' => 'purchase',
-    //  'name' => 'Bill',
-    //  'plural_name' => 'Bills',
-    //  'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-    //  'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
-    //  'payable_type' => 'credit',
-    //  //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
-    //  'bill' => TRUE,
-    //);
-    //$ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
-    //  'type' => AVTXNS_TXN_TYPE_PAY_BILL,
-    //  'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAY_BILL,
-    //  'transaction' => 'purchase',
-    //  'name' => 'Bills Payment',
-    //  'plural_name' => 'Paid Bills',
-    //  'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-    //  'pending_txns_reference_type' => AVTXNS_TXN_TYPE_CREATE_BILL,
-    //  //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
-    //  'payment' => TRUE,
-    //);
-
     // Sales.
     $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
       'type' => AVTXNS_TXN_TYPE_SALES_ORDER,
@@ -351,6 +297,66 @@ function avtxns_txn_types($type = NULL) {
       'client_statuses' => array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED),
       'payment' => TRUE,
     );
+
+    // Purchase.
+    $ret[AVTXNS_TXN_TYPE_PURCHASE_ORDER] = array(
+      'type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'transaction' => 'purchase',
+      'name' => 'Purchase Order',
+      'plural_name' => 'Purchase Orders',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+    );
+    $ret[AVTXNS_TXN_TYPE_RECEIVE] = array(
+      'type' => AVTXNS_TXN_TYPE_RECEIVE,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_RECEIVE,
+      'transaction' => 'purchase',
+      'name' => 'Received Items',
+      'plural_name' => 'Received items',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      'qty_change' => 'increment',
+      'cost_change' => TRUE,
+      'product_discount_overwrite' => TRUE,
+    );
+    $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
+      'type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN,
+      'transaction' => 'purchase',
+      'name' => 'Purchase Return',
+      'plural_name' => 'Purchase Returns',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'qty_change' => 'decrement',
+    );
+    $ret[AVTXNS_TXN_TYPE_BILL] = array(
+      'type' => AVTXNS_TXN_TYPE_BILL,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_BILL,
+      'transaction' => 'purchase',
+      'name' => 'Bill',
+      'plural_name' => 'Bills',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
+      'payable_type' => 'credit',
+      //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
+      'bill' => TRUE,
+      'tpl_suffix' => AVTXNS_TXN_TYPE_INVOICE,
+    );
+    $ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
+      'type' => AVTXNS_TXN_TYPE_PAY_BILL,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAY_BILL,
+      'transaction' => 'purchase',
+      'name' => 'Bills Payment',
+      'plural_name' => 'Paid Bills',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_BILL,
+      //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
+      'payment' => TRUE,
+      'tpl_suffix' => AVTXNS_TXN_TYPE_PAYMENT,
+    );
+  }
+
+  foreach ($ret as $r_k => $r) {
+    $ret[$r_k]['tpl_suffix'] = isset($ret[$r_k]['tpl_suffix']) ? $ret[$r_k]['tpl_suffix'] : $r_k;
   }
 
   if (isset($ret[$type])) {
