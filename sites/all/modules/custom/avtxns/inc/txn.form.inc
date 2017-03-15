@@ -300,7 +300,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     $buttons['submit_and_print']['#ajax'] = $buttons['submit']['#ajax'];
   }
 
-  if (!empty($ttd['payment'])) {
+  if (!empty($ttd['bill'])) {
     // Add extra button to load customer returns.
     $buttons['check_returns'] = array(
       '#id' => 'check-ret-btn',

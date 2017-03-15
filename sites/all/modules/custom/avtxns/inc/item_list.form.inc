@@ -104,7 +104,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#title' => 'Payment Method',
       '#title_display' => $view_mode ? 'inline-before' : 'before',
       '#options' => avbase_payment_method_array(),
-      '#default_value' => isset($row->pmt_method_id) ? $row->pmt_method_id : 0,
+      '#default_value' => isset($row->pmt_method_id) ? $row->pmt_method_id : AVBASE_PMT_METHOD_CHECK,
       '#empty_value' => 0,
       '#empty_option' => '',
     );
