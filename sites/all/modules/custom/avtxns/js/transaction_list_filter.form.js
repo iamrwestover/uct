@@ -36,6 +36,13 @@
       self.$searchBtn.trigger('click');
     });
 
+    //self.$searchEls.on('click', function () {
+    //  if ($(this).hasClass('trigger-search-on-click')) {
+    //    return;
+    //  }
+    //  self.$searchBtn.trigger('click');
+    //});
+
     self.$searchEls.on('keyup', function () {
       if (!$(this).hasClass('trigger-search-on-keyup')) {
         return;
@@ -57,10 +64,18 @@
           return;
         }
         if ($(this).attr('type') == 'checkbox') {
-          $(this).prop('checked', '');
-          if ($(this).attr('checked')) {
-            $(this).prop('checked', 'checked');
-          }
+          //$(this).prop('checked', '');
+          //if ($(this).attr('checked')) {
+          //  $(this).prop('checked', 'checked');
+          //}
+          $(this).prop('checked', function () {
+            return this.getAttribute('checked') == 'checked';
+          });
+        }
+        else if ($(this).attr('type') == 'radio') {
+          $(this).prop('checked', function () {
+            return this.getAttribute('checked') == 'checked';
+          });
         }
         else {
           $(this).val('');

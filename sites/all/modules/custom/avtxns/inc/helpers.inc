@@ -1091,9 +1091,9 @@ function avtxns_product_query_load($param_where = array(), $param_args = array()
     $select[] = 'COUNT(avproducts.id)';
   }
   else {
-    $select[] = 'avproducts.id';
-    $select[] = 'avproducts.title';
-    $select[] = 'avproducts.qty';
+    //$select[] = 'avproducts.id';
+    //$select[] = 'avproducts.title';
+    //$select[] = 'avproducts.qty';
     //$select[] = 'IF(
     //  avtxn.transaction_type = :txn_type_receive,
     //  SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom),

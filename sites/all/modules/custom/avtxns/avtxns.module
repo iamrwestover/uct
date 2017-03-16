@@ -702,6 +702,38 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
+  $fields['settings']['table_group_by'] = array(
+    '#type' => 'radios',
+    '#title' => 'Group by',
+    '#options' => array(
+      '' => 'No grouping',
+      'agent_name' => 'Agent',
+      'client_name' => 'Customer',
+      'principal_name' => 'Principal',
+    ),
+    //'#default_value' => 'avtxn.agent_id',
+    '#attributes' => array(
+      'class' => array('suk-button-group', 'trigger-ajax-search'),
+    ),
+    '#access' => !empty($settings['custom_table']['#access'])
+  );
+  $fields['settings']['table_columns'] = array(
+    '#type' => 'checkboxes',
+    '#title' => 'Columns',
+    '#options' => array(
+      'agent_name' => 'Agent',
+      'client_name' => 'Customer',
+      'client_address' => 'Address',
+      'principal_name' => 'Principal',
+      'item_name' => 'Product',
+    ),
+    //'#default_value' => array('a', 'b'),
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+    '#access' => !empty($settings['custom_table']['#access'])
+  );
+
   $form['avtxns_tl_filter'] = $fields;
   return $form;
 }

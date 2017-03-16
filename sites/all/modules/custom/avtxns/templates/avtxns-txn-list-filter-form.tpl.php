@@ -11,6 +11,8 @@ $area_html = drupal_render($form['avcat_area.title']);
 $principal_html = drupal_render($form['avcat_principal.title']);
 $status_html = drupal_render($form['avtxn.status']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
+$table_group_by_html = drupal_render($form['settings']['table_group_by']);
+$table_columns_html = drupal_render($form['settings']['table_columns']);
 ?>
 <div class="uk-grid uk-grid-small uk-margin-top">
   <?php if ($transaction_id_html): ?>
@@ -50,7 +52,7 @@ $reset_btn_html = drupal_render($form['buttons']['reset_button']);
   <?php endif; ?>
 
   <?php if ($agent_html): ?>
-    <div class="uk-width-2-10">
+    <div class="uk-width-3-10">
       <?php print $agent_html; ?>
     </div>
   <?php endif; ?>
@@ -75,6 +77,17 @@ $reset_btn_html = drupal_render($form['buttons']['reset_button']);
   <?php if ($date_to): ?>
     <div class="uk-width-2-10">
       <?php print $date_to; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($table_group_by_html): ?>
+    <div class="uk-width-1-10">
+      <?php print $table_group_by_html; ?>
+    </div>
+  <?php endif; ?>
+  <?php if ($table_columns_html): ?>
+    <div class="uk-width-1-10">
+      <?php print $table_columns_html; ?>
     </div>
   <?php endif; ?>
 
