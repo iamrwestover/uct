@@ -256,5 +256,82 @@ function avtxns_schema() {
     ),
   );
 
+  $schema['avtbl_account_chart'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Account Title',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'account_type' => array(
+        'description' => 'Account Type ID',
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+      ),
+      'parent' => array(
+        'description' => 'Parent ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'weight' => array(
+        'description' => 'Weght',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Created timestamp',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'Created by UID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'Changed timestamp',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'fixed' => array(
+        'description' => 'If account cannot be changed or deleted',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'status' => array(
+        'description' => 'Status',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'title' => array('title')
+    ),
+    'indexes' => array(
+      'status' => array('status'),
+      'type_id' => array('account_type', 'parent'),
+    ),
+  );
+
   return $schema;
 }
