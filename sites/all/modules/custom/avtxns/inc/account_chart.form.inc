@@ -40,7 +40,7 @@ function avtxns_account_chart_form($form, &$form_state, $row, $view_mode = FALSE
   );
 
   // Status buttons.
-  if ($view_mode && !empty($row->id)) {
+  if ($view_mode && !empty($row->id) && empty($row->fixed)) {
     $can_change_status = TRUE;
     $form['buttons']['activate'] = array(
       '#markup' => l('Enable', "av/chart-of-accounts/{$row->id}/" . AVBASE_RECORD_ACTIVE . "/change-status", array(
@@ -162,6 +162,7 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
     '#default_value' => isset($row->account_type) ? $row->account_type : '',
     '#required' => TRUE,
     '#disabled' => !empty($row->id),
+    '#access' => empty($row->fixed),
   );
 
   $account_type_string = empty($row->account_type) ? '-' : $row->account_type;
@@ -174,6 +175,7 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
     //'#element_validate_conditions' => array('group_id' => "agent{$ctd['type']}"),
     '#element_save_id' => 'parent',
     '#default_value' => empty($row->parent_name) ? '' : $row->parent_name,
+    '#access' => empty($row->fixed),
   );
 
 
@@ -198,6 +200,11 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
  * @return array
  */
 function avtxns_account_chart_change_status_confirm_form($form, &$form_state, $row, $status) {
+  if (!empty($row->fixed)) {
+    drupal_set_message('Cannot change status of fixed accounts.', 'error');
+    return array();
+  }
+
   switch ($status) {
     case AVCLIENT_STATUS_DISABLED:
       $prompt = 'Are you sure you want to disable this account?';
