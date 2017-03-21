@@ -389,17 +389,20 @@ function avbase_element_validate_product_name_exists(&$element, &$form_state, $f
     return;
   }
 
-  $rows = avproduct_query_load(array('avprod.title = :title'), array(':title' => $element_value));
-  $row = array_shift($rows);
-  if (empty($row->id)) {
+  $query = "SELECT id FROM {avtbl_products} WHERE title = :title";
+  $row_id = db_query($query, array(':title' => $element_value))->fetchField();
+
+  //$rows = avproduct_query_load(array('avprod.title = :title'), array(':title' => $element_value));
+  //$row = array_shift($rows);
+  if (empty($row_id)) {
     form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
   else {
     // Set extra form state value for this element.
-    avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
+    avbase_element_set_form_state_extra_value($form_state, $element, $row_id);
 
     // Update form_state storage item_rows.
-    avtrans_item_list_update_item_row($form_state, $element, $row->id);
+    avtrans_item_list_update_item_row($form_state, $element, $row_id);
   }
 }
 
@@ -876,4 +879,30 @@ function avbase_payment_method_array() {
     AVBASE_PMT_METHOD_CASH => t('Cash'),
     AVBASE_PMT_METHOD_CHECK => t('Check'),
   );
+}
+
+/**
+ * Return nested version of rows.
+ * @param $rows
+ * @param $parent
+ * @return array
+ */
+function avbase_rows_build_tree(array $rows, $parent = 0) {
+  $branch = array();
+
+  foreach ($rows as $row) {
+    $row = (array) $row;
+    if (!empty($row['fixed']) || empty($row['status'])) {
+      continue;
+    }
+    if ($row['parent'] == $parent) {
+      $children = avbase_rows_build_tree($rows, $row['id']);
+      if ($children) {
+        $row['children'] = $children;
+      }
+      $branch[$row['id']] = $row;
+    }
+  }
+
+  return $branch;
 }

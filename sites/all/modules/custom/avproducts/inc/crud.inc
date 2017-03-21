@@ -673,10 +673,10 @@ function avproducts_product_change_status_confirm_form_submit($form, &$form_stat
     if (avproducts_product_change_status($form_state['row']->id, $status)) {
 
       switch ($status) {
-        case AVCLIENT_STATUS_DISABLED:
+        case AVPRODUCTS_STATUS_DISABLED:
           //drupal_set_message('Client\'s account has been disabled.');
           break;
-        case AVCLIENT_STATUS_ACTIVE:
+        case AVPRODUCTS_STATUS_ACTIVE:
           drupal_set_message('Product has been enabled.');
           break;
         default:

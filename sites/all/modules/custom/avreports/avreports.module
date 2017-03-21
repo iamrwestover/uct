@@ -200,7 +200,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $filter_form_settings = array(
     'avtxn.id' => array('#access' => FALSE),
     'search_text' => array('#access' => FALSE),
-    'avtxn.transaction_date' => array('#default_value' => $today),
+    'avtxn.transaction_date' => array('#default_value' => $today, '#access' => TRUE),
     'avcat_agent.title' => array('#access' => TRUE, '#autocomplete_path' => 'av/categories/agent' . $ttd['ctd']['type'] . '/autocomplete'),
     //'reset_button' => array('#access' => FALSE),
     //'search_button' => array('#table_parents' => array('transaction_list_table')),

@@ -24,6 +24,18 @@ define('AVTXNS_TXN_STATUS_VOID', 3);
 
 define('AVTXN_DISCOUNT_MULTIPLIER', 0.4);
 
+// Account Chart Types
+define('AVTXN_AC_TYPE_AR', 'ar');
+define('AVTXN_AC_TYPE_AP', 'ap');
+define('AVTXN_AC_TYPE_CURRENT', 'cur');
+define('AVTXN_AC_TYPE_FIXED', 'fix');
+define('AVTXN_AC_TYPE_COGS', 'cogs');
+define('AVTXN_AC_TYPE_LIABILITY', 'liab');
+define('AVTXN_AC_TYPE_INCOME', 'inc');
+define('AVTXN_AC_TYPE_EXPENSE', 'exp');
+define('AVTXN_AC_TYPE_CAPITAL', 'cap');
+define('AVTXN_AC_TYPE_OTHER_INCOME', 'oinc');
+
 // Permissions.
 $ttds = avtxns_txn_types();
 foreach ($ttds as $ttd) {
@@ -80,6 +92,60 @@ function avtxns_menu() {
     'menu_name' => 'av',
     'expanded' => TRUE,
   );
+  $items['av/chart-of-accounts'] = array(
+    'title' => 'Chart of Accounts',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_account_chart_home_form'),
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+    'file' => 'inc/account_chart.form.inc',
+  );
+  $items['av/chart-of-accounts/new'] = array(
+    'title' => 'New account',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_account_chart_form', NULL),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/account_chart.form.inc',
+    'weight' => 10,
+  );
+  $items['av/chart-of-accounts/%avtxns_account_chart/view'] = array(
+    'title' => 'View',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_account_chart_form', 2, TRUE),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/account_chart.form.inc',
+    'weight' => 0,
+  );
+  $items['av/chart-of-accounts/%avtxns_account_chart/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_account_chart_form', 2),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/account_chart.form.inc',
+    'weight' => 1,
+  );
+  $items["av/chart-of-accounts/%avtxns_account_chart/%/change-status"] = array(
+    'title' => 'Status change',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avtxns_account_chart_change_status_confirm_form', 2, 3),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/account_chart.form.inc',
+  );
+
+
+  $items['av/chart-of-accounts/autocomplete'] = array(
+    'title' => 'Chart of Accounts Autocomplete',
+    'page callback' => 'avtxns_account_chart_autocomplete',
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/account_chart.helpers.inc',
+  );
+
   $items['av/transactions/qty-check-and-reserve'] = array(
     'title' => 'QTY Check',
     'page callback' => 'avtxns_qty_check_and_reserve',

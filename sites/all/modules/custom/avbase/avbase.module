@@ -21,6 +21,10 @@ define('AVBASE_DECIMAL_FORMAT_MAX', 4);
 define('AVBASE_PMT_METHOD_CASH', 1);
 define('AVBASE_PMT_METHOD_CHECK', 2);
 
+// Generic record status.
+define('AVBASE_RECORD_DISABLED', 0);
+define('AVBASE_RECORD_ACTIVE', 1);
+
 // Permissions
 define('AVBASE_PERM_SYSTEM_SETTINGS', 'avbase system settings');
 define('AVBASE_PERM_SYSTEM_CATEGORIES', 'avbase system categories');
@@ -407,10 +411,10 @@ function avbase_category_groups($category_id = '') {
     $groups['uom'] = array(
       'name' => 'Unit of Measure',
     );
-    $groups['account_type'] = array(
-      'name' => 'Account type',
-      'plural_name' => 'Account types',
-    );
+    //$groups['account_type'] = array(
+    //  'name' => 'Account type',
+    //  'plural_name' => 'Account types',
+    //);
     $groups['shelf'] = array(
       'name' => 'Shelf',
       'plural_name' => 'Shelves',
@@ -493,6 +497,13 @@ function avbase_general_settings_form() {
     '#maxlength' => 255,
     '#title' => 'Contact Number(s)',
     '#default_value' => variable_get('av_company_contact_number', ''),
+  );
+  $form['company_information']['av_company_capital'] = array(
+    '#type' => 'textfield',
+    '#maxlength' => 255,
+    '#title' => 'Capital',
+    '#default_value' => variable_get('av_company_capital', ''),
+    '#element_validate' => array('element_validate_number'),
   );
 
   return system_settings_form($form);
