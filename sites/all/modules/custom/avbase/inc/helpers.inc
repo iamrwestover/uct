@@ -883,20 +883,29 @@ function avbase_payment_method_array() {
 
 /**
  * Return nested version of rows.
- * @param $rows
- * @param $parent
+ *
+ * @param array $rows
+ * @param int $parent
+ * @param bool|TRUE $hide_fixed
+ * @param bool|TRUE $hide_inactive
+ *
  * @return array
  */
-function avbase_rows_build_tree(array $rows, $parent = 0) {
+function avbase_rows_build_tree(array $rows, $parent = 0, $hide_fixed = TRUE, $hide_inactive = TRUE) {
   $branch = array();
 
   foreach ($rows as $row) {
     $row = (array) $row;
-    if (!empty($row['fixed']) || empty($row['status'])) {
+    if ($hide_fixed && !empty($row['fixed'])) {
       continue;
     }
+
+    if ($hide_inactive && empty($row['status'])) {
+      continue;
+    }
+
     if ($row['parent'] == $parent) {
-      $children = avbase_rows_build_tree($rows, $row['id']);
+      $children = avbase_rows_build_tree($rows, $row['id'], $hide_fixed, $hide_inactive);
       if ($children) {
         $row['children'] = $children;
       }

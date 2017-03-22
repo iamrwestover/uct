@@ -6,7 +6,83 @@ function avtxns_account_chart_home_form($form, &$form_state) {
     '#markup' => l('New account', 'av/chart-of-accounts/new', $btn_options),
     //'#access' => user_access(AVPRODUCTS_PERM_PRODUCT_CREATE),
   );
+
+  $header = array(
+    'title' => array('data' => 'Account Name', 'field' => 'title'),
+    'type' => array('data' => 'Type', 'field' => 'account_type', 'sort' => 'asc'),
+    'balance' => array('data' => 'Balance Total', 'field' => 'account_type'),
+    'actions' => '&nbsp;',
+  );
+
+  $query = db_select('avtbl_account_chart', 'avachart')
+    ->fields('avachart')
+    ->extend('PagerDefault')
+    ->extend('TableSort')
+    ->limit(20)
+    ->orderByHeader($header);
+  $result = $query->execute();
+  $rows = array();
+  foreach ($result as $row) {
+    $rows[] = $row;
+  }
+  $rows_tree = avbase_rows_build_tree($rows, 0, FALSE, FALSE);
+  $rows = avtxns_account_chart_rows($rows_tree);
+
+  $table_attributes = array('id' => 'account-chart-list-table', 'class' => array('uk-table-condensed'));
+  $form['table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
+    '#attributes' => $table_attributes,
+    //'#prefix' => '<div id="products-list-table-wrapper">',
+    '#suffix' => theme('pager', array('tags' => array())),
+  );
   return $form;
+}
+
+/**
+ * Recursive function to build chart of account list with parent-children indentations.
+ * @param $tree
+ * @param int $depth
+ *
+ * @return array
+ */
+function avtxns_account_chart_rows($tree, $depth = 0) {
+  $rows = array();
+  $can_edit = TRUE;
+  foreach ($tree as $row) {
+    $row = (object) $row;
+    $depth_html = '';
+    for ($i = 0; $i < $depth; $i++) {
+      $depth_html .= '<span class="uk-margin-left"></span>';
+    }
+
+    $color_class = empty($row->status) ? 'uk-alert-mute' : '';
+    $menu_prefix = 'av/chart-of-accounts/' . $row->id;
+    $destination = url('av/chart-of-accounts', array('query' => drupal_get_query_parameters()));
+    $action_links =  array();
+    if ($can_edit && empty($row->fixed)) {
+      $action_links['edit'] = array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'query' => array('destination' => $destination));
+    }
+    $actions_html = theme('links__bare', array('links' => $action_links));
+    $linked_name = l(strtoupper($row->title), $menu_prefix . '/view');
+    $acd = avtxns_account_chart_types($row->account_type);
+    $rows[$row->id] = array(
+      'data' => array(
+        'title' => $depth_html . $linked_name,
+        'type' => check_plain($acd['name']),
+        'balance' => '-',
+        'actions' => $actions_html,
+      ),
+      'class' => array($color_class),
+    );
+
+    if (!empty($row->children)) {
+      $rows += avtxns_account_chart_rows($row->children, $depth + 1);
+    }
+  }
+  return $rows;
 }
 
 /**

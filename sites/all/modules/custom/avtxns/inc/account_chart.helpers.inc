@@ -235,6 +235,13 @@ function avtxns_account_chart_autocomplete($account_type_string, $string = '') {
   drupal_json_output($matches);
 }
 
+/**
+ * Recursive function to build autocomplete matches with parent-children indentations.
+ * @param $tree
+ * @param int $depth
+ *
+ * @return array
+ */
 function avtxns_account_chart_autocomplete_matches($tree, $depth = 0) {
   $matches = array();
   foreach ($tree as $row) {

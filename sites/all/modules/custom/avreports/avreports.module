@@ -175,11 +175,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
   // Headers.
   $header = array(
-    'id' => array('data' => strtoupper($transaction_type) . '#', 'class' => array('uk-text-center uk-width-1-10')),
-    'customer' => array('data' => 'Customer', 'class' => array('uk-width-4-10')),
-    'total' => array('data' => 'Total', 'class' => array('uk-text-right uk-width-1-10')),
-    'terms' => array('data' => 'Terms', 'class' => array('uk-text-center uk-width-2-10')),
-    'agent' => array('data' => 'Agent', 'class' => array('uk-width-2-10')),
+    'id' => array('data' => strtoupper($transaction_type) . '#', 'class' => array('uk-text-center')),
+    'customer' => array('data' => 'Customer', 'class' => array('')),
+    'total' => array('data' => 'Total', 'class' => array('uk-text-right')),
+    'terms' => array('data' => 'Terms', 'class' => array('uk-text-center')),
+    'agent' => array('data' => 'Agent', 'class' => array('')),
   );
   if (!empty($agent_name)) {
     unset($header['agent']);

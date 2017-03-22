@@ -37,6 +37,13 @@ body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
   color: #fff !important;
 }
 
+/* Tables */
+/*.uk-table th {*/
+  /*background: #fafafa;*/
+  /*border-top: solid 1px #ddd;*/
+  /*padding: 4px 8px;*/
+/*}*/
+
 /* Others */
 .uk-tooltip {
   word-break: normal !important;
