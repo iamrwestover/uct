@@ -16,9 +16,9 @@ function avtxns_account_chart_home_form($form, &$form_state) {
 
   $query = db_select('avtbl_account_chart', 'avachart')
     ->fields('avachart')
-    ->extend('PagerDefault')
+    //->extend('PagerDefault')
     ->extend('TableSort')
-    ->limit(20)
+    //->limit(20)
     ->orderByHeader($header);
   $result = $query->execute();
   $rows = array();
@@ -36,7 +36,7 @@ function avtxns_account_chart_home_form($form, &$form_state) {
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => $table_attributes,
     //'#prefix' => '<div id="products-list-table-wrapper">',
-    '#suffix' => theme('pager', array('tags' => array())),
+    //'#suffix' => theme('pager', array('tags' => array())),
   );
   return $form;
 }
@@ -62,11 +62,11 @@ function avtxns_account_chart_rows($tree, $depth = 0) {
     $menu_prefix = 'av/chart-of-accounts/' . $row->id;
     $destination = url('av/chart-of-accounts', array('query' => drupal_get_query_parameters()));
     $action_links =  array();
-    if ($can_edit && empty($row->fixed)) {
+    if ($can_edit) {
       $action_links['edit'] = array('title' => 'edit', 'href' => $menu_prefix . '/edit', 'query' => array('destination' => $destination));
     }
     $actions_html = theme('links__bare', array('links' => $action_links));
-    $linked_name = l(strtoupper($row->title), $menu_prefix . '/view');
+    $linked_name = l($row->title, $menu_prefix . '/view');
     $acd = avtxns_account_chart_types($row->account_type);
     $rows[$row->id] = array(
       'data' => array(
@@ -241,17 +241,18 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
     '#access' => empty($row->fixed),
   );
 
-  $account_type_string = empty($row->account_type) ? '-' : $row->account_type;
+  $account_type_string = empty($row->account_type) ? '' : $row->account_type;
   $form['parent_name'] = array(
     '#type' => 'textfield',
-    '#title' => t('Parent'),
+    '#title' => t('Parent account'),
     '#maxlength' => 255,
     '#autocomplete_path' => "av/chart-of-accounts/autocomplete/" . $account_type_string,
-    '#element_validate' => array('avtxns_element_validate_account_chart_parent'),
+    '#element_validate' => array('avtxns_element_validate_account_chart_name'),
     //'#element_validate_conditions' => array('group_id' => "agent{$ctd['type']}"),
     '#element_save_id' => 'parent',
     '#default_value' => empty($row->parent_name) ? '' : $row->parent_name,
     '#access' => empty($row->fixed),
+    '#parent_chart_of_account' => TRUE,
   );
 
 

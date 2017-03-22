@@ -16,6 +16,7 @@ define('AVTXNS_TXN_TYPE_DELIVERY', 'dr');
 define('AVTXNS_TXN_TYPE_SALES_RETURN', 'sr');
 define('AVTXNS_TXN_TYPE_INVOICE', 'inv');
 define('AVTXNS_TXN_TYPE_PAYMENT', 'pmt');
+define('AVTXNS_TXN_TYPE_JOURNAL', 'jrn');
 
 define('AVTXNS_TXN_STATUS_CLOSED', 0);
 define('AVTXNS_TXN_STATUS_OPEN', 1);
@@ -279,7 +280,7 @@ function avtxns_txns_home_form($form, &$form_state) {
   foreach ($transaction_types as $k => $type) {
     $ttype = strtoupper($k);
     $can_create = user_access(constant('AVTXNS_PERM_CREATE_' . $ttype));
-    $button_color_class = $type['transaction'] == 'sales' ? 'uk-button-success' : 'uk-button-primary';
+    $button_color_class = empty($type['button_class']) ? '' : $type['button_class'];
     $form["new_$k"] = array(
       '#markup' => l($type['name'], "{$type['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right $button_color_class")))),
       '#access' => $can_create,
@@ -309,6 +310,7 @@ function avtxns_txn_types($type = NULL) {
   if (empty($ret)) {
     // Sales.
     $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
+      'button_class' => 'uk-button-success',
       'type' => AVTXNS_TXN_TYPE_SALES_ORDER,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_SALES_ORDER,
       'transaction' => 'sales',
@@ -317,6 +319,7 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
     );
     $ret[AVTXNS_TXN_TYPE_DELIVERY] = array(
+      'button_class' => 'uk-button-success',
       'type' => AVTXNS_TXN_TYPE_DELIVERY,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_DELIVERY,
       'transaction' => 'sales',
@@ -330,6 +333,7 @@ function avtxns_txn_types($type = NULL) {
       'receivable_type' => 'debit',
     );
     $ret[AVTXNS_TXN_TYPE_SALES_RETURN] = array(
+      'button_class' => 'uk-button-success',
       'type' => AVTXNS_TXN_TYPE_SALES_RETURN,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_SALES_RETURN,
       'transaction' => 'sales',
@@ -341,6 +345,7 @@ function avtxns_txn_types($type = NULL) {
       'receivable_type' => 'credit',
     );
     $ret[AVTXNS_TXN_TYPE_INVOICE] = array(
+      'button_class' => 'uk-button-success',
       'type' => AVTXNS_TXN_TYPE_INVOICE,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_INVOICE,
       'transaction' => 'sales',
@@ -353,6 +358,7 @@ function avtxns_txn_types($type = NULL) {
       'bill' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PAYMENT] = array(
+      'button_class' => 'uk-button-success',
       'type' => AVTXNS_TXN_TYPE_PAYMENT,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAYMENT,
       'transaction' => 'sales',
@@ -366,6 +372,7 @@ function avtxns_txn_types($type = NULL) {
 
     // Purchase.
     $ret[AVTXNS_TXN_TYPE_PURCHASE_ORDER] = array(
+      'button_class' => 'uk-button-primary',
       'type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       'transaction' => 'purchase',
@@ -374,6 +381,7 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
     );
     $ret[AVTXNS_TXN_TYPE_RECEIVE] = array(
+      'button_class' => 'uk-button-primary',
       'type' => AVTXNS_TXN_TYPE_RECEIVE,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_RECEIVE,
       'transaction' => 'purchase',
@@ -386,6 +394,7 @@ function avtxns_txn_types($type = NULL) {
       'product_discount_overwrite' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
+      'button_class' => 'uk-button-primary',
       'type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN,
       'transaction' => 'purchase',
@@ -395,6 +404,7 @@ function avtxns_txn_types($type = NULL) {
       'qty_change' => 'decrement',
     );
     $ret[AVTXNS_TXN_TYPE_BILL] = array(
+      'button_class' => 'uk-button-primary',
       'type' => AVTXNS_TXN_TYPE_BILL,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_BILL,
       'transaction' => 'purchase',
@@ -408,6 +418,7 @@ function avtxns_txn_types($type = NULL) {
       'tpl_suffix' => AVTXNS_TXN_TYPE_INVOICE,
     );
     $ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
+      'button_class' => 'uk-button-primary',
       'type' => AVTXNS_TXN_TYPE_PAY_BILL,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_PAY_BILL,
       'transaction' => 'purchase',
@@ -418,6 +429,19 @@ function avtxns_txn_types($type = NULL) {
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
       'payment' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_PAYMENT,
+    );
+
+    // Accounting.
+    $ret[AVTXNS_TXN_TYPE_JOURNAL] = array(
+      //'button_class' => 'uk-button-warning',
+      'type' => AVTXNS_TXN_TYPE_JOURNAL,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_JOURNAL,
+      'transaction' => 'accounting',
+      'name' => 'Journal',
+      'plural_name' => 'Journal Entries',
+      //'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      'non_product' => TRUE,
+      'no_total' => TRUE,
     );
   }
 

@@ -139,43 +139,55 @@ function avtxns_account_chart_types($type = NULL) {
       'type' => AVTXN_AC_TYPE_AR,
       'name' => 'Accounts Receivable',
       'fixed' => TRUE,
+      'balance_type' => 'debit',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
     );
     $ret[AVTXN_AC_TYPE_AP] = array(
       'type' => AVTXN_AC_TYPE_AP,
       'name' => 'Accounts Payable',
       'fixed' => TRUE,
+      'balance_type' => 'credit',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
     );
     $ret[AVTXN_AC_TYPE_CURRENT] = array(
       'type' => AVTXN_AC_TYPE_CURRENT,
       'name' => 'Current Asset',
+      'balance_type' => 'debit',
     );
     $ret[AVTXN_AC_TYPE_FIXED] = array(
       'type' => AVTXN_AC_TYPE_FIXED,
       'name' => 'Fixed Asset',
+      'balance_type' => 'debit',
     );
     $ret[AVTXN_AC_TYPE_COGS] = array(
       'type' => AVTXN_AC_TYPE_COGS,
       'name' => 'Cost of Goods Sold',
+      'balance_type' => 'debit',
     );
     $ret[AVTXN_AC_TYPE_LIABILITY] = array(
       'type' => AVTXN_AC_TYPE_LIABILITY,
       'name' => 'Liability',
+      'balance_type' => 'credit',
     );
     $ret[AVTXN_AC_TYPE_INCOME] = array(
       'type' => AVTXN_AC_TYPE_INCOME,
       'name' => 'Income',
+      'balance_type' => 'credit',
     );
     $ret[AVTXN_AC_TYPE_EXPENSE] = array(
       'type' => AVTXN_AC_TYPE_EXPENSE,
       'name' => 'Expense',
+      'balance_type' => 'debit',
     );
     $ret[AVTXN_AC_TYPE_CAPITAL] = array(
       'type' => AVTXN_AC_TYPE_CAPITAL,
       'name' => 'Capital',
+      'balance_type' => 'credit',
     );
     $ret[AVTXN_AC_TYPE_OTHER_INCOME] = array(
       'type' => AVTXN_AC_TYPE_OTHER_INCOME,
       'name' => 'Other Income',
+      'balance_type' => 'credit',
     );
   }
 
@@ -228,7 +240,7 @@ function avtxns_account_chart_autocomplete($account_type_string, $string = '') {
     }
 
     $rows = avtxns_account_chart_query_load($where, $args, '8');
-    $rows_tree = avbase_rows_build_tree($rows);
+    $rows_tree = avbase_rows_build_tree($rows, 0, FALSE);
     $matches = avtxns_account_chart_autocomplete_matches($rows_tree);
   }
 
@@ -268,7 +280,7 @@ function avtxns_account_chart_autocomplete_matches($tree, $depth = 0) {
  * @param $element
  * @param $form_state
  */
-function avtxns_element_validate_account_chart_parent($element, &$form_state) {
+function avtxns_element_validate_account_chart_name($element, &$form_state) {
   $element_value = $element['#value'];
   if (trim($element_value) == '') {
     return;
@@ -281,13 +293,13 @@ function avtxns_element_validate_account_chart_parent($element, &$form_state) {
   if (empty($row->id)) {
     form_error($element, t('@field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
   }
-  elseif ($row->id == $this_row_id) {
+  elseif (!empty($element['#parent_chart_of_account']) && $row->id == $this_row_id) {
     form_error($element, t('Cannot select self as @field_title.', array('@field_title' => $element['#title'])));
   }
-  elseif (!empty($row->parent)) {
+  elseif (!empty($element['#parent_chart_of_account']) && !empty($row->parent)) {
     form_error($element, t('Cannot select a sub-account as @field_title.', array('@field_title' => $element['#title'])));
   }
-  elseif ($this_account_type != $row->account_type) {
+  elseif (!empty($element['#parent_chart_of_account']) && $this_account_type != $row->account_type) {
     form_error($element, t('@field_title account type must be the same as this account\'s type.', array('@field_title' => $element['#title'])));
   }
   else {

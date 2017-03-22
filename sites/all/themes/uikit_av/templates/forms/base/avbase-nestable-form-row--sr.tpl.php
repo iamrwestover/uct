@@ -1,23 +1,23 @@
 <?php
 $view_mode = !empty($form['#av_view_mode']);
-foreach (element_children($form) as $key) {
-  $form[$key]['#title_display'] = 'none';
-}
+//foreach (element_children($form) as $key) {
+//  $form[$key]['#title_display'] = 'none';
+//}
 
 //$form['product_title']['#attributes']['placeholder'] = 'product code or name';
 
 //$form['uom_title']['#attributes']['class'][] = 'uk-text-center';
-$form['qty']['#attributes']['class'][] = 'uk-text-right';
-$form['cost']['#attributes']['class'][] = 'uk-text-right';
-$form['discount']['#attributes']['class'][] = 'uk-text-right';
-$form['total']['#attributes']['class'][] = 'uk-text-right';
+//$form['qty']['#attributes']['class'][] = 'uk-text-right';
+//$form['cost']['#attributes']['class'][] = 'uk-text-right';
+//$form['discount']['#attributes']['class'][] = 'uk-text-right';
+//$form['total']['#attributes']['class'][] = 'uk-text-right';
 
 // Style delete btn.
-$form['prod_delete_btn']['#button_label'] = '<i class="uk-icon-remove"></i>';
-$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-trigger';
-$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-trigger-icon-only';
-$form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-danger';
-$form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
+//$form['prod_delete_btn']['#button_label'] = '<i class="uk-icon-remove"></i>';
+//$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-trigger';
+//$form['prod_delete_btn']['#attributes']['class'][] = 'av-ajax-trigger-icon-only';
+//$form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-danger';
+//$form['prod_delete_btn']['#attributes']['class'][] = 'uk-button-mini';
 //$form['prod_delete_btn']['#attributes']['class'][] = 'uk-text-muted';
 
 ?>

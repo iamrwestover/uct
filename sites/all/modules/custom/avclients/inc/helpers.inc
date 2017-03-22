@@ -215,8 +215,11 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
     $where = array($where_or_str);
 
     $client_types = explode('-', $client_type_string);
-    $where[] = 'avclients.client_type IN(:client_types)';
-    $args[':client_types'] = $client_types;
+    $client_types = array_filter($client_types);
+    if (!empty($client_types)) {
+      $where[] = 'avclients.client_type IN(:client_types)';
+      $args[':client_types'] = $client_types;
+    }
 
     $statuses = explode('-', $status_string);
     $where[] = 'avclients.status IN(:client_status)';

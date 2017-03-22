@@ -119,8 +119,10 @@ $balance_ages_html = drupal_render($form['balance_ages']);
               <!--<div class="uk-width-1-6 uk-margin-small-top"></div>-->
           <!--</div>-->
           <!--<div class="uk-grid uk-grid-collapse uk-margin-small-top">-->
-            <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
-            <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print $form['grand_total']['#value'] ?></h3></div>
+            <?php if (isset($form['grand_total'])): ?>
+              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
+              <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print $form['grand_total']['#value'] ?></h3></div>
+            <?php endif; ?>
             <!--<div class="uk-width-1-6 uk-margin-small-top"></div>-->
           </div>
         </div>
