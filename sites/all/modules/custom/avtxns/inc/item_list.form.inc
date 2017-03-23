@@ -274,8 +274,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['grand_total'] = array('#type' => 'value', '#value' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
   }
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
-    $form['debit_total'] = array('#type' => 'value', '#value' => isset($row->debit_total) ? number_format($row->debit_total, 2) : '0.00');
-    $form['credit_total'] = array('#type' => 'value', '#value' => isset($row->credit_total) ? number_format($row->credit_total, 2) : '0.00');
+    $form['journal_debit_total'] = array('#type' => 'value', '#value' => isset($row->journal_debit_total) ? number_format($row->journal_debit_total, 2) : '0.00');
+    $form['journal_credit_total'] = array('#type' => 'value', '#value' => isset($row->journal_credit_total) ? number_format($row->journal_credit_total, 2) : '0.00');
   }
   //$form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
   //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
@@ -629,7 +629,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#autocomplete_path' => "av/chart-of-accounts/autocomplete/",
         '#element_validate' => array('avtxns_element_validate_account_chart_name'),
         '#element_save_id' => 'account_id',
-        '#default_value' => empty($row->account_name) ? '' : $row->account_name,
+        '#default_value' => empty($prod_row['account_name']) ? '' : $prod_row['account_name'],
       );
       $fields['debit'] = array(
         '#id' => 'item-debit-' . $prod_key,
@@ -668,7 +668,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         //'#title' => t('Description'),
         //'#title_display' => 'none',
         '#maxlength' => 255,
-        '#default_value' => empty($row->description) ? '' : $row->description,
+        '#default_value' => empty($prod_row['description']) ? '' : $prod_row['description'],
       );
       $fields['client_name'] = array(
         '#item_row_key' => $prod_key,
@@ -676,7 +676,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#maxlength' => 255,
         '#element_validate' => array('avtxns_item_list_row_element_validate'),
         '#av_prod_element_validate' => array('avbase_element_validate_client_name_exists'),
-        '#default_value' => empty($row->client_name) ? '' : $row->client_name,
+        '#default_value' => empty($prod_row['client_name']) ? '' : $prod_row['client_name'],
         '#title' => 'Client',
         '#title_display' => 'none',
         //'#id' => 'client-id',

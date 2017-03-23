@@ -48,6 +48,11 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         'ref_txn_dtl_id',
         'ref_txn_id',
         'ref_txn_type',
+        'account_id',
+        'debit',
+        'credit',
+        'client_id',
+        'description',
       );
       //sort($all_table_field_names);
 
@@ -61,13 +66,22 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $item_ids = array();
       $discount_updates = array();
       foreach ($item_rows as $item_row) {
-        if (empty($ttd['payment']) && empty($item_row['product_id'])) {
+        // Skip if account_id is empty.
+        if ($ttd['transaction'] == 'accounts' && empty($item_row['account_id'])) {
           continue;
         }
+
+        // Skip if product id is empty.
+        if (empty($ttd['non_product']) && empty($ttd['payment']) && empty($item_row['product_id'])) {
+          continue;
+        }
+
         // Make sure only item rows owned by this owner get saved.
-        if (!empty($item_row['client_id']) && $item_row['client_id'] != $row['client_id']) {
+        if (empty($ttd['non_product']) && !empty($item_row['client_id']) && $item_row['client_id'] != $row['client_id']) {
           continue;
         }
+
+
 
         // Set foreign key.
         $item_row['transaction_id'] = $row['id'];
@@ -110,6 +124,10 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         foreach ($all_table_field_names as $field_name) {
           $arg_id = ':arg_' . count($insert_args);
           $value = isset($item_row[$field_name]) ? $item_row[$field_name] : NULL;
+          if (in_array($field_name, array('credit', 'debit'))) {
+            $value = (float) $value;
+          }
+
           if (empty($transaction_detail_id)) {
             $insert_arr[] = $arg_id;
             $insert_args[$arg_id] = $value;

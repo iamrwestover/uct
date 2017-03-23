@@ -32,7 +32,7 @@ function avtxns_schema() {
         'description' => 'Client ID',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'status' => array(
         'description' => 'Transaction status',
@@ -245,14 +245,41 @@ function avtxns_schema() {
         'length' => '8',
         'not null' => FALSE,
       ),
+      'account_id' => array(
+        'description' => 'Account ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'client_id' => array(
+        'description' => 'Client ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'debit' => array(
+        'description' => 'Debit amount',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'credit' => array(
+        'description' => 'Credit amount',
+        'type' => 'numeric',
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
+      'account_id' => array('account_id', 'client_id'),
       'item_id' => array('item_id'),
       'ref_txn_dtl_id' => array('ref_txn_dtl_id'),
       'ref_txn_id' => array('ref_txn_id'),
-      'transaction_id' => array('transaction_id'),
       'ref_txn_type' => array('ref_txn_type'),
+      'transaction_id' => array('transaction_id'),
     ),
   );
 

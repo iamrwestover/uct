@@ -144,11 +144,20 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $subtotal = 0;
     $credit_total = 0;
     $debit_total = 0;
+    $journal_debit_total = $journal_credit_total = 0;
     if (!empty($row->id)) {
       $transaction_date_formatted = format_date($row->transaction_date, 'custom', 'Y M d');
       //$row->term_data = unserialize($row->term_data);
       $query = db_select('avtbl_transaction_details', 'avtxn_details');
       $query->fields('avtxn_details');
+
+      // Accounts.
+      if ($ttd['transaction'] == 'accounts') {
+        $query->leftJoin('avtbl_account_chart', 'avachart', 'avachart.id = avtxn_details.account_id');
+        $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxn_details.client_id');
+        $query->addField('avachart', 'title', 'account_name');
+        $query->addField('avclients', 'display_name', 'client_name');
+      }
 
       if (empty($ttd['payment'])) {
         $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_details.item_id');
@@ -173,12 +182,22 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $query->orderBy('category_title', 'ASC');
         $query->orderBy('product_title', 'ASC');
       }
+
+
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
         // Capitalize item title.
         if (!empty($item->product_title)) {
           $item->product_title = strtoupper($item->product_title);
+        }
+
+        // Journal totals.
+        if ($row->transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
+          $journal_debit_value = empty($item->debit) ? 0 : $item->debit;
+          $journal_credit_value = empty($item->credit) ? 0 : $item->credit;
+          $journal_debit_total += (float) $journal_debit_value;
+          $journal_credit_total += (float) $journal_credit_value;
         }
 
         $item->transaction_date_formatted = $transaction_date_formatted;
@@ -261,6 +280,8 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $row->grand_total = $subtotal;
     $row->credit_total = $credit_total;
     $row->debit_total = $debit_total;
+    $row->journal_debit_total = $journal_debit_total;
+    $row->journal_credit_total = $journal_credit_total;
 
     // Client address string.
     $row->address_string = avclients_address_string_format($row);
@@ -414,7 +435,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
   $select = array_merge($select, $more_select);
 
   $joins = array();
-  $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
   $joins[] = 'LEFT JOIN {users} AS u ON u.uid = avtxn.uid';

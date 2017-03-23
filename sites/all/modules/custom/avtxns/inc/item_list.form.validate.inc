@@ -108,7 +108,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
         form_set_error('', t('Transaction is not balanced. Please make sure that debit and credit totals are equal.'));
       }
 
-      form_set_error('', t('fffffffPlease add at least one valid account.'));
+      //form_set_error('', t('fffffffPlease add at least one valid account.'));
     }
   }
 
