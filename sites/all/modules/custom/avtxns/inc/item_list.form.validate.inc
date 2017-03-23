@@ -161,23 +161,25 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
  * @param $form
  */
 function avtxns_item_list_row_element_validate($element, &$form_state, $form) {
-  // Get form storage.
-  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
-  $_storage = &$form_state['storage'];
+  //// Get form storage.
+  //$form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  //$_storage = &$form_state['storage'];
+  //
+  //// Get item rows.
+  //$_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
+  //$_item_rows = &$_storage['item_rows'];
 
-  // Get item rows.
-  $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
-  $_item_rows = &$_storage['item_rows'];
+  $form_state_item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
   $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
   $ttd = avtxns_txn_types($transaction_type);
 
   // If a valid product is detected for this element's row, do validate this element.
   $item_row_key = isset($element['#item_row_key']) ? $element['#item_row_key'] : '';
   if ($ttd['transaction'] == 'accounts') {
-    $do_validate = !empty($_item_rows[$item_row_key]['account_id']);
+    $do_validate = !empty($form_state_item_rows[$item_row_key]['account_id']);
   }
   else {
-    $do_validate = !empty($_item_rows[$item_row_key]['product_id']);
+    $do_validate = !empty($form_state_item_rows[$item_row_key]['product_id']);
   }
   if ($do_validate) {
     $element_value = $element['#value'];

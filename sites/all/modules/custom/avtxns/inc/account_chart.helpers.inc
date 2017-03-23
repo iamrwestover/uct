@@ -302,6 +302,9 @@ function avtxns_element_validate_account_chart_name($element, &$form_state) {
   elseif (!empty($element['#parent_chart_of_account']) && $this_account_type != $row->account_type) {
     form_error($element, t('@field_title account type must be the same as this account\'s type.', array('@field_title' => $element['#title'])));
   }
+  else if (!empty($element['#exclude_types']) && in_array($row->account_type, $element['#exclude_types'])) {
+    form_error($element, t('Cannot accept this type of account.'));
+  }
   else {
 
     // Set extra form state value for this element.

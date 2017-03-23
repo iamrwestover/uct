@@ -69,7 +69,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       $form['client_address_string']['#default_value'] .= '<br />' . check_plain($row->contact_number);
     }
 
-    if (empty($ttd['payment'])) {
+    if (empty($ttd['no_agent'])) {
       $agent_category_id = 'agent' . $ttd['ctd']['type'];
       $form['agent_name'] = array(
         '#id' => 'agent-name',
@@ -139,7 +139,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
   }
 
-  if (!in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_JOURNAL)) && empty($ttd['payment'])) {
+  //if (!in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN)) && empty($ttd['payment']) && $ttd['transaction']) {
+  if (empty($ttd['no_terms'])) {
     $term_options = avbase_get_category_options_array('payment_term');
     asort($term_options);
     $form['term_id'] = array(
@@ -434,6 +435,30 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       }
     }
 
+    if ($ttd['transaction'] == 'accounts') {
+      $fields['account_name'] = array(
+        '#item_row_key' => $prod_key,
+        '#type' => 'textfield',
+        '#title' => t('Account name'),
+        '#title_display' => 'none',
+        '#maxlength' => 255,
+        '#autocomplete_path' => "av/chart-of-accounts/autocomplete/",
+        '#element_validate' => array('avtxns_element_validate_account_chart_name'),
+        '#element_save_id' => 'account_id',
+        '#default_value' => empty($prod_row['account_name']) ? '' : $prod_row['account_name'],
+        '#exclude_types' => array(AVTXN_AC_TYPE_AP, AVTXN_AC_TYPE_AR),
+      );
+      $fields['description'] = array(
+        '#type' => 'textfield',
+        //'#title' => t('Description'),
+        //'#title_display' => 'none',
+        '#maxlength' => 255,
+        '#default_value' => empty($prod_row['description']) ? '' : $prod_row['description'],
+      );
+    }
+
+
+
     if (empty($ttd['non_product'])) {
       $fields['product_title'] = array(
         '#id' => 'product-title-' . $prod_key,
@@ -606,6 +631,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#field_suffix' => $max_discount_html,
       );
 
+
+    }
+
+    if (empty($ttd['no_total'])) {
       $fields['total'] = array(
         '#id' => 'product-total-' . $prod_key,
         '#item_row_key' => $prod_key,
@@ -629,17 +658,6 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     // Journal fields.
     if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
-      $fields['account_name'] = array(
-        '#item_row_key' => $prod_key,
-        '#type' => 'textfield',
-        '#title' => t('Account name'),
-        '#title_display' => 'none',
-        '#maxlength' => 255,
-        '#autocomplete_path' => "av/chart-of-accounts/autocomplete/",
-        '#element_validate' => array('avtxns_element_validate_account_chart_name'),
-        '#element_save_id' => 'account_id',
-        '#default_value' => empty($prod_row['account_name']) ? '' : $prod_row['account_name'],
-      );
       $fields['debit'] = array(
         '#id' => 'item-debit-' . $prod_key,
         '#item_row_key' => $prod_key,
@@ -671,13 +689,6 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
         '#default_value' => isset($prod_row['credit']) ? avbase_number_format($prod_row['credit'], 2) : '',
         '#dont_require' => TRUE,
-      );
-      $fields['description'] = array(
-        '#type' => 'textfield',
-        //'#title' => t('Description'),
-        //'#title_display' => 'none',
-        '#maxlength' => 255,
-        '#default_value' => empty($prod_row['description']) ? '' : $prod_row['description'],
       );
       $fields['client_name'] = array(
         '#item_row_key' => $prod_key,
@@ -790,19 +801,21 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
 
     // Set disabled fields
-    if (empty($ttd['payment'])) {
-      $fields['total']['#attributes']['readonly'] = 'readonly';
-      if (!empty($ttd['bill'])) {
-        $fields['product_title']['#attributes']['readonly'] = 'readonly';
-        $fields['qty']['#attributes']['readonly'] = 'readonly';
-        $fields['uom_title']['#attributes']['readonly'] = 'readonly';
-      }
-    }
+    //if (empty($ttd['payment'])) {
+    //  $fields['total']['#attributes']['readonly'] = 'readonly';
+    //  if (!empty($ttd['bill'])) {
+    //    $fields['product_title']['#attributes']['readonly'] = 'readonly';
+    //    $fields['qty']['#attributes']['readonly'] = 'readonly';
+    //    $fields['uom_title']['#attributes']['readonly'] = 'readonly';
+    //  }
+    //}
 
     // Disable some fields if necessary.
     $readonly_fields = array();
-    if (empty($ttd['payment'])) {
+    if (empty($ttd['total_is_entered_amount'])) {
       $readonly_fields[] = 'total';
+    }
+    if (empty($ttd['payment'])) {
       if (!empty($ttd['bill'])) {
         $readonly_fields[] = 'product_title';
         $readonly_fields[] = 'qty';
@@ -819,21 +832,25 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     );
     if (!empty($ttd['payment'])) {
       $readonly_fields = $disabled_fields;
-      $fields['total']['#title'] = t('Payment');
-      $fields['total']['#element_save_id'] = 'paid_amount';
-      $fields['total']['#required'] = TRUE;
-      $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : $prod_row['balance'];
-      $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
-      $fields['total']['#element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
-      //$fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
+      if (isset($fields['total'])) {
+        $fields['total']['#title'] = t('Payment');
+        $fields['total']['#element_save_id'] = 'paid_amount';
+        $fields['total']['#required'] = TRUE;
+        $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : $prod_row['balance'];
+        $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
+        $fields['total']['#element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
+        //$fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
+      }
       $disabled_fields = array(
         'product_title',
         'qty',
+        'qty_per_uom',
         'uom_title',
         'cost',
         'discount',
       );
     }
+
     foreach ($fields as $k => $v) {
       if (in_array($k, $disabled_fields)) {
         //$fields[$k]['#access'] = FALSE;
@@ -841,9 +858,23 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         continue;
       }
       if (in_array($k, $readonly_fields)) {
+        if (!isset($fields[$k])) {
+          continue;
+        }
         $fields[$k]['#attributes']['readonly'] = 'readonly';
-        $fields[$k]['#attributes']['class'][] = 'uk-text-muted';
+        $fields[$k]['#attributes']['class']['mute'] = 'uk-text-muted';
       }
+    }
+
+    if ($transaction_type == AVTXNS_TXN_TYPE_CREDIT_MEMO && isset($fields['total'])) {
+      $fields['total']['#title'] = t('Amount');
+      $fields['total']['#element_save_id'] = 'paid_amount';
+      $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : '';
+      $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
+      $fields['total']['#element_validate'] = array('avtxns_item_list_row_element_validate');
+      $fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
+      //unset($fields['total']['#attributes']['readonly']);
+      //unset($fields['total']['#attributes']['class']['mute']);
     }
 
     $form['product_rows'][$prod_key] = $fields;

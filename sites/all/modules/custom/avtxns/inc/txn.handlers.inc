@@ -91,7 +91,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         $insert_arr = $update_arr = array();
         $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = 0;
         // Overwrite paid amount.
-        if (!empty($ttd['payment'])) {
+        if (!empty($ttd['total_is_entered_amount'])) {
           $item_row['paid_amount'] = $item_row['total'];
         }
 

@@ -253,7 +253,6 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
 
         // Special fields for payment transactions.
         if (!empty($ttd['payment'])) {
-          $subtotal += $item->paid_amount;
           $invoice = avtxns_txn_load($item->ref_txn_dtl_id);
           if (!empty($invoice->id)) {
             // Get total paid - excluding payments before this transaction.
@@ -267,6 +266,10 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $item->previous_payment = $total_paid_for_invoice;
             $item->grand_total = $invoice->grand_total;
           }
+        }
+
+        if (!empty($ttd['total_is_entered_amount'])) {
+          $subtotal += $item->paid_amount;
         }
         else {
           $subtotal += $item->total;

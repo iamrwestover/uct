@@ -505,6 +505,21 @@ function avbase_general_settings_form() {
     '#default_value' => variable_get('av_company_capital', ''),
     '#element_validate' => array('element_validate_number'),
   );
+  $form['company_information']['av_discount_multiplier'] = array(
+    '#type' => 'textfield',
+    '#maxlength' => 4,
+    '#title' => 'Discount Multiplier',
+    '#description' => 'Discounts received from Vendors will use this value to set the Discount limit when selling products.',
+    '#required' => TRUE,
+    '#default_value' => (float) variable_get('av_discount_multiplier', '0.4'),
+    '#element_validate' => array('element_validate_number'),
+    '#special_element_type' => 'number',
+    '#attributes' => array(
+      'step' => 0.01,
+      'min' => 0.1,
+      'max' => 1,
+    ),
+  );
 
   return system_settings_form($form);
 }
