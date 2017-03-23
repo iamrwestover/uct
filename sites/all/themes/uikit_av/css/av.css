@@ -269,3 +269,13 @@ table tr.uk-alert-warning {
 .uk-alert-mute a {
   color: #ccc;
 }
+
+/* Tooltip */
+.uk-tooltip.tooltip-available-qty {
+  background: #00a8e6;
+  color: #fff;
+  text-shadow: none;
+}
+.uk-tooltip.tooltip-available-qty:after {
+  border-top-color: #00a8e6;
+}

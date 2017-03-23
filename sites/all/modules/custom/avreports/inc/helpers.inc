@@ -24,10 +24,10 @@ function avreports_client_balance_aging_form($client_id) {
   );
   $invoices = avtxns_txn_query_load($invoice_where);
   $now = time() /*+ (86400*44)*/;
-  $balance_ages = array();
+  $balance_ages = array(0 => 0);
   $term_days = empty($client->term_data['days']) ? 30 : $client->term_data['days'];
   if (!empty($term_days)) {
-    for ($x = 1; $x <= 12; $x++) {
+    for ($x = 1; $x <= 11; $x++) {
       $balance_ages[$term_days * $x] = 0;
     }
   }
@@ -39,9 +39,20 @@ function avreports_client_balance_aging_form($client_id) {
     }
   }
   foreach ($invoices as $invoice) {
-    $balance_age = ceil(($now - $invoice->transaction_date) / 86400);
-    $days = ceil($balance_age / $term_days) * $term_days;
-    if (isset($balance_ages[$days])) {
+    $balance_age = ($now - $invoice->transaction_date) / 86400;
+    if ($balance_age < 1) {
+      $days = 0;
+    }
+    else {
+      $balance_age = ceil($balance_age);
+      $days = ceil($balance_age / $term_days) * $term_days;
+    }
+
+    if ($days == 0) {
+      // COD.
+      $balance_ages[0] = $invoice->balance;
+    }
+    elseif (isset($balance_ages[$days])) {
       $balance_ages[$days] += $invoice->balance;
     }
   }
@@ -51,15 +62,16 @@ function avreports_client_balance_aging_form($client_id) {
   $total_balance = 0;
   foreach ($balance_ages as $k => $balance) {
     $total_balance += $balance;
+    $age_title = $k == 0 ? 'C.O.D' : t('@from-@to days old', array('@from' => $k - $term_days + 1, '@to' => $k));
     $balance_ages_form[$k] = array(
       '#type' => 'item',
-      '#title' => t('@from to @to days', array('@from' => $k - $term_days + 1, '@to' => $k)),
+      '#title' => $age_title,
       '#markup' => number_format($balance, 2),
     );
 
     $ages_count++;
     if ($ages_count == count($balance_ages)) {
-      $balance_ages_form[$k]['#title'] = t('@from++ days', array('@from' => $k - $term_days));
+      $balance_ages_form[$k]['#title'] = t('@from++ days old', array('@from' => $k - $term_days));
     }
   }
 

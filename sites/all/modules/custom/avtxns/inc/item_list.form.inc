@@ -87,6 +87,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
         '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
         //'#access' => empty($ttd['payment']),
       );
+      // Override agent name with the one selected from pending transactions.
+      if (!empty($form_state['#pending_agent_name'])) {
+        $form_state['input']['agent_name'] = $form_state['#pending_agent_name'];
+      }
     }
   }
 
@@ -135,7 +139,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
   }
 
-  if (!in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_JOURNAL)) || !empty($ttd['payment'])) {
+  if (!in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_JOURNAL)) && empty($ttd['payment'])) {
     $term_options = avbase_get_category_options_array('payment_term');
     asort($term_options);
     $form['term_id'] = array(
@@ -150,6 +154,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
       //'#access' => $transaction_type == AVTXNS_TXN_TYPE_INVOICE,
     );
+    // Override term with the one selected from pending transactions.
+    if (!empty($form_state['#pending_term_id'])) {
+      $form_state['input']['term_id'] = $form_state['#pending_term_id'];
+    }
   }
 
   if (!empty($ttd['bill'])) {
@@ -542,7 +550,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#attributes' => array(
           'data-column-name' => 'qty',
           'data-transaction-id' => empty($row->id) ? 0 : $row->id,
-          'data-uk-tooltip' => '',
+          //'data-uk-tooltip' => "",
           'class' => array('prod-column-qty uk-text-right'),
         ),
         '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
@@ -555,6 +563,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY || $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN) {
         $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_enough_qty';
         $fields['qty']['#attributes']['class'][] = 'js-qty-validate';
+        $fields['qty']['#attributes']['data-uk-tooltip'] = "{cls: 'tooltip-available-qty'}";
       }
 
       $fields['cost'] = array(

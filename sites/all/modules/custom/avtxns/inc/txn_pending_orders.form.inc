@@ -357,6 +357,9 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
             $item_row_arr['cost'] = avbase_number_format($item_row_arr['cost'], 2);
             $receive_pos[$item_row_id] = $item_row_arr;
           }
+
+          $form_state['#pending_agent_name'] = isset($transaction->agent_name) ? $transaction->agent_name : NULL;
+          $form_state['#pending_term_id'] = isset($transaction->term_id) ? $transaction->term_id : NULL;
         }
       }
 
@@ -369,7 +372,6 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
         $_item_rows = $receive_pos + $_item_rows;
         $form_state['input']['product_rows'] = $receive_pos + $form_state['input']['product_rows'];
       }
-
       break;
   }
 }
