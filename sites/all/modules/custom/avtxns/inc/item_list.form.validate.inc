@@ -8,6 +8,8 @@
 function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $row_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
 
+  $form_state_item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
+
   // Get form storage.
   $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
   $_storage = &$form_state['storage'];
@@ -19,9 +21,9 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $ttd = avtxns_txn_types($transaction_type);
 
   // Make sure at least one product is added.
-  if (empty($ttd['payment'])) {
+  if (empty($ttd['non_product']) && empty($ttd['payment'])) {
     $detected_product_ids = array();
-    foreach ($_item_rows as $k => $row) {
+    foreach ($form_state_item_rows as $k => $row) {
       if (!empty($row['product_id'])) {
         $detected_product_ids[$k] = $row['product_id'];
         $form['product_rows'][$k]['product_title']['#attributes']['data-selected-product-id'] = $row['product_id'];
@@ -37,6 +39,76 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     if (!empty($detected_product_ids)) {
       $product_rows = avproduct_load_ids($detected_product_ids);
       drupal_add_js(array('avbase' => array('products' => $product_rows)), 'setting');
+    }
+  }
+
+  // Check if at least 1 valid account is entered.
+  if ($ttd['transaction'] == 'accounts') {
+    $detected_account_ids = array();
+    $detected_client_ids = array();
+    foreach ($form_state_item_rows as $k => $row) {
+      if (!empty($row['account_id'])) {
+        $detected_account_ids[$k] = $row['account_id'];
+        //$form['product_rows'][$k]['product_title']['#attributes']['data-selected-product-id'] = $row['product_id'];
+      }
+      if (!empty($row['client_id'])) {
+        $detected_client_ids[$k] = $row['client_id'];
+      }
+    }
+
+
+    // No valid account detected.
+    if (empty($detected_account_ids)) {
+      form_set_error('', t('Please add at least one valid account.'));
+    }
+    else {
+      // Check to make sure only 1 AP/AR account is entered.
+      $account_rows = avtxns_account_chart_load_ids($detected_account_ids);
+      $ap_ar_count = 0;
+      if (!empty($account_rows)) {
+        foreach ($account_rows as $arow) {
+          if (in_array($arow->account_type, array(AVTXN_AC_TYPE_AP, AVTXN_AC_TYPE_AR))) {
+            $ap_ar_count++;
+          }
+        }
+      }
+
+      if ($ap_ar_count > 1) {
+        form_set_error('', t('You cannot use more than one AR or AP account in the same transaction.'));
+      }
+      else {
+        // Check to make sure AP/AR includes a vendor/customer ID.
+        $client_rows = avclient_load_ids($detected_client_ids);
+        foreach ($detected_account_ids as $ai_k => $ai) {
+          $account_row = empty($account_rows[$ai]) ? NULL : $account_rows[$ai];
+          $account_row_type = isset($account_row->account_type) ? $account_row->account_type : NULL;
+          $account_row_client_id = empty($detected_client_ids[$ai_k]) ? NULL : $detected_client_ids[$ai_k];
+          $account_row_client_row = empty($client_rows[$account_row_client_id]) ? NULL : $client_rows[$account_row_client_id];
+          $account_row_client_type = isset($account_row_client_row->client_type) ? $account_row_client_row->client_type : NULL;
+          $acd = avtxns_account_chart_types($account_row_type);
+          if ($account_row_type == AVTXN_AC_TYPE_AP && $account_row_client_type != AVCLIENT_TYPE_VENDOR) {
+            form_set_error('', t('@account_type_name must include a Vendor.', array('@account_type_name' => $acd['name'])));
+          }
+          if ($account_row_type == AVTXN_AC_TYPE_AR && $account_row_client_type != AVCLIENT_TYPE_CUSTOMER) {
+            form_set_error('', t('@account_type_name must include a Customer.', array('@account_type_name' => $acd['name'])));
+          }
+        }
+      }
+
+      // Make sure journal entries amount is balance.
+      $debit_total = 0;
+      $credit_total = 0;
+      foreach ($form_state_item_rows as $fsr_k => $fsr) {
+        $debit_value = empty($fsr['debit']) ? 0 : $fsr['debit'];
+        $credit_value = empty($fsr['credit']) ? 0 : $fsr['credit'];
+        $debit_total += (float) $debit_value;
+        $credit_total += (float) $credit_value;
+      }
+      if ($debit_total != $credit_total) {
+        form_set_error('', t('Transaction is not balanced. Please make sure that debit and credit totals are equal.'));
+      }
+
+      form_set_error('', t('fffffffPlease add at least one valid account.'));
     }
   }
 
@@ -96,11 +168,18 @@ function avtxns_item_list_row_element_validate($element, &$form_state, $form) {
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
   $_item_rows = &$_storage['item_rows'];
-  //$transaction_type = empty($_storage['transaction_type']) ? '' : $_storage['transaction_type'];
+  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
+  $ttd = avtxns_txn_types($transaction_type);
 
   // If a valid product is detected for this element's row, do validate this element.
   $item_row_key = isset($element['#item_row_key']) ? $element['#item_row_key'] : '';
-  if (!empty($_item_rows[$item_row_key]['product_id'])) {
+  if ($ttd['transaction'] == 'accounts') {
+    $do_validate = !empty($_item_rows[$item_row_key]['account_id']);
+  }
+  else {
+    $do_validate = !empty($_item_rows[$item_row_key]['product_id']);
+  }
+  if ($do_validate) {
     $element_value = $element['#value'];
     if (empty($element['#dont_require']) && trim($element_value) == '') {
       form_error($element, t('@field_title is required.', array('@field_title' => $element['#title'])));

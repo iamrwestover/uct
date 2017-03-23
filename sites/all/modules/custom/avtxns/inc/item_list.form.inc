@@ -621,6 +621,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     // Journal fields.
     if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
       $fields['account_name'] = array(
+        '#item_row_key' => $prod_key,
         '#type' => 'textfield',
         '#title' => t('Account name'),
         '#title_display' => 'none',
@@ -641,9 +642,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
         '#attributes' => array(
           'data-column-name' => 'debit',
-          'class' => array('prod-column-debit uk-text-right'),
+          'class' => array('item-column-debit uk-text-right'),
         ),
         '#default_value' => isset($prod_row['debit']) ? avbase_number_format($prod_row['debit'], 2) : '',
+        '#dont_require' => TRUE,
       );
       $fields['credit'] = array(
         '#id' => 'item-credit-' . $prod_key,
@@ -656,9 +658,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
         '#attributes' => array(
           'data-column-name' => 'credit',
-          'class' => array('prod-column-credit uk-text-right'),
+          'class' => array('item-column-credit uk-text-right'),
         ),
         '#default_value' => isset($prod_row['credit']) ? avbase_number_format($prod_row['credit'], 2) : '',
+        '#dont_require' => TRUE,
       );
       $fields['description'] = array(
         '#type' => 'textfield',
@@ -668,18 +671,21 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#default_value' => empty($row->description) ? '' : $row->description,
       );
       $fields['client_name'] = array(
+        '#item_row_key' => $prod_key,
         '#type' => 'textfield',
         '#maxlength' => 255,
-        '#element_validate' => array('avbase_element_validate_client_name_exists'),
+        '#element_validate' => array('avtxns_item_list_row_element_validate'),
+        '#av_prod_element_validate' => array('avbase_element_validate_client_name_exists'),
         '#default_value' => empty($row->client_name) ? '' : $row->client_name,
         '#title' => 'Client',
         '#title_display' => 'none',
-        '#id' => 'client-id',
+        //'#id' => 'client-id',
         '#element_save_id' => 'client_id',
         '#autocomplete_path' => "av/clients/autocomplete/-/" . AVCLIENT_STATUS_ACTIVE,
-        '#avbase_autocomplete' => array(
-          'entity_group' => 'clients',
-        ),
+        '#dont_require' => TRUE,
+        //'#avbase_autocomplete' => array(
+        //  'entity_group' => 'clients',
+        //),
       );
     }
 

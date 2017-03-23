@@ -34,10 +34,15 @@
     self.$discountTotalEl = $('.product-form-discount-total');
     self.$discountTypeEl = $('#discount-type');
     self.$discountValEl = $('#discount-value');
+    // Accounting.
+    self.$debitTotalEl = $('.transaction-debit-total');
+    self.$creditTotalEl = $('.transaction-credit-total');
 
 
     self.bindEvents();
     self.refreshSubTotalText();
+    self.refreshDebitTotalText();
+    self.refreshCreditTotalText();
 
     // Make sure newly added rows gets bound with events and delete btn refreshes totals.
     $(document).ajaxComplete(function(event, xhr, settings) {
@@ -81,10 +86,12 @@
       var $qtyPerUOMEl = $thisRow.find('.prod-column-qty-per-uom');
       var $costEl = $thisRow.find('.prod-column-cost');
       var $qtyEl = $thisRow.find('.prod-column-qty');
-      //var $qtyCheckEl = $thisRow.find('.prod-column-qty-check');
       var $discountEl = $thisRow.find('.prod-column-discount');
       var $totalEl = $thisRow.find('.prod-column-total');
       var uoms = Drupal.settings.avbase.uoms;
+      // Accounting.
+      var $debitEl = $thisRow.find('.item-column-debit');
+      var $creditEl = $thisRow.find('.item-column-credit');
 
       // Trigger actions for autocomplete product field.
       $productTitleEl.on('autocompleteSelect', function(e, node) {
@@ -371,6 +378,16 @@
       $discountEl.keydown(function(e) {
         self.switchRowFocus(e, $thisRow);
       });
+
+      // Accounting.
+      $debitEl.change(function () {
+        $creditEl.val('');
+        self.refreshJournalTotalText();
+      });
+      $creditEl.change(function () {
+        $debitEl.val('');
+        self.refreshJournalTotalText();
+      });
     });
   };
 
@@ -515,6 +532,28 @@
   };
 
   /**
+   * Refresh debit total text.
+   */
+  Drupal.avbaseNestableProductForm.prototype.refreshDebitTotalText = function () {
+    this.$debitTotalEl.text(this.moneyFormat(this.getJournalTotal('debit')));
+  };
+
+  /**
+   * Refresh credit total text.
+   */
+  Drupal.avbaseNestableProductForm.prototype.refreshCreditTotalText = function () {
+    this.$creditTotalEl.text(this.moneyFormat(this.getJournalTotal('credit')));
+  };
+
+  /**
+   * Refresh journal total text.
+   */
+  Drupal.avbaseNestableProductForm.prototype.refreshJournalTotalText = function () {
+    this.refreshDebitTotalText();
+    this.refreshCreditTotalText();
+  };
+
+  /**
    * Compute and return subtotal.
    * @returns {string}
    */
@@ -563,6 +602,25 @@
     var grandTotal = subTotal - discountTotal;
     //grandTotal = grandTotal < 0 ? 0 : grandTotal;
     return parseFloat(grandTotal).toFixed(2);
+  };
+
+  /**
+   * Compute and return debit total.
+   * @returns {string}
+   */
+  Drupal.avbaseNestableProductForm.prototype.getJournalTotal = function(balance_type) {
+    var $balanceEls = this.$productRows.find('.item-column-' + balance_type);
+    var balanceTotal = 0;
+    var journalTotal = 0;
+    $balanceEls.each(function() {
+      balanceTotal = $(this).val();
+      if (!$.isNumeric(balanceTotal)) {
+        return;
+      }
+      journalTotal += parseFloat(balanceTotal);
+    });
+
+    return parseFloat(journalTotal).toFixed(2);
   };
 
   /**

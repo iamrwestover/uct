@@ -34,7 +34,7 @@ $bill_header_name = strtoupper($form['#pending_txns_reference_type']);
 
       <div class="uk-width-7-10">
         <div class="uk-grid uk-grid-collapse">
-          <div class="uk-width-2-10">
+          <div class="uk-width-<?php print ($view_mode ? '2' : '1'); ?>-10">
             <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'left' : 'center'); ?>">
               <?php print $bill_header_name; ?> #
             </div>
@@ -69,6 +69,14 @@ $bill_header_name = strtoupper($form['#pending_txns_reference_type']);
               Payment
             </div>
           </div>
+
+          <?php if (empty($view_mode)): ?>
+            <div class="uk-width-1-10">
+              <div class="av-nestable-cell">
+                <!--Actions-->
+              </div>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
 

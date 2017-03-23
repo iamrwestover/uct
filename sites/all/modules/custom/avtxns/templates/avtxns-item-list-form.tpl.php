@@ -94,6 +94,26 @@ $balance_ages_html = drupal_render($form['balance_ages']);
       <?php print drupal_render($form['product_rows']); ?>
 
       <div class="uk-grid uk-grid-collapse uk-margin-small-top">
+        <?php if (isset($form['debit_total']) && isset($form['credit_total'])): ?>
+          <div class="uk-width-4-10 uk-text-right">
+            Totals<span class="uk-margin-small-left">&nbsp;</span>
+          </div>
+          <div class="uk-width-6-10">
+            <div class="uk-grid uk-grid-collapse">
+              <div class="uk-width-1-10">
+                <div class="transaction-debit-total uk-text-center">
+                  <?php print $form['debit_total']['#value'] ?>
+                </div>
+              </div>
+              <div class="uk-width-1-10">
+                <div class="transaction-credit-total uk-text-center">
+                  <?php print $form['credit_total']['#value'] ?>
+                </div>
+              </div>
+            </div>
+          </div>
+        <?php endif; ?>
+
         <div class="uk-width-7-10">
 
           <div class="uk-grid">

@@ -308,7 +308,7 @@ function avtxns_element_validate_account_chart_name($element, &$form_state) {
     avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
 
     // Update form_state storage item_rows.
-    //avtrans_item_list_update_item_row($form_state, $element, $row->id);
+    avtrans_item_list_update_item_row($form_state, $element, $row->id);
   }
 }
 
