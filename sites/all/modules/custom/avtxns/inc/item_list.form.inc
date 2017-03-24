@@ -772,6 +772,30 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       );
     }
 
+    if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
+      $fields['onhand_qty'] = array(
+        '#markup' => '<div class="prod-column-onhand-qty fake-form-text">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
+      );
+      $fields['new_qty'] = array(
+        '#id' => 'product-new-qty-' . $prod_key,
+        '#item_row_key' => $prod_key,
+        '#type' => 'textfield',
+        '#title' => 'New qty',
+        '#title_display' => 'none',
+        '#maxlength' => 10,
+        '#element_validate' => array('avtxns_item_list_row_element_validate'),
+        '#av_prod_element_validate' => array('element_validate_integer_positive'),
+        '#attributes' => array(
+          'data-column-name' => 'new-qty',
+          'class' => array('prod-column-new-qty uk-text-right'),
+        ),
+        '#default_value' => isset($prod_row['new_qty']) ? $prod_row['new_qty'] : '',
+      );
+      $fields['qty_diff'] = array(
+        '#markup' => '<div class="prod-column-qty-diff fake-form-text">' . (isset($prod_row['qty_diff']) ? $prod_row['qty_diff'] : '&nbsp;') . '</div>',
+      );
+    }
+
     //if (empty($ttd['bill'])) {
       $fields['prod_delete_btn'] = array(
         '#name' => 'prod_delete_btn_' . $prod_key,
@@ -830,6 +854,19 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       'balance',
       'previous_payment',
     );
+    if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
+      //$disabled_fields[] = 'qty';
+      //$disabled_fields[] = 'product_title';
+      //$disabled_fields[] = 'qty';
+      ////$disabled_fields[] = 'onhand_qty';
+      //$disabled_fields[] = 'prod_delete_btn';
+
+      $disabled_fields[] = 'qty_per_uom';
+      $disabled_fields[] = 'uom_title';
+      $disabled_fields[] = 'cost';
+      $disabled_fields[] = 'discount';
+      //$readonly_fields[] = 'qty';
+    }
     if (!empty($ttd['payment'])) {
       $readonly_fields = $disabled_fields;
       if (isset($fields['total'])) {
@@ -866,7 +903,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       }
     }
 
-    if ($transaction_type == AVTXNS_TXN_TYPE_CREDIT_MEMO && isset($fields['total'])) {
+    if (!empty($ttd['total_is_entered_amount']) && isset($fields['total'])) {
       $fields['total']['#title'] = t('Amount');
       $fields['total']['#element_save_id'] = 'paid_amount';
       $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : '';

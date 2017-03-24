@@ -10,7 +10,7 @@ function avtxns_account_chart_home_form($form, &$form_state) {
   $header = array(
     'title' => array('data' => 'Account Name', 'field' => 'title'),
     'type' => array('data' => 'Type', 'field' => 'account_type', 'sort' => 'asc'),
-    'balance' => array('data' => 'Balance Total', 'field' => 'account_type'),
+    'balance' => array('data' => 'Balance Total'),
     'actions' => '&nbsp;',
   );
 

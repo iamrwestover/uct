@@ -89,9 +89,14 @@
       var $discountEl = $thisRow.find('.prod-column-discount');
       var $totalEl = $thisRow.find('.prod-column-total');
       var uoms = Drupal.settings.avbase.uoms;
+
       // Accounting.
       var $debitEl = $thisRow.find('.item-column-debit');
       var $creditEl = $thisRow.find('.item-column-credit');
+      // Stock adjustment.
+      var $onHandQtyEl = $thisRow.find('.prod-column-onhand-qty');
+      var $newQtyEl = $thisRow.find('.prod-column-new-qty');
+      self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl);
 
       // Trigger actions for autocomplete product field.
       $productTitleEl.on('autocompleteSelect', function(e, node) {
@@ -110,10 +115,15 @@
           //$qtyCheckEl.trigger('change');
           $UOMEl.trigger('change');
         }
+
+        self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl);
+
         var transaction = Drupal.settings.avtxns.transaction || '';
         var discount_text = transaction == 'purchase' ?  (productDetails.discount_text || '') : (productDetails.sales_discount_text || '')
         $discountEl.val(discount_text);
       });
+
+
       // Trigger adding new row when last Product field is reached.
       $productTitleEl.focus(function() {
         if (!$(this).closest('.uk-nestable-item').next().hasClass('uk-nestable-item')) {
@@ -121,6 +131,12 @@
         }
         //$(this).select();
       });
+      $productTitleEl.keydown(function(e) {
+        if (!$('#autocomplete').length) {
+          self.switchRowFocus(e, $thisRow);
+        }
+      });
+
 
       // Trigger actions for UOM select field.
       var $uomWrapperEl = $('#' + ($UOMEl.attr('id') + '-wrapper'));
@@ -388,6 +404,11 @@
         $debitEl.val('');
         self.refreshJournalTotalText();
       });
+
+      // Stock Adjustment.
+      $newQtyEl.keydown(function(e) {
+        self.switchRowFocus(e, $thisRow);
+      });
     });
   };
 
@@ -621,6 +642,13 @@
     });
 
     return parseFloat(journalTotal).toFixed(2);
+  };
+
+  Drupal.avbaseNestableProductForm.prototype.setOnHandQtyValue = function($productTitleEl, $onHandQtyEl, $newQtyEl) {
+    var selectedProductID = $productTitleEl.data('selected-product-id');
+    var productDetails = Drupal.settings.avbase.products[selectedProductID] || {};
+    $onHandQtyEl.html(productDetails.qty || '&nbsp;');
+    $newQtyEl.trigger('change');
   };
 
   /**

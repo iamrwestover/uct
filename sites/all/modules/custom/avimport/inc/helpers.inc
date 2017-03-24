@@ -15,14 +15,14 @@ function avimport_get_valid_headers($type) {
       $required['TITLE'] = 'title';
       $required['INITIAL QTY'] = 'initial_qty';
       $required['BASE UOM'] = 'uom_title';
+      $required['COST'] = 'cost';
+      $required['SALES PRICE'] = 'price';
 
 
       // Optional.
       $optional['ROP'] = 'rop';
       $optional['EOQ'] = 'eoq';
       $optional['CODE'] = 'code';
-      $optional['COST'] = 'cost';
-      $optional['SALES PRICE'] = 'price';
       $optional['CATEGORY'] = 'category_title';
       $optional['UOM 1'] = 'uom_1_title';
       $optional['UOM 1 QTY'] = 'uom_1_qty';
@@ -235,6 +235,7 @@ function avimport_db_insert_products_row($excel_row) {
   $insert_row['price'] = (float) str_replace(',', '', $insert_row['price']);
   $insert_row['initial_qty'] = (int) str_replace(',', '', $insert_row['initial_qty']);
   $insert_row['qty'] = $insert_row['initial_qty'];
+  $insert_row['initial_value'] = $insert_row['cost'] * $insert_row['initial_qty'];
 
   $insert_row['uid'] = $user->uid;
   return avimport_db_insert_row($insert_row, 'products');

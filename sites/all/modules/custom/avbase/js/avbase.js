@@ -34,8 +34,18 @@
 
 jQuery(document).ready(function ($) {
 
+  var $form = $('form');
+
+  // Prevent form submission on keyboard enter.
+  $form.on('keyup keypress', function(e) {
+    var keyCode = e.keyCode || e.which;
+    if (keyCode === 13) {
+      e.preventDefault();
+      return false;
+    }
+  });
   // Prevent double submission of forms.
-  $('form').submit(function(e) {
+  $form.submit(function(e) {
     if( $(this).hasClass('form-submitted') ){
       e.preventDefault();
       return;
@@ -43,7 +53,7 @@ jQuery(document).ready(function ($) {
 
     $(this).addClass('form-submitted');
   });
-
+  // Automatically print if url parameter is specified.
   var print = avbaseGetUrlParameter('print');
   if (print) {
     $('#av-print-btn').trigger('click');

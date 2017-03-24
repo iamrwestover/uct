@@ -237,6 +237,13 @@ input.av-no-border {
   position: relative;
   top: 4px;
 }
+.fake-form-text {
+  background: #fafafa;
+  padding: 4px 6px;
+  border: solid 1px #ddd;
+  border-radius: 4px;
+  color: #999;
+}
 
 /* Tables */
 th > a > img {

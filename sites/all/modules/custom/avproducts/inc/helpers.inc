@@ -283,6 +283,7 @@ function avproducts_table_fields_to_save($db_op = 'insert') {
     'principal_id' => array('type' => 'int'),
     'qty' => array('type' => 'int'),
     'initial_qty' => array('type' => 'int'),
+    'initial_value' => array('type' => 'float'),
     'initial_qty_date',
     'data' => array(
       'uoms' => array('type' => 'array'),
@@ -295,6 +296,7 @@ function avproducts_table_fields_to_save($db_op = 'insert') {
     unset($fields['created']);
     unset($fields['qty']);
     unset($fields['initial_qty']);
+    unset($fields['initial_value']);
     unset($fields['initial_qty_date']);
   }
   return $fields;

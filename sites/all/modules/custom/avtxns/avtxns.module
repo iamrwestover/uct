@@ -18,6 +18,8 @@ define('AVTXNS_TXN_TYPE_INVOICE', 'inv');
 define('AVTXNS_TXN_TYPE_PAYMENT', 'pmt');
 define('AVTXNS_TXN_TYPE_JOURNAL', 'jrn');
 define('AVTXNS_TXN_TYPE_CREDIT_MEMO', 'crd');
+define('AVTXNS_TXN_TYPE_VENDOR_CREDIT', 'vcrd');
+define('AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT', 'stk');
 
 define('AVTXNS_TXN_STATUS_CLOSED', 0);
 define('AVTXNS_TXN_STATUS_OPEN', 1);
@@ -49,7 +51,7 @@ foreach ($ttds as $ttd) {
     define('AVTXNS_PERM_OPEN_' . strtoupper($ttd['type']), 'avbase open transaction ' . $ttd['type']);
   }
 }
-
+define('AVTXNS_PERM_MANAGE_COA', 'avbase manage coa');
 
 /**
  * Implementation of hook_permission().
@@ -79,6 +81,10 @@ function avtxns_permission() {
       );
     }
   }
+  $permissions[AVTXNS_PERM_MANAGE_COA] = array(
+    'title' => 'Chart of Account - MANAGE',
+    'description' => t('Add, edit, disable accounts.'),
+  );
   return $permissions;
 }
 
@@ -98,7 +104,7 @@ function avtxns_menu() {
     'title' => 'Chart of Accounts',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_account_chart_home_form'),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVTXNS_PERM_MANAGE_COA),
     'menu_name' => 'av',
     'expanded' => TRUE,
     'file' => 'inc/account_chart.form.inc',
@@ -107,7 +113,7 @@ function avtxns_menu() {
     'title' => 'New account',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_account_chart_form', NULL),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVTXNS_PERM_MANAGE_COA),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/account_chart.form.inc',
     'weight' => 10,
@@ -116,7 +122,7 @@ function avtxns_menu() {
     'title' => 'View',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_account_chart_form', 2, TRUE),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVTXNS_PERM_MANAGE_COA),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/account_chart.form.inc',
     'weight' => 0,
@@ -125,7 +131,7 @@ function avtxns_menu() {
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_account_chart_form', 2),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVTXNS_PERM_MANAGE_COA),
     'type' => MENU_LOCAL_TASK,
     'file' => 'inc/account_chart.form.inc',
     'weight' => 1,
@@ -134,7 +140,7 @@ function avtxns_menu() {
     'title' => 'Status change',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avtxns_account_chart_change_status_confirm_form', 2, 3),
-    'access callback' => 'user_is_logged_in',
+    'access arguments' => array(AVTXNS_PERM_MANAGE_COA),
     'type' => MENU_CALLBACK,
     'file' => 'inc/account_chart.form.inc',
   );
@@ -465,6 +471,41 @@ function avtxns_txn_types($type = NULL) {
       'no_terms' => TRUE,
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
+    );
+    $ret[AVTXNS_TXN_TYPE_VENDOR_CREDIT] = array(
+      //'button_class' => 'uk-button-warning',
+      'type' => AVTXNS_TXN_TYPE_VENDOR_CREDIT,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_VENDOR_CREDIT,
+      'transaction' => 'accounts',
+      'name' => 'Vendor Credit',
+      'plural_name' => 'Vendor Credits',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'non_product' => TRUE,
+      //'no_total' => TRUE,
+      'no_terms' => TRUE,
+      'no_agent' => TRUE,
+      'total_is_entered_amount' => TRUE,
+      'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
+    );
+
+    // Others.
+    $ret[AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT] = array(
+      //'button_class' => 'uk-button-success',
+      'type' => AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT,
+      'transaction' => 'others',
+      'name' => 'Stock Adjustment',
+      'plural_name' => 'Stock Adjustments',
+      //'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      //'pending_txns_reference_type' => AVTXNS_TXN_TYPE_SALES_ORDER,
+      'qty_change' => 'increment',
+      //'cost_change' => TRUE,
+      //'product_discount_check' => TRUE,
+      //'receivable_type' => 'debit',
+      'no_terms' => TRUE,
+      'no_agent' => TRUE,
+      'no_total' => TRUE,
+      'prevent_duplicate_product' => TRUE,
     );
   }
 

@@ -23,10 +23,18 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   // Make sure at least one product is added.
   if (empty($ttd['non_product']) && empty($ttd['payment'])) {
     $detected_product_ids = array();
+    $product_ids = array();
     foreach ($form_state_item_rows as $k => $row) {
       if (!empty($row['product_id'])) {
         $detected_product_ids[$k] = $row['product_id'];
         $form['product_rows'][$k]['product_title']['#attributes']['data-selected-product-id'] = $row['product_id'];
+
+        if (isset($product_ids[$row['product_id']])) {
+          form_set_error('', t('There are more than 1 entries of %product_name.', array('%product_name' => $row['product_title'])));
+        }
+        else {
+          $product_ids[$row['product_id']] = $row['product_id'];
+        }
       }
     }
 
@@ -95,7 +103,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
         }
       }
 
-      // Make sure journal entries amount is balance.
+      // Make sure journal entries amount is balanced.
       $debit_total = 0;
       $credit_total = 0;
       foreach ($form_state_item_rows as $fsr_k => $fsr) {

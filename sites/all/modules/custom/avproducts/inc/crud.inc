@@ -255,6 +255,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
       'step' => '0.01',
     ),
     '#special_element_type' => 'number',
+    '#required' => TRUE,
   );
   $info['cost'] = array(
     '#id' => 'uom-cost',
@@ -267,6 +268,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
       'step' => '0.01',
     ),
     '#special_element_type' => 'number',
+    '#required' => TRUE,
   );
 
   $date_format = 'M. d, Y';
@@ -612,8 +614,11 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
         $row['data'] = serialize($data);
       }
 
-      if (empty($row['id']) && empty($row['initial_qty_date'])) {
-        $row['initial_qty_date'] = time();
+      if (empty($row['id'])) {
+        $row['initial_value'] = $row['cost'] * $row['initial_qty'];
+        if (empty($row['initial_qty_date'])) {
+          $row['initial_qty_date'] = time();
+        }
       }
 
       // Explode discount text to discount array.
