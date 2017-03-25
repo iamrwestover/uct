@@ -1067,7 +1067,9 @@ function avtxns_txn_types_options_array() {
   $options = array();
   $types = avtxns_txn_types();
   foreach ($types as $t_k => $t) {
-    $options[$t_k] = $t['name'];
+    if (user_access(constant('AVTXNS_PERM_VIEW_' . strtoupper($t_k)))) {
+      $options[$t_k] = $t['name'];
+    }
   }
   return $options;
 }
