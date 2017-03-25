@@ -734,7 +734,7 @@ function uikit_preprocess_fieldset(&$variables) {
     }
 
     drupal_add_css(UIKIT_SRC . "/css/components/$accordian_css", array(
-      'type' => 'external',
+      //'type' => 'external',
       'group' => CSS_THEME,
       'every_page' => TRUE,
       'weight' => -10,
@@ -742,7 +742,7 @@ function uikit_preprocess_fieldset(&$variables) {
     ));
 
     drupal_add_js(UIKIT_SRC . '/js/components/accordion.min.js', array(
-      'type' => 'external',
+      //'type' => 'external',
       'group' => JS_THEME,
       'every_page' => TRUE,
       'weight' => -10,

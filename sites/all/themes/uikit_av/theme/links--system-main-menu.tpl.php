@@ -67,6 +67,7 @@ $icons = array(
   'av/settings' => 'cog',
   'av/import' => 'database',
   'av/reports' => 'folder-open',
+  'admin/config/system/backup_migrate' => 'folder-open',
 );
 //foreach (element_children($menu_tree) as $v) {
 //  dpm($v . '=' . $menu_tree[$v]['#title'] . '=' . $menu_tree[$v]['#href']);
