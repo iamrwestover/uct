@@ -19,6 +19,9 @@ define('AVTXNS_TXN_TYPE_PAYMENT', 'pmt');
 define('AVTXNS_TXN_TYPE_JOURNAL', 'jrn');
 define('AVTXNS_TXN_TYPE_CREDIT_MEMO', 'crd');
 define('AVTXNS_TXN_TYPE_VENDOR_CREDIT', 'vcrd');
+define('AVTXNS_TXN_TYPE_CUSTOMER_CHARGES', 'chg');
+define('AVTXNS_TXN_TYPE_OTHER_BILLS', 'obll');
+define('AVTXNS_TXN_TYPE_ACCOUNTS_BILL', 'ainv');
 define('AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT', 'stk');
 
 define('AVTXNS_TXN_STATUS_CLOSED', 0);
@@ -295,6 +298,7 @@ function avtxns_txns_home_form($form, &$form_state) {
     $form["new_$k"] = array(
       '#markup' => l($type['name'], "{$type['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right uk-margin-small-bottom $button_color_class")))),
       '#access' => $can_create,
+      '#prefix' => empty($type['button_prefix']) ? '' : $type['button_prefix'],
     );
   }
   //$form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
@@ -451,6 +455,7 @@ function avtxns_txn_types($type = NULL) {
     // Accounting.
     $ret[AVTXNS_TXN_TYPE_JOURNAL] = array(
       //'button_class' => 'uk-button-warning',
+      'button_prefix' => '<br />',
       'type' => AVTXNS_TXN_TYPE_JOURNAL,
       'base_path' => 'av/' . AVTXNS_TXN_TYPE_JOURNAL,
       'transaction' => 'accounts',
@@ -491,6 +496,37 @@ function avtxns_txn_types($type = NULL) {
       'total_is_entered_amount' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
     );
+    $ret[AVTXNS_TXN_TYPE_CUSTOMER_CHARGES] = array(
+      //'button_class' => 'uk-button-warning',
+      'type' => AVTXNS_TXN_TYPE_CUSTOMER_CHARGES,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_CUSTOMER_CHARGES,
+      'transaction' => 'accounts',
+      'name' => 'Customer Charges',
+      'plural_name' => 'Customer Charges',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
+      'non_product' => TRUE,
+      //'no_total' => TRUE,
+      'no_terms' => TRUE,
+      'no_agent' => TRUE,
+      'total_is_entered_amount' => TRUE,
+      'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
+    );
+    $ret[AVTXNS_TXN_TYPE_OTHER_BILLS] = array(
+      //'button_class' => 'uk-button-warning',
+      'type' => AVTXNS_TXN_TYPE_OTHER_BILLS,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_OTHER_BILLS,
+      'transaction' => 'accounts',
+      'name' => 'Other Bills',
+      'plural_name' => 'Other Bills',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
+      'non_product' => TRUE,
+      //'no_total' => TRUE,
+      'no_terms' => TRUE,
+      'no_agent' => TRUE,
+      'total_is_entered_amount' => TRUE,
+      'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
+    );
+
 
     // Others.
     $ret[AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT] = array(

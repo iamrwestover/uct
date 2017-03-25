@@ -905,8 +905,11 @@ function avbase_rows_build_tree(array $rows, $parent = 0, $hide_fixed = TRUE, $h
     if ($hide_fixed && !empty($row['fixed'])) {
       continue;
     }
-
     if ($hide_inactive && empty($row['status'])) {
+      continue;
+    }
+    $account_type = empty($row['account_type']) ? '' : $row['account_type'];
+    if (in_array($account_type, array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP))) {
       continue;
     }
 
