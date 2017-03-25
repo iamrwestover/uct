@@ -244,6 +244,10 @@ input.av-no-border {
   border-radius: 4px;
   color: #999;
 }
+.av-readonly-field {
+  background: #fafafa !important;
+  color: #999 !important;
+}
 
 /* Tables */
 th > a > img {

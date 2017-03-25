@@ -91,12 +91,15 @@
       var uoms = Drupal.settings.avbase.uoms;
 
       // Accounting.
-      var $debitEl = $thisRow.find('.item-column-debit');
-      var $creditEl = $thisRow.find('.item-column-credit');
+      var $accountNameEl = $thisRow.find('.prod-column-account-name');
+      var $debitEl = $thisRow.find('.prod-column-debit');
+      var $creditEl = $thisRow.find('.prod-column-credit');
       // Stock adjustment.
       var $onHandQtyEl = $thisRow.find('.prod-column-onhand-qty');
       var $newQtyEl = $thisRow.find('.prod-column-new-qty');
-      self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl);
+      var $qtyDiffEl = $thisRow.find('.prod-column-qty-diff');
+      var $UOMFixedEl = $thisRow.find('.prod-column-uom-title-fixed');
+      self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl, $UOMFixedEl);
 
       // Trigger actions for autocomplete product field.
       $productTitleEl.on('autocompleteSelect', function(e, node) {
@@ -116,7 +119,7 @@
           $UOMEl.trigger('change');
         }
 
-        self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl);
+        self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl, $UOMFixedEl);
 
         var transaction = Drupal.settings.avtxns.transaction || '';
         var discount_text = transaction == 'purchase' ?  (productDetails.discount_text || '') : (productDetails.sales_discount_text || '')
@@ -396,16 +399,48 @@
       });
 
       // Accounting.
+      $accountNameEl.keydown(function(e) {
+        if (!$('#autocomplete').length) {
+          self.switchRowFocus(e, $thisRow);
+        }
+      });
       $debitEl.change(function () {
         $creditEl.val('');
         self.refreshJournalTotalText();
+      });
+      $debitEl.keydown(function(e) {
+        self.switchRowFocus(e, $thisRow);
       });
       $creditEl.change(function () {
         $debitEl.val('');
         self.refreshJournalTotalText();
       });
+      $creditEl.keydown(function(e) {
+        self.switchRowFocus(e, $thisRow);
+      });
 
       // Stock Adjustment.
+      $newQtyEl.change(function () {
+        var newQty = Drupal.checkPlain($(this).val());
+        var onHandQty = Drupal.checkPlain($onHandQtyEl.html());
+
+        var error = false;
+        $(this).removeClass('uk-form-danger');
+        if (!$.isNumeric(newQty)) {
+          if (newQty != '') {
+            $(this).addClass('uk-form-danger');
+          }
+          error = true;
+        }
+
+        if (error) {
+          return;
+        }
+
+        //onHandQty = parseInt(onHandQty) || 0;
+        var qtyDiff = parseInt(newQty) - parseInt(onHandQty);
+        $qtyDiffEl.val(qtyDiff || 0);
+      });
       $newQtyEl.keydown(function(e) {
         self.switchRowFocus(e, $thisRow);
       });
@@ -644,10 +679,11 @@
     return parseFloat(journalTotal).toFixed(2);
   };
 
-  Drupal.avbaseNestableProductForm.prototype.setOnHandQtyValue = function($productTitleEl, $onHandQtyEl, $newQtyEl) {
+  Drupal.avbaseNestableProductForm.prototype.setOnHandQtyValue = function($productTitleEl, $onHandQtyEl, $newQtyEl, $UOMFixedEl) {
     var selectedProductID = $productTitleEl.data('selected-product-id');
     var productDetails = Drupal.settings.avbase.products[selectedProductID] || {};
     $onHandQtyEl.html(productDetails.qty || '&nbsp;');
+    $UOMFixedEl.html(productDetails.uom_title || '&nbsp;');
     $newQtyEl.trigger('change');
   };
 

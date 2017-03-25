@@ -65,7 +65,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       //$matching_table_field_names = array();
       $item_ids = array();
       $discount_updates = array();
-      foreach ($item_rows as $item_row) {
+      foreach ($item_rows as $ir_k => $item_row) {
         // Skip if account_id is empty.
         if ($ttd['transaction'] == 'accounts' && empty($item_row['account_id'])) {
           continue;
@@ -81,6 +81,11 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           continue;
         }
 
+        // Override certain item row values for Stock Adjustment transactions.
+        if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
+          $item_rows[$ir_k]['qty'] = $item_row['qty_diff'];
+          $item_rows[$ir_k]['qty_per_uom'] = 1;
+        }
 
 
         // Set foreign key.

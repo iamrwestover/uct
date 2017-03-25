@@ -506,6 +506,8 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'no_total' => TRUE,
       'prevent_duplicate_product' => TRUE,
+      //'cant_edit' => TRUE,
+      //'cant_change_status' => TRUE,
     );
   }
 

@@ -447,6 +447,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#element_save_id' => 'account_id',
         '#default_value' => empty($prod_row['account_name']) ? '' : $prod_row['account_name'],
         '#exclude_types' => array(AVTXN_AC_TYPE_AP, AVTXN_AC_TYPE_AR),
+        '#attributes' => array(
+          'data-column-name' => 'account-name',
+          'class' => array('prod-column-account-name'),
+        ),
       );
       $fields['description'] = array(
         '#type' => 'textfield',
@@ -669,7 +673,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
         '#attributes' => array(
           'data-column-name' => 'debit',
-          'class' => array('item-column-debit uk-text-right'),
+          'class' => array('prod-column-debit uk-text-right'),
         ),
         '#default_value' => isset($prod_row['debit']) ? avbase_number_format($prod_row['debit'], 2) : '',
         '#dont_require' => TRUE,
@@ -685,7 +689,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
         '#attributes' => array(
           'data-column-name' => 'credit',
-          'class' => array('item-column-credit uk-text-right'),
+          'class' => array('prod-column-credit uk-text-right'),
         ),
         '#default_value' => isset($prod_row['credit']) ? avbase_number_format($prod_row['credit'], 2) : '',
         '#dont_require' => TRUE,
@@ -774,7 +778,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
       $fields['onhand_qty'] = array(
-        '#markup' => '<div class="prod-column-onhand-qty fake-form-text">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
+        '#markup' => '<div class="prod-column-onhand-qty' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
+      );
+      $fields['uom_title_fixed'] = array(
+        '#markup' => '<div class="prod-column-uom-title-fixed' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['uom_title']) ? $prod_row['uom_title'] : '&nbsp;') . '</div>',
       );
       $fields['new_qty'] = array(
         '#id' => 'product-new-qty-' . $prod_key,
@@ -792,7 +799,19 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#default_value' => isset($prod_row['new_qty']) ? $prod_row['new_qty'] : '',
       );
       $fields['qty_diff'] = array(
-        '#markup' => '<div class="prod-column-qty-diff fake-form-text">' . (isset($prod_row['qty_diff']) ? $prod_row['qty_diff'] : '&nbsp;') . '</div>',
+        //'#id' => 'product-new-qty-' . $prod_key,
+        '#item_row_key' => $prod_key,
+        '#type' => 'textfield',
+        '#title' => 'Qty. difference',
+        '#title_display' => 'none',
+        '#maxlength' => 10,
+        '#element_validate' => array('avtxns_item_list_row_element_validate'),
+        '#av_prod_element_validate' => array('element_validate_integer'),
+        '#attributes' => array(
+          'data-column-name' => 'qty-diff',
+          'class' => array('prod-column-qty-diff uk-text-right'),
+        ),
+        '#default_value' => isset($prod_row['qty_diff']) ? $prod_row['qty_diff'] : '',
       );
     }
 
@@ -855,7 +874,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       'previous_payment',
     );
     if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
-      //$disabled_fields[] = 'qty';
+      $disabled_fields[] = 'qty';
       //$disabled_fields[] = 'product_title';
       //$disabled_fields[] = 'qty';
       ////$disabled_fields[] = 'onhand_qty';
@@ -866,6 +885,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       $disabled_fields[] = 'cost';
       $disabled_fields[] = 'discount';
       //$readonly_fields[] = 'qty';
+      if (empty($row->id)) {
+        $readonly_fields[] = 'qty_diff';
+      }
     }
     if (!empty($ttd['payment'])) {
       $readonly_fields = $disabled_fields;
@@ -899,7 +921,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           continue;
         }
         $fields[$k]['#attributes']['readonly'] = 'readonly';
-        $fields[$k]['#attributes']['class']['mute'] = 'uk-text-muted';
+        $fields[$k]['#attributes']['class']['mute'] = 'av-readonly-field';
       }
     }
 
