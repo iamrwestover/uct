@@ -278,6 +278,9 @@ table tr.uk-alert-success,
 table tr.uk-alert-warning {
   color: inherit;
 }
+table.sticky-header {
+  z-index: 1;
+}
 
 .uk-alert-mute {
   background-color: #fafafa;
