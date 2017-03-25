@@ -6,7 +6,7 @@
  */
 
 //DEFINE('UIKIT_SRC', '//cdnjs.cloudflare.com/ajax/libs/uikit/2.26.4');
-DEFINE('UIKIT_SRC', url('', array('absolute' => TRUE)) . 'sites/all/libraries/uikit/uikit-2.27.2');
+DEFINE('UIKIT_SRC', /*url('', array('absolute' => TRUE)) .*/ 'sites/all/libraries/uikit/uikit-2.27.2');
 
 /**
  * Include common functions used throughout theme.
@@ -802,7 +802,7 @@ function uikit_preprocess_form(&$variables) {
   }
 
   drupal_add_css(UIKIT_SRC . "/css/components/$form_advanced_css", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'weight' => -10,

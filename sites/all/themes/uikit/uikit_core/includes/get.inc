@@ -21,7 +21,7 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
   }
 
   drupal_add_css(UIKIT_SRC . "/css/$uikit_css", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'weight' => -100,
@@ -45,7 +45,7 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
 //  ));
 
   drupal_add_js(UIKIT_SRC . "/js/uikit.min.js", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,
     'weight' => -20,
@@ -57,7 +57,7 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
   $css_extension .= 'min.css';
   // Progress bars.
   drupal_add_css(UIKIT_SRC . "/css/components/progress." . $css_extension, array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
@@ -65,13 +65,13 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
 
   // Date picker.
   drupal_add_css(UIKIT_SRC . "/css/components/datepicker." . $css_extension, array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
   drupal_add_js(UIKIT_SRC . "/js/components/datepicker.js", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
@@ -79,13 +79,13 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
 
   // Tooltips.
   drupal_add_css(UIKIT_SRC . "/css/components/tooltip." . $css_extension, array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
   drupal_add_js(UIKIT_SRC . "/js/components/tooltip.min.js", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
@@ -93,13 +93,13 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
 
   // Nestable.
   drupal_add_css(UIKIT_SRC . "/css/components/nestable." . $css_extension, array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
   drupal_add_js(UIKIT_SRC . "/js/components/nestable.min.js", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
@@ -107,13 +107,13 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
 
   // Autocomplete.
   drupal_add_css(UIKIT_SRC . "/css/components/autocomplete." . $css_extension, array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => CSS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
   drupal_add_js(UIKIT_SRC . "/js/components/autocomplete.min.js", array(
-    'type' => 'external',
+    //'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,
     'version' => $uikit_version,
