@@ -235,7 +235,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         }
 
         if (!empty($item->ref_txn_type)) {
-          if ($item->ref_txn_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+          if ($item->ref_txn_type == $ttd['pending_return_type']) {
             $credit_total += $item->total;
             $item->total *= -1;
           } else {
@@ -292,7 +292,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     // Attach received items.
     //avtxns_txn_attach_received_items($row);
 
-    if (!empty($ttd['bill'])) {
+    if (!empty($ttd['payable'])) {
       $query = "SELECT SUM(avtxn_details.paid_amount) FROM {avtbl_transaction_details} avtxn_details
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
         WHERE avtxn_details.ref_txn_dtl_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;

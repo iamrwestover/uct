@@ -121,7 +121,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
 
 
 
-  if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN))) {
+  if (in_array($transaction_type, array(/*AVTXNS_TXN_TYPE_PURCHASE_RETURN, */AVTXNS_TXN_TYPE_SALES_RETURN))) {
     if (!empty($form_state['values']['selected_pos']['transaction_id'])) {
       $form_state['input']['return_type'] = AVTXNS_RETURN_TYPE_RUD;
     }
@@ -280,7 +280,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if (empty($ttd['no_total'])) {
-    $form['grand_total'] = array('#type' => 'value', '#value' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
+    $form['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
   }
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
     $form['journal_debit_total'] = array('#type' => 'value', '#value' => isset($row->journal_debit_total) ? number_format($row->journal_debit_total, 2) : '0.00');
@@ -423,11 +423,12 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
     $fields = array();
-    $reference_transaction_type = empty($prod_row['reference_type']) ? '' : $prod_row['reference_type'];
+    $reference_transaction_type = empty($prod_row['ref_txn_type']) ? '' : $prod_row['ref_txn_type'];
     $order_id = empty($prod_row['ref_txn_id']) ? NULL : $prod_row['ref_txn_id'];
-    if (empty($ttd['payment']) && !empty($reference_transaction_type)) {
+    $pending_return_type = empty($ttd['pending_return_type']) ? '' : $ttd['pending_return_type'];
+    if (empty($view_mode) && empty($ttd['payment']) && !empty($reference_transaction_type)) {
       $badge_title = strtoupper($reference_transaction_type) . '#';
-      $badge_type = $reference_transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN ? 'success' : 'primary';
+      $badge_type = $reference_transaction_type == $pending_return_type ? 'success' : 'primary';
 
       if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
         //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
@@ -607,11 +608,12 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#av_prod_element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
         '#attributes' => array(
           'data-column-name' => 'cost',
-          'data-is-negative' => $reference_transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN ? TRUE : FALSE,
+          'data-is-negative' => $reference_transaction_type == $pending_return_type ? TRUE : FALSE,
           'class' => array('prod-column-cost uk-text-right'),
         ),
         '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost'], 2) : '',
       );
+      
 
       $max_discount_html = '';
       if (!empty($prod_row['discount_over_limit'])) {
@@ -656,7 +658,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
         '#default_value' => isset($prod_row['total']) ? avbase_number_format($prod_row['total'], 2) : '',
       );
-      if ($reference_transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+      if ($reference_transaction_type == $pending_return_type) {
         $fields['total']['#attributes']['class'][] = 'uk-form-success';
       }
     }
@@ -725,13 +727,18 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       ),
     );
 
-    $fields['ref_txn_dtl_id'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Reference ID',
-      '#title_display' => 'none',
-      '#maxlength' => 255,
-      '#default_value' => isset($prod_row['ref_txn_dtl_id']) ? $prod_row['ref_txn_dtl_id'] : '',
+    $fields['ref_txn_dtl_id_text'] = array(
+      '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['ref_txn_dtl_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' .  $prod_row['ref_txn_dtl_id']) : '&nbsp;') . '</div>',
     );
+    if (empty($view_mode)) {
+      $fields['ref_txn_dtl_id'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Reference ID',
+        '#title_display' => 'none',
+        '#maxlength' => 255,
+        '#default_value' => isset($prod_row['ref_txn_dtl_id']) ? $prod_row['ref_txn_dtl_id'] : '',
+      );
+    }
     $fields['orig_total'] = array(
       '#type' => 'textfield',
       '#title' => 'Original Amount',
@@ -764,6 +771,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
       );
     }
+
     if ($view_mode && !empty($ttd['payment'])) {
       $fields['new_balance'] = array(
         '#type' => 'textfield',
@@ -858,6 +866,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     // Disable some fields if necessary.
     $readonly_fields = array();
+    if (!empty($row->id) && !empty($ttd['qty_change'])) {
+      $readonly_fields[] = 'product_title';
+    }
     if (empty($ttd['total_is_entered_amount'])) {
       $readonly_fields[] = 'total';
     }
@@ -954,21 +965,22 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $js_settings['avbase']['products'] = (object) $product_rows;
   }
 
-  $form['prod_add_btn'] = array(
-    '#id' => 'prod-add-btn',
-    '#name' => 'prod_add_btn',
-    '#type' => 'submit',
-    '#value' => t('Add new rows'),
-    '#limit_validation_errors' => array(),
-    '#submit' => array('avtxns_item_list_prod_submit'),
-    '#ajax' => array(
-      'callback' => 'avtxns_item_list_prod_js',
-      'wrapper' => 'item-list-new-product-wrapper',
-      'effect' => 'none',
-      'event' => 'click',
-    ),
-    '#access' => empty($ttd['bill']) && empty($ttd['payment']),
-  );
+  if (empty($ttd['bill']) && empty($ttd['payment'])) {
+    $form['prod_add_btn'] = array(
+      '#id' => 'prod-add-btn',
+      '#name' => 'prod_add_btn',
+      '#type' => 'submit',
+      '#value' => t('Add new rows'),
+      '#limit_validation_errors' => array(),
+      '#submit' => array('avtxns_item_list_prod_submit'),
+      '#ajax' => array(
+        'callback' => 'avtxns_item_list_prod_js',
+        'wrapper' => 'item-list-new-product-wrapper',
+        'effect' => 'none',
+        'event' => 'click',
+      ),
+    );
+  }
 
   $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
   if (!empty($row->id)) {

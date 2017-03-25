@@ -32,9 +32,9 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   );
 
   $header = array(
-    'transaction_id' => array('data' => t('@type #', array('@type' => strtoupper($reference_type))), 'class' => 'suk-text-right'),
+    'transaction_id' => array('data' => '#', 'class' => 'suk-text-right'),
     'agent_name' => array('data' => t('Agent'), 'class' => ''),
-    'transaction_date' => array('data' => t('Order Date')),
+    'transaction_date' => array('data' => t('Transaction Date')),
     'total' => array('data' => t('Total'), 'class' => 'uk-text-right'),
   );
   if (!empty($ttd['payment'])) {
@@ -46,7 +46,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   foreach ($client_pending_pos as $k => $v) {
     //$transaction_details[$v->id] = $v;
     $table_rows[$v->id] = array(
-      'transaction_id' => array('data' => t('%order_num', array('%order_num' => $v->id)), 'class' => array('suk-text-right')),
+      'transaction_id' => array('data' => t('@ttype# @order_num', array('@ttype' => strtoupper($v->transaction_type), '@order_num' => $v->id)), 'class' => array('suk-text-right')),
       'agent_name' => check_plain($v->agent_name),
       'transaction_date' => format_date($v->transaction_date, 'custom', 'Y M d'),
       'total' => array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right')),
@@ -67,7 +67,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       '#attributes' => array('class' => array('uk-table-striped')),
       //'#prefix' => '<div id="avtxns-pending-orders-form-wrapper">',
       //'#suffix' => '</div>',
-      '#multiple' => ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN || !empty($ttd['payment'])),
+      '#multiple' => (count($reference_type) > 1 || in_array($reference_type[0], array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN))),
     );
   }
   // Buttons
@@ -87,7 +87,6 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       'event' => 'click',
     ),
     '#reference_type' => $ttd['pending_txns_reference_type'],
-    '#access' => empty($row->id),
   );
   $fields['buttons']['submit'] = array(
     '#id' => 'pos-selected-submit-btn',
@@ -128,10 +127,10 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       $modal_title = t('Recent delivery orders to this customer');
       break;
     case AVTXNS_TXN_TYPE_INVOICE:
-      $modal_title = $reference_type == AVTXNS_TXN_TYPE_DELIVERY ? t('Recent delivery orders to this customer') : t('Recent returns from this customer');
+      $modal_title = (empty($reference_type) || $reference_type[0] != AVTXNS_TXN_TYPE_DELIVERY) ? t('Recent returns from this customer') : t('Recent delivery orders to this customer');
       break;
     case AVTXNS_TXN_TYPE_PAYMENT:
-      $modal_title = t('Recent invoices for this customer');
+      $modal_title = t('Recent customer receivables');
       break;
     case AVTXNS_TXN_TYPE_BILL:
       $modal_title = t('Recent items received from this vendor');
@@ -173,8 +172,8 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
   // Get transaction type.
   $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
   $ttd = avtxns_txn_types($transaction_type);
-  $reference_type = empty($trigger['#reference_type']) ? '' : $trigger['#reference_type'];
-  $rtd = avtxns_txn_types($reference_type);
+  $reference_type = empty($trigger['#reference_type']) ? array() : (array) $trigger['#reference_type'];
+  //$rtd = avtxns_txn_types($reference_type);
   switch ($trigger['#id']) {
     case 'check-po-btn':
     case 'check-ret-btn':
@@ -191,21 +190,28 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
 
       $conditions = array();
       $conditions[] = array('avtxns.client_id', $client_id);
-      if (!empty($rtd['bill'])) {
+      if (!empty($ttd['payment'])) {
         $conditions[] = array('avtxns.status', array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), 'IN');
       }
       else {
         $conditions[] = array('avtxns.status', AVTXNS_TXN_STATUS_OPEN);
       }
-      $conditions[] = array('avtxns.transaction_type', $reference_type);
+      $conditions[] = array('avtxns.transaction_type', $reference_type, 'IN');
       $pos = avtxns_txn_query_load($conditions);
       $floating_pos = array();
       foreach ($pos as $po_k => $po_v) {
+        $rtd = avtxns_txn_types($po_v->transaction_type);
         if (!empty($ttd['payment']) && round($po_v->balance, 2) <= 0) {
+          continue;
+        }
+
+        $pr_statuses = empty($rtd['pr_statuses']) ? array(AVTXNS_TXN_STATUS_OPEN) : $rtd['pr_statuses'];
+        if (!in_array($po_v->status, $pr_statuses)) {
           continue;
         }
         $trimmed_po = new stdClass();
         $trimmed_po->id = $po_v->id;
+        $trimmed_po->transaction_type = $po_v->transaction_type;
         $trimmed_po->agent_name = $po_v->agent_name;
         $trimmed_po->transaction_date = $po_v->transaction_date;
         $trimmed_po->grand_total = $po_v->grand_total;
@@ -261,13 +267,14 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       //}
       $selected_transaction_details = avtxns_txn_load_ids($transaction_ids);
 
+      $txn_type_is_return = count($reference_type) == 1 && in_array($reference_type[0], array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN));
 
       // Remove previously loaded pending items.
       foreach ($_item_rows as $k => $v) {
-        if ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+        if ($txn_type_is_return) {
           continue;
         }
-        if (strstr($k, "{$reference_type}_db_item_")) {
+        if (strstr($k, "{$v['ref_txn_type']}_db_item_")) {
           unset($_item_rows[$k]);
           unset($form_state['input']['product_rows'][$k]);
         }
@@ -276,15 +283,15 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $receive_pos = array();
       foreach ($selected_transaction_details as $transaction) {
         if (!empty($ttd['payment'])) {
-          $item_row_id = "{$reference_type}_db_item_{$transaction->id}";
+          $item_row_id = "{$transaction->transaction_type}_db_item_{$transaction->id}";
           $transaction_arr = (array) $transaction;
           $transaction_arr['ref_txn_dtl_id'] = $transaction->id;
           // Remember Invoice ID to immediately close invoice after payment, regardless of amount paid.
           $transaction_arr['ref_txn_id'] = $transaction->id;
           $transaction_arr['ref_txn_type'] = $transaction->transaction_type;
-          if (!empty($trigger['#reference_type'])) {
-            $transaction_arr['reference_type'] = $trigger['#reference_type'];
-          }
+          //if (!empty($trigger['#reference_type'])) {
+          //  $transaction_arr['reference_type'] = $trigger['#reference_type'];
+          //}
           //$transaction_arr['paid_amount'] = $transaction_arr['total'];
           //$transaction_arr['transaction_id'] = $transaction_arr['id'];
           unset($transaction_arr['id']);
@@ -302,16 +309,16 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
         else {
           $db_item_rows = empty($transaction->items) ? array() : $transaction->items;
           foreach ($db_item_rows as $item_row) {
-            $item_row_id = "{$reference_type}_db_item_{$transaction->id}_{$item_row->id}";
+            $item_row_id = "{$transaction->transaction_type}_db_item_{$transaction->id}_{$item_row->id}";
             $item_row_arr = (array)$item_row;
             unset($item_row_arr['id']);
             $item_row_arr['ref_txn_dtl_id'] = $item_row->id;
             $item_row_arr['ref_txn_id'] = $transaction->id;
             $item_row_arr['ref_txn_type'] = $transaction->transaction_type;
 
-            if (!empty($trigger['#reference_type'])) {
-              $item_row_arr['reference_type'] = $trigger['#reference_type'];
-            }
+            //if (!empty($trigger['#reference_type'])) {
+            //  $item_row_arr['reference_type'] = $trigger['#reference_type'];
+            //}
 
             // Set qty to remaining qty value.
             //$remaining_base_qty = isset($item_row_arr['remaining_base_qty']) ? $item_row_arr['remaining_base_qty'] : $item_row_arr['qty'];
@@ -347,7 +354,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
             //  }
             //}
             //$item_row_arr['total'] = round($item_row_arr['total'], 2);
-            $item_row_arr['total'] *= $reference_type == AVTXNS_TXN_TYPE_SALES_RETURN ? -1 : 1;
+            $item_row_arr['total'] *= $txn_type_is_return ? -1 : 1;
             $item_row_arr['total'] = avbase_number_format($item_row_arr['total'], 2);
             //}
 
@@ -364,7 +371,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       }
 
       $form_state['input']['product_rows'] = empty($form_state['input']['product_rows']) ? array() : $form_state['input']['product_rows'];
-      if ($reference_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+      if ($txn_type_is_return) {
         $_item_rows = $_item_rows + $receive_pos;
         $form_state['input']['product_rows'] = $form_state['input']['product_rows'] + $receive_pos;
       }

@@ -42,7 +42,7 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
     // Add fields for Cost Changes popup.
     avtxns_cost_changes_form_fields($form, $form_state, $transaction_type, $row, $view_mode);
   }
-  if (isset($ttd['pending_txns_reference_type'])) {
+  if (isset($ttd['pending_txns_reference_type']) && empty($row->id)) {
     // Add fields for Pending orders popup.
     avtxns_pending_orders_form_fields($form, $form_state, $transaction_type, $row, $view_mode);
   }
@@ -119,7 +119,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
         $badge_color = 'uk-badge-warning';
         break;
       case AVTXNS_TXN_STATUS_VOID:
-        $badge_color = 'uk-badge-danger uk-badge-void';
+        $badge_color = 'uk-badge-danger';
         break;
     }
     $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">&nbsp;' . $icon_html . strtoupper($tsd['title']) . '&nbsp;</span>&nbsp;';
@@ -325,7 +325,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
         'effect' => 'none',
         'event' => 'click',
       ),
-      '#reference_type' => AVTXNS_TXN_TYPE_SALES_RETURN,
+      '#reference_type' => $ttd['pending_return_type'],
       '#avposition' => 'opposite',
       //'#disabled' => TRUE,
     );
@@ -337,7 +337,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
         INNER JOIN {avtbl_clients} avclients ON avclients.id = avtxn.client_id
         WHERE avclients.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
-      $count = db_query($query, array(':client_name' => $client_name, ':ttype' => AVTXNS_TXN_TYPE_SALES_RETURN))->fetchField();
+      $count = db_query($query, array(':client_name' => $client_name, ':ttype' => $ttd['pending_return_type']))->fetchField();
       if (!empty($count)) {
         //$buttons['check_returns']['#attributes']['class']['color'] = 'uk-button-success';
         $buttons['check_returns']['#button_label'] = "Add returns - <em>$count pending</em>";

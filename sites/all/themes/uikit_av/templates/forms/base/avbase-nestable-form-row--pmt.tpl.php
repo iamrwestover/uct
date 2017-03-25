@@ -46,6 +46,7 @@ $view_mode = !empty($form['#av_view_mode']);
     <div class="uk-grid uk-grid-collapse">
       <div class="uk-width-<?php print ($view_mode ? '2' : '1'); ?>-10">
         <div class="av-nestable-cell">
+        <?php print drupal_render($form['ref_txn_dtl_id_text']); ?>
         <?php print drupal_render($form['ref_txn_dtl_id']); ?>
         </div>
       </div>

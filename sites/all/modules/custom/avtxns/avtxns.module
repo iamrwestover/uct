@@ -369,9 +369,12 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Invoices',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
+      'pending_return_type' => AVTXNS_TXN_TYPE_SALES_RETURN,
       'receivable_type' => 'credit',
       'client_statuses' => array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED),
       'bill' => TRUE,
+      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      'payable' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PAYMENT] = array(
       'button_class' => 'uk-button-success',
@@ -381,11 +384,12 @@ function avtxns_txn_types($type = NULL) {
       'name' => 'Received Payment',
       'plural_name' => 'Received Payment',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
-      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_INVOICE,
+      'pending_txns_reference_type' => array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES),
       'client_statuses' => array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED),
       'payment' => TRUE,
       'no_terms' => TRUE,
       'no_agent' => TRUE,
+      'total_is_entered_amount' => TRUE,
     );
 
     // Purchase.
@@ -431,10 +435,13 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Bills',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
+      'pending_return_type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
       'payable_type' => 'credit',
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
       'bill' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_INVOICE,
+      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      'payable' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
       'button_class' => 'uk-button-primary',
@@ -444,12 +451,13 @@ function avtxns_txn_types($type = NULL) {
       'name' => 'Bills Payment',
       'plural_name' => 'Paid Bills',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
-      'pending_txns_reference_type' => AVTXNS_TXN_TYPE_BILL,
+      'pending_txns_reference_type' => array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_OTHER_BILLS),
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
       'payment' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_PAYMENT,
       'no_terms' => TRUE,
       'no_agent' => TRUE,
+      'total_is_entered_amount' => TRUE,
     );
 
     // Accounting.
@@ -510,6 +518,8 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
+      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      'payable' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_OTHER_BILLS] = array(
       //'button_class' => 'uk-button-warning',
@@ -525,6 +535,8 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
+      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      'payable' => TRUE,
     );
 
 
