@@ -274,6 +274,7 @@ table tr.uk-row-mute a {
   color: #ccc;
 }
 table tr.uk-alert-danger,
+table tr.uk-alert-success,
 table tr.uk-alert-warning {
   color: inherit;
 }

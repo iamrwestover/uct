@@ -46,7 +46,9 @@ foreach ($ttds as $ttd) {
   define('AVTXNS_PERM_CREATE_' . strtoupper($ttd['type']), 'avbase create transaction ' . $ttd['type']);
   define('AVTXNS_PERM_EDIT_' . strtoupper($ttd['type']), 'avbase edit transaction ' . $ttd['type']);
   define('AVTXNS_PERM_VIEW_' . strtoupper($ttd['type']), 'avbase view transaction ' . $ttd['type']);
-  define('AVTXNS_PERM_VOID_' . strtoupper($ttd['type']), 'avbase void transaction ' . $ttd['type']);
+  if (empty($ttd['cant_change_status'])) {
+    define('AVTXNS_PERM_VOID_' . strtoupper($ttd['type']), 'avbase void transaction ' . $ttd['type']);
+  }
   if (!empty($ttd['product_discount_check'])) {
     define('AVTXNS_PERM_OPEN_' . strtoupper($ttd['type']), 'avbase open transaction ' . $ttd['type']);
   }
@@ -71,9 +73,11 @@ function avtxns_permission() {
     $permissions[constant('AVTXNS_PERM_VIEW_' . $ttd_type)] = array(
       'title' => t('@tdname - VIEW', array('@tdname' => $ttd_name)),
     );
-    $permissions[constant('AVTXNS_PERM_VOID_' . $ttd_type)] = array(
-      'title' => t('@tdname - VOID', array('@tdname' => $ttd_name)),
-    );
+    if (empty($ttd['cant_change_status'])) {
+      $permissions[constant('AVTXNS_PERM_VOID_' . $ttd_type)] = array(
+        'title' => t('@tdname - VOID', array('@tdname' => $ttd_name)),
+      );
+    }
     if (!empty($ttd['product_discount_check'])) {
       $permissions[constant('AVTXNS_PERM_OPEN_' . $ttd_type)] = array(
         'title' => t('@tdname - APPROVE', array('@tdname' => $ttd_name)),
@@ -507,7 +511,7 @@ function avtxns_txn_types($type = NULL) {
       'no_total' => TRUE,
       'prevent_duplicate_product' => TRUE,
       //'cant_edit' => TRUE,
-      //'cant_change_status' => TRUE,
+      'cant_change_status' => TRUE,
     );
   }
 
@@ -599,6 +603,10 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $badge_icon_html = '';
     $badge_icon = '';
     switch ($row->status) {
+      case AVTXNS_TXN_STATUS_OPEN:
+        $badge_class = 'uk-badge-primary';
+        $badge_icon = 'circle-o';
+        break;
       case AVTXNS_TXN_STATUS_PENDING:
         $row_class = 'uk-alert-warning';
         $badge_class = 'uk-badge-warning';
@@ -606,10 +614,11 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
         break;
       case AVTXNS_TXN_STATUS_VOID:
         $row_class = 'uk-row-mute';
-        $badge_class = 'uk-badge-danger uk-badge-void';
+        $badge_class = 'uk-badge-void';
         $badge_icon = 'minus-circle';
         break;
       case AVTXNS_TXN_STATUS_CLOSED:
+        $row_class = 'uk-alert-success';
         $badge_class = 'uk-badge-success';
         $badge_icon = 'lock';
         break;
@@ -630,7 +639,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $rows[$row->id] = array(
       'data' => array(
         //'status' => $badge_html,
-        'transaction_id' => l($row->id, $view_path),
+        'transaction_id' => l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path),
         'date' => l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
         'transaction_type' => $badge_html . l($transaction_type['name'], $view_path),
         'client_name' => /*$rows[$index]['data'][] =*/ check_plain($row->display_name),
@@ -1026,6 +1035,11 @@ function avtxns_txn_form_ajax_search($form, $form_state) {
  */
 function avtxns_txn_can_status_change($transaction, $status) {
   if (empty($transaction->transaction_type)) {
+    return FALSE;
+  }
+
+  $ttd = avtxns_txn_types($transaction->transaction_type);
+  if (!empty($ttd['cant_change_status'])) {
     return FALSE;
   }
 
