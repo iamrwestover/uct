@@ -83,8 +83,8 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
 
         // Override certain item row values for Stock Adjustment transactions.
         if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
-          $item_rows[$ir_k]['qty'] = $item_row['qty_diff'];
-          $item_rows[$ir_k]['qty_per_uom'] = 1;
+          $item_rows[$ir_k]['qty'] = $item_row['qty'] = $item_row['qty_diff'];
+          $item_rows[$ir_k]['qty_per_uom'] = $item_row['qty_per_uom'] = 1;
         }
 
 

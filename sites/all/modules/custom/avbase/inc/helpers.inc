@@ -753,7 +753,6 @@ function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FA
 
   $incoming_base_qty = array();
   foreach ($item_rows as $item_row) {
-    dpm($item_row);
     $item_row = (array) $item_row;
     $item_id = isset($item_row['item_id']) ? $item_row['item_id'] : NULL;
     $item_id = empty($item_id) ? (isset($item_row['product_id']) ? $item_row['product_id'] : NULL) : $item_id;

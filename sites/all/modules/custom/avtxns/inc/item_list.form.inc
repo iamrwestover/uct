@@ -404,6 +404,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     '#theme' => 'avbase_nestable_form__' . $ttd['tpl_suffix'],
     //'#theme' => 'avbase_nestable_form',
     '#transaction' => $ttd['transaction'],
+    '#row_id' => empty($row->id) ? NULL : $row->id,
   );
   if (!empty($ttd['payment'])) {
     $form['product_rows']['#pending_txns_reference_type'] = $ttd['pending_txns_reference_type'];
@@ -777,27 +778,26 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     }
 
     if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
-      $fields['onhand_qty'] = array(
-        '#markup' => '<div class="prod-column-onhand-qty' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
-      );
-      $fields['uom_title_fixed'] = array(
-        '#markup' => '<div class="prod-column-uom-title-fixed' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['uom_title']) ? $prod_row['uom_title'] : '&nbsp;') . '</div>',
-      );
-      $fields['new_qty'] = array(
-        '#id' => 'product-new-qty-' . $prod_key,
-        '#item_row_key' => $prod_key,
-        '#type' => 'textfield',
-        '#title' => 'New qty',
-        '#title_display' => 'none',
-        '#maxlength' => 10,
-        '#element_validate' => array('avtxns_item_list_row_element_validate'),
-        '#av_prod_element_validate' => array('element_validate_integer_positive'),
-        '#attributes' => array(
-          'data-column-name' => 'new-qty',
-          'class' => array('prod-column-new-qty uk-text-right'),
-        ),
-        '#default_value' => isset($prod_row['new_qty']) ? $prod_row['new_qty'] : '',
-      );
+      if (empty($row->id)) {
+        $fields['onhand_qty'] = array(
+          '#markup' => '<div class="prod-column-onhand-qty' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
+        );
+        $fields['new_qty'] = array(
+          '#id' => 'product-new-qty-' . $prod_key,
+          '#item_row_key' => $prod_key,
+          '#type' => 'textfield',
+          '#title' => 'New qty',
+          '#title_display' => 'none',
+          '#maxlength' => 10,
+          '#element_validate' => array('avtxns_item_list_row_element_validate'),
+          '#av_prod_element_validate' => array('element_validate_integer_positive'),
+          '#attributes' => array(
+            'data-column-name' => 'new-qty',
+            'class' => array('prod-column-new-qty uk-text-right'),
+          ),
+          '#default_value' => isset($prod_row['new_qty']) ? $prod_row['new_qty'] : '',
+        );
+      }
       $fields['qty_diff'] = array(
         //'#id' => 'product-new-qty-' . $prod_key,
         '#item_row_key' => $prod_key,
@@ -811,11 +811,14 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'data-column-name' => 'qty-diff',
           'class' => array('prod-column-qty-diff uk-text-right'),
         ),
-        '#default_value' => isset($prod_row['qty_diff']) ? $prod_row['qty_diff'] : '',
+        '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
+      );
+      $fields['uom_title_fixed'] = array(
+        '#markup' => '<div class="prod-column-uom-title-fixed' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['base_uom_title']) ? $prod_row['base_uom_title'] : '&nbsp;') . '</div>',
       );
     }
 
-    //if (empty($ttd['bill'])) {
+    if (empty($prod_row['id'])) {
       $fields['prod_delete_btn'] = array(
         '#name' => 'prod_delete_btn_' . $prod_key,
         '#item_row_key' => $prod_key,
@@ -835,7 +838,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
         '#button_label' => '<i class="uk-icon-remove"></i>',
       );
-    //}
+    }
 
     if (!empty($_item_rows[$prod_key]['item_id'])) {
       $fields['product_title']['#attributes']['data-selected-product-id'] = $_item_rows[$prod_key]['item_id'];

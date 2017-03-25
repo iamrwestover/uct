@@ -128,12 +128,12 @@
 
 
       // Trigger adding new row when last Product field is reached.
-      $productTitleEl.focus(function() {
-        if (!$(this).closest('.uk-nestable-item').next().hasClass('uk-nestable-item')) {
-          $('#prod-add-btn').trigger('click');
-        }
-        //$(this).select();
-      });
+      //$productTitleEl.focus(function() {
+      //  if (!$(this).closest('.uk-nestable-item').next().hasClass('uk-nestable-item')) {
+      //    $('#prod-add-btn').trigger('click');
+      //  }
+      //  //$(this).select();
+      //});
       $productTitleEl.keydown(function(e) {
         if (!$('#autocomplete').length) {
           self.switchRowFocus(e, $thisRow);
