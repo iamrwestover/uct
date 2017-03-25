@@ -37,7 +37,7 @@ jQuery(document).ready(function ($) {
   var $form = $('form');
 
   // Prevent form submission on keyboard enter.
-  $form.on('keyup keypress', function(e) {
+  $('#avtxns-txn-form').on('keyup keypress', function(e) {
     var keyCode = e.keyCode || e.which;
     if (keyCode === 13) {
       e.preventDefault();

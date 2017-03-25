@@ -182,6 +182,7 @@
       </div>
 
       <?php if ($page['sidebar_first']): ?>
+
         <div<?php print $sidebar_first_attributes; ?>>
           <?php print render($page['sidebar_first']); ?>
         </div>

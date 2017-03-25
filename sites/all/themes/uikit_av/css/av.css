@@ -121,6 +121,11 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
   padding-top: 20px;
 }
 
+/* Sidebar First */
+#sidebar-first {
+  margin-top: 1.5em;
+}
+
 /* Content area */
 #page-outer-wrapper {
   padding-bottom: 15px; /* Fix bug on ios where uk-margin-bottom doesnt work properly on outer div. */
