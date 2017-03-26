@@ -159,6 +159,10 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           $delete_query .= " AND id NOT IN (:txn_dtl_ids)";
           $delete_args[':txn_dtl_ids'] = $transaction_detail_ids;
         }
+        if (!empty($ttd['credit_txn_types'])) {
+          $delete_query .= " AND ref_txn_type NOT IN (:txn_types)";
+          $delete_args[':txn_types'] = $ttd['credit_txn_types'];
+        }
         db_query($delete_query, $delete_args);
       }
 
