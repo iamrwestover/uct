@@ -285,6 +285,9 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     $row->debit_total = $debit_total;
     $row->journal_debit_total = $journal_debit_total;
     $row->journal_credit_total = $journal_credit_total;
+    if (!empty($ttd['payment'])) {
+      $row->amount_received = $row->grand_total + ((float) $row->amount_to_credit);
+    }
 
     // Client address string.
     $row->address_string = avclients_address_string_format($row);

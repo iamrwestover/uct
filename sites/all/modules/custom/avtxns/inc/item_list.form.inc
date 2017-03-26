@@ -203,6 +203,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#default_value' => isset($row->message) ? $row->message : '',
       '#maxlength' => 65000,
       //'#access' => $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER,
+      '#attributes' => array('rows' => 2),
     );
     $form['address'] = array(
       '#type' => 'item',
@@ -217,6 +218,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#title' => 'Note',
     '#default_value' => isset($row->memo) ? $row->memo : '',
     '#maxlength' => 65000,
+    '#attributes' => array('rows' => 2),
   );
 
   //$form['discount_type'] = array(
@@ -285,6 +287,23 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
     $form['journal_debit_total'] = array('#type' => 'value', '#value' => isset($row->journal_debit_total) ? number_format($row->journal_debit_total, 2) : '0.00');
     $form['journal_credit_total'] = array('#type' => 'value', '#value' => isset($row->journal_credit_total) ? number_format($row->journal_credit_total, 2) : '0.00');
+  }
+
+  if (!empty($ttd['payment'])) {
+    $form['amount_received'] = array(
+      '#id' => 'amount-received',
+      '#type' => 'textfield',
+      '#title' => 'Amount Received',
+      '#title_display' => 'none',
+      '#maxlength' => 19,
+      '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+      '#attributes' => array(
+        'class' => array('uk-text-right'),
+      ),
+      '#default_value' => isset($row->amount_received) ? avbase_number_format($row->amount_received, 2) : '',
+      '#required' => TRUE,
+    );
+    $form['amount_to_credit'] = array('#markup' => isset($row->amount_to_credit) ? number_format($row->amount_to_credit, 2) : '0.00');
   }
   //$form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
   //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
@@ -979,6 +998,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         'effect' => 'none',
         'event' => 'click',
       ),
+      '#attributes' => array('class' => array('av-ajax-trigger')),
     );
   }
 

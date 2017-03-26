@@ -20,6 +20,25 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
   $ttd = avtxns_txn_types($transaction_type);
 
+  // Validate total.
+  if (!empty($ttd['payment'])) {
+    $total = 0;
+    foreach ($form_state_item_rows as $fsir_k => $fsir) {
+      if (isset($fsir['total'])) {
+        $total += (float) $fsir['total'];
+      }
+    }
+    if (isset($form_state['values']['amount_received'])) {
+      $amount_to_credit = (float) $form_state['values']['amount_received'] - $total;
+      if ($amount_to_credit < 0) {
+        form_set_error('amount_received', 'Amount received cannot be less than this transaction\'s total amount.');
+      }
+      else {
+        $form_state['values']['amount_to_credit'] = $amount_to_credit;
+      }
+    }
+  }
+
   // Make sure at least one product is added.
   if (empty($ttd['non_product']) && empty($ttd['payment'])) {
     $detected_product_ids = array();

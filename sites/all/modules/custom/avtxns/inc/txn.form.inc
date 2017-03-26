@@ -183,6 +183,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
     'created',
     'changed',
     'uid',
+    'amount_to_credit' => array('type' => 'float'),
   );
 
   $form['save_field_ids'] = array(

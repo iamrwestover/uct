@@ -2,15 +2,15 @@
 $view_mode = !empty($form['#av_view_mode']);
 hide($form['header_total']);
 hide($form['footer_total']);
-$form['prod_add_btn']['#attributes']['class'][] = 'av-ajax-trigger';
+//$form['prod_add_btn']['#attributes']['class'][] = 'av-ajax-trigger';
 //$form['transaction_date']['#attributes']['data-uk-datepicker'] = "{format:'MMM. DD, YYYY'}";
 //$form['buttons']['submit']['#attributes']['class'][] = 'uk-button-primary';
 //$form['buttons']['submit_and_send']['#attributes']['class'][] = 'uk-button-primary';
 //$form['buttons']['submit_and_send']['#attributes']['disabled'] = TRUE;
 //$form['discount_value']['#attributes']['class'][] = 'uk-text-right';
 
-$form['message']['#attributes']['rows'] = 2;
-$form['memo']['#attributes']['rows'] = 2;
+//$form['message']['#attributes']['rows'] = 2;
+//$form['memo']['#attributes']['rows'] = 2;
 //$form['client_id']['#attributes']['placeholder'] = 'Enter vendor name or company name';
 
 $email_html = drupal_render($form['email']);
@@ -119,10 +119,18 @@ $balance_ages_html = drupal_render($form['balance_ages']);
         <div class="uk-width-7-10">
 
           <div class="uk-grid">
-            <div class="uk-width-1-1 uk-text-large"><?php print drupal_render($form['prod_add_btn']); ?>&nbsp;</div>
-            <div class="uk-width-3-10 uk-margin-top"><?php print drupal_render($form['memo']); ?></div>
-            <div class="uk-width-3-10 uk-margin-top"><?php print drupal_render($form['message']); ?></div>
-            <div class="uk-width-3-10 uk-margin-top"><?php print drupal_render($form['address']); ?></div>
+            <?php if (isset($form['prod_add_btn'])): ?>
+              <div class="uk-width-1-1 uk-text-large"><?php print drupal_render($form['prod_add_btn']); ?>&nbsp;</div>
+            <?php endif; ?>;
+            <?php if (isset($form['memo'])): ?>
+              <div class="uk-width-3-10 uk-margin-top"><?php print drupal_render($form['memo']); ?></div>
+            <?php endif; ?>
+            <?php if (isset($form['message'])): ?>
+              <div class="uk-width-3-10 uk-margin-top"><?php print drupal_render($form['message']); ?></div>
+            <?php endif; ?>
+            <?php if (isset($form['address'])): ?>
+              <div class="uk-width-3-10 uk-margin-top"><?php print drupal_render($form['address']); ?></div>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -142,8 +150,14 @@ $balance_ages_html = drupal_render($form['balance_ages']);
           <!--</div>-->
           <!--<div class="uk-grid uk-grid-collapse uk-margin-small-top">-->
             <?php if (isset($form['grand_total'])): ?>
-              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
+              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h4>Total</h4></div>
               <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print drupal_render($form['grand_total']); ?></h3></div>
+            <?php endif; ?>
+            <?php if (isset($form['amount_received'])): ?>
+              <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-top"><h5>Amount received</h5></div>
+              <div class="uk-width-2-6 uk-margin-top"><?php print drupal_render($form['amount_received']); ?></div>
+              <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-small"><h5>Amount to credit</h5></div>
+              <div class="uk-width-2-6 uk-margin-small"><h5 id="amount-to-credit"><?php print drupal_render($form['amount_to_credit']); ?></h5></div>
             <?php endif; ?>
             <!--<div class="uk-width-1-6 uk-margin-small-top"></div>-->
           </div>
