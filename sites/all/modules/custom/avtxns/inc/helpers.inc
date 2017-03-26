@@ -233,9 +233,9 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $item->total = $item->total - (($item->total * $v) / 100);
           }
         }
-
+        $pending_return_type = empty($ttd['pending_return_type']) ? '-' : $ttd['pending_return_type'];
         if (!empty($item->ref_txn_type)) {
-          if ($item->ref_txn_type == $ttd['pending_return_type']) {
+          if ($item->ref_txn_type == $pending_return_type) {
             $credit_total += $item->total;
             $item->total *= -1;
           } else {

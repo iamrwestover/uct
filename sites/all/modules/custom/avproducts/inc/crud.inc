@@ -327,7 +327,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
 
   $info['discount'] = array(
     '#type' => 'textfield',
-    '#title' => 'Max allowed discount (%)',
+    '#title' => 'Purchase discount (%)',
     '#maxlength' => 10,
     '#element_validate' => array('avbase_element_validate_product_discount'),
     '#default_value' => isset($row->discount_text) ? $row->discount_text : '',

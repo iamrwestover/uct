@@ -425,7 +425,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $fields = array();
     $reference_transaction_type = empty($prod_row['ref_txn_type']) ? '' : $prod_row['ref_txn_type'];
     $order_id = empty($prod_row['ref_txn_id']) ? NULL : $prod_row['ref_txn_id'];
-    $pending_return_type = empty($ttd['pending_return_type']) ? '' : $ttd['pending_return_type'];
+    $pending_return_type = empty($ttd['pending_return_type']) ? '-' : $ttd['pending_return_type'];
     if (empty($view_mode) && empty($ttd['payment']) && !empty($reference_transaction_type)) {
       $badge_title = strtoupper($reference_transaction_type) . '#';
       $badge_type = $reference_transaction_type == $pending_return_type ? 'success' : 'primary';
