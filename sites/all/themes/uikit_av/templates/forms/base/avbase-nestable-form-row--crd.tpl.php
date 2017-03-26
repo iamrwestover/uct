@@ -44,13 +44,13 @@ $view_mode = !empty($form['#av_view_mode']);
 
     <div class="uk-grid uk-grid-collapse">
 
-      <div class="uk-width-<?php print ($view_mode ? '9' : '8'); ?>-10">
+      <div class="uk-width-<?php print ($view_mode ? '8' : '7'); ?>-10">
         <div class="av-nestable-cell">
           <?php print drupal_render($form['description']); ?>
         </div>
       </div>
 
-      <div class="uk-width-1-10">
+      <div class="uk-width-2-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['total']); ?>
         </div>

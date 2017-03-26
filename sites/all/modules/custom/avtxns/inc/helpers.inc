@@ -233,15 +233,15 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $item->total = $item->total - (($item->total * $v) / 100);
           }
         }
-        $pending_return_type = empty($ttd['pending_return_type']) ? '-' : $ttd['pending_return_type'];
-        if (!empty($item->ref_txn_type)) {
-          if ($item->ref_txn_type == $pending_return_type) {
-            $credit_total += $item->total;
-            $item->total *= -1;
-          } else {
-            $debit_total += $item->total;
-          }
-        }
+        //$pending_return_type = empty($ttd['pending_return_type']) ? '-' : $ttd['pending_return_type'];
+        //if (!empty($item->ref_txn_type)) {
+        //  if ($item->ref_txn_type == $pending_return_type) {
+        //    $credit_total += $item->total;
+        //    $item->total *= -1;
+        //  } else {
+        //    $debit_total += $item->total;
+        //  }
+        //}
 
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
         $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
@@ -249,7 +249,22 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
           $item->incoming_base_qty = 0;
         }
         $item->remaining_base_qty = $item->incoming_base_qty;
-        $row->items[$item->id] = $item;
+
+
+        $credit_txn_types = empty($ttd['credit_txn_types']) ? array() : $ttd['credit_txn_types'];
+        if (!empty($item->ref_txn_type) && in_array($item->ref_txn_type, $credit_txn_types)) {
+          $row->credit_items[$item->id] = $item;
+          $credit_total += $item->paid_amount;
+        }
+        else {
+          $row->items[$item->id] = $item;
+          if (!empty($ttd['total_is_entered_amount'])) {
+            $debit_total += $item->paid_amount;
+          }
+          else {
+            $debit_total += $item->total;
+          }
+        }
 
         // Special fields for payment transactions.
         if (!empty($ttd['payment'])) {
@@ -268,19 +283,19 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
           }
         }
 
-        if (!empty($ttd['total_is_entered_amount'])) {
-          $subtotal += $item->paid_amount;
-        }
-        else {
-          $subtotal += $item->total;
-        }
+        //if (!empty($ttd['total_is_entered_amount'])) {
+        //  $subtotal += $item->paid_amount;
+        //}
+        //else {
+        //  $subtotal += $item->total;
+        //}
       }
     }
     //$row->discount_value_text = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (round($row->discount_value, 2) . '%') : number_format($row->discount_value, 2);
     //$row->subtotal = $subtotal;
     //$row->discounted_value = $row->discount_type == AVBASE_DISCOUNT_PERCENT ? (($row->discount_value / 100) * $subtotal) : $row->discount_value;
     //$row->grand_total = $subtotal - $row->discounted_value;
-    $row->grand_total = $subtotal;
+    $row->grand_total = $debit_total - $credit_total;
     $row->credit_total = $credit_total;
     $row->debit_total = $debit_total;
     $row->journal_debit_total = $journal_debit_total;
@@ -1012,8 +1027,10 @@ function avtxns_txn_change_status($id, $status) {
   if ($status == AVTXNS_TXN_STATUS_VOID) {
     // Re-open related transactions if possible.
     $item_rows = empty($row->items) ? array() : $row->items;
+    $credit_items = empty($row->credit_items) ? array() : $row->credit_items;
+    $all_item_rows = $item_rows + $credit_items;
     $related_transaction_ids = array();
-    foreach ($item_rows as $item_row) {
+    foreach ($all_item_rows as $item_row) {
       $ref_txn_id = empty($item_row->ref_txn_id) ? NULL : $item_row->ref_txn_id;
       if ($ref_txn_id) {
         $related_transaction_ids[$ref_txn_id] = $ref_txn_id;
@@ -1042,10 +1059,13 @@ function avtxns_txn_change_status($id, $status) {
   $now = time();
   if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id = :txn_id", array(':txn_id' => $row->id, ':status' => $status, ':changed' => $now))) {
     avbase_custom_watchdog("txn__status_change", "ID: {$row->id}", array('#status' => $status, '#row' => $row));
-    // Reopen transactions.
-    if (!empty($can_be_reopened)) {
-      if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id IN (:txn_ids)", array(':txn_ids' => $can_be_reopened, ':status' => AVTXNS_TXN_STATUS_OPEN, ':changed' => $now))) {
-        avbase_custom_watchdog("txn__status_change", "Reopened, IDs: multiple", array('#ids' => $can_be_reopened, '#status' => AVTXNS_TXN_STATUS_OPEN, '#row' => $row));
+
+    if ($status == AVTXNS_TXN_STATUS_VOID) {
+      // Reopen transactions.
+      if (!empty($can_be_reopened)) {
+        if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id IN (:txn_ids)", array(':txn_ids' => $can_be_reopened, ':status' => AVTXNS_TXN_STATUS_OPEN, ':changed' => $now))) {
+          avbase_custom_watchdog("txn__status_change", "Reopened, IDs: multiple", array('#ids' => $can_be_reopened, '#status' => AVTXNS_TXN_STATUS_OPEN, '#row' => $row));
+        }
       }
     }
 

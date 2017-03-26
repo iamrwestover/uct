@@ -45,7 +45,6 @@
     self.refreshSubTotalText();
     self.refreshDebitTotalText();
     self.refreshCreditTotalText();
-    self.$amtReceivedEl.trigger('change');
 
     // Make sure newly added rows gets bound with events and delete btn refreshes totals.
     $(document).ajaxComplete(function(event, xhr, settings) {
@@ -75,7 +74,7 @@
         var amtReceived = parseFloat(self.$amtReceivedEl.val()) || 0;
         var subTotal = self.getSubTotal();
         var amtToCredit = amtReceived - subTotal;
-        self.$amtToCreditEl.text(amtToCredit.toFixed(2));
+        self.$amtToCreditEl.text(self.moneyFormat(amtToCredit.toFixed(2)));
         //if (!$.isNumeric(amtReceived) || amtReceived < subTotal) {
         //  this.$amtReceivedEl.val(this.moneyFormat(subTotal));
         //}
@@ -588,13 +587,8 @@
     this.$subTotalEl.text(this.moneyFormat(subTotal));
     this.refreshDiscountTotalText();
 
-    // Refresh amount received el.
-    //if (this.$amtReceivedEl.length) {
-    //  var amtReceived = parseFloat(this.$amtReceivedEl.val());
-    //  if (!$.isNumeric(amtReceived) || amtReceived < subTotal) {
-    //    this.$amtReceivedEl.val(this.moneyFormat(subTotal));
-    //  }
-    //}
+    // Refresh Amount To Credit text.
+    this.$amtReceivedEl.trigger('change');
   };
 
   /**

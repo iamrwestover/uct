@@ -21,21 +21,32 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   $ttd = avtxns_txn_types($transaction_type);
 
   // Validate total.
-  if (!empty($ttd['payment'])) {
-    $total = 0;
-    foreach ($form_state_item_rows as $fsir_k => $fsir) {
-      if (isset($fsir['total'])) {
-        $total += (float) $fsir['total'];
+  $total = 0;
+  foreach ($form_state_item_rows as $fsir_k => $fsir) {
+    if (isset($fsir['total'])) {
+      $fsir_total = (float)$fsir['total'];
+      $total += $fsir_total;
+      if (isset($fsir['balance'])) {
+        $fsir_balance = (float)$fsir['balance'];
+        if ($fsir_total > $fsir_balance) {
+          form_set_error("product_rows][{$fsir_k}][total", 'Item total cannot be more than remaining balance.');
+        }
       }
     }
-    if (isset($form_state['values']['amount_received'])) {
-      $amount_to_credit = (float) $form_state['values']['amount_received'] - $total;
-      if ($amount_to_credit < 0) {
-        form_set_error('amount_received', 'Amount received cannot be less than this transaction\'s total amount.');
-      }
-      else {
-        $form_state['values']['amount_to_credit'] = $amount_to_credit;
-      }
+  }
+
+  if (!empty($ttd['total_is_amount_to_credit'])) {
+    $form_state['values']['amount_to_credit'] = $total;
+    //$form_state['values']['available_credit'] = $total;
+  }
+  if (!empty($ttd['payment']) && isset($form_state['values']['amount_received'])) {
+    $amount_to_credit = (float) $form_state['values']['amount_received'] - $total;
+    if ($amount_to_credit < 0) {
+      form_set_error('amount_received', 'Amount received cannot be less than this transaction\'s total amount.');
+    }
+    else {
+      $form_state['values']['amount_to_credit'] = $amount_to_credit;
+      //$form_state['values']['available_credit'] = $amount_to_credit;
     }
   }
 
@@ -48,11 +59,12 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
         $detected_product_ids[$k] = $row['product_id'];
         $form['product_rows'][$k]['product_title']['#attributes']['data-selected-product-id'] = $row['product_id'];
 
-        if (isset($product_ids[$row['product_id']])) {
-          form_set_error('', t('There are more than 1 entries of %product_name.', array('%product_name' => $row['product_title'])));
-        }
-        else {
-          $product_ids[$row['product_id']] = $row['product_id'];
+        if (!empty($ttd['prevent_duplicate_product'])) {
+          if (isset($product_ids[$row['product_id']])) {
+            form_set_error("product_rows][{$k}][product_title", t('There are more than 1 entries of %product_name.', array('%product_name' => $row['product_title'])));
+          } else {
+            $product_ids[$row['product_id']] = $row['product_id'];
+          }
         }
       }
     }

@@ -205,6 +205,18 @@ function avtxns_menu() {
       'file' => 'inc/txn.form.inc',
       'weight' => 1,
     );
+
+    if (!empty($v['credit_txn_types'])) {
+      $items["{$v['base_path']}/%avtxns_txn/apply-credits"] = array(
+        'title' => "Credits",
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('avtxns_txn_credits_form', $k, 2),
+        'access arguments' => array(constant('AVTXNS_PERM_EDIT_' . $ttype)),
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'inc/credits.form.inc',
+        'weight' => 2,
+      );
+    }
   }
 
   $items['av/transactions/%avtxns_txn/change-status/%'] = array(
@@ -343,7 +355,7 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_SALES_ORDER,
       'qty_change' => 'decrement',
-      'cost_change' => TRUE,
+      //'cost_change' => TRUE,
       'product_discount_check' => TRUE,
       'receivable_type' => 'debit',
     );
@@ -359,6 +371,7 @@ function avtxns_txn_types($type = NULL) {
       'qty_change' => 'increment',
       'receivable_type' => 'credit',
       'no_terms' => TRUE,
+      'total_is_amount_to_credit' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_INVOICE] = array(
       'button_class' => 'uk-button-success',
@@ -369,7 +382,8 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Invoices',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_CUSTOMER),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
-      'pending_return_type' => AVTXNS_TXN_TYPE_SALES_RETURN,
+      //'pending_return_type' => AVTXNS_TXN_TYPE_SALES_RETURN,
+      'credit_txn_types' => array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_CREDIT_MEMO, AVTXNS_TXN_TYPE_PAYMENT),
       'receivable_type' => 'credit',
       'client_statuses' => array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED),
       'bill' => TRUE,
@@ -425,6 +439,7 @@ function avtxns_txn_types($type = NULL) {
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
       'qty_change' => 'decrement',
       'no_terms' => TRUE,
+      'total_is_amount_to_credit' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_BILL] = array(
       'button_class' => 'uk-button-primary',
@@ -435,7 +450,8 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Bills',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_VENDOR),
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_RECEIVE,
-      'pending_return_type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
+      'credit_txn_types' => array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_VENDOR_CREDIT, AVTXNS_TXN_TYPE_PAY_BILL),
+      //'pending_return_type' => AVTXNS_TXN_TYPE_PURCHASE_RETURN,
       'payable_type' => 'credit',
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
       'bill' => TRUE,
@@ -488,6 +504,7 @@ function avtxns_txn_types($type = NULL) {
       'no_terms' => TRUE,
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
+      'total_is_amount_to_credit' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_VENDOR_CREDIT] = array(
       //'button_class' => 'uk-button-warning',
@@ -503,6 +520,7 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
+      'total_is_amount_to_credit' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_CUSTOMER_CHARGES] = array(
       //'button_class' => 'uk-button-warning',
@@ -520,6 +538,7 @@ function avtxns_txn_types($type = NULL) {
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
       'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
       'payable' => TRUE,
+      'credit_txn_types' => array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_CREDIT_MEMO, AVTXNS_TXN_TYPE_PAYMENT),
     );
     $ret[AVTXNS_TXN_TYPE_OTHER_BILLS] = array(
       //'button_class' => 'uk-button-warning',
@@ -537,6 +556,7 @@ function avtxns_txn_types($type = NULL) {
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
       'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
       'payable' => TRUE,
+      'credit_txn_types' => array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_VENDOR_CREDIT, AVTXNS_TXN_TYPE_PAY_BILL),
     );
 
 

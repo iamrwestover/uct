@@ -283,6 +283,15 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
 
   if (empty($ttd['no_total'])) {
     $form['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format($row->grand_total, 2) : '0.00');
+    // Check if credits are available.
+    if ($view_mode && !empty($ttd['credit_txn_types']) && isset($row->status) && $row->status == AVTXNS_TXN_STATUS_OPEN) {
+      $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
+        WHERE avtxn.client_id = :client_id AND avtxn.status IN (:statuses) AND avtxn.transaction_type IN (:ttypes)";
+      $count = db_query($query, array(':client_id' => $row->client_id, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), ':ttypes' => $ttd['credit_txn_types']))->fetchField();
+      if (!empty($count)) {
+        $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits'));
+      }
+    }
   }
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
     $form['journal_debit_total'] = array('#type' => 'value', '#value' => isset($row->journal_debit_total) ? number_format($row->journal_debit_total, 2) : '0.00');
@@ -355,6 +364,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   //dpm($user);
   // Product list.
   avtxns_item_list_product_fields($form, $form_state, $transaction_type, $row, $view_mode);
+
+  // Credits list.
+  //avtxns_item_list_credit_fields($form, $form_state, $transaction_type, $row, $view_mode);
 }
 
 /**
@@ -383,7 +395,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   $db_row_items = empty($row->items) ? array() : $row->items;
   $initial_item_rows = array();
   foreach ($db_row_items as $item) {
-    $reference_type = empty($item->reference_type) ? '' : $item->reference_type;
+    $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
     $initial_item_rows["{$reference_type}_db_item_{$row->id}_{$item->id}"] = (array) $item;
   }
 
@@ -885,7 +897,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     // Disable some fields if necessary.
     $readonly_fields = array();
-    if (!empty($row->id) && !empty($ttd['qty_change'])) {
+    if (!empty($prod_row['id']) && !empty($ttd['qty_change'])) {
       $readonly_fields[] = 'product_title';
     }
     if (empty($ttd['total_is_entered_amount'])) {
@@ -976,6 +988,95 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     //$form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
     $form['product_rows'][$prod_key]['#suffix'] = '</div>';
+  }
+
+  // Save product row details into drupal JS settings.
+  if (!empty($detected_product_ids)) {
+    $product_rows = avproduct_load_ids($detected_product_ids);
+    $js_settings['avbase']['products'] = (object) $product_rows;
+  }
+
+  if (empty($ttd['bill']) && empty($ttd['payment'])) {
+    $form['prod_add_btn'] = array(
+      '#id' => 'prod-add-btn',
+      '#name' => 'prod_add_btn',
+      '#type' => 'submit',
+      '#value' => t('Add new rows'),
+      '#limit_validation_errors' => array(),
+      '#submit' => array('avtxns_item_list_prod_submit'),
+      '#ajax' => array(
+        'callback' => 'avtxns_item_list_prod_js',
+        'wrapper' => 'item-list-new-product-wrapper',
+        'effect' => 'none',
+        'event' => 'click',
+      ),
+      '#attributes' => array('class' => array('av-ajax-trigger')),
+    );
+  }
+
+  $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
+  if (!empty($row->id)) {
+    $js_settings['avbase']['transactions'][$row->id] = $row;
+  }
+  if (empty($view_mode)) {
+    $form['#attached']['js'][] = AVTXNS_MODULE_PATH . '/js/nestable_product_form.js';
+    $form['#attached']['js'][] = array(
+      'data' => $js_settings,
+      'type' => 'setting',
+    );
+  }
+
+  //$user_reserved_qty = variable_get('avbase_user_reserved_qty', array());
+  //dpm($user_reserved_qty);
+}
+
+
+/**
+ * Item List form - generate credit list fields.
+ *
+ * @param $form
+ * @param $form_state
+ * @param $transaction_type
+ * @param $row
+ * @param bool|FALSE $view_mode
+ */
+function avtxns_item_list_credit_fields(&$form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
+  // Get form storage.
+  $form_state['storage'] = isset($form_state['storage']) ? $form_state['storage'] : array();
+  $_storage = &$form_state['storage'];
+
+  // Get transaction type.
+  //$transaction = empty($_storage['transaction']) ? '' : $_storage['transaction'];
+  //$transaction_type = empty($_storage['transaction_type']) ? '' : $_storage['transaction_type'];
+  $ttd = avtxns_txn_types($transaction_type);
+
+  // Get db item rows.
+  $db_row_items = empty($row->credit_items) ? array() : $row->credit_items;
+  $initial_item_rows = array();
+  foreach ($db_row_items as $item) {
+    $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
+    $initial_item_rows["{$reference_type}_db_item_{$row->id}_{$item->id}"] = (array) $item;
+  }
+
+  // Get item rows.
+  $_item_rows = empty($form_state['values']['credit_rows']) ? array() : $form_state['values']['credit_rows'];
+
+  $prod_index = -1;
+  $form['credit_rows'] = array(
+    '#tree' => TRUE,
+    '#theme' => 'avbase_nestable_form__credits',
+    //'#theme' => 'avbase_nestable_form',
+    //'#transaction' => $ttd['transaction'],
+    //'#row_id' => empty($row->id) ? NULL : $row->id,
+  );
+
+  foreach ($_item_rows as $item_k => $item_row) {
+    $fields = array();
+
+    $form['credit_rows'][$item_k] = $fields;
+    $form['credit_rows'][$item_k]['#theme'] = 'avbase_nestable_form_row__credits';
+    $form['credit_rows'][$item_k]['#prefix'] = '<div id="item-list-product-row-' . $item_k . '-wrapper" class="uk-nestable-item">';
+    $form['credit_rows'][$item_k]['#suffix'] = '</div>';
   }
 
   // Save product row details into drupal JS settings.

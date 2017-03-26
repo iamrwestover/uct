@@ -114,18 +114,21 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
     $tsd = avtxns_txn_status_details($row->status);
     $badge_color = 'uk-badge-success';
     $icon_html = '';
+    $form_color_class = '';
     switch ($row->status) {
       case AVTXNS_TXN_STATUS_PENDING:
         $badge_color = 'uk-badge-warning';
         break;
       case AVTXNS_TXN_STATUS_VOID:
-        $badge_color = 'uk-badge-danger';
+        $badge_color = 'uk-badge-void';
+        $form_color_class = 'uk-alert uk-alert-mute';
         break;
     }
     $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">&nbsp;' . $icon_html . strtoupper($tsd['title']) . '&nbsp;</span>&nbsp;';
     if ($row->status != AVTXNS_TXN_STATUS_CLOSED) {
       $form['#attributes']['class'][] = 'not-printable';
     }
+    $form['#attributes']['class'][] = $form_color_class;
     //$page_title .= ' - ' . strtoupper($tsd['title']);
   }
 
@@ -184,6 +187,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
     'changed',
     'uid',
     'amount_to_credit' => array('type' => 'float'),
+    //'available_credit' => array('type' => 'float'),
   );
 
   $form['save_field_ids'] = array(
@@ -309,43 +313,43 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     $buttons['submit_and_print']['#ajax'] = $buttons['submit']['#ajax'];
   }
 
-  if (!empty($ttd['bill'])) {
-    // Add extra button to load customer returns.
-    $buttons['check_returns'] = array(
-      '#id' => 'check-ret-btn',
-      '#type' => 'submit',
-      '#value' => t('Add returns'),
-      '#attributes' => array(
-        'class' => array('av-ajax-trigger'),
-      ),
-      '#submit' => array('avtxns_pending_orders_form_submit'),
-      '#limit_validation_errors' => array(array('client_name'), array('client_id'), array('transaction_type')),
-      '#ajax' => array(
-        'callback' => 'avtxns_txn_form_ajax',
-        'wrapper' => 'avtxns-txn-form-wrapper',
-        'effect' => 'none',
-        'event' => 'click',
-      ),
-      '#reference_type' => $ttd['pending_return_type'],
-      '#avposition' => 'opposite',
-      //'#disabled' => TRUE,
-    );
-
-    // Count pending returns.
-    $client_name = empty($row->client_name) ? NULL : $row->client_name;
-    $client_name = empty($client_name) ? (empty($form_state['values']['client_name']) ? NULL : $form_state['values']['client_name']) : $client_name;
-    if (!empty($client_name)) {
-      $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
-        INNER JOIN {avtbl_clients} avclients ON avclients.id = avtxn.client_id
-        WHERE avclients.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
-      $count = db_query($query, array(':client_name' => $client_name, ':ttype' => $ttd['pending_return_type']))->fetchField();
-      if (!empty($count)) {
-        //$buttons['check_returns']['#attributes']['class']['color'] = 'uk-button-success';
-        $buttons['check_returns']['#button_label'] = "Add returns - <em>$count pending</em>";
-        //$buttons['check_returns']['#disabled'] = FALSE;
-      }
-    }
-  }
+  //if (!empty($ttd['bill'])) {
+  //  // Add extra button to load customer returns.
+  //  $buttons['check_returns'] = array(
+  //    '#id' => 'check-ret-btn',
+  //    '#type' => 'submit',
+  //    '#value' => t('Add credits'),
+  //    '#attributes' => array(
+  //      'class' => array('av-ajax-trigger'),
+  //    ),
+  //    '#submit' => array('avtxns_pending_orders_form_submit'),
+  //    '#limit_validation_errors' => array(array('client_name'), array('client_id'), array('transaction_type')),
+  //    '#ajax' => array(
+  //      'callback' => 'avtxns_txn_form_ajax',
+  //      'wrapper' => 'avtxns-txn-form-wrapper',
+  //      'effect' => 'none',
+  //      'event' => 'click',
+  //    ),
+  //    '#reference_type' => $ttd['pending_return_type'],
+  //    '#avposition' => 'opposite',
+  //    //'#disabled' => TRUE,
+  //  );
+  //
+  //  // Count pending returns.
+  //  $client_name = empty($row->client_name) ? NULL : $row->client_name;
+  //  $client_name = empty($client_name) ? (empty($form_state['values']['client_name']) ? NULL : $form_state['values']['client_name']) : $client_name;
+  //  if (empty($view_mode) && !empty($client_name)) {
+  //    $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
+  //      INNER JOIN {avtbl_clients} avclients ON avclients.id = avtxn.client_id
+  //      WHERE avclients.display_name = :client_name AND avtxn.status = 1 AND avtxn.transaction_type = :ttype";
+  //    $count = db_query($query, array(':client_name' => $client_name, ':ttype' => $ttd['pending_return_type']))->fetchField();
+  //    if (!empty($count)) {
+  //      //$buttons['check_returns']['#attributes']['class']['color'] = 'uk-button-success';
+  //      $buttons['check_returns']['#button_label'] = "Add returns - <em>$count pending</em>";
+  //      //$buttons['check_returns']['#disabled'] = FALSE;
+  //    }
+  //  }
+  //}
   return $buttons;
 }
 
