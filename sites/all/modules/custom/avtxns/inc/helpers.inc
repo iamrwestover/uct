@@ -254,7 +254,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $credit_txn_types = empty($ttd['credit_txn_types']) ? array() : $ttd['credit_txn_types'];
         if (!empty($item->ref_txn_type) && in_array($item->ref_txn_type, $credit_txn_types)) {
           $row->credit_items[$item->id] = $item;
-          $credit_total += $item->paid_amount;
+          $credit_total += $item->total;
         }
         else {
           $row->items[$item->id] = $item;

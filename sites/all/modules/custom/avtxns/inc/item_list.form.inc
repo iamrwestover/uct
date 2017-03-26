@@ -1065,7 +1065,7 @@ function avtxns_item_list_credit_fields(&$form, &$form_state, $transaction_type,
         'class' => 'suk-text-right'
       ),
       'transaction_type_text' => array('data' => (!empty($rtd['payment']) ? 'Excess payment' : $rtd['name'])),
-      'amount_to_use' => array('data' => number_format($v->paid_amount, 2), 'class' => 'uk-text-right'),
+      'amount_to_use' => array('data' => number_format($v->cost, 2), 'class' => 'uk-text-right'),
     );
   }
   if (!empty($table_rows)) {

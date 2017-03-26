@@ -371,7 +371,7 @@ function avreports_soa_form($form, &$form_state) {
   );
 
   $where[] = 'avtxn.transaction_type IN (:transaction_types)';
-  $args[':transaction_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT);
+  $args[':transaction_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES);
   $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
 
   // Add today filter.
@@ -402,9 +402,10 @@ function avreports_soa_form($form, &$form_state) {
     $client = array_shift($client);
   }
 
+  //$select[] = 'avtxn.amount_to_credit';
   $select[] = 'avtxn_detail.ref_txn_type';
   $select[] = "IF (
-      avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
+      (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "' OR avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_CUSTOMER_CHARGES . "'),
       SUM(avtxn_detail.paid_amount),
       (SUM(
           avtxn_detail.qty
@@ -436,18 +437,33 @@ function avreports_soa_form($form, &$form_state) {
   }
 
   foreach ($transactions as $row) {
+    //if (isset($row->ref_txn_type) && $row->ref_txn_type == AVTXNS_TXN_TYPE_PAYMENT) {
+    //  continue;
+    //}
     $date_string = format_date($row->transaction_date, 'custom', 'M. d, Y');
     if (!empty($row->id)) {
       // Get transaction type details.
       $ttd = avtxns_txn_types($row->transaction_type);
       $view_path = "{$ttd['base_path']}/$row->id/view";
       $reference = l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path);
+
+      // Get reference transaction type details.
+      if (!empty($row->ref_txn_type)) {
+        $rttd = avtxns_txn_types($row->ref_txn_type);
+      }
+
       switch ($row->ref_txn_type) {
         case AVTXNS_TXN_TYPE_DELIVERY:
           $description = t('Sales');
           break;
         case AVTXNS_TXN_TYPE_SALES_RETURN:
           $description = t('Returns');
+          break;
+        case AVTXNS_TXN_TYPE_PAYMENT:
+          $description = t('Payment credit');
+          break;
+        case AVTXNS_TXN_TYPE_CREDIT_MEMO:
+          $description = t('Credit memo');
           break;
         default:
           $description = $ttd['name'];
@@ -469,16 +485,21 @@ function avreports_soa_form($form, &$form_state) {
       'balance' => array('data' => '', 'class' => array('uk-text-right')),
     );
 
-    $skip_credit = FALSE;
+    $amount = $row->grand_total;
+    //if (empty($ttd['payment'])) {
+    //  $amount = $row->grand_total;
+    //}
+    //else {
+    //  $amount = $row->grand_total + (float)$row->amount_to_credit;
+    //}
+
     if (!empty($row->ref_txn_type)) {
-      // Get reference transaction type details.
-      $rttd = avtxns_txn_types($row->ref_txn_type);
-      $credit = $rttd['receivable_type'] == 'credit' ? $row->grand_total : 0;
-      $debit = $rttd['receivable_type'] == 'debit' ? $row->grand_total : 0;
+      $credit = $rttd['ref_ar_type'] == 'credit' ? $amount : 0;
+      $debit = $rttd['ref_ar_type'] == 'debit' ? $amount : 0;
     }
     else {
       $credit = 0;
-      $debit = $row->grand_total;
+      $debit = $amount;
     }
 
     $data['credit']['data'] = empty($credit) ? '' : number_format($credit, 2);

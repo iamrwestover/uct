@@ -80,7 +80,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
         'class' => array('amt-to-use uk-text-right'),
         'step' => 0.01,
       ),
-      '#default_value' => isset($saved_credit_rows[$credit_row->id]->paid_amount) ? avbase_number_format($saved_credit_rows[$credit_row->id]->paid_amount, 2) : '',
+      '#default_value' => isset($saved_credit_rows[$credit_row->id]->cost) ? avbase_number_format($saved_credit_rows[$credit_row->id]->cost, 2) : '',
     );
     $table_cols['credit_type'] = array(
       '#type' => 'hidden',
@@ -89,7 +89,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
     );
     $table_cols['amount_used'] = array(
       '#type' => 'hidden',
-      '#default_value' => isset($saved_credit_rows[$credit_row->id]->paid_amount) ? $saved_credit_rows[$credit_row->id]->paid_amount : '',
+      '#default_value' => isset($saved_credit_rows[$credit_row->id]->cost) ? $saved_credit_rows[$credit_row->id]->cost : '',
       '#column_attributes' => array('class' => array('uk-hidden')),
     );
 
@@ -138,6 +138,9 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#markup' => l('Cancel', $ttd['base_path'] . '/' . $row->id . '/view', array('attributes' => array('class' => array('uk-button')))),
     );
   }
+  else {
+    $form['no_credits'] = array('#markup' => '<div class="uk-text-muted">No credits available.</div>');
+  }
 
   return $form;
 }
@@ -161,7 +164,9 @@ function avtxns_txn_credits_form_submit($form, &$form_state) {
       }
       $row = array(
         'transaction_id' => $transaction_id,
-        'paid_amount' => $amount_to_use,
+        'qty' => 1,
+        'qty_per_uom' => 1,
+        'cost' => $amount_to_use,
         'ref_txn_id' => $ek,
         'ref_txn_type' => $er['credit_type'],
       );
@@ -241,15 +246,17 @@ function avtxns_get_client_credits($client_id, $transaction_type) {
     $credit_rows[$row->id] = $row;
   }
 
-  $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.paid_amount FROM {avtbl_transaction_details} avtxn_dtls
-      INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
-      WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status != :void_type";
-  $rs = db_query($query, array(':ids' => $txn_ids, ':void_type' => AVTXNS_TXN_STATUS_VOID));
-  foreach ($rs as $row) {
-    $credit_rows[$row->ref_txn_id]->available_credit -= (float) $row->paid_amount;
-    //if ($row->transaction_id == $transaction_id) {
-    //  $credit_rows[$row->ref_txn_id]->amount_used = (float) $row->paid_amount;
-    //}
+  if (!empty($txn_ids)) {
+    $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost FROM {avtbl_transaction_details} avtxn_dtls
+        INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
+        WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status != :void_type";
+    $rs = db_query($query, array(':ids' => $txn_ids, ':void_type' => AVTXNS_TXN_STATUS_VOID));
+    foreach ($rs as $row) {
+      $credit_rows[$row->ref_txn_id]->available_credit -= (float)$row->cost;
+      //if ($row->transaction_id == $transaction_id) {
+      //  $credit_rows[$row->ref_txn_id]->amount_used = (float) $row->paid_amount;
+      //}
+    }
   }
 
   $data[$data_id] = $credit_rows;

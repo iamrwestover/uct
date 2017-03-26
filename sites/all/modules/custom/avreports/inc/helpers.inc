@@ -19,7 +19,7 @@ function avreports_client_balance_aging_form($client_id) {
 
   $invoice_where = array(
     array('avclients.id', $client->id),
-    array('avtxns.transaction_type', AVTXNS_TXN_TYPE_INVOICE),
+    array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES), 'IN'),
     array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
   );
   $invoices = avtxns_txn_query_load($invoice_where);
@@ -40,7 +40,7 @@ function avreports_client_balance_aging_form($client_id) {
   }
   foreach ($invoices as $invoice) {
     $balance_age = ($now - $invoice->transaction_date) / 86400;
-    if ($balance_age < 1) {
+    if ($balance_age < 1 && !empty($invoice->term_id)) {
       $days = 0;
     }
     else {
@@ -48,9 +48,10 @@ function avreports_client_balance_aging_form($client_id) {
       $days = ceil($balance_age / $term_days) * $term_days;
     }
 
+
     if ($days == 0) {
       // COD.
-      $balance_ages[0] = $invoice->balance;
+      $balance_ages[0] += $invoice->balance;
     }
     elseif (isset($balance_ages[$days])) {
       $balance_ages[$days] += $invoice->balance;
