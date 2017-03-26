@@ -50,6 +50,14 @@ function avproducts_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'initial_value' => array(
+        'description' => 'Initial value',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
       'initial_qty_date' => array(
         'description' => 'Date when initial quantity was received.',
         'type' => 'int',

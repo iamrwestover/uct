@@ -114,6 +114,14 @@ function avtxns_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'amount_to_credit' => array(
+        'description' => 'Amount to credit',
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
@@ -170,7 +178,6 @@ function avtxns_schema() {
       'qty' => array(
         'description' => 'Qty',
         'type' => 'int',
-        'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'cost' => array(
@@ -221,7 +228,7 @@ function avtxns_schema() {
         'scale' => '2',
       ),
       'paid_amount' => array(
-        'description' => 'Paid amount - only for payment transactions',
+        'description' => 'Paid amount / Credited amount',
         'type' => 'numeric',
         'not null' => FALSE,
         'precision' => '18',
