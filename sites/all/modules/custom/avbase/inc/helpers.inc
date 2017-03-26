@@ -908,10 +908,10 @@ function avbase_rows_build_tree(array $rows, $parent = 0, $hide_fixed = TRUE, $h
     if ($hide_inactive && empty($row['status'])) {
       continue;
     }
-    $account_type = empty($row['account_type']) ? '' : $row['account_type'];
-    if (in_array($account_type, array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP))) {
-      continue;
-    }
+    //$account_type = empty($row['account_type']) ? '' : $row['account_type'];
+    //if (in_array($account_type, array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP))) {
+    //  continue;
+    //}
 
     if ($row['parent'] == $parent) {
       $children = avbase_rows_build_tree($rows, $row['id'], $hide_fixed, $hide_inactive);
@@ -923,4 +923,17 @@ function avbase_rows_build_tree(array $rows, $parent = 0, $hide_fixed = TRUE, $h
   }
 
   return $branch;
+}
+
+function avbase_account_chart_sum_parent_balance(&$tree) {
+  $x = $tree;
+  foreach ($x as $k => $row) {
+    $row = (object) $row;
+    if (!empty($row->children)) {
+      foreach ($row->children as $ch) {
+        $tree[$k]['account_balance'] += $ch['account_balance'];
+      }
+      avbase_account_chart_sum_parent_balance($tree[$k]['children']);
+    }
+  }
 }

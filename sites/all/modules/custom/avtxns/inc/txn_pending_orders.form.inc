@@ -267,11 +267,14 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       //}
       $selected_transaction_details = avtxns_txn_load_ids($transaction_ids);
 
-      $txn_type_is_return = count($reference_type) == 1 && in_array($reference_type[0], array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN));
+      //$txn_type_is_return = count($reference_type) == 1 && in_array($reference_type[0], array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN));
 
       // Remove previously loaded pending items.
       foreach ($_item_rows as $k => $v) {
-        if ($txn_type_is_return) {
+        //if ($txn_type_is_return) {
+        //  continue;
+        //}
+        if (!isset($v['ref_txn_type'])) {
           continue;
         }
         if (strstr($k, "{$v['ref_txn_type']}_db_item_")) {
@@ -354,7 +357,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
             //  }
             //}
             //$item_row_arr['total'] = round($item_row_arr['total'], 2);
-            $item_row_arr['total'] *= $txn_type_is_return ? -1 : 1;
+            //$item_row_arr['total'] *= $txn_type_is_return ? -1 : 1;
             $item_row_arr['total'] = avbase_number_format($item_row_arr['total'], 2);
             //}
 
@@ -371,14 +374,14 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       }
 
       $form_state['input']['product_rows'] = empty($form_state['input']['product_rows']) ? array() : $form_state['input']['product_rows'];
-      if ($txn_type_is_return) {
-        $_item_rows = $_item_rows + $receive_pos;
-        $form_state['input']['product_rows'] = $form_state['input']['product_rows'] + $receive_pos;
-      }
-      else {
+      //if ($txn_type_is_return) {
+      //  $_item_rows = $_item_rows + $receive_pos;
+      //  $form_state['input']['product_rows'] = $form_state['input']['product_rows'] + $receive_pos;
+      //}
+      //else {
         $_item_rows = $receive_pos + $_item_rows;
         $form_state['input']['product_rows'] = $receive_pos + $form_state['input']['product_rows'];
-      }
+      //}
       break;
   }
 }

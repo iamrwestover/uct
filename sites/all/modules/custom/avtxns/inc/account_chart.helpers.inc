@@ -109,13 +109,6 @@ function avtxns_account_chart_query_load($param_where, $param_args = array(), $l
   $rs = db_query($query, $param_args);
   $rows = array();
   foreach ($rs as $row) {
-    //if (isset($row->data)) {
-    //  $row->data = unserialize($row->data);
-    //}
-    //if (isset($row->term_data)) {
-    //  $row->term_data = unserialize($row->term_data);
-    //}
-    //$row->address_string = avacharts_address_string_format($row);
     $rows[$row->id] = $row;
   }
 
@@ -257,6 +250,11 @@ function avtxns_account_chart_autocomplete($account_type_string, $string = '') {
 function avtxns_account_chart_autocomplete_matches($tree, $depth = 0) {
   $matches = array();
   foreach ($tree as $row) {
+    $account_type = empty($row['account_type']) ? '' : $row['account_type'];
+    if (in_array($account_type, array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP))) {
+      continue;
+    }
+
     $row = (object) $row;
     $acd = avtxns_account_chart_types($row->account_type);
     $depth_html = '';

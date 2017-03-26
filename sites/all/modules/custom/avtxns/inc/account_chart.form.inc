@@ -10,7 +10,7 @@ function avtxns_account_chart_home_form($form, &$form_state) {
   $header = array(
     'title' => array('data' => 'Account Name', 'field' => 'title'),
     'type' => array('data' => 'Type', 'field' => 'account_type', 'sort' => 'asc'),
-    'balance' => array('data' => 'Balance Total'),
+    'balance' => array('data' => 'Balance Total', 'class' => array('uk-text-center')),
     'actions' => '&nbsp;',
   );
 
@@ -23,9 +23,32 @@ function avtxns_account_chart_home_form($form, &$form_state) {
   $result = $query->execute();
   $rows = array();
   foreach ($result as $row) {
+    $row->account_balance = 0;
+    $account_balance_where = array();
+    if ($row->account_type == AVTXN_AC_TYPE_AR) {
+      $account_balance_where = array(
+        array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES), 'IN'),
+        array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
+      );
+    }
+    elseif ($row->account_type == AVTXN_AC_TYPE_AP) {
+      $account_balance_where = array(
+        array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_OTHER_BILLS), 'IN'),
+        array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
+      );
+    }
+    if (!empty($account_balance_where)) {
+      $abs = avtxns_txn_query_load($account_balance_where);
+      $account_balance = 0;
+      foreach ($abs as $ab) {
+        $account_balance += $ab->balance;
+      }
+      $row->account_balance += $account_balance;
+    }
     $rows[] = $row;
   }
   $rows_tree = avbase_rows_build_tree($rows, 0, FALSE, FALSE);
+  avbase_account_chart_sum_parent_balance($rows_tree);
   $rows = avtxns_account_chart_rows($rows_tree);
 
   $table_attributes = array('id' => 'account-chart-list-table', 'class' => array('uk-table-condensed'));
@@ -72,14 +95,18 @@ function avtxns_account_chart_rows($tree, $depth = 0) {
       'data' => array(
         'title' => $depth_html . $linked_name,
         'type' => check_plain($acd['name']),
-        'balance' => '-',
+        'balance_text' => array('data' => isset($row->account_balance) ? number_format($row->account_balance, 2) : '-', 'class' => array('uk-text-center')),
+        //'balance' => array(
+        //  'data' => empty($row->account_balance) ? 0 : $row->account_balance,
+        //  'class' =>
+        //),
         'actions' => $actions_html,
       ),
       'class' => array($color_class),
     );
 
     if (!empty($row->children)) {
-      $rows += avtxns_account_chart_rows($row->children, $depth + 1);
+      $rows += $x = avtxns_account_chart_rows($row->children, $depth + 1);
     }
   }
   return $rows;
