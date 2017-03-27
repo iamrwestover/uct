@@ -227,13 +227,6 @@ function avtxns_schema() {
         'precision' => '4',
         'scale' => '2',
       ),
-      'paid_amount' => array(
-        'description' => 'Paid amount / Credited amount',
-        'type' => 'numeric',
-        'not null' => FALSE,
-        'precision' => '18',
-        'scale' => '6',
-      ),
       'ref_txn_dtl_id' => array(
         'description' => 'Reference transaction Detail ID',
         'type' => 'int',

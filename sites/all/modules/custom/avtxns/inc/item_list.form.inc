@@ -811,7 +811,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#title' => 'New Balance',
         '#title_display' => 'none',
         '#maxlength' => 255,
-        '#default_value' => avbase_number_format(($prod_row['balance'] - $prod_row['paid_amount']), 2),
+        '#default_value' => avbase_number_format(($prod_row['balance'] - $prod_row['cost']), 2),
         '#attributes' => array(
           'class' => array('uk-text-right'),
         ),
@@ -940,9 +940,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       $readonly_fields = $disabled_fields;
       if (isset($fields['total'])) {
         $fields['total']['#title'] = t('Payment');
-        $fields['total']['#element_save_id'] = 'paid_amount';
+        //$fields['total']['#element_save_id'] = 'paid_amount';
         $fields['total']['#required'] = TRUE;
-        $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : $prod_row['balance'];
+        //$paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : $prod_row['balance'];
+        $paid_amount = isset($prod_row['cost']) ? $prod_row['cost'] : $prod_row['balance'];
         $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
         $fields['total']['#element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
         //$fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');
@@ -974,8 +975,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     if (!empty($ttd['total_is_entered_amount']) && isset($fields['total'])) {
       $fields['total']['#title'] = t('Amount');
-      $fields['total']['#element_save_id'] = 'paid_amount';
-      $paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : '';
+      //$fields['total']['#element_save_id'] = 'paid_amount';
+      //$paid_amount = isset($prod_row['paid_amount']) ? $prod_row['paid_amount'] : '';
+      $paid_amount = isset($prod_row['cost']) ? $prod_row['cost'] : '';
       $fields['total']['#default_value'] = empty($paid_amount) ? '' : avbase_number_format($paid_amount, 2);
       $fields['total']['#element_validate'] = array('avtxns_item_list_row_element_validate');
       $fields['total']['#av_prod_element_validate'] = array('element_validate_number', 'avbase_element_validate_money_length');

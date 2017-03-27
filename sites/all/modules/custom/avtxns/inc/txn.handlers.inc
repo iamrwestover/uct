@@ -44,7 +44,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         'discount2',
         'discount3',
         'discount4',
-        'paid_amount',
+        //'paid_amount',
         'ref_txn_dtl_id',
         'ref_txn_id',
         'ref_txn_type',
@@ -97,7 +97,10 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         $item_row['discount1'] = $item_row['discount2'] = $item_row['discount3'] = $item_row['discount4'] = 0;
         // Overwrite paid amount.
         if (!empty($ttd['total_is_entered_amount'])) {
-          $item_row['paid_amount'] = $item_row['total'];
+          //$item_row['paid_amount'] = $item_row['total'];
+          $item_rows[$ir_k]['qty'] = $item_row['qty'] = 1;
+          $item_rows[$ir_k]['qty_per_uom'] = $item_row['qty_per_uom'] = 1;
+          $item_rows[$ir_k]['cost'] = $item_row['cost'] = $item_row['total'];
         }
 
         if (isset($item_row['product_id'])) {

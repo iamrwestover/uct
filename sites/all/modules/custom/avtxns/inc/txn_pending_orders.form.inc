@@ -305,7 +305,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           //$total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
           //$transaction_arr['balance'] = avbase_number_format(round($transaction->grand_total - $total_paid_for_invoice, 2), 2);
           $transaction_arr['balance'] = avbase_number_format($transaction_arr['balance'], 2);
-          $transaction_arr['paid_amount'] = $transaction_arr['balance'];
+          //$transaction_arr['paid_amount'] = $transaction_arr['balance'];
           $transaction_arr['previous_payment'] = avbase_number_format($transaction_arr['total_paid'], 2);
           $receive_pos[$item_row_id] = $transaction_arr;
         }

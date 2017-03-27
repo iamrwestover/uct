@@ -258,12 +258,13 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         }
         else {
           $row->items[$item->id] = $item;
-          if (!empty($ttd['total_is_entered_amount'])) {
-            $debit_total += $item->paid_amount;
-          }
-          else {
-            $debit_total += $item->total;
-          }
+          $debit_total += $item->total;
+          //if (!empty($ttd['total_is_entered_amount'])) {
+          //  $debit_total += $item->paid_amount;
+          //}
+          //else {
+          //  $debit_total += $item->total;
+          //}
         }
 
         // Special fields for payment transactions.
@@ -271,7 +272,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
           $invoice = avtxns_txn_load($item->ref_txn_dtl_id);
           if (!empty($invoice->id)) {
             // Get total paid - excluding payments before this transaction.
-            $query = "SELECT SUM(avtxn_details.paid_amount) FROM {avtbl_transaction_details} avtxn_details
+            $query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
               INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
               WHERE avtxn_details.ref_txn_id = :invoice_id AND avtxn_details.transaction_id < :payment_id
                  AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
@@ -311,7 +312,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     //avtxns_txn_attach_received_items($row);
 
     if (!empty($ttd['payable'])) {
-      $query = "SELECT SUM(avtxn_details.paid_amount) FROM {avtbl_transaction_details} avtxn_details
+      $query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
         WHERE avtxn_details.ref_txn_dtl_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
       $total_paid_for_invoice = db_query($query, array(':invoice_id' => $row->id))->fetchField();
