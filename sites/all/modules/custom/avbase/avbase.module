@@ -469,7 +469,9 @@ function avbase_general_settings_form() {
   global $user;
   $form['company_information'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Site details'),
+    '#title' => t('Site Information'),
+    '#collapsible' => TRUE,
+    //'#collapsed' => TRUE,
   );
   $form['company_information']['site_name'] = array(
     '#type' => 'textfield',
@@ -519,6 +521,31 @@ function avbase_general_settings_form() {
       'min' => 0.1,
       'max' => 1,
     ),
+  );
+
+  // File system.
+  $form['file_system'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('File system'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['file_system']['file_private_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Private file system path'),
+    '#default_value' => variable_get('file_private_path', ''),
+    '#maxlength' => 255,
+    '#description' => t('An existing local file system path for storing private files.'),
+    '#after_build' => array('system_check_directory'),
+  );
+
+  $form['file_system']['file_temporary_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Temporary directory'),
+    '#default_value' => variable_get('file_temporary_path', file_directory_temp()),
+    '#maxlength' => 255,
+    '#description' => t('A local file system path where temporary files will be stored.'),
+    '#after_build' => array('system_check_directory'),
   );
 
   return system_settings_form($form);
