@@ -875,7 +875,6 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'callback' => 'avtxns_item_list_prod_js',
           'wrapper' => 'item-list-product-row-' . $prod_key . '-wrapper',
           'effect' => 'none',
-          'event' => 'click',
         ),
         '#button_label' => '<i class="uk-icon-remove"></i>',
       );
@@ -1012,7 +1011,6 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         'callback' => 'avtxns_item_list_prod_js',
         'wrapper' => 'item-list-new-product-wrapper',
         'effect' => 'none',
-        'event' => 'click',
       ),
       '#attributes' => array('class' => array('av-ajax-trigger')),
     );

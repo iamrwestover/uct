@@ -6,6 +6,7 @@
   z-index: 1;
   margin-top: 0px;
   top: 0px;
+  display: none;
 }
 #loading-center{
   width: 100%;

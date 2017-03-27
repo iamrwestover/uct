@@ -56,9 +56,6 @@
   <?php print $styles; ?>
 </head>
 <body class="<?php print $classes; ?>" <?php print $attributes;?>>
-  <!--<div id="preloader">-->
-  <!--  <div id="status">&nbsp;</div>-->
-  <!--</div>-->
 
   <div id="loading">
     <div id="loading-center">
@@ -66,10 +63,8 @@
         <div class="object" id="object_one"></div>
         <div class="object" id="object_two"></div>
         <div class="object" id="object_three"></div>
-
       </div>
     </div>
-
   </div>
 
   <div id="skip-link">

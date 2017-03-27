@@ -23,9 +23,15 @@
         });
       });
 
-      // Enable full row select on necessary tables.
-      //$('table.av-table-tableselect tr', context).once('avbaseGeneral', function () {
-      //  $(this).find
+      // Prevent form submission on keyboard enter.
+      //$('#avtxns-txn-form', context).once('avbaseGeneral', function () {
+      //  $(this).on('keyup keypress', function(e) {
+      //    var keyCode = e.keyCode || e.which;
+      //    if (keyCode === 13) {
+      //      e.preventDefault();
+      //      return false;
+      //    }
+      //  });
       //});
     }
   };
@@ -36,14 +42,6 @@ jQuery(document).ready(function ($) {
 
   var $form = $('form');
 
-  // Prevent form submission on keyboard enter.
-  $('#avtxns-txn-form').on('keyup keypress', function(e) {
-    var keyCode = e.keyCode || e.which;
-    if (keyCode === 13) {
-      e.preventDefault();
-      return false;
-    }
-  });
   // Prevent double submission of forms.
   $form.submit(function(e) {
     if( $(this).hasClass('form-submitted') ){
@@ -51,7 +49,9 @@ jQuery(document).ready(function ($) {
       return;
     }
 
-    $(this).addClass('form-submitted');
+    if (!$('#autocomplete').length) {
+      $(this).addClass('form-submitted');
+    }
   });
   // Automatically print if url parameter is specified.
   var print = avbaseGetUrlParameter('print');

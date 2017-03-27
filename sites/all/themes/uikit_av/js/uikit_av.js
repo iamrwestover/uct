@@ -1,10 +1,17 @@
 (function ($) {
+  //console.log('loading');
+  var avLoadingTimeout = setTimeout (function() {
+    console.log('pagein timeout reached.');
+    $('#loading-center').fadeIn();
+  }, 3000);
+
   $(window).on('load', function() {
+    clearTimeout(avLoadingTimeout);
     $('#loading').delay(500).fadeOut('fast');
   });
   //
   $(window).on('beforeunload', function() {
-    $('#loading').delay(0).fadeIn('fast');
+    $('#loading').fadeIn('fast');
   });
 }(jQuery));
 
