@@ -20,46 +20,38 @@ function avtxns_item_list_prod_submit($form, &$form_state) {
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
   $_item_rows = &$_storage['item_rows'];
 
+
   // Perform actions based on triggering element.
   switch ($trigger['#name']) {
     case 'prod_add_btn':
       // Add button triggered it.
+
+      // Limit to row count per transaction.
+      $form_state['#max_rows_reached'] = count($_item_rows) >= AVTXNS_TXN_ROW_LIMIT;
+      if ($form_state['#max_rows_reached']) {
+        break;
+      }
+
       // Get new row counter.
       $_storage['new_row_counter'] = isset($_storage['new_row_counter']) ? $_storage['new_row_counter'] : 0;
       $_counter = &$_storage['new_row_counter'];
 
-      //// Add a new empty item row.
-      //$_item_rows['new_' . $_counter] = array();
-      //$_counter++;
-      //
-      // Add a new empty item row.
-      //$_item_rows['new_' . $_counter] = array();
 
-      for ($x = 0; $x < 20; $x++) {
-        //$zz = avproduct_load($_counter + 1);
-        //$xx['product_title'] = $zz->title;
-        //$xx['qty_per_uom'] = 1;
-        //$xx['qty'] = $zz->qty ? 1 : 0;
-        //$xx['uom_id'] = 4;
-        //$xx['uom_title'] = 'PC';
-        //$xx['cost'] = $zz->price;
-        //
-        //$_item_rows['new_' . $_counter++] = $xx;
+      for ($x = 0; $x < AVTXNS_TXN_ADD_NEW_ROW_COUNT; $x++) {
+        //$row = db_query("SELECT b.title AS uom_title, a.title AS product_title, 1 AS qty_per_uom, 10 AS qty, a.uom_id, a.cost, a.discount1 AS discount_text
+        //FROM avtbl_products a
+        //LEFT JOIN avtbl_categories AS b ON b.id = a.uom_id
+        //ORDER BY RAND() LIMIT 0,1")->fetch();
+        //$_item_rows['new_' . $_counter++] = (array) $row;
         $_item_rows['new_' . $_counter++] = array();
       }
-      //$xx = avproduct_load($_counter + 1);
-      //$xx->product_title = $xx->title;
-      //$xx->qty_per_uom = 1;
-      //$xx->qty = 1;
-      //
-      //$_item_rows['new_' . $_counter] = (array) $xx;
-
       break;
 
     default:
       // We'll presume it is the delete button.
       $item_row_key = isset($trigger['#item_row_key']) ? $trigger['#item_row_key'] : '';
       unset($_item_rows[$item_row_key]);
+      break;
   }
 }
 
@@ -69,30 +61,34 @@ function avtxns_item_list_prod_submit($form, &$form_state) {
 function avtxns_item_list_prod_js($form, $form_state) {
   $trigger = $form_state['triggering_element'];
   $output = array();
+
   if ($trigger['#name'] == 'prod_add_btn') {
-    $product_elements = $form['product_rows'];
+    if (empty($form_state['#max_rows_reached'])) {
+      $product_elements = $form['product_rows'];
+      $keys = element_children($product_elements);
+      $keys = array_splice($keys, (count($keys) - AVTXNS_TXN_ADD_NEW_ROW_COUNT));
+      $new_elements = array();
+      $last_key = NULL;
+      foreach ($keys as $k) {
+        $new_elements[$k] = empty($product_elements[$k]) ? array() : $product_elements[$k];
+        $last_key = $k;
+      }
+      if ($last_key) {
+        $new_elements[$last_key]['#suffix'] = empty($new_elements[$last_key]['#suffix']) ? '' : $new_elements[$last_key]['#suffix'];
+        $new_elements[$last_key]['#suffix'] .= '<div id="item-list-new-product-wrapper"></div>';
+      }
 
+      //dpm($product_elements);
+      //$last_key = array_pop($keys);
+      //$last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
+      //$last_element['#suffix'] = empty($last_element['#suffix']) ? '' : $last_element['#suffix'];
+      //$last_element['#suffix'] .= '<div id="item-list-new-product-wrapper"></div>';
 
-    $keys = element_children($product_elements);
-    $keys = array_splice($keys, (count($keys) - 20));
-    $new_elements = array();
-    $last_key = NULL;
-    foreach ($keys as $k) {
-      $new_elements[$k] = empty($product_elements[$k]) ? array() : $product_elements[$k];
-      $last_key = $k;
+      $output = $new_elements;
     }
-    if ($last_key) {
-      $new_elements[$last_key]['#suffix'] = empty($new_elements[$last_key]['#suffix']) ? '' : $new_elements[$last_key]['#suffix'];
-      $new_elements[$last_key]['#suffix'] .= '<div id="item-list-new-product-wrapper"></div>';
+    else {
+      $output = '<div class="uk-text-muted uk-text-center">Maximum number of items per transaction has been reached.</div>';
     }
-
-    //dpm($product_elements);
-    //$last_key = array_pop($keys);
-    //$last_element = empty($product_elements[$last_key]) ? array() : $product_elements[$last_key];
-    //$last_element['#suffix'] = empty($last_element['#suffix']) ? '' : $last_element['#suffix'];
-    //$last_element['#suffix'] .= '<div id="item-list-new-product-wrapper"></div>';
-
-    $output = $new_elements;
   }
   elseif (strstr($trigger['#name'], 'product_id')) {
     $parents = $trigger['#parents'];

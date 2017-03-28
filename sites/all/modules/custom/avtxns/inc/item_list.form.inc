@@ -752,73 +752,74 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       );
     }
 
-    $fields['transaction_date_formatted'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Transaction date',
-      '#title_display' => 'none',
-      '#maxlength' => 255,
-      '#default_value' => isset($prod_row['transaction_date_formatted']) ? $prod_row['transaction_date_formatted'] : '',
-      '#attributes' => array(
-        //'class' => array('av-no-border'),
-      ),
-    );
-
-    $fields['ref_txn_dtl_id_text'] = array(
-      '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['ref_txn_dtl_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' .  $prod_row['ref_txn_dtl_id']) : '&nbsp;') . '</div>',
-    );
-    if (empty($view_mode)) {
-      $fields['ref_txn_dtl_id'] = array(
-        '#type' => 'hidden',
-        '#title' => 'Reference ID',
-        '#title_display' => 'none',
-        '#maxlength' => 255,
-        '#default_value' => isset($prod_row['ref_txn_dtl_id']) ? $prod_row['ref_txn_dtl_id'] : '',
-      );
-    }
-    $fields['orig_total'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Original Amount',
-      '#title_display' => 'none',
-      '#maxlength' => 255,
-      '#default_value' => isset($prod_row['grand_total']) ? avbase_number_format($prod_row['grand_total'], 2) : '',
-      '#attributes' => array(
-        'class' => array('uk-text-right'),
-      ),
-    );
-    $fields['previous_payment'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Total paid',
-      '#title_display' => 'none',
-      '#maxlength' => 255,
-      '#default_value' => isset($prod_row['previous_payment']) ? avbase_number_format($prod_row['previous_payment'], 2) : '',
-      '#attributes' => array(
-        'class' => array('uk-text-right'),
-      ),
-    );
-    if (empty($view_mode) && !empty($ttd['payment'])) {
-      $fields['balance'] = array(
+    if (!empty($ttd['payment'])) {
+      $fields['transaction_date_formatted'] = array(
         '#type' => 'textfield',
-        '#title' => 'Balance',
+        '#title' => 'Transaction date',
         '#title_display' => 'none',
         '#maxlength' => 255,
-        '#default_value' => isset($prod_row['balance']) ? avbase_number_format($prod_row['balance'], 2) : '',
+        '#default_value' => isset($prod_row['transaction_date_formatted']) ? $prod_row['transaction_date_formatted'] : '',
+        '#attributes' => array(//'class' => array('av-no-border'),
+        ),
+      );
+
+      $fields['ref_txn_dtl_id_text'] = array(
+        '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['ref_txn_dtl_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' . $prod_row['ref_txn_dtl_id']) : '&nbsp;') . '</div>',
+      );
+      if (empty($view_mode)) {
+        $fields['ref_txn_dtl_id'] = array(
+          '#type' => 'hidden',
+          '#title' => 'Reference ID',
+          '#title_display' => 'none',
+          '#maxlength' => 255,
+          '#default_value' => isset($prod_row['ref_txn_dtl_id']) ? $prod_row['ref_txn_dtl_id'] : '',
+        );
+      }
+      $fields['orig_total'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Original Amount',
+        '#title_display' => 'none',
+        '#maxlength' => 255,
+        '#default_value' => isset($prod_row['grand_total']) ? avbase_number_format($prod_row['grand_total'], 2) : '',
         '#attributes' => array(
           'class' => array('uk-text-right'),
         ),
       );
-    }
-
-    if ($view_mode && !empty($ttd['payment'])) {
-      $fields['new_balance'] = array(
+      $fields['previous_payment'] = array(
         '#type' => 'textfield',
-        '#title' => 'New Balance',
+        '#title' => 'Total paid',
         '#title_display' => 'none',
         '#maxlength' => 255,
-        '#default_value' => avbase_number_format((round($prod_row['balance'], 2) - round($prod_row['cost'], 2)), 2),
+        '#default_value' => isset($prod_row['previous_payment']) ? avbase_number_format($prod_row['previous_payment'], 2) : '',
         '#attributes' => array(
           'class' => array('uk-text-right'),
         ),
       );
+      if (empty($view_mode) && !empty($ttd['payment'])) {
+        $fields['balance'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Balance',
+          '#title_display' => 'none',
+          '#maxlength' => 255,
+          '#default_value' => isset($prod_row['balance']) ? avbase_number_format($prod_row['balance'], 2) : '',
+          '#attributes' => array(
+            'class' => array('uk-text-right'),
+          ),
+        );
+      }
+
+      if ($view_mode && !empty($ttd['payment'])) {
+        $fields['new_balance'] = array(
+          '#type' => 'textfield',
+          '#title' => 'New Balance',
+          '#title_display' => 'none',
+          '#maxlength' => 255,
+          '#default_value' => avbase_number_format((round($prod_row['balance'], 2) - round($prod_row['cost'], 2)), 2),
+          '#attributes' => array(
+            'class' => array('uk-text-right'),
+          ),
+        );
+      }
     }
 
     if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {

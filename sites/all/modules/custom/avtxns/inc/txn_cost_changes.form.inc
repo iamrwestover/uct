@@ -75,7 +75,7 @@ function avtxns_cost_changes_form_fields(&$form, &$form_state, $transaction_type
           'cost' => t('Update cost'),
           'cost_and_price' => t('Update cost and sales price'),
         ),
-        '#default_value' => 'ignore',
+        '#default_value' => 'cost_and_price',
         '#attributes' => array('class' => array('uk-button-group')),
       ),
       'product_id' => array('#type' => 'value', '#value' => $v['product_id']),

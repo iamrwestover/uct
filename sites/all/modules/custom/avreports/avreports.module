@@ -135,21 +135,39 @@ function avreports_theme($existing, $type, $theme, $path) {
  * @return array
  */
 function avreports_home_form($form, &$form_state) {
-// Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
-  //$form['intro']['#markup'] = t('Reports');
-  //$form['delivery_list'] = array('#markup' => l('Delivery List', 'av/reports/delivery-list', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
-  $form['soa'] = array('#markup' => l('Statement of Account', 'av/reports/soa', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $form['hr1'] = array('#markup' => '<hr />');
   $transaction_types = avtxns_txn_types();
+
+  // Transactions.
+  $buttons = array();
   foreach ($transaction_types as $k => $type) {
-    $form[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+    $buttons[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   }
-  $form['hr2'] = array('#markup' => '<hr />');
-  $form['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $form['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $form['hr3'] = array('#markup' => '<hr />');
-  $form['sales_to_trade'] = array('#markup' => l('Sales to Trade', 'av/reports/sales-to-trade', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $form['txn_reports'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Transaction List'),
+  );
+  $form['txn_reports'] += $buttons;
+
+  // Inventory.
+  $buttons = array();
+  $buttons['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $form['inventory_reports'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Inventory'),
+  );
+  $form['inventory_reports'] += $buttons;
+
+  // Accounting.
+  $buttons = array();
+  $buttons['sales_to_trade'] = array('#markup' => l('Sales to Trade', 'av/reports/sales-to-trade', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['soa'] = array('#markup' => l('Statement of Account', 'av/reports/soa', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $form['accounting_reports'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Accounting'),
+  );
+  $form['accounting_reports'] += $buttons;
   return $form;
 }
 
