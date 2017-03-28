@@ -62,7 +62,7 @@ function avreports_client_balance_aging_form($client_id) {
   $ages_count = 0;
   $total_balance = 0;
   foreach ($balance_ages as $k => $balance) {
-    $red = $k >= 60;
+    $red = $k > 60;
     $total_balance += $balance;
     $age_title = $k == 0 ? 'C.O.D' : t('@from-@to days old', array('@from' => $k - $term_days + 1, '@to' => $k));
     $balance_ages_form[$k] = array(

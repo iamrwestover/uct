@@ -23,12 +23,29 @@
     self.$creditRows.once('avtxnsCreditsForm', function () {
       var $thisRow = $(this);
       var $amtToUseEl = $thisRow.find('.amt-to-use');
+      var $tickEl = $thisRow.find('.tick-box');
 
       $amtToUseEl.change(function (e) {
         self.refreshSubTotalText(e, $thisRow);
       });
       $amtToUseEl.keydown(function (e) {
         self.switchRowFocus(e, $thisRow);
+      });
+
+      // Tick box.
+      $tickEl.change(function () {
+        var ticked = $(this).is(":checked");
+        var tickedAmount = '';
+        if (ticked) {
+          var billTotal = self.$billTotalEl.val();
+          var subTotal = self.getSubTotal();
+          var remainingBalance = billTotal - subTotal;
+          var openBalance = $(this).data('open-balance');
+          tickedAmount = remainingBalance > openBalance ? openBalance : remainingBalance;
+          tickedAmount = parseFloat(tickedAmount).toFixed(2);
+        }
+        $amtToUseEl.val(tickedAmount);
+        $amtToUseEl.trigger('change');
       });
     });
   };
@@ -43,13 +60,15 @@
     var subTotal = 0;
     $totalEls.each(function() {
       rowTotal = $(this).val();
+
       if (!$.isNumeric(rowTotal)) {
         return;
       }
       subTotal += parseFloat(rowTotal);
     });
 
-    return parseFloat(subTotal).toFixed(2);
+    subTotal = parseFloat(subTotal);
+    return subTotal;
   };
 
   /**
@@ -57,7 +76,7 @@
    */
   Drupal.avtxnsCreditsForm.prototype.refreshSubTotalText = function () {
     var subTotal = this.getSubTotal();
-    this.$totalCreditsUsedEl.text(this.moneyFormat(subTotal));
+    this.$totalCreditsUsedEl.text(this.moneyFormat(parseFloat(subTotal).toFixed(2)));
 
     var billTotal = parseFloat(this.$billTotalEl.val());
     var newBillTotal = billTotal.toFixed(2) - parseFloat(subTotal).toFixed(2);

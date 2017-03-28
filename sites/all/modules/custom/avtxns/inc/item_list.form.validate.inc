@@ -190,6 +190,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
 
   if (!empty($ttd['payment']) && empty($_item_rows)) {
     form_set_error('', t('No payment received.'));
+    return;
   }
 }
 

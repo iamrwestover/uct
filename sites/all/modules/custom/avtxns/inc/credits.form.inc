@@ -48,6 +48,8 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       continue;
     }
 
+    $amount_used = empty($saved_credit_rows[$credit_row->id]->cost) ? 0 : $saved_credit_rows[$credit_row->id]->cost;
+
     $crtd = avtxns_txn_types($credit_row->transaction_type);
     $table_cols = array();
     $table_cols['transaction_id'] = array(
@@ -68,6 +70,16 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#markup' => number_format($available_credit, 2),
       '#column_attributes' => array('class' => array('uk-text-right')),
     );
+    $table_cols['tick_box'] = array(
+      '#type' => 'checkbox',
+      '#button_checkbox' => TRUE,
+      '#default_value' => !empty($amount_used),
+      '#attributes' => array(
+        'class' => array('tick-box'),
+        'data-open-balance' => $available_credit + $amount_used,
+      ),
+      '#column_attributes' => array('class' => array('uk-text-right')),
+    );
     $table_cols['amount_to_use'] = array(
       '#type' => 'textfield',
       '#title' => 'Amount used',
@@ -80,7 +92,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
         'class' => array('amt-to-use uk-text-right'),
         'step' => 0.01,
       ),
-      '#default_value' => isset($saved_credit_rows[$credit_row->id]->cost) ? avbase_number_format($saved_credit_rows[$credit_row->id]->cost, 2) : '',
+      '#default_value' => empty($amount_used) ? '' : avbase_number_format($amount_used, 2),
     );
     $table_cols['credit_type'] = array(
       '#type' => 'hidden',
@@ -89,7 +101,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
     );
     $table_cols['amount_used'] = array(
       '#type' => 'hidden',
-      '#default_value' => isset($saved_credit_rows[$credit_row->id]->cost) ? $saved_credit_rows[$credit_row->id]->cost : '',
+      '#default_value' => empty($amount_used) ? '' : $amount_used,
       '#column_attributes' => array('class' => array('uk-hidden')),
     );
 
@@ -105,6 +117,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
         'transaction_type_text' => array('data' => t('Type')),
         'original_amount' => array('data' => t('Original Amount'), 'class' => 'uk-text-right'),
         'open_balance' => array('data' => t('Remaining Balance'), 'class' => 'uk-text-right'),
+        'tick_box' => '',
         'amount_to_use' => array('data' => t('Amount used'), 'class' => 'uk-text-right'),
       ),
     );
@@ -121,7 +134,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#default_value' => $row->debit_total,
     );
     $form['bill_total_text'] = array(
-      '#markup' => '<div class="uk-text-right uk-text-large"><span class="uk-margin-large-right">Invoice Total</span>
+      '#markup' => '<div class="uk-text-right uk-text-large"><span class="uk-margin-large-right">'. $ttd['name'] . ' Total</span>
         <span id="bill-total-text">' . number_format($row->debit_total, 2) .'</span></div>',
     );
 
@@ -194,7 +207,6 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
   $client_id = empty($form_state['values']['client_id']) ? NULL : $form_state['values']['client_id'];
   $transaction_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
   if (empty($client_id)) {
-    form_set_error('', 'Client not found.');
     return;
   }
   $entered_rows = empty($form_state['values']['credit_rows']['rows']) ? array() : $form_state['values']['credit_rows']['rows'];
@@ -203,6 +215,7 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
     return;
   }
   $transaction_type = empty($form_state['values']['transaction_type']) ? NULL : $form_state['values']['transaction_type'];
+  $ttd = avtxns_txn_types($transaction_type);
   $credit_rows = avtxns_get_client_credits($client_id, $transaction_type);
   $total_credits_used = 0;
   foreach ($entered_rows as $ek => $er) {
@@ -220,10 +233,10 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
 
 
   $transaction_row = avtxns_txn_load($transaction_id);
-  $transaction_row_total = empty($transaction_row->grand_total) ? 0 : $transaction_row->grand_total;
+  $transaction_row_total = empty($transaction_row->debit_total) ? 0 : $transaction_row->debit_total;
   $remaining_total = $transaction_row_total - $total_credits_used;
   if (round((float)$remaining_total, 2) < 0) {
-    form_set_error("", 'Invoice total cannot be less than 0.');
+    form_set_error("", t('@tname total cannot be less than 0.', array('@tname' => $ttd['name'])));
   }
 }
 
