@@ -197,6 +197,10 @@ html.js input.form-autocomplete {
   background: #00a8e6;
   color: #fff;
 }
+#autocomplete li.selected .uk-text-muted {
+  color: #fff !important;
+}
+
 .av-nestable-product-list-view .av-nestable-form-header {
   border-top: solid 1px #ddd;
   background: #fafafa;

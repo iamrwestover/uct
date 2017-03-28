@@ -618,6 +618,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'class' => array('prod-column-qty uk-text-right'),
         ),
         '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
+        '#db_default_qty' => empty($prod_row['id']) ? 0 : (empty($db_row_items[$prod_row['id']]->qty) ? 0 : $db_row_items[$prod_row['id']]->qty),
       );
       if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY)) || !empty($ttd['bill'])) {
         $fields['qty']['#av_prod_element_validate'][] = 'avbase_element_validate_non_negative_number';
@@ -649,7 +650,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       
 
       $max_discount_html = '';
-      if (!empty($prod_row['discount_over_limit'])) {
+      if ($view_mode && !empty($prod_row['discount_over_limit'])) {
         $max_discount_html = '<br /><div class="uk-text-small">' . ($view_mode ? 'Limit: ' : '') . '<em>' . $prod_row['max_discount_text'] . '</em></div>';
       }
       $fields['discount'] = array(
@@ -668,8 +669,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#default_value' => isset($prod_row['discount_text']) ? $prod_row['discount_text'] : '',
         '#dont_require' => TRUE,
         //'#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN)),
-        '#field_suffix' => $max_discount_html,
       );
+      if (!empty($max_discount_html)) {
+        $fields['discount']['#field_suffix'] = $max_discount_html;
+      }
 
 
     }

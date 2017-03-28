@@ -174,7 +174,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     }
 
     if (!empty($ref_txn_ids)) {
-      $query = "SELECT id, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
+      $query = "SELECT id, transaction_type, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
       $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
       $valid_statuses = array(AVTXNS_TXN_STATUS_OPEN);
       if (!empty($ttd['payment'])) {
@@ -182,7 +182,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
       }
       foreach ($rs as $txn) {
         if (!in_array($txn->status, $valid_statuses)) {
-          form_set_error('', t('Cannot proceed with items from Transaction # @txn_id. Transaction is not available anymore. Try removing these items before proceeding.', array('@txn_id' => $txn->id)));
+          form_set_error('', t('Cannot proceed with items from @ttype# @txn_id. Transaction is not available anymore. Try removing these items before proceeding.', array('@ttype' => strtoupper($txn->transaction_type) , '@txn_id' => $txn->id)));
         }
       }
     }

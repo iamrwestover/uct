@@ -636,7 +636,8 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
     }
 
     // Get default qty if available.
-    $item_row_default_value = empty($default_item_rows[$item_row_key]['qty']['#default_value']) ? 0 : $default_item_rows[$item_row_key]['qty']['#default_value'];
+    //$item_row_default_value = empty($default_item_rows[$item_row_key]['qty']['#default_value']) ? 0 : $default_item_rows[$item_row_key]['qty']['#default_value'];
+    $item_row_default_value = empty($element['#db_default_qty']) ? 0 : $element['#db_default_qty'];
     $item_row_default_value = (int) $item_row_default_value;
     $item_row_default_qty_per_uom = empty($default_item_rows[$item_row_key]['qty_per_uom']['#default_value']) ? 1 : $default_item_rows[$item_row_key]['qty_per_uom']['#default_value'];
     $item_row_default_qty_per_uom = (int) $item_row_default_qty_per_uom;
@@ -1074,9 +1075,9 @@ function avtxns_txn_change_status($id, $status) {
     // Suspend client if necessary.
     if ($status == AVTXNS_TXN_STATUS_OPEN && in_array($row->transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_INVOICE))) {
       if ($row->client_status == AVCLIENT_STATUS_ACTIVE) {
-        $limit_reached = avbase_client_limit_reached($row->client_id);
+        $limit_reached = avbase_client_limit_reached($row->client_id, $row->id);
         if ($limit_reached && avclients_client_change_status($row->client_id, AVCLIENT_STATUS_SUSPENDED)) {
-          drupal_set_message(t('Client\'s @credit_limit credit limit has been reached. Account has been suspended.', array('@credit_limit' => number_format($row->credit_limit, 2))), 'warning');
+          drupal_set_message(t('Client\'s @credit_limit credit limit has been reached. Transaction can proceed but account has been suspended.', array('@credit_limit' => number_format($row->credit_limit, 2))), 'warning');
         }
       }
     }
