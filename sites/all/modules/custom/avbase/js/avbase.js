@@ -17,22 +17,18 @@
       });
 
       // Auto select all text when an autocomplete textfield gets focused.
-      $('.form-autocomplete:text', context).once('avbaseGeneral', function () {
-        $(this).focus(function() {
-          $(this).select();
-        });
-      });
-
-      // Prevent form submission on keyboard enter.
-      //$('#avtxns-txn-form', context).once('avbaseGeneral', function () {
-      //  $(this).on('keyup keypress', function(e) {
-      //    var keyCode = e.keyCode || e.which;
-      //    if (keyCode === 13) {
-      //      e.preventDefault();
-      //      return false;
-      //    }
+      //$('.form-autocomplete:text', context).once('avbaseGeneral', function () {
+      //  $(this).focus(function() {
+      //    $(this).select();
       //  });
       //});
+
+      // Auto scroll
+      //console.log('z');
+      $('#avtxns-txn-form-wrapper').find('#avstatus-messages').once('avbaseGeneral', function () {
+        $("html, body").animate({ scrollTop: 0 }, "fast");
+        //window.scrollTo(0, 0);
+      });
 
     }
   };

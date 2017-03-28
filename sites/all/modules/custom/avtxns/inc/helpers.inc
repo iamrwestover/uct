@@ -578,6 +578,7 @@ function avtxns_sales_fields(&$form, &$form_state, $row, $view_mode = FALSE){
  * Ajax callback before submitting a Receive Items form.
  */
 function avtxns_txn_form_ajax($form, $form_state) {
+  $commands = array();
   if (form_get_errors()) {
     // Prevent modal from popping out.
     unset($form['cost_changes']['product_cost_changes']);
@@ -585,7 +586,6 @@ function avtxns_txn_form_ajax($form, $form_state) {
   }
 
   if (!empty($form_state['redirect'])) {
-    $commands = array();
     $commands[] = array(
       // Note: we will use this command in the .js file
       'command' => 'redirectUser',
