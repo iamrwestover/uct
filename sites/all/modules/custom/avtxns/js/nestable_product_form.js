@@ -198,12 +198,13 @@
           e.stopPropagation();
         }
         else if (e.keyCode === 9) {
-          avDropdown.select();
+          avDropdown.select(true);
         }
       });
-      $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data) {
+      $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data, x) {
         $qtyPerUOMEl.val(data.qtyperuom);
-        $qtyEl.focus().select();
+        $(this).next().focus();
+        console.log('r');
       });
       $UOMEl.change(function() {
         // Get current row details.

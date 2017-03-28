@@ -627,7 +627,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY || $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN) {
         $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_enough_qty';
         $fields['qty']['#attributes']['class'][] = 'js-qty-validate';
-        $fields['qty']['#attributes']['data-uk-tooltip'] = "{cls: 'tooltip-available-qty'}";
+        $fields['qty']['#attributes']['data-uk-tooltip'] = "{cls: 'tt-available-qty'}";
       }
 
       $fields['cost'] = array(
@@ -969,6 +969,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         }
         $fields[$k]['#attributes']['readonly'] = 'readonly';
         $fields[$k]['#attributes']['class']['mute'] = 'av-readonly-field';
+        $fields[$k]['#attributes']['tabindex'] = -1;
       }
     }
 

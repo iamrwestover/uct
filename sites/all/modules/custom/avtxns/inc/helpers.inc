@@ -180,6 +180,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         //$query->addField('avtxn_reference', 'transaction_id', 'ref_txn_id');
         //$query->addField('avtxn', 'transaction_type', 'ref_txn_type');
         $query->orderBy('category_title', 'ASC');
+        $query->orderBy('uom_id', 'ASC');
         $query->orderBy('product_title', 'ASC');
       }
 

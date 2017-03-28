@@ -223,6 +223,10 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     '#type' => 'submit',
     '#value' => t('Save'),
     '#icon_key' => 'save',
+    //'#attributes' => array(
+    //  'data-uk-tooltip' => "{delay:'500', cls: 'tt-keyboard-shortcut'}",
+    //  'title' => "Ctrl Alt S",
+    //),
   );
   if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER) {
     $buttons['submit_and_send'] = array(

@@ -194,7 +194,8 @@ html.js input.form-autocomplete {
   padding: 5px;
 }
 #autocomplete li.selected {
-  background: #f5fbfe;
+  background: #00a8e6;
+  color: #fff;
 }
 .av-nestable-product-list-view .av-nestable-form-header {
   border-top: solid 1px #ddd;
@@ -291,11 +292,19 @@ table.sticky-header {
 }
 
 /* Tooltip */
-.uk-tooltip.tooltip-available-qty {
+.uk-tooltip.tt-available-qty {
   background: #00a8e6;
   color: #fff;
   text-shadow: none;
 }
-.uk-tooltip.tooltip-available-qty:after {
+.uk-tooltip.tt-available-qty:after {
   border-top-color: #00a8e6;
+}
+.uk-tooltip.tt-keyboard-shortcut {
+  background: #fafafa;
+  color: #555;
+  text-shadow: none;
+}
+.uk-tooltip.tt-keyboard-shortcut:after {
+  border-top-color: #fafafa;
 }

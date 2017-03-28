@@ -33,6 +33,7 @@
       //    }
       //  });
       //});
+
     }
   };
 }(jQuery));
@@ -58,6 +59,9 @@ jQuery(document).ready(function ($) {
   if (print) {
     $('#av-print-btn').trigger('click');
   }
+
+  //// Auto focus on first textbox or textarea.
+  $("#region-content-wrapper input:text, #region-content-wrapper textarea").eq(0).focus()
 });
 
 var avbaseGetUrlParameter = function getUrlParameter(sParam) {
