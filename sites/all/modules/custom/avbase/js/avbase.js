@@ -17,11 +17,11 @@
       });
 
       // Auto select all text when an autocomplete textfield gets focused.
-      //$('.form-autocomplete:text', context).once('avbaseGeneral', function () {
-      //  $(this).focus(function() {
-      //    $(this).select();
-      //  });
-      //});
+      $('.form-autocomplete:text', context).once('avbaseGeneral', function () {
+        $(this).focus(function() {
+          $(this).select();
+        });
+      });
 
       // Auto scroll
       //console.log('z');

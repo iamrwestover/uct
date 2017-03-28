@@ -62,22 +62,29 @@ function avreports_client_balance_aging_form($client_id) {
   $ages_count = 0;
   $total_balance = 0;
   foreach ($balance_ages as $k => $balance) {
+    $red = $k >= 60;
     $total_balance += $balance;
     $age_title = $k == 0 ? 'C.O.D' : t('@from-@to days old', array('@from' => $k - $term_days + 1, '@to' => $k));
     $balance_ages_form[$k] = array(
       '#type' => 'item',
-      '#title' => $age_title,
-      '#markup' => number_format($balance, 2),
+      '#title' => $red ? "<em>$age_title</em>" : $age_title,
+      '#markup' => number_format(round($balance, 2), 2),
     );
+    if ($red) {
+      $balance_ages_form[$k]['#markup'] = '<em>' . $balance_ages_form[$k]['#markup'] . '</em>';
+    }
 
     $ages_count++;
     if ($ages_count == count($balance_ages)) {
       $balance_ages_form[$k]['#title'] = t('@from++ days old', array('@from' => $k - $term_days));
+      if ($red) {
+        $balance_ages_form[$k]['#title'] = '<em>' . $balance_ages_form[$k]['#title'] . '</em>';
+      }
     }
   }
 
   $credit_limit = empty($client->credit_limit) ? 0 : (float) $client->credit_limit;
-  $balance_ages_form['#total_balance'] = $total_balance;
+  $balance_ages_form['#total_balance'] = round($total_balance, 2);
   $balance_ages_form['#credit_limit'] = $credit_limit;
   $balance_ages_form['#limit_reached'] = !empty($credit_limit) && round($total_balance, 2) >= round($credit_limit, 2);
   $balance_ages_form['#client_type'] = $client->client_type;

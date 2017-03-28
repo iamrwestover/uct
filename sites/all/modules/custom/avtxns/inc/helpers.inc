@@ -743,7 +743,7 @@ function avtxns_transaction_types($type) {
  * @return array
  */
 function avtxns_get_return_types() {
-  return array(AVTXNS_RETURN_TYPE_RS => 'RS', AVTXNS_RETURN_TYPE_RUD => 'RUD');
+  return array(AVTXNS_RETURN_TYPE_RS => 'RPD', AVTXNS_RETURN_TYPE_RUD => 'RUD');
 }
 
 /**

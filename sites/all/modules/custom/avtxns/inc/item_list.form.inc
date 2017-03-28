@@ -814,7 +814,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#title' => 'New Balance',
         '#title_display' => 'none',
         '#maxlength' => 255,
-        '#default_value' => avbase_number_format(($prod_row['balance'] - $prod_row['cost']), 2),
+        '#default_value' => avbase_number_format((round($prod_row['balance'], 2) - round($prod_row['cost'], 2)), 2),
         '#attributes' => array(
           'class' => array('uk-text-right'),
         ),

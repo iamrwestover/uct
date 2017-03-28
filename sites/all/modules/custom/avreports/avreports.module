@@ -521,7 +521,7 @@ function avreports_soa_form($form, &$form_state) {
     $data['credit']['data'] = empty($credit) ? '' : number_format($credit, 2);
     $data['debit']['data'] = empty($debit) ? '' : number_format($debit, 2);
     $balance = $balance - $credit + $debit;
-    $data['balance']['data'] = number_format($balance, 2);
+    $data['balance']['data'] = number_format(round($balance, 2), 2);
 
     $rows[] = array('data' => $data, 'class' => array('uk-table-middle'));
     $total_receivables += 0;
@@ -538,7 +538,7 @@ function avreports_soa_form($form, &$form_state) {
     $rows[] = array('data' => array(array('data' => '&nbsp;', 'colspan' => 10)));
     $rows[] = array(
       'data' => array(
-        array('data' => number_format($balance, 2), 'class' => array('uk-text-right uk-text-large'), 'colspan' => 13),
+        array('data' => number_format(round($balance, 2), 2), 'class' => array('uk-text-right uk-text-large'), 'colspan' => 13),
       ),
       'class' => array('uk-table-middle'),
     );
