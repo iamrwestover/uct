@@ -1,4 +1,5 @@
 (function ($) {
+  var $loader = $('#loading'), ajaxTimer;
   //console.log('loading');
   //var avLoadingTimeout = setTimeout (function() {
   //  console.log('pagein timeout reached.');
@@ -13,6 +14,19 @@
   $(window).on('beforeunload', function() {
     $('#loading').fadeIn('fast');
   });
+
+
+
+  $(document).ajaxStart(function () {
+    ajaxTimer && clearTimeout(ajaxTimer);
+    ajaxTimer = setTimeout(function () {
+      $loader.fadeIn('fast');
+    }, 1000);
+  }).ajaxStop(function () {
+    clearTimeout(ajaxTimer);
+    $loader.fadeOut('fast');
+  });
+
 }(jQuery));
 
 jQuery(document).ready(function ($) {
