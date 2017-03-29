@@ -500,13 +500,13 @@ function avbase_general_settings_form() {
     '#title' => 'Contact Number(s)',
     '#default_value' => variable_get('av_company_contact_number', ''),
   );
-  $form['company_information']['av_company_capital'] = array(
-    '#type' => 'textfield',
-    '#maxlength' => 255,
-    '#title' => 'Capital',
-    '#default_value' => variable_get('av_company_capital', ''),
-    '#element_validate' => array('element_validate_number'),
-  );
+  //$form['company_information']['av_company_capital'] = array(
+  //  '#type' => 'textfield',
+  //  '#maxlength' => 255,
+  //  '#title' => 'Capital',
+  //  '#default_value' => variable_get('av_company_capital', ''),
+  //  '#element_validate' => array('element_validate_number'),
+  //);
   $form['company_information']['av_discount_multiplier'] = array(
     '#type' => 'textfield',
     '#maxlength' => 4,
