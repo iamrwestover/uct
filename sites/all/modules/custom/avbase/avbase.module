@@ -507,6 +507,19 @@ function avbase_general_settings_form() {
   //  '#default_value' => variable_get('av_company_capital', ''),
   //  '#element_validate' => array('element_validate_number'),
   //);
+  $date_format = 'F d';
+  $form['company_information']['av_fiscal_date'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fiscal Date',
+    '#default_value' => format_date(variable_get('av_fiscal_date', strtotime('January 01')), 'custom', $date_format),
+    '#element_validate' => array('avbase_element_validate_date'),
+    '#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMMM DD'}",
+    ),
+    '#required' => TRUE,
+  );
   $form['company_information']['av_discount_multiplier'] = array(
     '#type' => 'textfield',
     '#maxlength' => 4,

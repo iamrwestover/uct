@@ -783,134 +783,161 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
-  $fields['avtxn.id'] = empty($settings['avtxn.id']) ? array() : $settings['avtxn.id'];
-  $fields['avtxn.id'] += array(
-    '#type' => 'textfield',
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search trigger-search-on-keyup'),
-      'placeholder' => '#',
-    ),
-    '#icon_key' => 'search',
-    '#access' => FALSE,
-  );
-  $fields['search_text'] = empty($settings['search_text']) ? array() : $settings['search_text'];
-  $fields['search_text'] += array(
-    '#type' => 'textfield',
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search trigger-search-on-keyup'),
-      'placeholder' => 'customer / vendor / agent name',
-    ),
-    '#icon_key' => 'search',
-    '#access' => FALSE,
-  );
+  if (!empty($settings['avtxn.id'])) {
+    $fields['avtxn.id'] = empty($settings['avtxn.id']) ? array() : $settings['avtxn.id'];
+    $fields['avtxn.id'] += array(
+      '#type' => 'textfield',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+        'placeholder' => '#',
+      ),
+      '#icon_key' => 'search',
+    );
+  }
 
-  $fields['avcat_agent.title'] = empty($settings['avcat_agent.title']) ? array() : $settings['avcat_agent.title'];
-  $fields['avcat_agent.title'] += array(
-    '#type' => 'textfield',
-    '#maxlength' => 255,
-    '#attributes' => array(
-      'placeholder' => 'filter by agent',
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => FALSE,
-  );
+  if (!empty($settings['search_text'])) {
+    $fields['search_text'] = empty($settings['search_text']) ? array() : $settings['search_text'];
+    $fields['search_text'] += array(
+      '#type' => 'textfield',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+        'placeholder' => 'customer / vendor / agent name',
+      ),
+      '#icon_key' => 'search',
+    );
+  }
 
-  $fields['avcat_area.title'] = empty($settings['avcat_area.title']) ? array() : $settings['avcat_area.title'];
-  $fields['avcat_area.title'] += array(
-    '#title' => 'Area',
-    '#type' => 'textfield',
-    '#maxlength' => 255,
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#autocomplete_path' => 'av/categories/area/autocomplete',
-    '#access' => FALSE,
-  );
+  if (!empty($settings['avcat_agent.title'])) {
+    $fields['avcat_agent.title'] = empty($settings['avcat_agent.title']) ? array() : $settings['avcat_agent.title'];
+    $fields['avcat_agent.title'] += array(
+      '#type' => 'textfield',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'placeholder' => 'filter by agent',
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
 
-  $fields['avcat_principal.title'] = empty($settings['avcat_principal.title']) ? array() : $settings['avcat_principal.title'];
-  $fields['avcat_principal.title'] += array(
-    '#type' => 'textfield',
-    '#maxlength' => 255,
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => FALSE,
-  );
+  if (!empty($settings['avcat_area.title'])) {
+    $fields['avcat_area.title'] = empty($settings['avcat_area.title']) ? array() : $settings['avcat_area.title'];
+    $fields['avcat_area.title'] += array(
+      '#title' => 'Area',
+      '#type' => 'textfield',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+      '#autocomplete_path' => 'av/categories/area/autocomplete',
+    );
+  }
 
-  $fields['avclients.display_name'] = empty($settings['avclients.display_name']) ? array() : $settings['avclients.display_name'];
-  $fields['avclients.display_name'] += array(
-    '#type' => 'textfield',
-    '#maxlength' => 255,
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => FALSE,
-  );
+  if (!empty($settings['avcat_principal.title'])) {
+    $fields['avcat_principal.title'] = empty($settings['avcat_principal.title']) ? array() : $settings['avcat_principal.title'];
+    $fields['avcat_principal.title'] += array(
+      '#type' => 'textfield',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
+  if (!empty($settings['avclients.display_name'])) {
+    $fields['avclients.display_name'] = empty($settings['avclients.display_name']) ? array() : $settings['avclients.display_name'];
+    $fields['avclients.display_name'] += array(
+      '#type' => 'textfield',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
 
 
 
-  //$date_format = 'M. d, Y';
-  $fields['avtxn.transaction_date'] = empty($settings['avtxn.transaction_date']) ? array() : $settings['avtxn.transaction_date'];
-  $fields['avtxn.transaction_date'] += array(
-    '#type' => 'textfield',
-    //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
-    //'#element_validate' => array('avbase_element_validate_date'),
-    //'#av_date_format' => $date_format,
-    '#icon_key' => 'calendar',
-    '#attributes' => array(
-      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
-      'class' => array('trigger-ajax-search'),
-      'readonly' => 'readonly',
-    ),
-    '#access' => FALSE,
-  );
 
-  $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
-  $fields['date_to'] += array(
-    '#type' => 'textfield',
-    '#icon_key' => 'calendar',
-    '#attributes' => array(
-      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
-      'class' => array('trigger-ajax-search'),
-      'readonly' => 'readonly',
-    ),
-    '#access' => FALSE,
-  );
-  $fields['date_from'] = empty($settings['date_from']) ? array() : $settings['date_from'];
-  $fields['date_from'] += array(
-    '#type' => 'textfield',
-    '#icon_key' => 'calendar',
-    '#attributes' => array(
-      'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
-      'class' => array('trigger-ajax-search'),
-      'readonly' => 'readonly',
-    ),
-    '#access' => FALSE,
-  );
+  if (!empty($settings['avtxn.transaction_date'])) {
+    $fields['avtxn.transaction_date'] = empty($settings['avtxn.transaction_date']) ? array() : $settings['avtxn.transaction_date'];
+    $fields['avtxn.transaction_date'] += array(
+      '#type' => 'textfield',
+      //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
+      //'#element_validate' => array('avbase_element_validate_date'),
+      //'#av_date_format' => $date_format,
+      '#icon_key' => 'calendar',
+      '#attributes' => array(
+        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'class' => array('trigger-ajax-search'),
+        'readonly' => 'readonly',
+      ),
+    );
+  }
 
-  $fields['avtxn.transaction_type'] = empty($settings['avtxn.transaction_type']) ? array() : $settings['avtxn.transaction_type'];
-  $fields['avtxn.transaction_type'] += array(
-    '#type' => 'select',
-    '#options' => avtxns_txn_types_options_array(),
-    '#empty_value' => '',
-    '#empty_option' => '- transaction type -',
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => FALSE,
-  );
+  if (!empty($settings['date_auto']) && !empty($settings['date_from']) && !empty($settings['date_to'])) {
+    $fields['settings']['date_auto'] = empty($settings['date_auto']) ? array() : $settings['date_auto'];
+    $fields['settings']['date_auto'] += array(
+      '#type' => 'select',
+      '#options' => avtxns_txn_list_filter_date_auto_options_array(),
+      '#attributes' => array(
+        //'class' => array('trigger-ajax-search'),
+      ),
+    );
+    $js_settings = array('avbase' => array());
+    //$js_settings['avbase']['date_auto'] = avtxns_txn_list_filter_date_auto_options();
+    drupal_add_js($js_settings, 'setting');
+  }
+  if (!empty($settings['date_to'])) {
+    $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
+    $fields['date_to'] += array(
+      '#type' => 'textfield',
+      '#icon_key' => 'calendar',
+      '#attributes' => array(
+        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'class' => array('trigger-ajax-search'),
+        'readonly' => 'readonly',
+      ),
+    );
+  }
+  if (!empty($settings['date_from'])) {
+    $fields['date_from'] = empty($settings['date_from']) ? array() : $settings['date_from'];
+    $fields['date_from'] += array(
+      '#type' => 'textfield',
+      '#icon_key' => 'calendar',
+      '#attributes' => array(
+        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'class' => array('trigger-ajax-search'),
+        'readonly' => 'readonly',
+      ),
+    );
+  }
 
-  $fields['avtxn.status'] = empty($settings['avtxn.status']) ? array() : $settings['avtxn.status'];
-  $fields['avtxn.status'] += array(
-    '#type' => 'select',
-    '#options' => avtxns_txn_status_options_array(),
-    '#empty_value' => '',
-    '#empty_option' => '- status -',
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => FALSE,
-  );
+  if (!empty($settings['avtxn.transaction_type'])) {
+    $fields['avtxn.transaction_type'] = empty($settings['avtxn.transaction_type']) ? array() : $settings['avtxn.transaction_type'];
+    $fields['avtxn.transaction_type'] += array(
+      '#type' => 'select',
+      '#options' => avtxns_txn_types_options_array(),
+      '#empty_value' => '',
+      '#empty_option' => '- transaction type -',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+      '#access' => FALSE,
+    );
+  }
+
+  if (!empty($settings['avtxn.status'])) {
+    $fields['avtxn.status'] = empty($settings['avtxn.status']) ? array() : $settings['avtxn.status'];
+    $fields['avtxn.status'] += array(
+      '#type' => 'select',
+      '#options' => avtxns_txn_status_options_array(),
+      '#empty_value' => '',
+      '#empty_option' => '- status -',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+      '#access' => FALSE,
+    );
+  }
 
   // Set fields' resistance to reset button.
   //foreach ($fields as $k => $v) {
@@ -962,9 +989,8 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       'client_name' => 'Customer',
       'principal_name' => 'Principal',
     ),
-    //'#default_value' => 'avtxn.agent_id',
     '#attributes' => array(
-      'class' => array('suk-button-group', 'trigger-ajax-search'),
+      'class' => array('trigger-ajax-search'),
     ),
     '#access' => !empty($settings['custom_table']['#access'])
   );

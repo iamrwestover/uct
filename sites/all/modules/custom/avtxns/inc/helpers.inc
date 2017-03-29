@@ -1275,3 +1275,110 @@ function avtxns_txn_filter_apply_date(&$where, &$args, $date_string, $date_type 
 
   $args[$placeholder_name] = $timestamp;
 }
+
+function avtxns_txn_list_filter_date_auto_options_array($date_format = 'F d, Y') {
+  $date_auto_options = avtxns_txn_list_filter_date_auto_options($date_format);
+  $options = array('custom' => 'Custom');
+  foreach ($date_auto_options as $dao_k => $dao) {
+    $options[$dao_k] = $dao['title'];
+  }
+  return $options;
+}
+
+/**
+ * @param string $date_format
+ *
+ * @return array
+ */
+function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
+  $now = strtotime(format_date(time(), 'custom', $date_format));
+  $fiscal_date_timestamp = variable_get('av_fiscal_date', strtotime('January 01'));
+  //$fiscal_date_timestamp = strtotime("March 1, 2016");
+  //$fiscal_date_timestamp = strtotime("August 29, 2017");
+  $fiscal_date_text = format_date($fiscal_date_timestamp, 'custom', 'F d');
+  $this_fiscal_date_timestamp = strtotime($fiscal_date_text);
+  if ($this_fiscal_date_timestamp > $now) {
+    $this_fiscal_date_timestamp = strtotime('-1 year', $this_fiscal_date_timestamp);
+  }
+
+
+  $quarters_start_timestamps = array(
+    $this_fiscal_date_timestamp,
+    strtotime('+3 months', $this_fiscal_date_timestamp),
+    strtotime('+6 months', $this_fiscal_date_timestamp),
+    strtotime('+9 months', $this_fiscal_date_timestamp),
+    strtotime('+12 months', $this_fiscal_date_timestamp), // do not remove.
+  );
+
+  for ($x = 0; !isset($this_quarter_timestamp); $x++) {
+    $last_quarter_timestamp = isset($quarters_start_timestamps[$x - 1]) ? $quarters_start_timestamps[$x - 1] : strtotime('-3 months', $this_fiscal_date_timestamp);
+    $last_quarter_end_timestamp = strtotime('yesterday', $quarters_start_timestamps[$x]);
+    if ($now >= $quarters_start_timestamps[$x] && $now < $quarters_start_timestamps[$x + 1]) {
+      $this_quarter_timestamp = $quarters_start_timestamps[$x];
+      $this_quarter_end_timestamp = strtotime('yesterday', $quarters_start_timestamps[$x + 1]);
+    }
+  }
+
+
+  $this_month_timestamp = strtotime('first day of this month');
+  $last_month_timestamp = strtotime('last month', $this_month_timestamp);
+  $options = array(
+    'today' => array(
+      'title' => 'Today',
+      'date_from' => format_date($now, 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'this_week' => array(
+      'title' => 'This week',
+      'date_from' => format_date(strtotime('last Monday'), 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'this_month' => array(
+      'title' => 'This month',
+      'date_from' => format_date($this_month_timestamp, 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'this_quarter' => array(
+      'title' => 'This fiscal quarter',
+      'date_from' => format_date($this_quarter_timestamp, 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'this_year' => array(
+      'title' => 'This fiscal year',
+      'date_from' => format_date($this_fiscal_date_timestamp, 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'yesterday' => array(
+      'title' => 'Yesterday',
+      'date_from' => format_date(strtotime('yesterday'), 'custom', $date_format),
+      'date_to' => format_date(strtotime('yesterday'), 'custom', $date_format),
+    ),
+    'last_month' => array(
+      'title' => 'Last month',
+      'date_from' => format_date($last_month_timestamp, 'custom', $date_format),
+      'date_to' => format_date(strtotime('last day of this month', $last_month_timestamp), 'custom', $date_format),
+    ),
+    'last_month_to_date' => array(
+      'title' => 'Last month to date',
+      'date_from' => format_date($last_month_timestamp, 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'last_quarter' => array(
+      'title' => 'Last fiscal quarter',
+      'date_from' => format_date($last_quarter_timestamp, 'custom', $date_format),
+      'date_to' => format_date($last_quarter_end_timestamp, 'custom', $date_format),
+    ),
+    'last_quarter_to_date' => array(
+      'title' => 'Last fiscal quarter to date',
+      'date_from' => format_date($last_quarter_timestamp, 'custom', $date_format),
+      'date_to' => format_date($now, 'custom', $date_format),
+    ),
+    'last_year' => array(
+      'title' => 'Last fiscal year',
+      'date_from' => format_date(strtotime('-1 year', $this_fiscal_date_timestamp), 'custom', $date_format),
+      'date_to' => format_date(strtotime('yesterday', $this_fiscal_date_timestamp), 'custom', $date_format),
+    ),
+  );
+  
+  return $options;
+}

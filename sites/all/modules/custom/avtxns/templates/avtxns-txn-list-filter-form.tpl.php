@@ -69,6 +69,11 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['settings']['date_auto'])): ?>
+    <div class="uk-width-2-10">
+      <?php print drupal_render($form['settings']['date_auto']); ?>
+    </div>
+  <?php endif; ?>
   <?php if ($date_from): ?>
     <div class="uk-width-2-10">
       <?php print $date_from; ?>
