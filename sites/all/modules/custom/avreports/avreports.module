@@ -161,8 +161,8 @@ function avreports_home_form($form, &$form_state) {
 
   // Accounting.
   $buttons = array();
-  $buttons['sales_to_trade'] = array('#markup' => l('Sales to Trade', 'av/reports/sales-to-trade', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $buttons['soa'] = array('#markup' => l('Statement of Account', 'av/reports/soa', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['sales_to_trade'] = array('#markup' => l('Sales to Trade', 'av/reports/sales-to-trade', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $form['accounting_reports'] = array(
     '#type' => 'fieldset',
     '#title' => t('Accounting'),
@@ -219,10 +219,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     'avtxn.id' => array('#access' => FALSE),
     'search_text' => array('#access' => FALSE),
     'avtxn.transaction_date' => array('#default_value' => $today, '#access' => TRUE),
-    'avcat_agent.title' => array('#access' => TRUE, '#autocomplete_path' => 'av/categories/agent' . $ttd['ctd']['type'] . '/autocomplete'),
     //'reset_button' => array('#access' => FALSE),
     //'search_button' => array('#table_parents' => array('transaction_list_table')),
   );
+  if (!empty($ttd['ctd'])) {
+    $filter_form_settings['avcat_agent.title'] = array('#access' => TRUE, '#autocomplete_path' => 'av/categories/agent' . $ttd['ctd']['type'] . '/autocomplete');
+  }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
 
