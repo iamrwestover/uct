@@ -161,7 +161,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#attributes' => array(
       'class' => array('uk-text-uppercase'),
     ),
-    '#required' => TRUE,
+    //'#required' => TRUE,
   );
   $info['category_id'] = array(
     '#type' => 'select',

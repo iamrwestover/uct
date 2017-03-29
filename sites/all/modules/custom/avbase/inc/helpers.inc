@@ -937,3 +937,60 @@ function avbase_account_chart_sum_parent_balance(&$tree) {
     }
   }
 }
+
+/**
+ * @param $rows
+ * @param $field_name
+ * @param $search_string
+ * @return array
+ */
+function avbase_order_db_rows_by_best_match($rows, $field_name, $search_string = '') {
+  if (empty($search_string)) {
+    return $rows;
+  }
+
+  $grouped_rows = array();
+  $string_arr = explode(' ', $search_string);
+  foreach ($rows as $row) {
+    if (strtolower($row->$field_name) == strtolower($search_string)) {
+      // Prioritize exact match.
+      $grouped_rows[0][] = $row;
+    }
+    else {
+      if (count($string_arr) == 1) {
+        // No exact match. Only one word is searched
+        if (stripos($row->$field_name, $string_arr[0] . ' ') === 0) {
+          // Prioritize first word of $field_name if it matches "$string ".
+          $grouped_rows[1][] = $row;
+          continue;
+        }
+        elseif (stripos($row->$field_name, $string_arr[0]) === 0) {
+          // Prioritize first word of $field_name if it matches "$string".
+          $grouped_rows[2][] = $row;
+          continue;
+        }
+      }
+
+      $all_words_found = TRUE;
+      foreach ($string_arr as $s) {
+        if (stripos($row->$field_name, $s . ' ') === FALSE && stripos($row->$field_name, ' ' . $s) === FALSE) {
+          $all_words_found = FALSE;
+          break;
+        }
+      }
+      if ($all_words_found) {
+        $grouped_rows[3][] = $row;
+      }
+      else {
+        $grouped_rows[4][] = $row;
+      }
+    }
+  }
+  $ordered_rows = array();
+  ksort($grouped_rows);
+  //dpm($grouped_rows);
+  foreach ($grouped_rows as $gr) {
+    $ordered_rows = array_merge($ordered_rows, $gr);
+  }
+  return $ordered_rows;
+}

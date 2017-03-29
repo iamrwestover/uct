@@ -303,15 +303,33 @@ function avbase_category_autocomplete($category_ids_string, $string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
-    $query = db_select('avtbl_categories', 'avc')->fields('avc', array('title'));
-    $query->condition('avc.title', '%' . db_like($string) . '%', 'LIKE');
+    $where = array();
+    $args = array();
+    $where_or = array();
+    $string_arr = explode(' ', $string);
+    $like_where = array();
+    foreach ($string_arr as $k => $s) {
+      $like_where[] = 'title LIKE :string_' . $k;
+      $args[':string_' . $k] = '%' . db_like($s) . '%';
+    }
+    $where_or[] = '(' . implode(' AND ', $like_where) . ')';
+    $where_or_str = '(' . implode(' OR ', $where_or) . ')';
+    $where[] = $where_or_str;
 
     $category_ids = explode('-', $category_ids_string);
-    $query->condition('avc.group_id', $category_ids, 'IN');
-    $query->range(0, 10);
-    $result = $query->execute();
+    $category_ids = array_filter($category_ids);
+    if (!empty($category_ids)) {
+      $where[] = "group_id IN(:category_ids)";
+      $args[':category_ids'] = $category_ids;
+    }
 
-    foreach ($result as $row) {
+    // Build query.
+    $query = "SELECT * FROM avtbl_categories WHERE " . implode(' AND ', $where) . " ORDER BY title LIMIT 8";
+    $rs = db_query($query, $args);
+    $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
+
+
+    foreach ($ordered_rows as $row) {
       $matches[$row->title] = check_plain($row->title);
     }
   }

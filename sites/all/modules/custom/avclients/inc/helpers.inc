@@ -194,30 +194,39 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
   $matches = array();
   $string = trim($string);
   if ($string) {
-    $where_or = array(
-      'avclients.display_name LIKE :string',
-      'avclients.company LIKE :string',
-      'avclients.first_name LIKE :string',
-      'avclients.last_name LIKE :string',
-    );
+    $where = array();
+    $args = array();
+    $where_or = array();
+    $string_arr = explode(' ', $string);
+    $like_where = array();
+    foreach ($string_arr as $k => $s) {
+      $like_where[] = 'display_name LIKE :string_' . $k;
+      $args[':string_' . $k] = '%' . db_like($s) . '%';
+    }
+    $where_or[] = '(' . implode(' AND ', $like_where) . ')';
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
-    $args = array(':string' => '%' . db_like($string) . '%');
-    $where = array($where_or_str);
+    $where[] = $where_or_str;
 
     $client_types = explode('-', $client_type_string);
     $client_types = array_filter($client_types);
     if (!empty($client_types)) {
-      $where[] = 'avclients.client_type IN(:client_types)';
+      $where[] = 'client_type IN(:client_types)';
       $args[':client_types'] = $client_types;
     }
-
     $statuses = explode('-', $status_string);
     $statuses = array_filter($statuses);
-    $where[] = 'avclients.status IN(:client_status)';
-    $args[':client_status'] = $statuses;
+    if (!empty($statuses)) {
+      $where[] = "status IN(:statuses)";
+      $args[':statuses'] = $statuses;
+    }
 
-    $rows = avclient_query_load($where, $args, '8');
-    foreach ($rows as $row) {
+    // Build query.
+    $query = "SELECT * FROM avtbl_clients WHERE " . implode(' AND ', $where) . " ORDER BY display_name LIMIT 8";
+    $rs = db_query($query, $args);
+
+    $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'display_name', $string);
+    foreach ($ordered_rows as $row) {
+      $row->address_string = avclients_address_string_format($row);
       $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . $row->address_string .  '</div>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';

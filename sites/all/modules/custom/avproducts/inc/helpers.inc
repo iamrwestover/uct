@@ -193,17 +193,32 @@ function avproducts_autocomplete($string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
+    $where = array();
+    $args = array();
     $where_or = array(
-      'avprod.title LIKE :string',
-      'avprod.code LIKE :string',
+      //'avprod.title LIKE :string',
+      'code = :exact_string',
     );
+    $string_arr = explode(' ', $string);
+    $like_where = array();
+    foreach ($string_arr as $k => $s) {
+      $like_where[] = 'title LIKE :string_' . $k;
+      $args[':string_' . $k] = '%' . db_like($s) . '%';
+    }
+    $where_or[] = '(' . implode(' AND ', $like_where) . ')';
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
-    $where = array($where_or_str);
-    $args = array(':string' => '%' . db_like($string) . '%');
-    $where[] = 'avprod.status = :active_status';
+    $where[] = $where_or_str;
+    $args[':exact_string'] = $string;
+
+    $where[] = 'status = :active_status';
     $args[':active_status'] = AVPRODUCTS_STATUS_ACTIVE;
-    $rows = avproduct_query_load($where, $args, '8');
-    foreach ($rows as $row) {
+
+    // Build query.
+    $query = "SELECT * FROM avtbl_products WHERE " . implode(' AND ', $where) . " ORDER BY title LIMIT 8";
+    $rs = db_query($query, $args);
+    $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
+
+    foreach ($ordered_rows as $row) {
       $code = check_plain($row->code);
       $title = check_plain($row->title);
       $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;

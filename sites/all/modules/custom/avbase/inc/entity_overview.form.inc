@@ -68,33 +68,39 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
 
   $where = array();
   $args = array();
-  $where[] = "avclients.client_type = :client_type";
+  $where[] = "client_type = :client_type";
   $args[':client_type'] = $entity_type;
 
   if (!empty($search_string)) {
-    $where_or = array(
-      "avclients.display_name LIKE :string",
-      "avclients.company LIKE :string",
-      "avclients.first_name LIKE :string",
-      "avclients.last_name LIKE :string",
-    );
+    $where_or = array();
+    $string_arr = explode(' ', $search_string);
+    $like_where = array();
+    foreach ($string_arr as $k => $s) {
+      $like_where[] = 'display_name LIKE :string_' . $k;
+      $args[':string_' . $k] = '%' . db_like($s) . '%';
+    }
+    $where_or[] = '(' . implode(' AND ', $like_where) . ')';
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where[] = $where_or_str;
-    $args[':string'] = '%' . db_like($search_string) . '%';
   }
 
+  // Build query.
+  $query = "SELECT * FROM avtbl_clients WHERE " . implode(' AND ', $where) . " ORDER BY created DESC LIMIT 10";
+  $rs = db_query($query, $args);
+  $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'display_name', $search_string);
+
   $ctd = avclients_client_types($entity_type);
-  $result = avclient_query_load($where, $args, '10');
   $menu_path = $ctd['base_path'];
 
   $action_links_all = array();
   $loaded_entities = array();
   $rows = array();
   $index = 0;
-  foreach ($result as $row) {
+  foreach ($ordered_rows as $row) {
     $index++;
     $status = isset($row->status) ? $row->status : NULL;
 
+    $row->address_string = avclients_address_string_format($row);
     $menu_prefix = "$menu_path/" . $row->id;
     $linked_name = l($row->display_name, $menu_prefix . '/view');
     $rows[$index] = array(

@@ -1,14 +1,14 @@
 (function ($) {
   //console.log('loading');
-  var avLoadingTimeout = setTimeout (function() {
-    console.log('pagein timeout reached.');
-    $('#loading-center').fadeIn();
-  }, 3000);
-
-  $(window).on('load', function() {
-    clearTimeout(avLoadingTimeout);
-    $('#loading').delay(500).fadeOut('fast');
-  });
+  //var avLoadingTimeout = setTimeout (function() {
+  //  console.log('pagein timeout reached.');
+  //  $('#loading-center').fadeIn();
+  //}, 3000);
+  //
+  //$(window).on('load', function() {
+  //  clearTimeout(avLoadingTimeout);
+  //  $('#loading').delay(500).fadeOut('fast');
+  //});
   //
   $(window).on('beforeunload', function() {
     $('#loading').fadeIn('fast');
