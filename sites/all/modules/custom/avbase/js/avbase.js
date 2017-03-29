@@ -57,7 +57,7 @@ jQuery(document).ready(function ($) {
   }
 
   //// Auto focus on first textbox or textarea.
-  $("#region-content-wrapper input:text:not([readonly]), #region-content-wrapper textarea").eq(0).focus()
+  $("#region-content-wrapper input:text:not([data-uk-datepicker]), #region-content-wrapper textarea").eq(0).focus()
 });
 
 var avbaseGetUrlParameter = function getUrlParameter(sParam) {

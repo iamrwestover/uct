@@ -1022,46 +1022,11 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state) {
       continue;
     }
     elseif ($k == 'date_to' && $v != '') {
-      $timestamp = strtotime($v);
-      if (empty($timestamp)) {
-        continue;
-      }
-      $next_day_timestamp = strtotime('+1 day', $timestamp);
-      //$query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
-      if (!empty($query_field_aliases)) {
-        $this_or = array();
-        foreach ($query_field_aliases as $qfa) {
-          $this_or[] = "$qfa < :stamp2";
-        }
-        if (!empty($this_or)) {
-          $where[] = '(' . implode(' OR ', $this_or) . ')';
-        }
-      }
-      else {
-        $where[] = 'avtxn.transaction_date < :stamp2';
-      }
-      $args[':stamp2'] = $next_day_timestamp;
+      avtxns_txn_filter_apply_date($where, $args, $v, 'date_to');
       continue;
     }
     elseif ($k == 'date_from' && $v != '') {
-      $timestamp = strtotime($v);
-      if (empty($timestamp)) {
-        continue;
-      }
-      //$query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
-      if (!empty($query_field_aliases)) {
-        $this_or = array();
-        foreach ($query_field_aliases as $qfa) {
-          $this_or[] = "$qfa >= :stamp_from";
-        }
-        if (!empty($this_or)) {
-          $where[] = '(' . implode(' OR ', $this_or) . ')';
-        }
-      }
-      else {
-        $where[] = 'avtxn.transaction_date >= :stamp_from';
-      }
-      $args[':stamp_from'] = $timestamp;
+      avtxns_txn_filter_apply_date($where, $args, $v);
       continue;
     }
 

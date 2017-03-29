@@ -1250,3 +1250,28 @@ function avtxns_product_query_load($param_where = array(), $param_args = array()
   $data[$data_id] = $rows;
   return $rows;
 }
+
+/**
+ * Generate $where and $arg values for date filter.
+ * @param $where
+ * @param $args
+ * @param $date_string
+ * @param $date_type
+ */
+function avtxns_txn_filter_apply_date(&$where, &$args, $date_string, $date_type = 'date_from') {
+  $timestamp = strtotime($date_string);
+  if (empty($timestamp)) {
+    return;
+  }
+
+  $placeholder_name = ':' . $date_type . '_stamp';
+  if ($date_type == 'date_from') {
+    $where[] = 'avtxn.transaction_date >= ' . $placeholder_name;
+  }
+  else {
+    $timestamp = strtotime('+1 day', $timestamp);
+    $where[] = 'avtxn.transaction_date < ' . $placeholder_name;
+  }
+
+  $args[$placeholder_name] = $timestamp;
+}
