@@ -30,7 +30,7 @@ function avimport_get_valid_headers($type) {
       $optional['UOM 2 QTY'] = 'uom_2_qty';
       $optional['UOM 3'] = 'uom_3_title';
       $optional['UOM 3 QTY'] = 'uom_3_qty';
-      $optional['EXPIRY DATE'] = 'expiry_date';
+      //$optional['EXPIRY DATE'] = 'expiry_date';
       $optional['LOT NO'] = 'lot_no';
       $optional['SHELF LOCATION'] = 'shelf_title';
       $optional['DISCOUNT'] = 'discount';

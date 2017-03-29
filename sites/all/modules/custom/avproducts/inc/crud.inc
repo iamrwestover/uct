@@ -271,18 +271,18 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#required' => TRUE,
   );
 
-  $date_format = 'M. d, Y';
-  $info['expiry_date'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Expiration date',
-    '#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
-    '#element_validate' => array('avbase_element_validate_date'),
-    '#av_date_format' => $date_format,
-    '#icon_key' => 'calendar',
-    '#attributes' => array(
-      'data-uk-datepicker' => "{format:'MMM. DD, YYYY', minDate: '" . format_date(time(), 'custom', $date_format) . "'}",
-    ),
-  );
+  //$date_format = 'M. d, Y';
+  //$info['expiry_date'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Expiration date',
+  //  '#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
+  //  '#element_validate' => array('avbase_element_validate_date'),
+  //  '#av_date_format' => $date_format,
+  //  '#icon_key' => 'calendar',
+  //  '#attributes' => array(
+  //    'data-uk-datepicker' => "{format:'MMM. DD, YYYY', minDate: '" . format_date(time(), 'custom', $date_format) . "'}",
+  //  ),
+  //);
 
   $info['lot_no'] = array(
     '#type' => 'textfield',
