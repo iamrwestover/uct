@@ -206,7 +206,7 @@ function avproducts_home_form($form, &$form_state) {
     ->fields('avprod')
     ->extend('PagerDefault')
     ->extend('TableSort')
-    ->limit(20)
+    ->limit(50)
     ->orderByHeader($header);
   if (!empty($or)) {
     $db_or = db_or();

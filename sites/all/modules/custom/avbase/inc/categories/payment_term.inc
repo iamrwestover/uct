@@ -20,32 +20,32 @@ function avbase_category_payment_term_form_alter(&$form, $db_row) {
     '#special_element_type' => 'number',
     '#weight' => 1.1,
   );
-  $form['discount_type'] = array(
-    '#type' => 'select',
-    '#title' => 'Default discount type',
-    '#options' => avbase_get_discount_types(),
-    '#default_value' => isset($db_row->data['discount_type']) ? $db_row->data['discount_type'] : 1,
-    '#weight' => 1.2,
-    '#required' => TRUE,
-  );
-  $form['discount_value'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Default discount value',
-    '#default_value' => isset($db_row->data['discount_value']) ? $db_row->data['discount_value'] : '',
-    '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
-    '#special_element_type' => 'number',
-    '#weight' => 1.3,
-    '#attributes' => array(
-      //'class' => array(''),
-      'step' => 0.01,
-    ),
-  );
+  //$form['discount_type'] = array(
+  //  '#type' => 'select',
+  //  '#title' => 'Default discount type',
+  //  '#options' => avbase_get_discount_types(),
+  //  '#default_value' => isset($db_row->data['discount_type']) ? $db_row->data['discount_type'] : 1,
+  //  '#weight' => 1.2,
+  //  '#required' => TRUE,
+  //);
+  //$form['discount_value'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Default discount value',
+  //  '#default_value' => isset($db_row->data['discount_value']) ? $db_row->data['discount_value'] : '',
+  //  '#maxlength' => 19,
+  //  '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+  //  '#special_element_type' => 'number',
+  //  '#weight' => 1.3,
+  //  '#attributes' => array(
+  //    //'class' => array(''),
+  //    'step' => 0.01,
+  //  ),
+  //);
 
   // Add to data fields that will be saved to database.
   $form['data_ids']['#value'][] = 'days';
-  $form['data_ids']['#value'][] = 'discount_type';
-  $form['data_ids']['#value'][] = 'discount_value';
+  //$form['data_ids']['#value'][] = 'discount_type';
+  //$form['data_ids']['#value'][] = 'discount_value';
 }
 
 /**
@@ -67,10 +67,10 @@ function avbase_categories_payment_term_list_alter(&$table_options, $db_rows) {
     'data' => 'Days',
     '#weight' => 1.1,
   );
-  $header[$column_discount_key] = array(
-    'data' => 'Discount',
-    '#weight' => 1.2,
-  );
+  //$header[$column_discount_key] = array(
+  //  'data' => 'Discount',
+  //  '#weight' => 1.2,
+  //);
 
   // Rename title header.
   $header['title'] = t('Payment term name');
@@ -89,18 +89,18 @@ function avbase_categories_payment_term_list_alter(&$table_options, $db_rows) {
       'data' => $days > 0 ? $days : '',
     );
 
-    // Add 'Discount' column.
-    $discount = isset($data['discount_value']) ? check_plain($data['discount_value']) : '';
-    if ($discount) {
-      $discount_type = isset($data['discount_type']) ? $data['discount_type'] : 0;
-      $discount = number_format($discount, 2);
-      //$discount = $discount_type == 1 ? round($discount, 2) : ' / <span class="uk-text-muted">fixed amount</span>';
-      //$discount .= $discount_type == 1 ? '%' : ' / <span class="uk-text-muted">fixed amount</span>';
-      $discount .= $discount_type == 1 ? '%' : ' / <span class="uk-text-muted">fixed amount</span>';
-    }
-    $row['data'][$column_discount_key] = array(
-      'data' => $discount,
-    );
+    //// Add 'Discount' column.
+    //$discount = isset($data['discount_value']) ? check_plain($data['discount_value']) : '';
+    //if ($discount) {
+    //  $discount_type = isset($data['discount_type']) ? $data['discount_type'] : 0;
+    //  $discount = number_format($discount, 2);
+    //  //$discount = $discount_type == 1 ? round($discount, 2) : ' / <span class="uk-text-muted">fixed amount</span>';
+    //  //$discount .= $discount_type == 1 ? '%' : ' / <span class="uk-text-muted">fixed amount</span>';
+    //  $discount .= $discount_type == 1 ? '%' : ' / <span class="uk-text-muted">fixed amount</span>';
+    //}
+    //$row['data'][$column_discount_key] = array(
+    //  'data' => $discount,
+    //);
 
     // Remove description column.
     unset($row['data']['description']);

@@ -56,7 +56,7 @@ function avbase_categories_form($form, &$form_state, $category_id) {
     ->condition('group_id', $category_id)
     ->extend('PagerDefault')
     ->extend('TableSort')
-    ->limit(10)
+    ->limit(30)
     ->orderByHeader($header)
     ->execute();
 
@@ -87,7 +87,7 @@ function avbase_categories_form($form, &$form_state, $category_id) {
     );
   }
 
-  $table_attributes = array('id' => 'categories-list-table');
+  $table_attributes = array('id' => 'categories-list-table', 'class' => array('uk-table-condensed'));
 
   // Let other modules alter table data.
   $table_options = array(

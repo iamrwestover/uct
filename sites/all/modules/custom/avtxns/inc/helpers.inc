@@ -1379,6 +1379,6 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
       'date_to' => format_date(strtotime('yesterday', $this_fiscal_date_timestamp), 'custom', $date_format),
     ),
   );
-  
+
   return $options;
 }
