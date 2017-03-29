@@ -194,16 +194,6 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
   $matches = array();
   $string = trim($string);
   if ($string) {
-    //$db_or = db_or();
-    //$db_or->condition('avclients.display_name', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avclients.company', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avclients.first_name', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avclients.last_name', '%' . db_like($string) . '%', 'LIKE');
-    //
-    //$query = db_select('avtbl_clients', 'avcust')->fields('avcust', array('id', 'display_name', 'company', 'email', 'term_id', 'discount_type', 'discount_value'));
-    //$query->condition($db_or);
-    //$query->range(0, 15);
-    //$result = $query->execute();
     $where_or = array(
       'avclients.display_name LIKE :string',
       'avclients.company LIKE :string',
@@ -222,6 +212,7 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
     }
 
     $statuses = explode('-', $status_string);
+    $statuses = array_filter($statuses);
     $where[] = 'avclients.status IN(:client_status)';
     $args[':client_status'] = $statuses;
 
@@ -232,6 +223,40 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;
     }
+
+
+    //$where_or = array(
+    //  '(MATCH (display_name) AGAINST (:string IN BOOLEAN MODE))',
+    //  //'(display_name LIKE :like_string)',
+    //);
+    //$where_or_str = '(' . implode(' OR ', $where_or) . ')';
+    //$where = array($where_or_str);
+    //$args = array(':string' => $string);
+    ////$args[':like_string'] = '%' . db_like($string) . '%';
+    //// Filter client status.
+    //$statuses = explode('-', $status_string);
+    //$statuses = array_filter($statuses);
+    //if (!empty($statuses)) {
+    //  $where[] = "client_type IN(:statuses)";
+    //  $args['statuses'] = $statuses;
+    //}
+    //// Filter client type.
+    //$client_types = explode('-', $client_type_string);
+    //$client_types = array_filter($client_types);
+    //if (!empty($client_types)) {
+    //  $where[] = "client_type IN(:client_types)";
+    //  $args['client_types'] = $client_types;
+    //}
+    //// Build query.
+    //$query = "SELECT * FROM avtbl_clients WHERE " . implode(' AND ', $where) . " LIMIT 8";
+    //$rs = db_query($query, $args);
+    //foreach ($rs as $row) {
+    //  $row->address_string = avclients_address_string_format($row);
+    //  $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . $row->address_string .  '</div>';
+    //  $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
+    //  $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
+    //  $matches[$row->display_name] = $row_html;
+    //}
   }
 
   drupal_json_output($matches);

@@ -235,6 +235,26 @@ function avtxns_account_chart_autocomplete($account_type_string, $string = '') {
     $rows = avtxns_account_chart_query_load($where, $args, '8');
     $rows_tree = avbase_rows_build_tree($rows, 0, FALSE);
     $matches = avtxns_account_chart_autocomplete_matches($rows_tree);
+
+    //$where = array();
+    //$args = array(':string' => $string);
+    //$account_types = explode('-', $account_type_string);
+    //$account_types = array_filter($account_types);
+    //if (!empty($account_types)) {
+    //  $where[] = 'account_type IN(:account_types)';
+    //  $args[':account_types'] = $account_types;
+    //}
+    //// Build query.
+    //$query = "SELECT * FROM avtbl_account_chart WHERE MATCH (title) AGAINST (:string)";
+    //$query .= empty($where) ? '' : ' AND ' . implode(' AND ', $where);
+    //$query .= " LIMIT 8";
+    //$rs = db_query($query, $args);
+    //$rows = array();
+    //foreach ($rs as $row) {
+    //  $rows[] = $row;
+    //}
+    //$rows_tree = avbase_rows_build_tree($rows, 0, FALSE);
+    //$matches = avtxns_account_chart_autocomplete_matches($rows_tree);
   }
 
   drupal_json_output($matches);

@@ -64,9 +64,9 @@ function avimport_import_form($form, &$form_state) {
     //'#description' => t('Type of data to import'),
     //'#title_display' => 'none',
     '#options' => array(
-      'products' => t('Products'),
-      'customers' => t('Customers'),
-      'vendors' => t('Vendors'),
+      'products' => t('NEW products'),
+      'customers' => t('NEW customers'),
+      'vendors' => t('NEW vendors'),
     ),
     '#default_value' => 'products',
     '#attributes' => array(
@@ -414,10 +414,9 @@ function avimport_batch_read_finished($success, $results, $operations) {
 
 function avimport_form_valid_header_field($types) {
   $field =  array('#type' => 'item', '#markup' => '');
-  foreach ($types as $type) {
-    $type = strtolower($type);
-    $valid_headers = avimport_get_valid_headers($type);
-    $markup = '<div id="' . $type . '-valid-headers" class="import-valid-headers uk-hidden">';
+  foreach ($types as $type_k => $type) {
+    $valid_headers = avimport_get_valid_headers($type_k);
+    $markup = '<div id="' . $type_k . '-valid-headers" class="import-valid-headers uk-hidden">';
     $markup .= t('Required headers: !headers', array('!headers' => implode(', ', array_keys($valid_headers['required']))));
     $markup .= '<br />' . t('Optional headers: !headers', array('!headers' => implode(', ', array_keys($valid_headers['optional']))));
     $markup .= '</div>';

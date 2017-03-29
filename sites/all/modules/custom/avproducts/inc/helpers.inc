@@ -193,26 +193,6 @@ function avproducts_autocomplete($string = '') {
   $matches = array();
   $string = trim($string);
   if ($string) {
-    //$db_or = db_or();
-    //$db_or->condition('avprod.title', '%' . db_like($string) . '%', 'LIKE');
-    //$db_or->condition('avprod.code', '%' . db_like($string) . '%', 'LIKE');
-    //
-    //$query = db_select('avtbl_products', 'avprod')->fields('avprod', array('id', 'title', 'code', 'uom_id', 'cost', 'price', 'data'));
-    //$query->condition($db_or);
-    //$query->range(0, 8);
-    //$result = $query->execute();
-    //
-    //foreach ($result as $row) {
-    //  $code = check_plain($row->code);
-    //  $title = check_plain($row->title);
-    //  $row->data = unserialize($row->data);
-    //  //$uoms = empty($data['uoms']) ? array() : $data['uoms'];
-    //  $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;
-    //  $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
-    //  $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
-    //  $matches[$row->title] = $row_html;
-    //}
-
     $where_or = array(
       'avprod.title LIKE :string',
       'avprod.code LIKE :string',
@@ -231,6 +211,34 @@ function avproducts_autocomplete($string = '') {
       $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->title] = $row_html;
     }
+
+    //$string = explode(' ', $string);
+    //foreach ($string as $k => $s) {
+    //  $string[$k] = "-$s";
+    //}
+    //$string = implode(' ', $string);
+  //  $where_or = array(
+  //    '(MATCH (title) AGAINST (:string IN BOOLEAN MODE))',
+  //    //'(code = :string)',
+  //  );
+  //  $where_or_str = '(' . implode(' OR ', $where_or) . ')';
+  //  $where = array($where_or_str);
+  //  $args = array(':string' => $string);
+  //  //$args[':like_string'] = '%' . db_like($string) . '%';
+  //  $where[] = 'status = :active_status';
+  //  $args[':active_status'] = AVPRODUCTS_STATUS_ACTIVE;
+  //
+  //  // Build query.
+  //  $query = "SELECT * FROM avtbl_products WHERE " . implode(' AND ', $where) . " LIMIT 8";
+  //  $rs = db_query($query, $args);
+  //  foreach ($rs as $row) {
+  //    $code = check_plain($row->code);
+  //    $title = check_plain($row->title);
+  //    $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;
+  //    $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';
+  //    $row_html .= '<div style="display: none;" id="av-prod-json">' . drupal_json_encode($row) . '</div>';
+  //    $matches[$row->title] = $row_html;
+  //  }
   }
 
   drupal_json_output($matches);
