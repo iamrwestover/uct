@@ -942,6 +942,28 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
+  if (!empty($settings['table_group_by'])) {
+    $fields['settings']['table_group_by'] = empty($settings['table_group_by']) ? array() : $settings['table_group_by'];
+    $fields['settings']['table_group_by'] += array(
+      '#type' => 'radios',
+      '#title' => 'Group by',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
+  if (!empty($settings['table_columns'])) {
+    $fields['settings']['table_columns'] = empty($settings['table_columns']) ? array() : $settings['table_columns'];
+    $fields['settings']['table_columns'] += array(
+      '#type' => 'checkboxes',
+      '#title' => 'Columns',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
   // Set fields' resistance to reset button.
   //foreach ($fields as $k => $v) {
   //
@@ -983,52 +1005,50 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     ),
   );
 
-  $fields['settings']['table_group_by'] = array(
-    '#type' => 'radios',
-    '#title' => 'Group by',
-    '#options' => array(
-      '' => 'No grouping',
-      'agent_name' => 'Agent',
-      'client_name' => 'Customer',
-      'principal_name' => 'Principal',
-    ),
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => !empty($settings['custom_table']['#access'])
-  );
-  $fields['settings']['table_columns'] = array(
-    '#type' => 'checkboxes',
-    '#title' => 'Columns',
-    '#options' => array(
-      'agent_name' => 'Agent',
-      'client_name' => 'Customer',
-      'client_address' => 'Address',
-      'principal_name' => 'Principal',
-      'item_name' => 'Product',
-    ),
-    //'#default_value' => array('a', 'b'),
-    '#attributes' => array(
-      'class' => array('trigger-ajax-search'),
-    ),
-    '#access' => !empty($settings['custom_table']['#access'])
-  );
-
   $form['avtxns_tl_filter'] = $fields;
+
+  // Apply default values to $form_state.
+  if (empty($form_state['values']['avtxns_tl_filter'])) {
+    foreach (element_children($fields) as $f_k) {
+      if ($f_k == 'buttons') {
+        continue;
+      }
+      elseif ($f_k == 'settings') {
+        foreach (element_children($fields[$f_k]) as $ff_k) {
+          if (isset($fields[$f_k][$ff_k]['#default_value'])) {
+            $default_value = $fields[$f_k][$ff_k]['#default_value'];
+            if (is_array($default_value)) {
+              $default_value = array_combine($default_value, $default_value);
+            }
+            $form_state['values']['avtxns_tl_filter'][$f_k][$ff_k] = $default_value;
+          }
+        }
+      }
+      elseif (isset($fields[$f_k]['#default_value'])) {
+        $form_state['values']['avtxns_tl_filter'][$f_k] = $fields[$f_k]['#default_value'];
+      }
+    }
+    if (!empty($form_state['values']['avtxns_tl_filter'])) {
+      avtxns_txn_list_filter_form_submit($form, $form_state, TRUE);
+    }
+  }
   return $form;
 }
 
-function avtxns_txn_list_filter_form_submit($form, &$form_state) {
-  $form_state['rebuild'] = TRUE;
+function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default = FALSE) {
+  if (!$from_default) {
+    $form_state['rebuild'] = TRUE;
+  }
+
   $filter_values = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
   $arg_index = 0;
   $where = $args = array();
-  $query_exceptions = empty($form['#transaction_query_exceptions']) ? array() : $form['#transaction_query_exceptions'];
+  //$query_exceptions = empty($form['#transaction_query_exceptions']) ? array() : $form['#transaction_query_exceptions'];
   foreach ($filter_values as $k => $v) {
     if ($k == 'buttons' || $k == 'settings') {
       continue;
     }
-    $query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
+    //$query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
     $v = trim($v);
     $arg_name = 'arg_' . $arg_index++;
     if ($k == 'search_text' && $v != '') {
@@ -1060,18 +1080,18 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state) {
     }
 
     if ($v != '') {
-      if (!empty($query_field_aliases)) {
-        $this_or = array();
-        foreach ($query_field_aliases as $qfa) {
-          $this_or[] = "$qfa = :$arg_name";
-        }
-        if (!empty($this_or)) {
-          $where[] = '(' . implode(' OR ', $this_or) . ')';
-        }
-      }
-      else {
+      //if (!empty($query_field_aliases)) {
+      //  $this_or = array();
+      //  foreach ($query_field_aliases as $qfa) {
+      //    $this_or[] = "$qfa = :$arg_name";
+      //  }
+      //  if (!empty($this_or)) {
+      //    $where[] = '(' . implode(' OR ', $this_or) . ')';
+      //  }
+      //}
+      //else {
         $where[] = "{$k} = :$arg_name";
-      }
+      //}
       $args[":$arg_name"] = $v;
     }
   }

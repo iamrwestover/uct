@@ -20,13 +20,25 @@
 
       // Date auto field.
       self.$dateAutoEl = $(this).find('#date-auto');
+      self.$dateFromEl = $(this).find('#date-from');
+      self.$dateToEl = $(this).find('#date-to');
       self.$dateAutoEl.change(function () {
+        if ($(this).val() == 'custom') {
+          return;
+        }
         var avbase = Drupal.settings.avbase || {};
         var dateAuto = avbase.date_auto || {};
         var dateAutoDetails = dateAuto[$(this).val()] || {};
-        $thisForm.find('#date-from').val(dateAutoDetails.date_from || '');
-        $thisForm.find('#date-to').val(dateAutoDetails.date_to || '');
+        self.$dateFromEl.val(dateAutoDetails.date_from || '');
+        self.$dateToEl.val(dateAutoDetails.date_to || '');
         self.$searchBtn.trigger('click');
+      });
+
+      self.$dateFromEl.change(function () {
+        self.$dateAutoEl.val('custom');
+      });
+      self.$dateToEl.change(function () {
+        self.$dateAutoEl.val('custom');
       });
     });
 

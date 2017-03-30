@@ -1291,6 +1291,11 @@ function avtxns_txn_list_filter_date_auto_options_array($date_format = 'F d, Y')
  * @return array
  */
 function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
+  $data = &drupal_static(__FUNCTION__, array());
+  if (isset($data[$date_format])) {
+    return $data[$date_format];
+  }
+
   $now = strtotime(format_date(time(), 'custom', $date_format));
   $fiscal_date_timestamp = variable_get('av_fiscal_date', strtotime('January 01'));
   //$fiscal_date_timestamp = strtotime("March 1, 2016");
@@ -1380,5 +1385,6 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
     ),
   );
 
-  return $options;
+  $data[$date_format] = $options;
+  return $data[$date_format];
 }

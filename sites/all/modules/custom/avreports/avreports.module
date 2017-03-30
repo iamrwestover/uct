@@ -934,15 +934,20 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
 function avreports_sales_to_trade_form($form, &$form_state) {
   $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
   $ctd = avclients_client_types(AVCLIENT_TYPE_CUSTOMER);
+  $dad = avtxns_txn_list_filter_date_auto_options();
+  $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
+      '#default_value' => 'this_week',
     ),
     'date_from' => array(
       '#title' => t('Date from'),
+      '#default_value' => $dad_default['date_from'],
     ),
     'date_to' => array(
       '#title' => t('Date to'),
+      '#default_value' => $dad_default['date_to'],
     ),
     'avclients.display_name' => array(
       '#title' => $ctd['name'],
@@ -957,7 +962,24 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       '#autocomplete_path' => 'av/categories/principal/autocomplete',
     ),
     //'avcat_area.title' => array('#access' => $transaction_kind == 'sales'),
-    'custom_table' => array('#access' => TRUE),
+    'table_columns' => array(
+      '#options' => array(
+        'agent_name' => 'Agent',
+        'client_name' => 'Customer',
+        'client_address' => 'Address',
+        'principal_name' => 'Principal',
+        'item_name' => 'Product',
+      ),
+      '#default_value' => array('agent_name'),
+    ),
+    'table_group_by' => array(
+      '#options' => array(
+        '' => 'No grouping',
+        'agent_name' => 'Agent',
+        'client_name' => 'Customer',
+        'principal_name' => 'Principal',
+      ),
+    ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
@@ -1189,14 +1211,14 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     $client = array_shift($client);
   }
   $transaction_list_table['date_from'] = array(
-    '#title' => 'Date from',
+    '#title' => 'Date From',
     '#title_display' => 'inline-before',
     '#type' => 'item',
     '#markup' => empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']),
     '#access' => !empty($user_filter['date_from']),
   );
   $transaction_list_table['date_to'] = array(
-    '#title' => 'Date to',
+    '#title' => 'Date To',
     '#title_display' => 'inline-before',
     '#type' => 'item',
     '#markup' => empty($user_filter['date_to']) ? '' : check_plain($user_filter['date_to']),
