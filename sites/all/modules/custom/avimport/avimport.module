@@ -59,7 +59,14 @@ function avimport_import_form($form, &$form_state) {
     '#access' => empty($excel_rows),
   );
   $form['analyze_data']['notice'] = array(
-    '#markup' => '<div class="uk-text-large uk-margin-bottom">Before proceeding, kindly double check to make sure that your excel file contains the correct header names (all CAPS).<br />Also make sure that it contains all the required headers.</div>',
+    '#markup' => '
+    <div class="uk-margin-bottom">
+      <span class="uk-text-large">Before proceeding, kindly double check to make sure that your excel file:</span>
+      <br />- contains the correct header names (all CAPS).
+      <br />- contains all the required headers.
+      <br />- does not have any formula in any cell.
+      <br />- does not have any hidden row or column.
+    </div>',
   );
   $form['analyze_data']['import_type'] = array(
     '#type' => 'radios',
