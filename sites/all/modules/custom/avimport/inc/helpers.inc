@@ -22,7 +22,7 @@ function avimport_get_valid_headers($type) {
       // Optional.
       $optional['ROP'] = 'rop';
       $optional['EOQ'] = 'eoq';
-      $optional['CODE'] = 'code';
+      //$optional['CODE'] = 'code';
       $optional['CATEGORY'] = 'category_title';
       $optional['UOM 1'] = 'uom_1_title';
       $optional['UOM 1 QTY'] = 'uom_1_qty';
@@ -141,9 +141,10 @@ function avimport_db_insert_products_row($excel_row) {
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'products');
 
   // Check if product title already exists.
-  $item_code = isset($insert_row['code']) ? $insert_row['code'] : '-~-';
-  if (db_query('SELECT id FROM {avtbl_products} WHERE title = :title OR code = :code', array(':title' => $insert_row['title'], ':code' => $item_code))->fetchField()) {
-    return t('Product with same title and/or code already exists.');
+  //$item_code = isset($insert_row['code']) ? $insert_row['code'] : '-~-';
+  if (db_query('SELECT id FROM {avtbl_products} WHERE title = :title', array(':title' => $insert_row['title']/*, ':code' => $item_code*/))->fetchField()) {
+    //return t('Product with same title and/or code already exists.');
+    return t('Product with same title already exists.');
   }
 
   // Add base uom_id.
@@ -351,11 +352,28 @@ function avimport_db_insert_clients_row($excel_row, $client_type) {
 
   // Build insert row.
   $insert_row = avimport_excel_row_to_db_row($excel_row, 'clients', $client_type);
-  //$ctd = avclients_client_types($client_type);
+  $ctd = avclients_client_types($client_type);
   // Check if customer title already exists.
   if ($same_name_count = db_query('SELECT COUNT(id) FROM {avtbl_clients} WHERE display_name LIKE :display_name', array(':display_name' => db_like($insert_row['display_name']) . '%'))->fetchField()) {
-    //return t('@type with same name already exists.', array('@type' => $ctd['name']));
-    $insert_row['display_name'] .= ' ' . ($same_name_count + 1);
+    // Check if customer address also matches.
+    $address = empty($excel_row['ADDRESS']) ? '' : trim($excel_row['ADDRESS']);
+    $province = empty($excel_row['PROVINCE']) ? '' : trim($excel_row['PROVINCE']);
+    $city = empty($excel_row['CITY']) ? '' : trim($excel_row['CITY']);
+    $same_name_same_addr = db_query(
+      'SELECT COUNT(id) FROM {avtbl_clients} WHERE display_name LIKE :display_name AND address = :addr AND province = :prov AND city = :city',
+      array(
+        ':display_name' => db_like($insert_row['display_name']) . '%',
+        ':addr' => $address,
+        ':prov' => $province,
+        ':city' => $city,
+      )
+    )->fetchField();
+    if ($same_name_same_addr) {
+      return t('@type with same name and address already exists.', array('@type' => $ctd['name']));
+    }
+    else {
+      $insert_row['display_name'] .= ' ' . ($same_name_count + 1);
+    }
   }
 
   $title = empty($excel_row['AGENT NAME']) ? '' : trim($excel_row['AGENT NAME']);

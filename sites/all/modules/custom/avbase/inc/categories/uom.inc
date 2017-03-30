@@ -13,10 +13,10 @@ function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
 
   $column_default_key = $prefix . '_default';
 
-  $header[$column_default_key] = array(
-    'data' => 'Default',
-    '#weight' => 1.1,
-  );
+  //$header[$column_default_key] = array(
+  //  'data' => 'Default',
+  //  '#weight' => 1.1,
+  //);
 
   foreach ($rows as $k => &$row) {
     $db_row = isset($db_rows[$k]) ? $db_rows[$k] : array();
@@ -29,9 +29,9 @@ function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
     }
 
     // Add 'Default UOM' column.
-    $row['data'][$column_default_key] = array(
-      'data' => empty($db_row->system_default) ? '' : 'Yes',
-    );
+    //$row['data'][$column_default_key] = array(
+    //  'data' => empty($db_row->system_default) ? '' : 'Yes',
+    //);
   }
 }
 
@@ -43,12 +43,12 @@ function avbase_categories_uom_list_alter(&$table_options, $db_rows) {
 function avbase_category_uom_form_alter(&$form, $db_row) {
   $form['title']['#title'] = t('UOM title');
   //$form['title']['#element_validate'][] = 'avbase_element_validate_category_title_unique';
-  $form['system_default'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Use this UOM as system default',
-    '#weight' => 1.2,
-    '#default_value' => !empty($db_row->system_default),
-  );
+  //$form['system_default'] = array(
+  //  '#type' => 'checkbox',
+  //  '#title' => 'Use this UOM as system default',
+  //  '#weight' => 1.2,
+  //  '#default_value' => !empty($db_row->system_default),
+  //);
   $form['plural_form'] = array(
     '#type' => 'textfield',
     '#title' => 'Plural form',
@@ -59,7 +59,7 @@ function avbase_category_uom_form_alter(&$form, $db_row) {
 
   //$form['data_ids']['#value'][] = 'default';
   $form['data_ids']['#value'][] = 'plural_form';
-  $form['save_field_ids']['#value'][] = 'system_default';
+  //$form['save_field_ids']['#value'][] = 'system_default';
   //array_unshift($form['#submit'], 'avbase_category_uom_form_submit');
 }
 

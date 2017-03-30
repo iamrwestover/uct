@@ -197,7 +197,7 @@ function avproducts_autocomplete($string = '') {
     $args = array();
     $where_or = array(
       //'avprod.title LIKE :string',
-      'code = :exact_string',
+      //'code = :exact_string',
     );
     $string_arr = explode(' ', $string);
     $like_where = array();
@@ -208,7 +208,7 @@ function avproducts_autocomplete($string = '') {
     $where_or[] = '(' . implode(' AND ', $like_where) . ')';
     $where_or_str = '(' . implode(' OR ', $where_or) . ')';
     $where[] = $where_or_str;
-    $args[':exact_string'] = $string;
+    //$args[':exact_string'] = $string;
 
     $where[] = 'status = :active_status';
     $args[':active_status'] = AVPRODUCTS_STATUS_ACTIVE;
@@ -290,7 +290,7 @@ $matches[$product_id] = $product_id.'ss';
 function avproducts_table_fields_to_save($db_op = 'insert') {
   $fields = array(
     'created',
-    'code',
+    //'code',
     'title',
     'category_id' => array('type' => 'int'),
     'uom_id' => array('type' => 'int'),

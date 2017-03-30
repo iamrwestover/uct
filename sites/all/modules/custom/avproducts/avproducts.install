@@ -14,12 +14,12 @@ function avproducts_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'code' => array(
-        'description' => 'Product code',
-        'type' => 'varchar',
-        'length' => '32',
-        'not null' => FALSE,
-      ),
+      //'code' => array(
+      //  'description' => 'Product code',
+      //  'type' => 'varchar',
+      //  'length' => '32',
+      //  'not null' => FALSE,
+      //),
       'title' => array(
         'description' => 'Product title',
         'type' => 'varchar',
@@ -199,7 +199,7 @@ function avproducts_schema() {
     ),
     'primary key' => array('id'),
     'unique keys' => array(
-      'code' => array('code'),
+      //'code' => array('code'),
       'title' => array('title')
     ),
     'indexes' => array(

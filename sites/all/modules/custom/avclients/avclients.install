@@ -41,12 +41,12 @@ function avclients_schema() {
         'size' => 'tiny',
         'not null' => TRUE,
       ),
-      'code' => array(
-        'description' => 'TODO: please describe this field!',
-        'type' => 'varchar',
-        'length' => '32',
-        'not null' => FALSE,
-      ),
+      //'code' => array(
+      //  'description' => 'TODO: please describe this field!',
+      //  'type' => 'varchar',
+      //  'length' => '32',
+      //  'not null' => FALSE,
+      //),
       'first_name' => array(
         'description' => 'First name',
         'type' => 'varchar',

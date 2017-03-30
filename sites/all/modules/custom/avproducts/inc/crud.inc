@@ -152,17 +152,17 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_unique_field'),
   );
-  $info['code'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Product code',
-    '#default_value' => isset($row->code) ? $row->code : '',
-    '#maxlength' => 32,
-    '#element_validate' => array('avbase_element_validate_unique_field'),
-    '#attributes' => array(
-      'class' => array('uk-text-uppercase'),
-    ),
-    //'#required' => TRUE,
-  );
+  //$info['code'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Product code',
+  //  '#default_value' => isset($row->code) ? $row->code : '',
+  //  '#maxlength' => 32,
+  //  '#element_validate' => array('avbase_element_validate_unique_field'),
+  //  '#attributes' => array(
+  //    'class' => array('uk-text-uppercase'),
+  //  ),
+  //  //'#required' => TRUE,
+  //);
   $info['category_id'] = array(
     '#type' => 'select',
     '#title' => 'Category',
@@ -197,10 +197,9 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#access' => empty($row->id),
     '#required' => TRUE,
     '#element_validate' => array('element_validate_integer'),
-    //'#attributes' => array(
-    //  'data-uk-tooltip' => "{pos:'bottom'}",
-    //  'title' => 'Beginning quantity',
-    //),
+    '#attributes' => array(
+      'min' => 0,
+    ),
     '#special_element_type' => 'number',
   );
   //$initial_qty_date_format = 'M. d, Y';
@@ -507,7 +506,7 @@ function avproducts_qty_validate($element, &$form_state, $form) {
     $form_state['values']['qty'] = $form_state['values']['initial_qty'];
     $element['#value'] = $form_state['values']['qty'];
   }
-  element_validate_integer_positive($element, $form_state);
+  avbase_element_validate_non_negative_number($element, $form_state);
 }
 
 /**

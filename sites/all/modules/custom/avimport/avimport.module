@@ -11,7 +11,7 @@ module_load_include('inc', 'avimport', 'inc/helpers');
  */
 function avimport_menu() {
   $items['av/import'] = array(
-    'title' => 'Import',
+    'title' => 'Import NEW Data',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avimport_import_form'),
     'access arguments' => array(AVBASE_PERM_IMPORT),
@@ -57,6 +57,9 @@ function avimport_import_form($form, &$form_state) {
     '#type' => 'fieldset',
     //'#title' => 'Upload',
     '#access' => empty($excel_rows),
+  );
+  $form['analyze_data']['notice'] = array(
+    '#markup' => '<div class="uk-text-large uk-margin-bottom">Before proceeding, kindly double check to make sure that your excel file contains the correct header names (all CAPS).<br />Also make sure that it contains all the required headers.</div>',
   );
   $form['analyze_data']['import_type'] = array(
     '#type' => 'radios',

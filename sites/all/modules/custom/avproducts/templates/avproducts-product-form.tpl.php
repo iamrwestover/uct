@@ -18,8 +18,8 @@ $initial_qty_date_html = drupal_render($form['info']['initial_qty_date']);
 <div class="uk-grid uk-grid-large">
   <div class="uk-width-1-2">
     <div class="uk-grid uk-grid-small">
-      <div class="uk-width-2-3 uk-margin-bottom"><?php print drupal_render($form['info']['title']); ?></div>
-      <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['code']); ?></div>
+      <div class="uk-width-1-1 uk-margin-bottom"><?php print drupal_render($form['info']['title']); ?></div>
+      <!--<div class="uk-width-1-3 uk-margin-bottom">--><?php //print drupal_render($form['info']['code']); ?><!--</div>-->
 
       <div class="uk-width-2-3 uk-margin-bottom"><?php print drupal_render($form['info']['vendor_id']); ?></div>
       <div class="uk-width-1-3 uk-margin-bottom"><?php print drupal_render($form['info']['principal_id']); ?></div>

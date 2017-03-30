@@ -562,33 +562,43 @@ function avbase_general_settings_form() {
   );
 
   // Opcache.
+  if (isset($_GET['opcache_reset']) && function_exists('opcache_reset')) {
+    opcache_reset();
+  }
+
   $opcache_status = function_exists('opcache_get_status') ? opcache_get_status() : array();
-  $opcache_items = array();
-  foreach ($opcache_status as $os_k => $os_v) {
-    if ($os_k == 'scripts') {
-      continue;
-    }
-    if (is_bool($os_v)) {
-      $opcache_items[$os_k] = array('data' => $os_k . ': ' . ($os_v ? 'Yes' : 'No'));
-    }
-    elseif (in_array($os_k, array('memory_usage', 'opcache_statistics'))) {
-      $opcache_items[$os_k] = array('data' => $os_k);
-      foreach ($os_v as $o_k => $o) {
-        $opcache_items[$os_k]['children'][$o_k] = array('data' => $o_k . ': ' . $o);
+  if (!empty($opcache_status)) {
+    $opcache_items = array();
+    foreach ($opcache_status as $os_k => $os_v) {
+      if ($os_k == 'scripts') {
+        continue;
+      }
+      if (is_bool($os_v)) {
+        $opcache_items[$os_k] = array('data' => $os_k . ': ' . ($os_v ? 'Yes' : 'No'));
+      }
+      elseif (in_array($os_k, array('memory_usage', 'opcache_statistics'))) {
+        $opcache_items[$os_k] = array('data' => $os_k);
+        foreach ($os_v as $o_k => $o) {
+          $opcache_items[$os_k]['children'][$o_k] = array('data' => $o_k . ': ' . $o);
+        }
       }
     }
+    $form['opcache'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Cache'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['opcache']['status'] = array(
+      '#title' => t('Status'),
+      '#markup' => theme('item_list', array('items' => $opcache_items)),
+    );
+
+    $form['opcache']['reset'] = array(
+      '#markup' => '<a href="?opcache_reset=1">reset</a>',
+    );
   }
-  $form['opcache'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Cache'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['opcache']['status'] = array(
-    '#type' => 'markup',
-    '#title' => t('Status'),
-    '#markup' => theme('item_list', array('items' => $opcache_items)),
-  );
+
 
 
   //theme_item_list()
