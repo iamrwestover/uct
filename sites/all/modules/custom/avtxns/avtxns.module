@@ -876,6 +876,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   if (!empty($settings['date_auto']) && !empty($settings['date_from']) && !empty($settings['date_to'])) {
     $fields['settings']['date_auto'] = empty($settings['date_auto']) ? array() : $settings['date_auto'];
     $fields['settings']['date_auto'] += array(
+      '#id' => 'date-auto',
       '#type' => 'select',
       '#options' => avtxns_txn_list_filter_date_auto_options_array(),
       '#attributes' => array(
@@ -883,12 +884,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       ),
     );
     $js_settings = array('avbase' => array());
-    //$js_settings['avbase']['date_auto'] = avtxns_txn_list_filter_date_auto_options();
+    $js_settings['avbase']['date_auto'] = avtxns_txn_list_filter_date_auto_options();
     drupal_add_js($js_settings, 'setting');
   }
   if (!empty($settings['date_to'])) {
     $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
     $fields['date_to'] += array(
+      '#id' => 'date-to',
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(
@@ -901,6 +903,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   if (!empty($settings['date_from'])) {
     $fields['date_from'] = empty($settings['date_from']) ? array() : $settings['date_from'];
     $fields['date_from'] += array(
+      '#id' => 'date-from',
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(

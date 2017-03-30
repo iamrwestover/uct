@@ -13,12 +13,26 @@
     var self = this;
     self.$searchBtn = $('#transaction-search-btn');
     $('#avtxns-txn-list-filter-form').once('avtxnsTransactionListForm', function() {
+      var $thisForm = $(this);
       self.$searchEls = $(this).find('.trigger-ajax-search');
       self.$resetBtn = $(this).find('#transaction-reset-btn');
       self.searchEvents();
+
+      // Date auto field.
+      self.$dateAutoEl = $(this).find('#date-auto');
+      self.$dateAutoEl.change(function () {
+        var avbase = Drupal.settings.avbase || {};
+        var dateAuto = avbase.date_auto || {};
+        var dateAutoDetails = dateAuto[$(this).val()] || {};
+        $thisForm.find('#date-from').val(dateAutoDetails.date_from || '');
+        $thisForm.find('#date-to').val(dateAutoDetails.date_to || '');
+        self.$searchBtn.trigger('click');
+      });
     });
 
     self.pagerLinkEvents();
+
+
   };
 
   /**
