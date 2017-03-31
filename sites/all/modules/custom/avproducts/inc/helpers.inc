@@ -219,6 +219,26 @@ function avproducts_autocomplete($string = '') {
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
 
     foreach ($ordered_rows as $row) {
+      if (isset($row->data)) {
+        $row->data = unserialize($row->data);
+      }
+
+      $discount = array();
+      $sales_discount = array();
+      for ($x = 1; $x <= 4; $x++) {
+        $_discount_name = "discount$x";
+        if (isset($row->$_discount_name)) {
+          $discount[] = round($row->$_discount_name, 2);
+          $sales_discount[] = round($row->$_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
+        }
+      }
+      $discount = array_filter($discount);
+      $sales_discount = array_filter($sales_discount);
+      $row->discount_text = implode('/', $discount);
+      $row->sales_discount_text = implode('/', $sales_discount);
+
+      // Capitalize product name.
+      $row->title = strtoupper($row->title);
       $code = '';
       $title = check_plain($row->title);
       $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;

@@ -235,6 +235,11 @@ function avbase_menu() {
   return $items;
 }
 
+function avbase_menu_alter(&$items) {
+  // Example - disable the page at node/add
+  $items[BACKUP_MIGRATE_MENU_PATH . '/export/advanced']['access callback'] = 'avbase_user_is_super_admin';
+}
+
 /**
  * Implementation of hook_permission().
  */
@@ -274,6 +279,11 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
     //  break;
     case 'avbase_general_settings_form':
       $form['actions']['#theme'] = 'avbase_crud_button_group';
+      break;
+
+    case 'backup_migrate_ui_manual_quick_backup_form':
+      //$form['quickbackup']['profile_id']['#attributes']['class']
+      dpm($form);
       break;
   }
 }
@@ -562,43 +572,43 @@ function avbase_general_settings_form() {
   );
 
   // Opcache.
-  if (isset($_GET['opcache_reset']) && function_exists('opcache_reset')) {
-    opcache_reset();
-  }
+  if ($user->uid == 1) {
+    if (isset($_GET['opcache_reset']) && function_exists('opcache_reset')) {
+      opcache_reset();
+    }
 
-  $opcache_status = function_exists('opcache_get_status') ? opcache_get_status() : array();
-  if (!empty($opcache_status)) {
-    $opcache_items = array();
-    foreach ($opcache_status as $os_k => $os_v) {
-      if ($os_k == 'scripts') {
-        continue;
-      }
-      if (is_bool($os_v)) {
-        $opcache_items[$os_k] = array('data' => $os_k . ': ' . ($os_v ? 'Yes' : 'No'));
-      }
-      elseif (in_array($os_k, array('memory_usage', 'opcache_statistics'))) {
-        $opcache_items[$os_k] = array('data' => $os_k);
-        foreach ($os_v as $o_k => $o) {
-          $opcache_items[$os_k]['children'][$o_k] = array('data' => $o_k . ': ' . $o);
+    $opcache_status = function_exists('opcache_get_status') ? opcache_get_status() : array();
+    if (!empty($opcache_status)) {
+      $opcache_items = array();
+      foreach ($opcache_status as $os_k => $os_v) {
+        if ($os_k == 'scripts') {
+          continue;
+        }
+        if (is_bool($os_v)) {
+          $opcache_items[$os_k] = array('data' => $os_k . ': ' . ($os_v ? 'Yes' : 'No'));
+        } elseif (in_array($os_k, array('memory_usage', 'opcache_statistics'))) {
+          $opcache_items[$os_k] = array('data' => $os_k);
+          foreach ($os_v as $o_k => $o) {
+            $opcache_items[$os_k]['children'][$o_k] = array('data' => $o_k . ': ' . $o);
+          }
         }
       }
+      $form['opcache'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Cache'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      $form['opcache']['status'] = array(
+        '#title' => t('Status'),
+        '#markup' => theme('item_list', array('items' => $opcache_items)),
+      );
+
+      $form['opcache']['reset'] = array(
+        '#markup' => '<a href="?opcache_reset=1">reset</a>',
+      );
     }
-    $form['opcache'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Cache'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-    $form['opcache']['status'] = array(
-      '#title' => t('Status'),
-      '#markup' => theme('item_list', array('items' => $opcache_items)),
-    );
-
-    $form['opcache']['reset'] = array(
-      '#markup' => '<a href="?opcache_reset=1">reset</a>',
-    );
   }
-
 
 
   //theme_item_list()
@@ -691,4 +701,9 @@ function avbase_user_view($account, $view_mode, $langcode) {
     '#title' => t('Address'),
     '#markup' => empty($avuser_row->address) ? '' : $avuser_row->address,
   );
+}
+
+function avbase_user_is_super_admin() {
+  global $user;
+  return $user->uid == 1;
 }

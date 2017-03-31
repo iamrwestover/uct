@@ -368,3 +368,48 @@ function uikit_av_user_admin_permissions($variables) {
   $output .= drupal_render_children($form);
   return $output;
 }
+
+/**
+ * Theme the quick backup form.
+ */
+function uikit_av_backup_migrate_ui_manual_quick_backup_form_inline($form) {
+  drupal_add_css(drupal_get_path('module', 'backup_migrate') .'/backup_migrate.css');
+
+  $form = $form['form'];
+
+  // Remove the titles so that the pulldowns can be displayed inline.
+  unset($form['quickbackup']['source_id']['#title']);
+  unset($form['quickbackup']['destination']['destination_id']['#title']);
+  unset($form['quickbackup']['destination']['destination_id']['#description']);
+  unset($form['quickbackup']['profile_id']['#title']);
+  unset($form['quickbackup']['destination']['copy_destination']['copy_destination_id']['#title']);
+
+  $replacements = array(
+    '!from' => drupal_render($form['quickbackup']['source_id']),
+    '!to' => drupal_render($form['quickbackup']['destination']['destination_id']),
+    '!profile' => drupal_render($form['quickbackup']['profile_id']),
+    //'!submit' => drupal_render($form['quickbackup']['submit']),
+  );
+  $form['quickbackup']['markup'] = array(
+    '#type'   => 'markup',
+    "#prefix" => '<div class="container-inline backup-migrate-inline">',
+    "#suffix" => '</div>',
+    '#markup'  => t('Backup my !from to !to using !profile', $replacements),
+  );
+
+  $replacements = array(
+    '!to' => drupal_render($form['quickbackup']['destination']['copy_destination']['copy_destination_id']),
+  );
+  $form['quickbackup']['destination']['copy']["#prefix"] = '<div class="container-inline backup-migrate-inline">';
+  $form['quickbackup']['destination']['copy']["#suffix"] = $replacements['!to'] . '</div>';
+  // This is not good translation practice as it relies on the structure of english
+  // If I add the pulldown to the label, howerver, the box toggles when the pulldown is clicked.
+  //$form['quickbackup']['destination']['copy']['#title']  = t('Save a copy to');
+
+  unset($form['quickbackup']['source_id']);
+  unset($form['quickbackup']['destination']['destination_id']);
+  unset($form['quickbackup']['destination']['copy_destination']);
+  unset($form['quickbackup']['profile_id']);
+  //unset($form['quickbackup']['submit']);
+  return drupal_render_children($form);
+}
