@@ -129,6 +129,8 @@
         if (productDetails.uom_id) {
           var uom = uoms[productDetails.uom_id];
           $qtyPerUOMEl.val(1);
+          //console.log(uom.title);
+          //console.log($UOMEl.val());
           $UOMEl.val(uom.title);
           //$qtyCheckEl.trigger('change');
           $UOMEl.trigger('change');
@@ -204,7 +206,6 @@
       $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data, x) {
         $qtyPerUOMEl.val(data.qtyperuom);
         $(this).next().focus();
-        console.log('r');
       });
       $UOMEl.change(function() {
         // Get current row details.
