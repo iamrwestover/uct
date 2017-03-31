@@ -238,6 +238,8 @@ function avbase_menu() {
 function avbase_menu_alter(&$items) {
   // Example - disable the page at node/add
   $items[BACKUP_MIGRATE_MENU_PATH . '/export/advanced']['access callback'] = 'avbase_user_is_super_admin';
+  $items[BACKUP_MIGRATE_MENU_PATH . '/settings']['access callback'] = 'avbase_user_is_super_admin';
+  $items[BACKUP_MIGRATE_MENU_PATH . '/nodesquirrel']['access callback'] = 'avbase_user_is_super_admin';
 }
 
 /**
@@ -283,9 +285,33 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
 
     case 'backup_migrate_ui_manual_quick_backup_form':
       //$form['quickbackup']['profile_id']['#attributes']['class']
-      dpm($form);
+      if (!avbase_user_is_super_admin()) {
+        unset($form['quickbackup']['destination']['#after_build']);
+        unset($form['quickbackup']['destination']['destination_id']['#options']['Offsite']);
+        //$form['quickbackup']['destination']['copy']['#access'] = FALSE;
+        //$form['quickbackup']['destination']['copy_destination']['#access'] = FALSE;
+        unset($form['quickbackup']['destination']['copy_destination']['copy_destination_id']['#options']['Offsite']);
+        $form['advanced']['#access'] = FALSE;
+      }
+      break;
+
+    case 'backup_migrate_ui_manual_restore_form':
+      if (!avbase_user_is_super_admin()) {
+        $form['advanced']['#access'] = FALSE;
+      }
+      break;
+
+    case 'backup_migrate_crud_edit_form':
+      if (!avbase_user_is_super_admin()) {
+        $form['profile_id']['#access'] = FALSE;
+        $form['cron_settings']['cron_builtin']['#title'] = 'Run using Cron';
+        unset($form['cron_settings']['cron_builtin']['#description']);
+        $form['cron_settings']['cron_elysia']['#access'] = FALSE;
+        unset($form['cron_settings']['cron_none']['#description']);
+      }
       break;
   }
+  //dpm($form_id);
 }
 
 /**

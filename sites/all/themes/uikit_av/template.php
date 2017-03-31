@@ -387,14 +387,19 @@ function uikit_av_backup_migrate_ui_manual_quick_backup_form_inline($form) {
   $replacements = array(
     '!from' => drupal_render($form['quickbackup']['source_id']),
     '!to' => drupal_render($form['quickbackup']['destination']['destination_id']),
-    '!profile' => drupal_render($form['quickbackup']['profile_id']),
+    //'!profile' => drupal_render($form['quickbackup']['profile_id']),
     //'!submit' => drupal_render($form['quickbackup']['submit']),
   );
+  $quickbackup_markup_text = 'Backup my !from to !to';
+  if (avbase_user_is_super_admin()) {
+    $replacements['!profile'] = drupal_render($form['quickbackup']['profile_id']);
+    $quickbackup_markup_text .= ' using !profile';
+  }
   $form['quickbackup']['markup'] = array(
     '#type'   => 'markup',
     "#prefix" => '<div class="container-inline backup-migrate-inline">',
     "#suffix" => '</div>',
-    '#markup'  => t('Backup my !from to !to using !profile', $replacements),
+    '#markup'  => t($quickbackup_markup_text, $replacements),
   );
 
   $replacements = array(
@@ -411,5 +416,6 @@ function uikit_av_backup_migrate_ui_manual_quick_backup_form_inline($form) {
   unset($form['quickbackup']['destination']['copy_destination']);
   unset($form['quickbackup']['profile_id']);
   //unset($form['quickbackup']['submit']);
+
   return drupal_render_children($form);
 }

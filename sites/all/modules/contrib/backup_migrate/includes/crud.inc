@@ -684,7 +684,9 @@ class backup_migrate_item {
     else if (@$this->storage == BACKUP_MIGRATE_STORAGE_OVERRIDEN) {
       $out['delete'] = l(t("revert"), $path . "/delete/$item_id");
     }
-    $out['export'] = l(t("export"), $path . "/export/$item_id");
+    if (avbase_user_is_super_admin()) {
+      $out['export'] = l(t("export"), $path . "/export/$item_id");
+    }
 
     return $out;
   }

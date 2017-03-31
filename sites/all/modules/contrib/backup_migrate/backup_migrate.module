@@ -1377,9 +1377,9 @@ function backup_migrate_ui_saved_backups() {
   $out .= $fetch;
 
   // Add a remote backups warning if there are no remote backups.
-  if (!$remote && user_access('administer backup and migrate')) {
+  if (!$remote && user_access('administer backup and migrate') && avbase_user_is_super_admin()) {
       drupal_set_message(
-        t('You do not have any offsite backups. For the highest level of protection, <a href="!addurl">create an offsite destination</a> or <a href="!nsurl">set up NodeSquirrel</a> to save your backups to.', 
+        t('You do not have any offsite backups. For the highest level of protection, <a href="!addurl">create an offsite destination</a> or <a href="!nsurl">set up NodeSquirrel</a> to save your backups to.',
             array('!addurl' => url(BACKUP_MIGRATE_MENU_PATH . '/settings/destination/add'),
                   '!nsurl' => url(BACKUP_MIGRATE_MENU_PATH . '/nodesquirrel')
         )), 'warning', FALSE);
