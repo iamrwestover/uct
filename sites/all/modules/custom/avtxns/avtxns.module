@@ -46,6 +46,16 @@ define('AVTXN_AC_TYPE_EXPENSE', 'exp');
 define('AVTXN_AC_TYPE_CAPITAL', 'cap');
 define('AVTXN_AC_TYPE_OTHER_INCOME', 'oinc');
 
+// Specific Account Type IDS.
+define('AVTXN_AC_SPECIFIC_AR_ID', 10);
+define('AVTXN_AC_SPECIFIC_AP_ID', 11);
+define('AVTXN_AC_SPECIFIC_SALES_ID', 6);
+define('AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID', 13);
+define('AVTXN_AC_SPECIFIC_SALES_RETURN_ID', 14);
+define('AVTXN_AC_SPECIFIC_CASH_ID', 1);
+define('AVTXN_AC_SPECIFIC_COGS_ID', 4);
+define('AVTXN_AC_SPECIFIC_INVENTORY_ID', 2);
+
 // Permissions.
 $ttds = avtxns_txn_types();
 foreach ($ttds as $ttd) {
@@ -316,14 +326,7 @@ function avtxns_txns_home_form($form, &$form_state) {
       '#prefix' => empty($type['button_prefix']) ? '' : $type['button_prefix'],
     );
   }
-  //$form['new_po'] = array('#markup' => l('New purchase order', 'av/txns/po/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary')))));
-  //$form['new_gr'] = array('#markup' => l('Receive items', 'av/txns/gr/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
-  //$form['new_rept'] = array('#markup' => l('New purchase return', 'av/txns/rept/new', array('attributes' => array('class' => array('uk-button', 'uk-button-primary', 'uk-margin-small-left')))));
-  //$form['new_so'] = array('#markup' => l('New sales order', 'av/txns/so/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_dr'] = array('#markup' => l('New delivery', 'av/txns/delivery/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_ret'] = array('#markup' => l('New sales return', 'av/txns/ret/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_sinv'] = array('#markup' => l('New invoice', 'av/txns/sinv/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
-  //$form['new_spay'] = array('#markup' => l('Receive payment', 'av/txns/spay/new', array('attributes' => array('class' => array('uk-button', 'uk-button-success', 'uk-margin-small-left')))));
+  $form['hr'] = array('#markup' => '<div class="uk-text-small">&nbsp;</div>');
 
   $form['txns_list'] = avtxns_txn_list_form($form, $form_state);
   return $form;
@@ -392,6 +395,12 @@ function avtxns_txn_types($type = NULL) {
       'bill' => TRUE,
       'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
       'payable' => TRUE,
+      'account_ids' => array(
+        AVTXNS_TXN_TYPE_DELIVERY => array(
+          AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+          AVTXN_AC_SPECIFIC_SALES_ID => 'credit',
+        )
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_PAYMENT] = array(
       'button_class' => 'uk-button-success',
@@ -404,10 +413,12 @@ function avtxns_txn_types($type = NULL) {
       'pending_txns_reference_type' => array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES),
       'client_statuses' => array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED),
       'payment' => TRUE,
+      'cant_change_date' => TRUE,
       'no_terms' => TRUE,
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'ref_ar_type' => 'credit',
+      'non_product' => TRUE,
     );
 
     // Purchase.
@@ -474,10 +485,12 @@ function avtxns_txn_types($type = NULL) {
       'pending_txns_reference_type' => array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_OTHER_BILLS),
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
       'payment' => TRUE,
+      'cant_change_date' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_PAYMENT,
       'no_terms' => TRUE,
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
+      'non_product' => TRUE,
     );
 
     // Accounting.
@@ -510,6 +523,9 @@ function avtxns_txn_types($type = NULL) {
       'total_is_entered_amount' => TRUE,
       'total_is_amount_to_credit' => TRUE,
       'ref_ar_type' => 'credit',
+      'default_account_id' => array(
+        AVTXN_AC_SPECIFIC_AR_ID => 'credit',
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_VENDOR_CREDIT] = array(
       //'button_class' => 'uk-button-warning',
@@ -586,6 +602,7 @@ function avtxns_txn_types($type = NULL) {
       'prevent_duplicate_product' => TRUE,
       //'cant_edit' => TRUE,
       'cant_change_status' => TRUE,
+      'cant_change_date' => TRUE,
     );
   }
 
@@ -992,7 +1009,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       'callback' => 'avtxns_txn_form_ajax_search',
       'wrapper' => 'transaction-list-table-wrapper',
       'effect' => 'none',
-      'event' => 'click',
+      //'event' => 'click',
       'progress' => array(),
     ),
   );

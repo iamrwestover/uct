@@ -15,6 +15,7 @@ module_load_include('inc', 'avtxns', 'inc/txn_pending_orders.form');
  * @return array
  */
 function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
+
   if (!empty($row->id) && $row->transaction_type != $transaction_type) {
     drupal_not_found();
     drupal_exit();
@@ -52,9 +53,16 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
   //  $form['special_discount'] = avtxns_special_discount_form($term_days);
   //  $form['balance_ages'] = avreports_client_balance_aging_form($row->client_id);
   //}
+
+
   // Buttons.
   $form['buttons'] = avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_mode);
 
+  // Show created info.
+  if ($view_mode && !empty($row->created)) {
+    global $user;
+    $form['record_created'] = array('#markup' => '<div class="uk-text-center">' . t('Created by @name - @date', array('@name' => $user->name, '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
+  }
   //if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
   //  // Add extra button to load customer returns.
   //  $form['buttons']['check_returns'] = $form['pending_orders']['buttons']['check_po'];
@@ -219,31 +227,32 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
   $ttd = avtxns_txn_types($transaction_type);
 
   $buttons = array('#theme' => 'avbase_crud_button_group');
-  $buttons['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#icon_key' => 'save',
-    //'#attributes' => array(
-    //  'data-uk-tooltip' => "{delay:'500', cls: 'tt-keyboard-shortcut'}",
-    //  'title' => "Ctrl Alt S",
-    //),
-  );
-  if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER) {
-    $buttons['submit_and_send'] = array(
-      '#id' => 'submit_and_send',
-      '#type' => 'submit',
-      '#value' => t('Save and send'),
-      '#icon_key' => 'send',
-    );
-  }
-
-  $buttons['submit_and_print'] = array(
-    '#id' => 'submit_and_print',
-    '#type' => 'submit',
-    '#value' => t('Save and print'),
-    '#icon_key' => 'print',
-  );
   if (empty($view_mode)) {
+    $buttons['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save'),
+      '#icon_key' => 'save',
+      //'#attributes' => array(
+      //  'data-uk-tooltip' => "{delay:'500', cls: 'tt-keyboard-shortcut'}",
+      //  'title' => "Ctrl Alt S",
+      //),
+    );
+    if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER) {
+      $buttons['submit_and_send'] = array(
+        '#id' => 'submit_and_send',
+        '#type' => 'submit',
+        '#value' => t('Save and send'),
+        '#icon_key' => 'send',
+      );
+    }
+
+    $buttons['submit_and_print'] = array(
+      '#id' => 'submit_and_print',
+      '#type' => 'submit',
+      '#value' => t('Save and print'),
+      '#icon_key' => 'print',
+    );
+
     $buttons['cancel'] = array(
       '#markup' => l('Cancel', 'av/transactions', array('attributes' => array('class' => array('uk-button')))),
     );
@@ -304,7 +313,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     }
   }
 
-  if (isset($ttd['pending_txns_reference_type'])) {
+  if (isset($buttons['submit']) && isset($ttd['pending_txns_reference_type'])) {
     $buttons['submit']['#id'] = 'detect-cost-change-btn';
     $buttons['submit']['#attributes']['class'][] = 'av-ajax-trigger';
     $buttons['submit']['#ajax'] = array(

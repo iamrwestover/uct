@@ -159,7 +159,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $query->addField('avclients', 'display_name', 'client_name');
       }
 
-      if (empty($ttd['payment'])) {
+      if (empty($ttd['non_product'])) {
         $query->leftJoin('avtbl_products', 'avprod', 'avprod.id = avtxn_details.item_id');
         $query->leftJoin('avtbl_categories', 'avcat', 'avcat.id = avtxn_details.uom_id');
         $query->leftJoin('avtbl_categories', 'avcat_base', 'avcat_base.id = avprod.uom_id');
@@ -1387,4 +1387,15 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
 
   $data[$date_format] = $options;
   return $data[$date_format];
+}
+
+function avtxns_txn_detail_sum_query() {
+  return 'SUM(
+    avtxn_detail.qty
+    * avtxn_detail.cost
+    * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+    * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+    * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+    * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
+  )';
 }

@@ -930,8 +930,9 @@ function avbase_account_chart_sum_parent_balance(&$tree) {
   foreach ($x as $k => $row) {
     $row = (object) $row;
     if (!empty($row->children)) {
+      $tree[$k]['children_total_balance'] = 0;
       foreach ($row->children as $ch) {
-        $tree[$k]['account_balance'] += $ch['account_balance'];
+        $tree[$k]['children_total_balance'] += $ch['account_balance'];
       }
       avbase_account_chart_sum_parent_balance($tree[$k]['children']);
     }

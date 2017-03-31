@@ -47,6 +47,7 @@ function avtxns_account_chart_home_form($form, &$form_state) {
     }
     $rows[] = $row;
   }
+
   $rows_tree = avbase_rows_build_tree($rows, 0, FALSE, FALSE);
   avbase_account_chart_sum_parent_balance($rows_tree);
   $rows = avtxns_account_chart_rows($rows_tree);

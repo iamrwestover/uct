@@ -216,7 +216,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   $form['memo'] = array(
     '#type' => 'textarea',
     '#title' => 'Note',
-    '#default_value' => isset($row->memo) ? $row->memo : '',
+    '#default_value' => empty($row->memo) ? '-' : $row->memo,
     '#maxlength' => 65000,
     '#attributes' => array('rows' => 2),
   );
@@ -266,7 +266,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       ),
       '#required' => TRUE,
       //'#access' => empty($view_mode),
-      '#disabled' => !empty($ttd['payment']),
+      '#disabled' => !empty($ttd['cant_change_date']),
     );
   }
 
@@ -453,6 +453,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   //foreach ($item_rows_by_category as $category_title => $prod_rows) {
   //
   //}
+
   foreach ($_item_rows as $prod_key => $prod_row) {
     $prod_index++;
     $fields = array();
@@ -714,9 +715,12 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'data-column-name' => 'debit',
           'class' => array('prod-column-debit uk-text-right'),
         ),
-        '#default_value' => isset($prod_row['debit']) ? avbase_number_format($prod_row['debit'], 2) : '',
         '#dont_require' => TRUE,
+        '#default_value' => !empty($prod_row['debit']) ? avbase_number_format($prod_row['debit'], 2) : '',
       );
+      if (isset($prod_row['debit'])) {
+        $fields['debit']['#default_value'] = !empty((float)$prod_row['debit']) ? avbase_number_format($prod_row['debit'], 2) : '';
+      }
       $fields['credit'] = array(
         '#id' => 'item-credit-' . $prod_key,
         '#item_row_key' => $prod_key,
@@ -730,9 +734,11 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'data-column-name' => 'credit',
           'class' => array('prod-column-credit uk-text-right'),
         ),
-        '#default_value' => isset($prod_row['credit']) ? avbase_number_format($prod_row['credit'], 2) : '',
         '#dont_require' => TRUE,
       );
+      if (isset($prod_row['credit'])) {
+        $fields['credit']['#default_value'] = !empty((float)$prod_row['credit']) ? avbase_number_format($prod_row['credit'], 2) : '';
+      }
       $fields['client_name'] = array(
         '#item_row_key' => $prod_key,
         '#type' => 'textfield',
@@ -1004,7 +1010,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $js_settings['avbase']['products'] = (object) $product_rows;
   }
 
-  if (empty($ttd['bill']) && empty($ttd['payment'])) {
+  if (empty($view_mode) && empty($ttd['bill']) && empty($ttd['payment'])) {
     $form['prod_add_btn'] = array(
       '#id' => 'prod-add-btn',
       '#name' => 'prod_add_btn',
@@ -1019,6 +1025,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       ),
       '#attributes' => array('class' => array('av-ajax-trigger')),
     );
+  }
+  if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT && !empty($row->id)) {
+    unset($form['prod_add_btn']);
   }
 
   $js_settings['avbase']['uoms'] = avbase_get_categories('uom');

@@ -219,7 +219,7 @@ function avproducts_autocomplete($string = '') {
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
 
     foreach ($ordered_rows as $row) {
-      $code = check_plain($row->code);
+      $code = '';
       $title = check_plain($row->title);
       $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;
       $row_html .= '<div style="display: none;" id="av-prod-id">' . $row->id . '</div>';

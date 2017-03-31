@@ -685,7 +685,7 @@
    * @returns {string}
    */
   Drupal.avbaseNestableProductForm.prototype.getJournalTotal = function(balance_type) {
-    var $balanceEls = this.$productRows.find('.item-column-' + balance_type);
+    var $balanceEls = this.$productRows.find('.prod-column-' + balance_type);
     var balanceTotal = 0;
     var journalTotal = 0;
     $balanceEls.each(function() {

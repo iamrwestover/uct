@@ -31,7 +31,7 @@
         var dateAutoDetails = dateAuto[$(this).val()] || {};
         self.$dateFromEl.val(dateAutoDetails.date_from || '');
         self.$dateToEl.val(dateAutoDetails.date_to || '');
-        self.$searchBtn.trigger('click');
+        self.$searchBtn.trigger('mousedown');
       });
 
       self.$dateFromEl.change(function () {
@@ -59,14 +59,14 @@
       if ($(this).hasClass('trigger-search-on-keyup')) {
         return;
       }
-      self.$searchBtn.trigger('click');
+      self.$searchBtn.trigger('mousedown');
     });
 
     //self.$searchEls.on('click', function () {
     //  if ($(this).hasClass('trigger-search-on-click')) {
     //    return;
     //  }
-    //  self.$searchBtn.trigger('click');
+    //  self.$searchBtn.trigger('mousedown');
     //});
 
     self.$searchEls.on('keyup', function () {
@@ -75,12 +75,12 @@
       }
       clearTimeout(typingTimer);
       typingTimer = setTimeout(function() {
-        self.$searchBtn.trigger('click');
+        self.$searchBtn.trigger('mousedown');
       }, doneTypingInterval);
     });
 
     self.$searchEls.on('autocompleteSelect', function(e, node) {
-      self.$searchBtn.trigger('click');
+      self.$searchBtn.trigger('mousedown');
     });
 
     self.$resetBtn.click(function(e) {
@@ -107,7 +107,7 @@
           $(this).val('');
         }
       });
-      self.$searchBtn.trigger('click');
+      self.$searchBtn.trigger('mousedown');
       e.preventDefault();
     });
   };
@@ -123,7 +123,7 @@
       $(this).find('.uk-pagination a, th a').click(function(e) {
         var href = $(this).attr('href');
         $('#transaction-list-table-href').val(href);
-        self.$searchBtn.trigger('click');
+        self.$searchBtn.trigger('mousedown');
         e.preventDefault();
       });
     });

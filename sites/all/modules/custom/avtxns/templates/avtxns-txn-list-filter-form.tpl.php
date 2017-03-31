@@ -13,8 +13,9 @@ $status_html = drupal_render($form['avtxn.status']);
 $reset_btn_html = drupal_render($form['buttons']['reset_button']);
 $table_group_by_html = drupal_render($form['settings']['table_group_by']);
 $table_columns_html = drupal_render($form['settings']['table_columns']);
+
 ?>
-<div class="uk-grid uk-grid-small uk-margin-top">
+<div class="uk-grid uk-grid-small">
   <?php if ($transaction_id_html): ?>
     <div class="uk-width-1-10">
       <?php print $transaction_id_html; ?>

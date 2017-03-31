@@ -466,7 +466,7 @@ function avreports_soa_form($form, &$form_state) {
   $joins = array();
   $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
-  $order_by = array('avtxn.transaction_date ASC', 'avtxn.id ASC', 'avtxn_detail.ref_txn_type ASC');
+  $order_by = array('avtxn.transaction_date ASC', 'avtxn_detail.id ASC', 'avtxn.id ASC', 'avtxn_detail.ref_txn_type ASC');
   $transactions = empty($client->id) ? array() : avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
   $rows = array();
   $total_receivables = 0;
@@ -1044,14 +1044,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   }
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
 
-  $select[] = 'SUM(
-    avtxn_detail.qty
-    * avtxn_detail.cost
-    * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
-    * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
-    * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
-    * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
-  ) AS total_sales';
+  $select[] = avtxns_txn_detail_sum_query() . ' AS total_sales';
   $where[] = "avtxn.transaction_type = :txn_type_invoice";
   $where[] = "avtxn_detail.ref_txn_type = :txn_type_delivery";
   $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
@@ -1182,7 +1175,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
 
   $table_attributes = array(
     'id' => 'transaction-list-table',
-    'class' => array('uk-table-condensed uk-table-hover printable'),
+    'class' => array('uk-table-condensed uk-table-hover sprintable'),
   );
 
   //$pager_html = empty($options['#hide_filter_form']) ? theme('pager', array('tags' => array())) : '';
@@ -1275,7 +1268,6 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     '#type' => 'button',
     '#value' => t('Print...'),
     '#visible_in_view_mode' => TRUE,
-    '#attributes' => array('class' => array('')),
     '#icon_key' => 'print',
   );
   return $form;
