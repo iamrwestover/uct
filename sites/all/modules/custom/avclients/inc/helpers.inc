@@ -74,7 +74,7 @@ function avclient_load_ids($ids) {
  *
  * @return array
  */
-function avclient_query_load($param_where, $param_args = array(), $limit_string = '') {
+function avclient_query_load($param_where, $param_args = array(), $limit_string = '', $order_by = NULL) {
   if (empty($param_where)) {
     return array();
   }
@@ -104,7 +104,10 @@ function avclient_query_load($param_where, $param_args = array(), $limit_string 
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
   }
-  $query .= " ORDER BY avclients.created DESC";
+  $order_by = is_null($order_by) ? array('avclients.created DESC') : $order_by;
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
+  }
   if (!empty($limit_string)) {
     $query .= " LIMIT " . $limit_string;
   }
@@ -200,7 +203,7 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
     $string_arr = explode(' ', $string);
     $like_where = array();
     foreach ($string_arr as $k => $s) {
-      $like_where[] = 'display_name LIKE :string_' . $k;
+      $like_where[] = 'avclients.display_name LIKE :string_' . $k;
       $args[':string_' . $k] = '%' . db_like($s) . '%';
     }
     $where_or[] = '(' . implode(' AND ', $like_where) . ')';
@@ -210,20 +213,27 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
     $client_types = explode('-', $client_type_string);
     $client_types = array_filter($client_types);
     if (!empty($client_types)) {
-      $where[] = 'client_type IN(:client_types)';
+      $where[] = 'avclients.client_type IN(:client_types)';
       $args[':client_types'] = $client_types;
     }
     $statuses = explode('-', $status_string);
     $statuses = array_filter($statuses);
     if (!empty($statuses)) {
-      $where[] = "status IN(:statuses)";
+      $where[] = "avclients.status IN(:statuses)";
       $args[':statuses'] = $statuses;
     }
 
     // Build query.
-    $query = "SELECT * FROM avtbl_clients WHERE " . implode(' AND ', $where) . " ORDER BY display_name LIMIT 8";
-    $rs = db_query($query, $args);
-
+    //$query = "SELECT
+    //  avclients.*, avcat.title as agent_name,
+    //  avcat_terms.title as term_name,
+    //  avcat_terms.data as term_data
+    //  FROM {avtbl_clients} avclients
+    //  LEFT JOIN {avtbl_categories} avcat ON avcat.id = avclients.agent_id
+    //  LEFT JOIN {avtbl_categories} avcat_terms ON avcat_terms.id = avclients.term_id
+    //  WHERE " . implode(' AND ', $where) . " ORDER BY display_name LIMIT 8";
+    //$rs = db_query($query, $args);
+    $rs = avclient_query_load($where, $args, 8, array('display_name'));
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'display_name', $string);
     foreach ($ordered_rows as $row) {
       $row->address_string = avclients_address_string_format($row);

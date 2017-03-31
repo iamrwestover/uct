@@ -370,6 +370,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
 
           $form_state['#pending_agent_name'] = isset($transaction->agent_name) ? $transaction->agent_name : NULL;
           $form_state['#pending_term_id'] = isset($transaction->term_id) ? $transaction->term_id : NULL;
+          $form_state['#pending_due_date_timestamp'] = isset($transaction->term_data['days']) ? strtotime('+' . $transaction->term_data['days'] . ' days') : NULL;
         }
       }
 

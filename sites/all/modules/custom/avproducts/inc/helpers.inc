@@ -74,7 +74,7 @@ function avproduct_load_ids($ids) {
  *
  * @return array
  */
-function avproduct_query_load($param_where, $param_args = array(), $limit_string = '') {
+function avproduct_query_load($param_where, $param_args = array(), $limit_string = '', $order_by = NULL) {
   if (empty($param_where)) {
     return array();
   }
@@ -103,6 +103,9 @@ function avproduct_query_load($param_where, $param_args = array(), $limit_string
     LEFT JOIN {avtbl_categories} avcat_uom ON avcat_uom.id = avprod.uom_id";
   if (!empty($param_where)) {
     $query .= " WHERE " . implode(' AND ', $param_where);
+  }
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
   }
   if (!empty($limit_string)) {
     $query .= " LIMIT " . $limit_string;
@@ -202,7 +205,7 @@ function avproducts_autocomplete($string = '') {
     $string_arr = explode(' ', $string);
     $like_where = array();
     foreach ($string_arr as $k => $s) {
-      $like_where[] = 'title LIKE :string_' . $k;
+      $like_where[] = 'avprod.title LIKE :string_' . $k;
       $args[':string_' . $k] = '%' . db_like($s) . '%';
     }
     $where_or[] = '(' . implode(' AND ', $like_where) . ')';
@@ -210,35 +213,16 @@ function avproducts_autocomplete($string = '') {
     $where[] = $where_or_str;
     //$args[':exact_string'] = $string;
 
-    $where[] = 'status = :active_status';
+    $where[] = 'avprod.status = :active_status';
     $args[':active_status'] = AVPRODUCTS_STATUS_ACTIVE;
 
     // Build query.
-    $query = "SELECT * FROM avtbl_products WHERE " . implode(' AND ', $where) . " ORDER BY title LIMIT 8";
-    $rs = db_query($query, $args);
+    //$query = "SELECT * FROM avtbl_products WHERE " . implode(' AND ', $where) . " ORDER BY title LIMIT 8";
+    //$rs = db_query($query, $args);
+    $rs = avproduct_query_load($where, $args, '8', array('title'));
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
 
     foreach ($ordered_rows as $row) {
-      if (isset($row->data)) {
-        $row->data = unserialize($row->data);
-      }
-
-      $discount = array();
-      $sales_discount = array();
-      for ($x = 1; $x <= 4; $x++) {
-        $_discount_name = "discount$x";
-        if (isset($row->$_discount_name)) {
-          $discount[] = round($row->$_discount_name, 2);
-          $sales_discount[] = round($row->$_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
-        }
-      }
-      $discount = array_filter($discount);
-      $sales_discount = array_filter($sales_discount);
-      $row->discount_text = implode('/', $discount);
-      $row->sales_discount_text = implode('/', $sales_discount);
-
-      // Capitalize product name.
-      $row->title = strtoupper($row->title);
       $code = '';
       $title = check_plain($row->title);
       $row_html = $title . '<div class="uk-text-muted uk-text-break uk-text-small">' . $code .  '</div>' ;

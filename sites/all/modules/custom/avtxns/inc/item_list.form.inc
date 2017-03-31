@@ -178,6 +178,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#required' => TRUE,
       //'#access' => !empty($ttd['bill']),
     );
+    // Override term with the one selected from pending transactions.
+    if (!empty($form_state['#pending_due_date_timestamp'])) {
+      $form_state['input']['due_date'] = format_date($form_state['#pending_due_date_timestamp'], 'custom', $date_format);
+    }
   }
 
   if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER && empty($view_mode)) {
@@ -304,7 +308,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['amount_received'] = array(
       '#id' => 'amount-received',
       '#type' => 'textfield',
-      '#title' => 'Amount Received',
+      '#title' => 'Amount ' . ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT ? 'Received' : 'Paid'),
       '#title_display' => 'none',
       '#maxlength' => 19,
       '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
