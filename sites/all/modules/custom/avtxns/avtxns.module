@@ -364,6 +364,13 @@ function avtxns_txn_types($type = NULL) {
       //'cost_change' => TRUE,
       'product_discount_check' => TRUE,
       'ref_ar_type' => 'debit',
+      'account_ids' => array(
+        'default' => array(
+          //AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+          AVTXN_AC_SPECIFIC_COGS_ID => 'debit',
+        ),
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_SALES_RETURN] = array(
       'button_class' => 'uk-button-success',
@@ -378,6 +385,13 @@ function avtxns_txn_types($type = NULL) {
       'ref_ar_type' => 'credit',
       'no_terms' => TRUE,
       'total_is_amount_to_credit' => TRUE,
+      'account_ids' => array(
+        'default' => array(
+          //AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
+          AVTXN_AC_SPECIFIC_COGS_ID => 'credit',
+        ),
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_INVOICE] = array(
       'button_class' => 'uk-button-success',
@@ -401,15 +415,15 @@ function avtxns_txn_types($type = NULL) {
           AVTXN_AC_SPECIFIC_SALES_ID => 'credit',
         ),
         AVTXNS_TXN_TYPE_SALES_RETURN => array(
-          AVTXN_AC_SPECIFIC_AR_ID => 'credit',
+          //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
           AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
         ),
         AVTXNS_TXN_TYPE_CREDIT_MEMO => array(
-          AVTXN_AC_SPECIFIC_AR_ID => 'credit',
+          //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
           AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
         ),
         AVTXNS_TXN_TYPE_PAYMENT => array(
-          AVTXN_AC_SPECIFIC_AR_ID => 'credit',
+          //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
           AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
         ),
       ),

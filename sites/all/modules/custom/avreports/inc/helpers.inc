@@ -206,6 +206,11 @@ function avreports_account_type_difference_row(&$table_rows, $account_label, &$a
 }
 
 function avreports_product_transaction_history() {
+  $product_history_rows = &drupal_static(__FUNCTION__, array());
+  if (!empty($product_history_rows)) {
+    return $product_history_rows;
+  }
+
   //(IF(avtxn.transaction_type = :stk_type, 0, SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom))
   //SUM(avtxn_detail.cost * avtxn_detail.qty) / SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) as txn_ave_cost,
   //SUM(avtxn_detail.cost * avtxn_detail.qty) / SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) as txn_ave_cost,
@@ -237,25 +242,24 @@ function avreports_product_transaction_history() {
     $transaction_date_text = format_date($row->transaction_date, 'custom', 'F d, Y') . ' ' . format_date($row->created, 'custom', 'H:i:s');
     $timestamp = strtotime($transaction_date_text);
     //dpm(format_date($timestamp, 'custom', 'F d Y H:i:s'));
-    $rows[$row->item_id][$timestamp] = $row;
-    $rows[$row->item_id]['#initial_qty'] = $row->initial_qty;
-    $rows[$row->item_id]['#initial_value'] = $row->initial_value;
+    $rows[$row->item_id]['txn_details'][$row->id] = $row;
+    $rows[$row->item_id]['initial_qty'] = $row->initial_qty;
+    $rows[$row->item_id]['initial_value'] = $row->initial_value;
     //$rows[$row->item_id]['#initial_ave_cost'] = $row->initial_ave_cost;
   }
 
   foreach ($rows as $product) {
-    $asset_value = empty($product['#initial_value']) ? 0 : $product['#initial_value'];
-    $on_hand_qty = empty($product['#initial_qty']) ? 0 : $product['#initial_qty'];
+    $asset_value = empty($product['initial_value']) ? 0 : $product['initial_value'];
+    $on_hand_qty = empty($product['initial_qty']) ? 0 : $product['initial_qty'];
     $ave_cost = !empty($on_hand_qty) ? $asset_value / $on_hand_qty : 0;
-    foreach (element_children($product) as $timestamp) {
-      $txn = $product[$timestamp];
-      $ttd = avtxns_txn_types($txn->transaction_type);
+    foreach ($product['txn_details'] as $txn_id => $txn_detail) {
+      $ttd = avtxns_txn_types($txn_detail->transaction_type);
       $qty_change = empty($ttd['qty_change']) ? '' : $ttd['qty_change'];
-      $txn_qty = empty($txn->txn_qty) ? 0 : $txn->txn_qty;
+      $txn_qty = empty($txn_detail->txn_qty) ? 0 : $txn_detail->txn_qty;
 
 
 
-      $product[$timestamp]->asset_value = $asset_value;
+      $product['txn_details'][$txn_id]->asset_value = $asset_value;
       if ($qty_change == 'increment') {
         $on_hand_qty += $txn_qty;
       }
@@ -268,16 +272,16 @@ function avreports_product_transaction_history() {
 
 
 
-      //if ($txn->id == 64) {
+      //if ($txn_detail->id == 64) {
       //  //dpm($txn_value);
       //  dpm($on_hand_qty);
       //  dpm($asset_value);
       //  dpm($txn);
       //}
-      if ($txn->transaction_type == AVTXNS_TXN_TYPE_RECEIVE) {
+      if ($txn_detail->transaction_type == AVTXNS_TXN_TYPE_RECEIVE) {
 
         // Compute new average cost.
-        $txn_value = empty($txn->txn_value) ? 0 : $txn->txn_value;
+        $txn_value = empty($txn_detail->txn_value) ? 0 : $txn_detail->txn_value;
 
         $asset_value += $txn_value;
 
@@ -287,7 +291,7 @@ function avreports_product_transaction_history() {
       else {
         $asset_value = $on_hand_qty * $ave_cost;
         $cog = $ave_cost * $txn_qty;
-        //if ($txn->item_id == 2088 && $txn->id == 49) {
+        //if ($txn_detail->item_id == 2088 && $txn_detail->id == 49) {
         //  dpm($ttd['qty_change']);
         //  dpm($txn_qty);
         //  dpm($txn);
@@ -297,13 +301,25 @@ function avreports_product_transaction_history() {
         //}
       }
 
-      $product[$timestamp]->ave_cost = $ave_cost;
-      $product[$timestamp]->on_hand_qty = $on_hand_qty;
-      $product[$timestamp]->asset_value = $asset_value;
-      $product[$timestamp]->cog = $cog;
-
-
+      $product['txn_details'][$txn_id]->ave_cost = $ave_cost;
+      $product['txn_details'][$txn_id]->on_hand_qty = $on_hand_qty;
+      $product['txn_details'][$txn_id]->asset_value = $asset_value;
+      $product['txn_details'][$txn_id]->cog = $cog;
     }
   }
-  dpm($rows);
+
+  $product_history_rows = $rows;
+  return $product_history_rows;
+}
+
+function avreports_get_transaction_ave_cost(&$transaction_ids) {
+  $history_rows = avreports_product_transaction_history();
+  foreach ($transaction_ids as $txn_id => $txn) {
+    $cog_total = 0;
+    foreach ($txn['product_ids'] as $product_id) {
+      $cog_value = empty($history_rows[$product_id]['txn_details'][$txn_id]->cog) ? 0 : $history_rows[$product_id]['txn_details'][$txn_id]->cog;
+      $cog_total += $cog_value;
+    }
+    $transaction_ids[$txn_id]['cog'] = $cog_total;
+  }
 }
