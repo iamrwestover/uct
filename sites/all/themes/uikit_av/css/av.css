@@ -294,6 +294,9 @@ table.sticky-header {
 .uk-alert-mute a {
   color: #ccc;
 }
+.uk-bg-gray {
+  background-color: #fafafa;
+}
 
 /* Tooltip */
 .uk-tooltip.tt-available-qty {

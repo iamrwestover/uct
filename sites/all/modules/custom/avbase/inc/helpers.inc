@@ -929,12 +929,18 @@ function avbase_account_chart_sum_parent_balance(&$tree) {
   $x = $tree;
   foreach ($x as $k => $row) {
     $row = (object) $row;
+    $tree[$k]['children_account_balance'] = 0;
     if (!empty($row->children)) {
-      $tree[$k]['children_total_balance'] = 0;
       foreach ($row->children as $ch) {
-        $tree[$k]['children_total_balance'] += $ch['account_balance'];
+        $tree[$k]['children_account_balance'] += $ch['account_balance'];
+        //$tree[$k]['account_balance'] += $ch['account_balance'];
       }
       avbase_account_chart_sum_parent_balance($tree[$k]['children']);
+
+      // Update this parents children_account_balance with total from children's children.
+      foreach ($tree[$k]['children'] as $c_k => $c_row) {
+        $tree[$k]['children_account_balance'] += $c_row['children_account_balance'];
+      }
     }
   }
 }
@@ -994,4 +1000,13 @@ function avbase_order_db_rows_by_best_match($rows, $field_name, $search_string =
     $ordered_rows = array_merge($ordered_rows, $gr);
   }
   return $ordered_rows;
+}
+
+function avbase_accounting_number_format($number) {
+  $rounded = round((float)$number, 2);
+  $text = number_format($rounded, 2);
+  if ($rounded < 0) {
+    $text = '(' . number_format(($rounded * -1), 2) . ')';
+  }
+  return $text;
 }

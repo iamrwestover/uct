@@ -1044,7 +1044,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   }
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
 
-  $select[] = avtxns_txn_detail_sum_query() . ' AS total_sales';
+  $select[] = avtxns_txn_detail_sum_query_discount_applied() . ' AS total_sales';
   $where[] = "avtxn.transaction_type = :txn_type_invoice";
   $where[] = "avtxn_detail.ref_txn_type = :txn_type_delivery";
   $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;

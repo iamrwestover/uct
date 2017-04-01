@@ -107,7 +107,7 @@ function avtxns_account_chart_rows($tree, $depth = 0) {
     );
 
     if (!empty($row->children)) {
-      $rows += $x = avtxns_account_chart_rows($row->children, $depth + 1);
+      $rows += avtxns_account_chart_rows($row->children, $depth + 1);
     }
   }
   return $rows;

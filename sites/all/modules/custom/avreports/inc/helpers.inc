@@ -93,3 +93,79 @@ function avreports_client_balance_aging_form($client_id) {
   $data[$client_id] = $balance_ages_form;
   return $data[$client_id];
 }
+
+function avreports_account_type_balance_rows(&$table_rows, &$account_rows_by_type, $account_type, $date_group, $spacer_at_bottom = TRUE) {
+  $actd = avtxns_account_chart_types($account_type);
+  // Header.
+  $data = array();
+  $data['account'] = array('data' => $actd['name'], 'colspan' => 1000, 'class' => array('uk-text-uppercase uk-text-bold'));
+  $table_rows[] = array('data' => $data);
+  // Details.
+  $account_type_rows = empty($account_rows_by_type[$account_type]) ? array() : $account_rows_by_type[$account_type];
+  $account_type_table_rows = avreports_account_type_balance_row_children($account_type_rows, $date_group);
+
+  $table_rows = array_merge($table_rows, $account_type_table_rows);
+  $account_type_total = 0;
+
+  //foreach ($account_type_rows as $account_row) {
+  //  $data = array();
+  //  $data['account'] = array('data' => check_plain($account_row['title']), 'class' => array(''));
+  //  foreach ($date_group as $tk => $tc) {
+  //    $data[$tk] = $tc['label'];
+  //  }
+  //  $this_account_balance_text = avbase_accounting_number_format($account_row['account_balance']);
+  //  $data['total'] = array('data' => $this_account_balance_text, 'class' => array('uk-text-right'));
+  //  $table_rows[] = array('data' => $data);
+  //  $account_type_total += $account_row['account_balance'];
+  //}
+  // Total.
+  $data = array();
+  $data['account'] = array('data' => 'Net ' . $actd['name'], 'class' => array('uk-text-bold'));
+  foreach ($date_group as $tk => $tc) {
+    $data[$tk] = $tc['label'];
+  }
+  $account_type_total_text = avbase_accounting_number_format($account_type_total);
+  $data['total'] = array('data' => $account_type_total_text, 'class' => array('uk-text-right uk-text-bold'));
+  $table_rows[] = array('data' => $data);
+  if (isset($account_type_rows)) {
+    $account_rows_by_type[$account_type]['#account_type_total'] = $account_type_total;
+    $account_rows_by_type[$account_type]['#account_type_total_text'] = $account_type_total_text;
+  }
+
+  // Spacer.
+  if ($spacer_at_bottom) {
+    $data = array();
+    $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
+    $table_rows[] = array('data' => $data);
+  }
+}
+
+function avreports_account_type_balance_row_children($account_rows, $date_group = array(), $depth = 0) {
+  $table_rows = array();
+  $account_row_total = 0;
+  foreach ($account_rows as $account_row) {
+    $depth_html = '';
+    for ($i = 0; $i < $depth; $i++) {
+      $depth_html .= '<span class="uk-margin-left"></span>';
+    }
+
+    $data = array();
+    $data['account'] = array('data' => $depth_html . check_plain($account_row['title']), 'class' => array(''));
+    foreach ($date_group as $tk => $tc) {
+      $data[$tk] = $tc['label'];
+    }
+    $this_account_balance_text = avbase_accounting_number_format($account_row['account_balance']);
+    $data['total'] = array('data' => $this_account_balance_text, 'class' => array('uk-text-right'));
+    $table_rows[] = array('data' => $data);
+    //$account_type_total += $account_row['account_balance'];
+
+    if (!empty($account_row['children'])) {
+      $table_rows = array_merge($table_rows, avreports_account_type_balance_row_children($account_row['children'], $date_group, $depth + 1));
+    }
+  }
+
+  //if ($depth > 0) {
+  //  dpm($table_rows);
+  //}
+  return $table_rows;
+}

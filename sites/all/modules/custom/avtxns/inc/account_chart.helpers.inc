@@ -169,7 +169,7 @@ function avtxns_account_chart_types($type = NULL) {
     );
     $ret[AVTXN_AC_TYPE_EXPENSE] = array(
       'type' => AVTXN_AC_TYPE_EXPENSE,
-      'name' => 'Expense',
+      'name' => 'Expenses',
       'balance_type' => 'debit',
     );
     $ret[AVTXN_AC_TYPE_CAPITAL] = array(
@@ -314,9 +314,9 @@ function avtxns_element_validate_account_chart_name($element, &$form_state) {
   elseif (!empty($element['#parent_chart_of_account']) && $row->id == $this_row_id) {
     form_error($element, t('Cannot select self as @field_title.', array('@field_title' => $element['#title'])));
   }
-  elseif (!empty($element['#parent_chart_of_account']) && !empty($row->parent)) {
-    form_error($element, t('Cannot select a sub-account as @field_title.', array('@field_title' => $element['#title'])));
-  }
+  //elseif (!empty($element['#parent_chart_of_account']) && !empty($row->parent)) {
+  //  form_error($element, t('Cannot select a sub-account as @field_title.', array('@field_title' => $element['#title'])));
+  //}
   elseif (!empty($element['#parent_chart_of_account']) && $this_account_type != $row->account_type) {
     form_error($element, t('@field_title account type must be the same as this account\'s type.', array('@field_title' => $element['#title'])));
   }
