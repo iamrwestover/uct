@@ -52,22 +52,45 @@ $view_mode = !empty($form['#av_view_mode']);
   </div>
 
   <?php
-    // Group item rows by reference type.
-    $item_rows_by_ref_txn_type = array();
-    $ttd = avtxns_txn_types();
-    foreach (element_children($form) as $item_key) {
-      $ref_txn_type = empty($form[$item_key]['#prod_ref_txn_type']) ? '-' : $form[$item_key]['#prod_ref_txn_type'];
-      $item_rows_by_ref_txn_type[$ref_txn_type][$item_key] = $form[$item_key];
+  //  // Group item rows by reference type.
+  //  $item_rows_by_ref_txn_type = array();
+  //  $ttd = avtxns_txn_types();
+  //  foreach (element_children($form) as $item_key) {
+  //    $ref_txn_type = empty($form[$item_key]['#prod_ref_txn_type']) ? '-' : $form[$item_key]['#prod_ref_txn_type'];
+  //    $item_rows_by_ref_txn_type[$ref_txn_type][$item_key] = $form[$item_key];
+  //  }
+  //
+  //  ksort($item_rows_by_ref_txn_type);
+  //  $item_index = 0;
+  //  foreach ($item_rows_by_ref_txn_type as $ref_txn_type => $item_rows) {
+  //    print (($view_mode && $ref_txn_type == AVTXNS_TXN_TYPE_SALES_RETURN) ? '<div class="uk-badge uk-badge-warning uk-margin-small-top">' . strtoupper($ttd[$ref_txn_type]['name']) . '</div>' : '');
+  //    foreach ($item_rows as $item_key => $item_row) {
+  //      $item_rows[$item_key]['#prod_index'] = $item_index++;
+  //    }
+  //    print drupal_render($item_rows);
+  //  }
+  //?>
+  <?php
+    if (empty($form['#row_id'])) {
+      print drupal_render_children($form);
     }
-
-    ksort($item_rows_by_ref_txn_type);
-    $item_index = 0;
-    foreach ($item_rows_by_ref_txn_type as $ref_txn_type => $item_rows) {
-      print (($view_mode && $ref_txn_type == AVTXNS_TXN_TYPE_SALES_RETURN) ? '<div class="uk-badge uk-badge-warning uk-margin-small-top">' . strtoupper($ttd[$ref_txn_type]['name']) . '</div>' : '');
-      foreach ($item_rows as $item_key => $item_row) {
-        $item_rows[$item_key]['#prod_index'] = $item_index++;
+    else {
+      // Group item rows by category title.
+      $item_rows_by_category = array();
+      foreach (element_children($form) as $item_key) {
+        $category_title = empty($form[$item_key]['#prod_category']) ? t('No Category') : $form[$item_key]['#prod_category'];
+        $category_title = strtoupper($category_title);
+        $item_rows_by_category[$category_title][$item_key] = $form[$item_key];
       }
-      print drupal_render($item_rows);
+
+      $item_index = 0;
+      foreach ($item_rows_by_category as $category_title => $item_rows) {
+        print ($view_mode ? '<div class="uk-badge uk-badge-warning">' . $category_title . '</div>' : '');
+        foreach ($item_rows as $item_key => $item_row) {
+          $item_rows[$item_key]['#prod_index'] = $item_index++;
+        }
+        print drupal_render($item_rows);
+      }
     }
   ?>
   <?php //print drupal_render_children($form); ?>
