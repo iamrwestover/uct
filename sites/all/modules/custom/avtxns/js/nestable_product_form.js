@@ -590,9 +590,9 @@
     this.refreshDiscountTotalText();
 
     var amtReceived = parseFloat(this.$amtReceivedEl.val()) || 0;
-    if (amtReceived < subTotal) {
+    //if (amtReceived < subTotal) {
       this.$amtReceivedEl.val(subTotal);
-    }
+    //}
     // Refresh Amount To Credit text.
     this.$amtReceivedEl.trigger('change');
   };

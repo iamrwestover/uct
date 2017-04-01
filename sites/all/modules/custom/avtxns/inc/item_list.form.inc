@@ -464,16 +464,16 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $reference_transaction_type = empty($prod_row['ref_txn_type']) ? '' : $prod_row['ref_txn_type'];
     $order_id = empty($prod_row['ref_txn_id']) ? NULL : $prod_row['ref_txn_id'];
     $pending_return_type = empty($ttd['pending_return_type']) ? '-' : $ttd['pending_return_type'];
-    if (empty($view_mode) && empty($ttd['payment']) && !empty($reference_transaction_type)) {
-      $badge_title = strtoupper($reference_transaction_type) . '#';
-      $badge_type = $reference_transaction_type == $pending_return_type ? 'success' : 'primary';
-
-      if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
-        //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
-        $badge_title .= ' ' . $order_id;
-        $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-' . $badge_type . '" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
-      }
-    }
+    //if (empty($view_mode) && empty($ttd['payment']) && !empty($reference_transaction_type)) {
+    //  $badge_title = strtoupper($reference_transaction_type) . '#';
+    //  $badge_type = $reference_transaction_type == $pending_return_type ? 'success' : 'primary';
+    //
+    //  if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
+    //    //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
+    //    $badge_title .= ' ' . $order_id;
+    //    $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-' . $badge_type . '" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
+    //  }
+    //}
 
     if ($ttd['transaction'] == 'accounts') {
       $fields['account_name'] = array(

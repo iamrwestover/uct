@@ -442,14 +442,7 @@ function avreports_soa_form($form, &$form_state) {
 
   //$select[] = 'avtxn.amount_to_credit';
   $select[] = 'avtxn_detail.ref_txn_type';
-  $select[] = "SUM(
-    avtxn_detail.qty
-    * avtxn_detail.cost
-    * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
-    * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
-    * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
-    * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
-  ) AS grand_total";
+  $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
   //$select[] = "IF (
   //    (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "' OR avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_CUSTOMER_CHARGES . "'),
   //    SUM(avtxn_detail.paid_amount),

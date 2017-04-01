@@ -710,7 +710,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
 
   $rows = array();
   if (!empty($allowed_ttypes)) {
-    $rows_per_page = empty($options['#hide_filter_form']) ? 50 : 10;
+    $rows_per_page = empty($options['#hide_filter_form']) ? 30 : 10;
     $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, array(), array(), array(), TRUE);
     $page = pager_default_initialize($total_count, $rows_per_page);
     $offset = $rows_per_page * $page;

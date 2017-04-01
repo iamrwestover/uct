@@ -191,6 +191,8 @@ function avreports_profit_loss_form($form, &$form_state) {
     }
   }
 
+  avreports_product_transaction_history();
+
   // Group by period.
   $account_rows_by_period = array();
   foreach ($date_group as $dg) {
@@ -334,25 +336,6 @@ function avreports_profit_loss_form($form, &$form_state) {
   $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS;
   avreports_account_type_difference_row($table_rows, 'OPERATING INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_EXPENSE, $date_group);
 
-  //$operating_income = 0;
-  //if (isset($at_totals[AVTXN_AC_TYPE_EXPENSE]['at_total'])) {
-  //  $operating_income = $gross_profit - $at_totals[AVTXN_AC_TYPE_EXPENSE]['at_total'];
-  //}
-  //$data = array();
-  //$data['account'] = array('data' => 'OPERATING INCOME', 'class' => array('uk-text-bold'));
-  //foreach ($date_group as $tk => $tc) {
-  //  $period_total = isset($at_totals[AVTXN_AC_TYPE_INCOME][$tk]) ? $at_totals[AVTXN_AC_TYPE_INCOME][$tk] : 0;
-  //  $this_total_text = avbase_accounting_number_format($period_total);
-  //  $data[$tk] = array('data' => $this_total_text, 'class' => array('uk-text-bold uk-text-right'));
-  //}
-  //$operating_income_text = avbase_accounting_number_format($operating_income);
-  //$data['total'] = array('data' => $operating_income_text, 'class' => array('uk-text-right uk-text-bold'));
-  //$table_rows[] = array('data' => $data);
-  //// Spacer.
-  //$data = array();
-  //$data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
-  //$table_rows[] = array('data' => $data);
-
   // Other Income.
   avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $account_rows_no_parenting, $date_group, $at_totals);
   // Spacer.
@@ -362,20 +345,6 @@ function avreports_profit_loss_form($form, &$form_state) {
   // Net Income Row.
   $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS . '.' . AVTXN_AC_TYPE_EXPENSE;
   avreports_account_type_difference_row($table_rows, 'NET INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_OTHER_INCOME, $date_group, FALSE);
-  
-  //$net_income = 0;
-  //if (isset($at_totals[AVTXN_AC_TYPE_OTHER_INCOME]['at_total'])) {
-  //  $net_income = $operating_income + $at_totals[AVTXN_AC_TYPE_OTHER_INCOME]['at_total'];
-  //}
-  //$data = array();
-  //$data['account'] = array('data' => 'NET INCOME', 'class' => array('uk-text-bold'));
-  //foreach ($date_group as $tk => $tc) {
-  //  $data[$tk] = $tc['label'];
-  //}
-  //$net_income_text = avbase_accounting_number_format($net_income);
-  //$data['total'] = array('data' => $net_income_text, 'class' => array('uk-text-right uk-text-bold'));
-  //$table_rows[] = array('data' => $data);
-
 
 
   $transaction_list_table['table'] = array(
