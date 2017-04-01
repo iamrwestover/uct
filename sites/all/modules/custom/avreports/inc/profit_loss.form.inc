@@ -404,6 +404,18 @@ function avreports_profit_loss_form($form, &$form_state) {
       'class' => array('printable')
     ),
   );
+
+  if (!empty($user_filter['date_from'])) {
+    $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);
+    if (!empty($user_filter['date_to']) && $user_filter['date_from'] != $user_filter['date_to']) {
+      $date_text .= ' - ' . $user_filter['date_to'];
+    }
+    $transaction_list_table['date_from'] = array(
+      '#type' => 'item',
+      '#markup' => $date_text,
+    );
+  }
+
   $form['transaction_list_table'] += $transaction_list_table;
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';

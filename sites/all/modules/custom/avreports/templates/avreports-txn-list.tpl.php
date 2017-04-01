@@ -3,7 +3,7 @@
     <?php print drupal_render($form['agent']); ?>
   </div>
   <div class="uk-width-1-2 uk-text-right">
-    <?php print drupal_render($form['transaction_date']); ?>
+    <?php print drupal_render($form['date_from']); ?>
   </div>
 </div>
 

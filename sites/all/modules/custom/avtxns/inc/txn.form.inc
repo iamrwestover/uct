@@ -132,7 +132,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
         $form_color_class = 'uk-alert uk-alert-mute';
         break;
     }
-    $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">&nbsp;' . $icon_html . strtoupper($tsd['title']) . '&nbsp;</span>&nbsp;';
+    $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">&nbsp;' . $icon_html . strtoupper($tsd['title']) . '&nbsp;</span><span class="not-printable">&nbsp;</span>';
     if ($row->status != AVTXNS_TXN_STATUS_CLOSED) {
       $form['#attributes']['class'][] = 'not-printable';
     }
