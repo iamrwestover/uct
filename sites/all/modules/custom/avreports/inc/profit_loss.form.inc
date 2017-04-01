@@ -73,7 +73,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   $header = array();
   $header['account'] = '';
   foreach ($date_group as $tk => $tc) {
-    $header[$tk] = $tc['label'];
+    $header[$tk] = array('data' => $tc['label'], 'class' => array('uk-text-right'));
   }
   $header['total'] = array('data' => 'Total', 'class' => array('uk-text-right'));
 
@@ -82,14 +82,15 @@ function avreports_profit_loss_form($form, &$form_state) {
   $accounts_where = $accounts_args = array();
   $accounts_where[] = 'avachart.account_type IN (:account_types)';
   $accounts_args[':account_types'] = $profit_loss_account_types;
-  $accounts = avtxns_account_chart_query_load($accounts_where, $accounts_args);
-  //dpm($accounts);
+  $profit_loss_accounts = avtxns_account_chart_query_load($accounts_where, $accounts_args);
 
   // Build query.
   $pl_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
   $pl_transaction_statuses = array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN);
   $select[] = 'avtxn_detail.*';
   $select[] = 'avtxn.transaction_type';
+  $select[] = 'avtxn.transaction_date';
+  //$select[] = "(DATE_FORMAT(FROM_UNIXTIME(avtxn.transaction_date) ,'%M 01 %Y')) AS period";
   $select['grand_total'] = avtxns_txn_detail_sum_query() . ' AS grand_total';
   $select['grand_total_discounted'] = avtxns_txn_detail_sum_query_discount_applied() . ' AS grand_total_discounted';
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
@@ -106,13 +107,14 @@ function avreports_profit_loss_form($form, &$form_state) {
     $ref_txn_type = empty($row->ref_txn_type) ? '-' : $row->ref_txn_type;
     $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
     foreach ($account_ids as $a_id => $a_type) {
-      $this_account_type = isset($accounts[$a_id]->account_type) ? $accounts[$a_id]->account_type : '';
+      $this_account_type = isset($profit_loss_accounts[$a_id]->account_type) ? $profit_loss_accounts[$a_id]->account_type : '';
       if (!in_array($this_account_type, $profit_loss_account_types)) {
         continue;
       }
       //$profit_loss_account_types
-      $account_rows[$a_id]['txn_details'][] = array(
+      $account_rows[$a_id][] = array(
         'transaction_id' => $row->transaction_id,
+        'transaction_date' => $row->transaction_date,
         'transaction_type' => $row->transaction_type,
         'account_id' => $a_id,
         'account_type' => $this_account_type,
@@ -125,8 +127,9 @@ function avreports_profit_loss_form($form, &$form_state) {
       $discounted_amount = $row->grand_total - $row->grand_total_discounted;
       $discounted_amount = round((float)$discounted_amount, 2);
       if (!empty($discounted_amount)) {
-        $account_rows[AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID]['txn_details'][] = array(
+        $account_rows[AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID][] = array(
           'transaction_id' => $row->transaction_id,
+          'transaction_date' => $row->transaction_date,
           'transaction_type' => $row->transaction_type,
           'account_id' => AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID,
           'account_type' => AVTXN_AC_TYPE_INCOME,
@@ -150,20 +153,21 @@ function avreports_profit_loss_form($form, &$form_state) {
   $select[] = 'avtxn_detail.cost';
   $where[] = 'avtxn_detail.account_id IN (:account_ids)';
   $args[':txn_types'] = $ttypes;
-  $args[':account_ids'] = array_keys($accounts);
+  $args[':account_ids'] = array_keys($profit_loss_accounts);
   $query = avreports_profit_loss_query($where, $select, $joins);
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
     $account_row = array(
       'transaction_id' => $row->transaction_id,
+      'transaction_date' => $row->transaction_date,
       'transaction_type' => $row->transaction_type,
       'account_id' => $row->account_id,
-      'account_type' => isset($accounts[$row->account_id]->account_type) ? $accounts[$row->account_id]->account_type : '',
+      'account_type' => isset($profit_loss_accounts[$row->account_id]->account_type) ? $profit_loss_accounts[$row->account_id]->account_type : '',
     );
     if ($row->transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
       $account_row['debit'] = $row->debit;
       $account_row['credit'] = $row->credit;
-      $account_rows[$row->account_id]['txn_details'][] = $account_row;
+      $account_rows[$row->account_id][] = $account_row;
     }
     else {
       // For other trans, fill up account_id, debit, credit.
@@ -171,114 +175,207 @@ function avreports_profit_loss_form($form, &$form_state) {
       if (!empty($ttd['default_account_id'])) {
         foreach ($ttd['default_account_id'] as $a_id => $a_type) {
           // One for the default account. Only if this account id is included in the allowed ones.
-          if (in_array($a_id, array_keys($accounts))) {
+          if (in_array($a_id, array_keys($profit_loss_accounts))) {
             $this_account_row = $account_row;
             $this_account_row['account_id'] = $a_id;
             $this_account_row[$a_type] = $row->cost;
-            $account_rows[$a_id]['txn_details'][] = $this_account_row;
+            $account_rows[$a_id][] = $this_account_row;
           }
           // Another one for the entered account.
           $entered_account_balance_type = $a_type == 'credit' ? 'debit' : 'credit';
           $this_account_row = $account_row;
           $this_account_row[$entered_account_balance_type] = $row->cost;
-          $account_rows[$row->account_id]['txn_details'][] = $this_account_row;
+          $account_rows[$row->account_id][] = $this_account_row;
         }
       }
     }
   }
 
-  // Compute total balance per account.
-  foreach ($account_rows as $r_k => $row) {
-    $balance_total = 0;
-    foreach ($row['txn_details'] as $txn_detail) {
-      $actd = avtxns_account_chart_types($txn_detail['account_type']);
-      $td_credit = empty($txn_detail['credit']) ? 0 : $txn_detail['credit'];
-      $td_debit = empty($txn_detail['debit']) ? 0 : $txn_detail['debit'];
-      $balance_total += $actd['balance_type'] == 'debit' ? $td_debit : $td_credit;
-      $balance_total -= $actd['balance_type'] == 'credit' ? $td_debit : $td_credit;
+  // Group by period.
+  $account_rows_by_period = array();
+  foreach ($date_group as $dg) {
+    $period_accounts = array();
+    foreach ($account_rows as $a_k => $txn_details) {
+      $period_txn_details = array();
+      foreach ($txn_details as $r_k => $row) {
+        if ($dg['date_from'] <= $row['transaction_date'] && $dg['date_to'] >= $row['transaction_date']) {
+          $period_txn_details[] = $row;
+        }
+      }
+      $period_accounts[$a_k]['txn_details'] = $period_txn_details;
     }
-    $account_rows[$r_k]['account_balance'] = $balance_total;
+    $account_rows_by_period[$dg['date_from']] = $period_accounts;
+  }
 
+  //dpm($account_rows_by_period);
+  //return $form;
+  //foreach ($account_rows as $r_k => $row) {
+  //  foreach($row['txn_details'] as $txn_detail) {
+  //    foreach ($date_group as $dg) {
+  //      if (!isset($account_rows_by_period[$dg['date_from']]['accounts'])) {
+  //        $account_rows_by_period[$dg['date_from']]['accounts'] = array();
+  //      }
+  //      if ($txn_detail['transaction_date'] <= $dg['date_to']) {
+  //        $account_rows_by_period[$dg['date_from']]['accounts'][$r_k]['txn_details'][] = $txn_detail;
+  //        break;
+  //      }
+  //    }
+  //  }
+  //}
+
+
+  // Compute total balance per account.
+  foreach ($account_rows_by_period as $p_k => $period) {
+    foreach ($period as $r_k => $row) {
+      $account_total = 0;
+      foreach ($row['txn_details'] as $txn_detail) {
+        $actd = avtxns_account_chart_types($txn_detail['account_type']);
+        $td_credit = empty($txn_detail['credit']) ? 0 : $txn_detail['credit'];
+        $td_debit = empty($txn_detail['debit']) ? 0 : $txn_detail['debit'];
+        $account_total += $actd['balance_type'] == 'debit' ? $td_debit : $td_credit;
+        $account_total -= $actd['balance_type'] == 'credit' ? $td_debit : $td_credit;
+      }
+      $account_rows_by_period[$p_k][$r_k]['account_balance'] = $account_total;
+    }
   }
 
   // Additional account information.
-  foreach ($account_rows as $r_k => $row) {
-    $account_rows[$r_k]['id'] = $r_k;
-    $account_rows[$r_k]['account_type'] = isset($accounts[$r_k]->account_type) ? $accounts[$r_k]->account_type : '-';
-    $account_rows[$r_k]['title'] = isset($accounts[$r_k]->title) ? $accounts[$r_k]->title : '';
-    $account_rows[$r_k]['parent'] = isset($accounts[$r_k]->parent) ? $accounts[$r_k]->parent : NULL;
-  }
-  $account_rows_tree = avbase_rows_build_tree($account_rows, 0, FALSE, FALSE);
-  avbase_account_chart_sum_parent_balance($account_rows_tree);
-
-  // Group by account type.
-  $account_rows_by_type = array();
-  foreach ($account_rows_tree as $r_k => $row) {
-    $account_rows_by_type[$row['account_type']][$r_k] = $row;
-  }
-
-  // Compute total balance per account type.
-  foreach ($account_rows_by_type as $r_k => $row) {
-    $account_type_total = 0;
-    foreach ($row as $r) {
-      $account_type_total += $row['account_balance'] + $row['children_account_balance'];
+  foreach ($account_rows_by_period as $p_k => $period) {
+    foreach ($period as $r_k => $row) {
+      $row['id'] = $r_k;
+      $row['account_type'] = isset($profit_loss_accounts[$r_k]->account_type) ? $profit_loss_accounts[$r_k]->account_type : '-';
+      $row['title'] = isset($profit_loss_accounts[$r_k]->title) ? $profit_loss_accounts[$r_k]->title : '';
+      $row['parent'] = isset($profit_loss_accounts[$r_k]->parent) ? $profit_loss_accounts[$r_k]->parent : NULL;
+      $account_rows_by_period[$p_k][$r_k] = $row;
     }
   }
 
+  $account_rows_no_parenting = $account_rows_by_period;
+
+  //// Build parent-child relationship.
+  //foreach ($account_rows_by_period as $p_k => $period) {
+  //  $account_rows_by_period[$p_k] = avbase_rows_build_tree($period, 0, FALSE, FALSE);
+  //  // Get total children balance.
+  //  avbase_account_chart_sum_parent_balance($account_rows_by_period[$p_k]);
+  //}
+  //
+  //// Group by account type.
+  ////$account_rows_by_type = array();
+  ////foreach ($account_rows_by_period as $p_k => $period) {
+  ////  foreach ($period as $r_k => $row) {
+  ////    $account_rows_by_type[$row['account_type']][$p_k][$r_k] = $row;
+  ////  }
+  ////}
+  //
+  //$account_rows_by_type = array();
+  //foreach ($account_rows_by_period as $p_k => $period) {
+  //  foreach ($period as $r_k => $row) {
+  //    $account_rows_by_type[$row['account_type']][$r_k][$p_k] = $row;
+  //    $account_rows_by_type[$row['account_type']]['#account_type'] = $row['account_type'];
+  //    $account_rows_by_type[$row['account_type']]['#title'] = $row['title'];
+  //  }
+  //}
+  //
+  //
+  //// Compute total balance per account type.
+  ////foreach ($account_rows_by_type as $at_k => $periods) {
+  ////  $account_type_total = 0;
+  ////  foreach ($periods as $p_k => $rows) {
+  ////    $period_total = 0;
+  ////    foreach ($rows as $row) {
+  ////      $period_total += $row['account_balance'] + $row['children_account_balance'];
+  ////      $account_type_total += $period_total;
+  ////    }
+  ////    $account_rows_by_type[$at_k][$p_k]['#period_total'] = $period_total;
+  ////    $account_rows_by_type[$at_k][$p_k]['#period_total_text'] = avbase_accounting_number_format($period_total);
+  ////  }
+  ////  $account_rows_by_type[$at_k]['#at_total'] = $account_type_total;
+  ////  $account_rows_by_type[$at_k]['#at_total_text'] = avbase_accounting_number_format($account_type_total);
+  ////}
+  //foreach ($account_rows_by_type as $at_k => $rows) {
+  //  $account_type_total = 0;
+  //  foreach (element_children($rows) as $r_k) {
+  //    $period = $rows[$r_k];
+  //    $account_total = 0;
+  //    foreach ($period as $p_k => $p_info) {
+  //      $account_type_total += $p_info['account_balance'] + $p_info['children_account_balance'];
+  //      $account_total += $p_info['account_balance'];
+  //    }
+  //    $account_rows_by_type[$at_k][$r_k]['#account_total'] = $account_total;
+  //    $account_rows_by_type[$at_k][$r_k]['#account_total_text'] = avbase_accounting_number_format($account_total);
+  //  }
+  //  $account_rows_by_type[$at_k]['#at_total'] = $account_type_total;
+  //  $account_rows_by_type[$at_k]['#at_total_text'] = avbase_accounting_number_format($account_type_total);
+  //}
+
+  // chart.
+  $profit_loss_accounts = avbase_rows_build_tree($profit_loss_accounts, 0, FALSE, FALSE);
+  $pl_accounts_by_type = array();
+  foreach ($profit_loss_accounts as $pl) {
+    $pl_accounts_by_type[$pl['account_type']][$pl['id']] = $pl;
+  }
+
+
   // Create table.
   $table_rows = array();
+  $at_totals = array();
   // INCOME.
-  avreports_account_type_balance_rows($table_rows, $account_rows_by_type, AVTXN_AC_TYPE_INCOME, $date_group);
+  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_INCOME, $account_rows_no_parenting, $date_group, $at_totals);
+
   // COGS.
-  avreports_account_type_balance_rows($table_rows, $account_rows_by_type, AVTXN_AC_TYPE_COGS, $date_group);
+  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_COGS, $account_rows_no_parenting, $date_group, $at_totals);
   // Gross Profit Row.
-  $gross_profit = $account_rows_by_type[AVTXN_AC_TYPE_INCOME]['#account_type_total'] - $account_rows_by_type[AVTXN_AC_TYPE_COGS]['#account_type_total'];
-  $data = array();
-  $data['account'] = array('data' => 'GROSS PROFIT / (LOSS)', 'class' => array('uk-text-bold'));
-  foreach ($date_group as $tk => $tc) {
-    $data[$tk] = $tc['label'];
-  }
-  $gross_profit_text = avbase_accounting_number_format($gross_profit);
-  $data['total'] = array('data' => $gross_profit_text, 'class' => array('uk-text-right uk-text-bold'));
-  $table_rows[] = array('data' => $data);
-  // Spacer.
-  $data = array();
-  $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
-  $table_rows[] = array('data' => $data);
+  avreports_account_type_difference_row($table_rows, 'GROSS PROFIT / (LOSS)', $at_totals, AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_COGS, $date_group);
 
   // EXPENSES.
-  avreports_account_type_balance_rows($table_rows, $account_rows_by_type, AVTXN_AC_TYPE_EXPENSE, $date_group);
+  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_EXPENSE, $account_rows_no_parenting, $date_group, $at_totals);
+
   // Operating Income Row.
-  $operating_income = $gross_profit - $account_rows_by_type[AVTXN_AC_TYPE_EXPENSE]['#account_type_total'];
-  $data = array();
-  $data['account'] = array('data' => 'OPERATING INCOME', 'class' => array('uk-text-bold'));
-  foreach ($date_group as $tk => $tc) {
-    $data[$tk] = $tc['label'];
-  }
-  $operating_income_text = avbase_accounting_number_format($operating_income);
-  $data['total'] = array('data' => $operating_income_text, 'class' => array('uk-text-right uk-text-bold'));
-  $table_rows[] = array('data' => $data);
-  // Spacer.
-  $data = array();
-  $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
-  $table_rows[] = array('data' => $data);
+  $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS;
+  avreports_account_type_difference_row($table_rows, 'OPERATING INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_EXPENSE, $date_group);
+
+  //$operating_income = 0;
+  //if (isset($at_totals[AVTXN_AC_TYPE_EXPENSE]['at_total'])) {
+  //  $operating_income = $gross_profit - $at_totals[AVTXN_AC_TYPE_EXPENSE]['at_total'];
+  //}
+  //$data = array();
+  //$data['account'] = array('data' => 'OPERATING INCOME', 'class' => array('uk-text-bold'));
+  //foreach ($date_group as $tk => $tc) {
+  //  $period_total = isset($at_totals[AVTXN_AC_TYPE_INCOME][$tk]) ? $at_totals[AVTXN_AC_TYPE_INCOME][$tk] : 0;
+  //  $this_total_text = avbase_accounting_number_format($period_total);
+  //  $data[$tk] = array('data' => $this_total_text, 'class' => array('uk-text-bold uk-text-right'));
+  //}
+  //$operating_income_text = avbase_accounting_number_format($operating_income);
+  //$data['total'] = array('data' => $operating_income_text, 'class' => array('uk-text-right uk-text-bold'));
+  //$table_rows[] = array('data' => $data);
+  //// Spacer.
+  //$data = array();
+  //$data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
+  //$table_rows[] = array('data' => $data);
 
   // Other Income.
-  avreports_account_type_balance_rows($table_rows, $account_rows_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $date_group);
-  // Net Income Row.
-  $net_income = $operating_income + $account_rows_by_type[AVTXN_AC_TYPE_OTHER_INCOME]['#account_type_total'];
-  $data = array();
-  $data['account'] = array('data' => 'NET INCOME', 'class' => array('uk-text-bold'));
-  foreach ($date_group as $tk => $tc) {
-    $data[$tk] = $tc['label'];
-  }
-  $net_income_text = avbase_accounting_number_format($net_income);
-  $data['total'] = array('data' => $net_income_text, 'class' => array('uk-text-right uk-text-bold'));
-  $table_rows[] = array('data' => $data);
+  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $account_rows_no_parenting, $date_group, $at_totals);
   // Spacer.
   $data = array();
-  $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
+  $data['account'] = array('data' => '', 'colspan' => 1000);
   $table_rows[] = array('data' => $data);
+  // Net Income Row.
+  $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS . '.' . AVTXN_AC_TYPE_EXPENSE;
+  avreports_account_type_difference_row($table_rows, 'NET INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_OTHER_INCOME, $date_group, FALSE);
+  
+  //$net_income = 0;
+  //if (isset($at_totals[AVTXN_AC_TYPE_OTHER_INCOME]['at_total'])) {
+  //  $net_income = $operating_income + $at_totals[AVTXN_AC_TYPE_OTHER_INCOME]['at_total'];
+  //}
+  //$data = array();
+  //$data['account'] = array('data' => 'NET INCOME', 'class' => array('uk-text-bold'));
+  //foreach ($date_group as $tk => $tc) {
+  //  $data[$tk] = $tc['label'];
+  //}
+  //$net_income_text = avbase_accounting_number_format($net_income);
+  //$data['total'] = array('data' => $net_income_text, 'class' => array('uk-text-right uk-text-bold'));
+  //$table_rows[] = array('data' => $data);
+
 
 
   $transaction_list_table['table'] = array(
