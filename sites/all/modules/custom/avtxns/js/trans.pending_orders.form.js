@@ -20,7 +20,9 @@
       $('#client-id').once('avtxnsPendingOrderClientID', function() {
         // Trigger client PO submit when client field value is changed.
         $(this).blur(function() {
-          $('#check-po-btn').trigger('click');
+          if ($(this).val() != '') {
+            $('#check-po-btn').trigger('click');
+          }
         });
       });
     }

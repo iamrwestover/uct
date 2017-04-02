@@ -12,10 +12,10 @@ function avbase_users_home_form($form, &$form_state) {
     '#markup' => l('New user', 'admin/people/create', array('attributes' => array('class' => 'uk-button uk-margin-small-right uk-button-primary'))),
     '#access' => user_access('administer users'),
   );
-  $form['permissions_button'] = array(
-    '#markup' => l('Permissions', 'av/users/permissions', array('attributes' => array('class' => 'uk-button uk-margin-small-right'))),
-    '#access' => user_access('administer users'),
-  );
+  //$form['permissions_button'] = array(
+  //  '#markup' => l('Permissions', 'av/users/permissions', array('attributes' => array('class' => 'uk-button uk-margin-small-right'))),
+  //  '#access' => user_access('administer users'),
+  //);
 
   $header = array(
     array('data' => 'ID', 'field' => 'uid', 'sort' => 'desc', 'class' => array('uk-hidden')),
@@ -86,15 +86,40 @@ function avbase_users_home_form($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Page callback: Generates the appropriate user administration form.
+ *
+ * This function generates the user registration, multiple user cancellation,
+ * or filtered user list admin form, depending on the argument and the POST
+ * form values.
+ *
+ * @param string $callback_arg
+ *   (optional) Indicates which form to build. Defaults to '', which will
+ *   trigger the user filter form. If the POST value 'op' is present, this
+ *   function uses that value as the callback argument.
+ *
+ * @return string
+ *   A renderable form array for the respective request.
+ */
+function avbase_user_admin($callback_arg = '') {
+  module_load_include('inc', 'user', 'user.admin');
+  return user_admin($callback_arg);
+}
+
 function avbase_user_permissions_form($form, &$form_state, $rid = NULL) {
   drupal_set_title('Permissions');
 
   // Retrieve role names for columns.
   $role_names = user_roles();
-  unset($role_names[1]);
-  unset($role_names[2]);
-  unset($role_names[3]);
+  foreach (avbase_restricted_rids() as $rrid) {
+    unset($role_names[$rrid]);
+  }
+
   if (is_numeric($rid)) {
+    if (in_array($rid, avbase_restricted_rids())) {
+      drupal_access_denied();
+      drupal_exit();
+    }
     $role_names = array($rid => $role_names[$rid]);
   }
   // Fetch permissions for all roles or the one selected role.
@@ -303,5 +328,64 @@ function avbase_form_user_profile_form_after_build(&$form, $form_state) {
       $form[$k]['#access'] = FALSE;
     }
   }
+  return $form;
+}
+
+/**
+ * Form to re-order roles or add a new one.
+ *
+ * @ingroup forms
+ * @see theme_user_admin_roles()
+ */
+function avbase_user_admin_roles($form, &$form_state) {
+  drupal_set_title('Roles');
+  module_load_include('inc', 'user', 'user.admin');
+  $form = user_admin_roles($form, $form_state);
+  $form['#theme'] = 'user_admin_roles';
+  $form['name']['#title'] = 'Add new role';
+  $form['name']['#title_display'] = 'before';
+  $form['add']['#button_label'] = 'Save new role';
+
+  foreach (element_children($form['roles']) as $r_k) {
+    if (in_array($r_k, avbase_restricted_rids())) {
+      unset($form['roles'][$r_k]);
+    }
+  }
+
+  $_GET['destination'] = current_path();
+  return $form;
+}
+
+/**
+ * Form to configure a single role.
+ *
+ * @ingroup forms
+ * @see user_admin_role_validate()
+ * @see user_admin_role_submit()
+ */
+function avbase_user_admin_role($form, $form_state, $role) {
+  module_load_include('inc', 'user', 'user.admin');
+  $form = user_admin_role($form, $form_state, $role);
+  $form['name']['#description'] = 'The name for this role. Example: "encoder", "accountant", "moderator".';
+  $form['#submit'] = array('user_admin_role_submit');
+
+  $delete_path = 'av/users/roles/delete/' . $form['rid']['#value'];
+  $form['actions']['delete'] = array('#markup' =>
+    l('Delete role', $delete_path, array(
+      'attributes' => array('class' => array('uk-button')),
+      'query' => drupal_get_destination()
+      )
+    )
+  );
+  return $form;
+}
+
+/**
+ * Form to confirm role delete operation.
+ */
+function avbase_user_admin_role_delete_confirm($form, &$form_state, $role) {
+  module_load_include('inc', 'user', 'user.admin');
+  $form = user_admin_role_delete_confirm($form, $form_state, $role);
+  $form['#submit'] = array('user_admin_role_delete_confirm_submit');
   return $form;
 }
