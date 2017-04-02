@@ -107,7 +107,7 @@ function avbase_user_admin($callback_arg = '') {
 }
 
 function avbase_user_permissions_form($form, &$form_state, $rid = NULL) {
-  drupal_set_title('Permissions');
+  //drupal_set_title('Permissions');
 
   // Retrieve role names for columns.
   $role_names = user_roles();
@@ -338,11 +338,11 @@ function avbase_form_user_profile_form_after_build(&$form, $form_state) {
  * @see theme_user_admin_roles()
  */
 function avbase_user_admin_roles($form, &$form_state) {
-  drupal_set_title('Roles');
+  //drupal_set_title('UserRoles');
   module_load_include('inc', 'user', 'user.admin');
   $form = user_admin_roles($form, $form_state);
   $form['#theme'] = 'user_admin_roles';
-  $form['name']['#title'] = 'Add new role';
+  $form['name']['#title'] = 'Add a new role';
   $form['name']['#title_display'] = 'before';
   $form['add']['#button_label'] = 'Save new role';
 
@@ -352,6 +352,8 @@ function avbase_user_admin_roles($form, &$form_state) {
     }
   }
 
+  $form['add']['#attributes']['class'][] = 'uk-margin-small-top uk-button-success';
+  $form['actions']['submit']['#button_label'] = 'Save sort changes';
   $_GET['destination'] = current_path();
   return $form;
 }
