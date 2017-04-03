@@ -44,7 +44,7 @@ function avbase_users_home_form($form, &$form_state) {
     $users_roles = array();
     $roles_result = db_query('SELECT rid FROM {users_roles} WHERE uid = :uid', array(':uid' => $row->uid));
     foreach ($roles_result as $user_role) {
-      $users_roles[] = $roles[$user_role->rid];
+      $users_roles[$user_role->rid] = $roles[$user_role->rid];
     }
     asort($users_roles);
 
@@ -62,13 +62,14 @@ function avbase_users_home_form($form, &$form_state) {
     $name_details = array_filter($name_details);
     $full_name = implode(' ', $name_details);
     $user_view_link = l($full_name, 'user/' . $row->uid);
+    $is_superadmin = in_array(8, array_keys($users_roles));
     $rows[] = array(
       'data' => array(
         'id' => array('data' => $row->uid, 'class' => array('uk-hidden')),
-        'name' => array('data' => $user_view_link),
-        'username' => array('data' => check_plain($row->name)),
-        'roles' => array('data' => implode(', ', $users_roles)),
-        'actions' => $actions_html,
+        'name' => array('data' => $is_superadmin ? 'Anonymous' : $user_view_link),
+        'username' => array('data' =>  $is_superadmin ? '?' : check_plain($row->name)),
+        'roles' => array('data' => $is_superadmin ? '?' : implode(', ', $users_roles)),
+        'actions' => $is_superadmin ? '' : $actions_html,
       ),
       'class' => array('uk-table-middle'),
     );

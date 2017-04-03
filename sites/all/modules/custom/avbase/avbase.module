@@ -366,6 +366,13 @@ function avbase_form_user_cancel_confirm_form_alter(&$form, $form_state) {
   if ($user->uid == 1) {
     return;
   }
+
+  $account = $form['_account']['#value'];
+  if ($account->uid == 1 || isset($account->roles[8])) {
+    drupal_access_denied();
+    drupal_exit();
+  }
+
   $form['user_cancel_method']['#access'] = FALSE;
   $form['user_cancel_confirm']['#access'] = FALSE;
   $form['user_cancel_notify']['#access'] = FALSE;
@@ -415,9 +422,9 @@ function avbase_form_user_profile_form_alter(&$form, $form_state, $form_id) {
     //drupal_set_breadcrumb($breadcrumb);
   }
 
-  $account = empty($form['#user']) ? NULL : $form['#user'];
   // Prevent modification of super admin.
-  if ($account->uid == 1) {
+  $account = empty($form['#user']) ? NULL : $form['#user'];
+  if ($account->uid == 1 || isset($account->roles[8])) {
     drupal_access_denied();
     drupal_exit();
   }
