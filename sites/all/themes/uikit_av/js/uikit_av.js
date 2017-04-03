@@ -17,15 +17,17 @@
 
 
 
-  $(document).ajaxStart(function () {
-    ajaxTimer && clearTimeout(ajaxTimer);
-    ajaxTimer = setTimeout(function () {
-      $loader.fadeIn('fast');
-    }, 1000);
-  }).ajaxStop(function () {
-    clearTimeout(ajaxTimer);
-    $loader.fadeOut('fast');
-  });
+  if (window.location.pathname != '/batch') {
+    $(document).ajaxStart(function () {
+      ajaxTimer && clearTimeout(ajaxTimer);
+      ajaxTimer = setTimeout(function () {
+        $loader.fadeIn('fast');
+      }, 1000);
+    }).ajaxStop(function () {
+      clearTimeout(ajaxTimer);
+      $loader.fadeOut('fast');
+    });
+  }
 
 }(jQuery));
 

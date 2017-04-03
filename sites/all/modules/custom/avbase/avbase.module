@@ -333,7 +333,7 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
         //$form['quickbackup']['destination']['copy_destination']['#access'] = FALSE;
         unset($form['quickbackup']['destination']['copy_destination']['copy_destination_id']['#options']['Offsite']);
         $form['advanced']['#access'] = FALSE;
-        unset($form['quickbackup']['profile_id']['#options']['uct_clean_install']);
+        //unset($form['quickbackup']['profile_id']['#options']['uct_clean_install']);
         unset($form['quickbackup']['profile_id']['#options']['default']);
       }
       break;
