@@ -702,6 +702,10 @@ function avbase_general_settings_form() {
   }
 
 
+  $form['flush_drupal_cache'] = array(
+    '#markup' => l('Flush all caches', 'admin_menu/flush-cache', array('query' => drupal_get_destination() + array('token' => drupal_get_token('admin_menu/flush-cache')))),
+    '#access' => user_access('flush caches'),
+  );
   //theme_item_list()
   return system_settings_form($form);
 }
