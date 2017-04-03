@@ -391,10 +391,10 @@ function uikit_av_backup_migrate_ui_manual_quick_backup_form_inline($form) {
     //'!submit' => drupal_render($form['quickbackup']['submit']),
   );
   $quickbackup_markup_text = 'Backup my !from to !to';
-  if (avbase_user_is_super_admin()) {
+  //if (avbase_user_is_super_admin()) {
     $replacements['!profile'] = drupal_render($form['quickbackup']['profile_id']);
     $quickbackup_markup_text .= ' using !profile';
-  }
+  //}
   $form['quickbackup']['markup'] = array(
     '#type'   => 'markup',
     "#prefix" => '<div class="container-inline backup-migrate-inline">',

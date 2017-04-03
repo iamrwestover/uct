@@ -333,10 +333,14 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
         //$form['quickbackup']['destination']['copy_destination']['#access'] = FALSE;
         unset($form['quickbackup']['destination']['copy_destination']['copy_destination_id']['#options']['Offsite']);
         $form['advanced']['#access'] = FALSE;
+        unset($form['quickbackup']['profile_id']['#options']['uct_clean_install']);
+        unset($form['quickbackup']['profile_id']['#options']['default']);
       }
       break;
 
     case 'backup_migrate_ui_manual_restore_form':
+      $form['advanced']['utils_site_offline']['#default_value'] = 1;
+      $form['advanced']['utils_site_offline_message_wrapper']['utils_site_offline_message']['#default_value'] = 'System restore is on-going. We should be back shortly. Thank you for your patience.';
       if (!avbase_user_is_super_admin()) {
         $form['advanced']['#access'] = FALSE;
       }
@@ -344,7 +348,7 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
 
     case 'backup_migrate_crud_edit_form':
       if (!avbase_user_is_super_admin()) {
-        $form['profile_id']['#access'] = FALSE;
+        //$form['profile_id']['#access'] = FALSE;
         $form['cron_settings']['cron_builtin']['#title'] = 'Run using Cron';
         unset($form['cron_settings']['cron_builtin']['#description']);
         $form['cron_settings']['cron_elysia']['#access'] = FALSE;
