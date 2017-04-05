@@ -4,6 +4,7 @@ core = 7.x
 base theme = uikit
 
 stylesheets[all][] = css/preloader.css
+stylesheets[all][] = css/font.open_sans.css
 stylesheets[all][] = css/av.css
 stylesheets[all][] = css/print.css
 stylesheets[all][] = css/uikit_overrides.css

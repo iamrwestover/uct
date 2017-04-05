@@ -31,7 +31,7 @@ define('MAINTENANCE_MODE', 'update');
  * Renders a form with a list of available database updates.
  */
 function update_selection_page() {
-  drupal_set_title('Drupal database update');
+  drupal_set_title('UCMC database update');
   $elements = drupal_get_form('update_script_selection_form');
   $output = drupal_render($elements);
 
@@ -155,14 +155,14 @@ function update_helpful_links() {
   if (user_access('access administration pages')) {
     $links[] = '<a href="' . base_path() . '?q=admin">Administration pages</a>';
   }
-  return $links;
+  return array();
 }
 
 /**
  * Displays results of the update script with any accompanying errors.
  */
 function update_results_page() {
-  drupal_set_title('Drupal database update');
+  drupal_set_title('UCMC database update');
   $links = update_helpful_links();
 
   update_task_list();
@@ -260,14 +260,13 @@ function update_info_page() {
   }
 
   update_task_list('info');
-  drupal_set_title('Drupal database update');
+  drupal_set_title('UCMC database update');
   $token = drupal_get_token('update');
-  $output = '<p>Use this utility to update your database whenever a new release of Drupal or a module is installed.</p><p>For more detailed information, see the <a href="http://drupal.org/upgrade">upgrading handbook</a>. If you are unsure what these terms mean you should probably contact your hosting provider.</p>';
+  $output = '<p>Use this utility to update your database whenever a new update is installed.</p>';
   $output .= "<ol>\n";
-  $output .= "<li><strong>Back up your database</strong>. This process will change your database values and in case of emergency you may need to revert to a backup.</li>\n";
-  $output .= "<li><strong>Back up your code</strong>. Hint: when backing up module code, do not leave that backup in the 'modules' or 'sites/*/modules' directories as this may confuse Drupal's auto-discovery mechanism.</li>\n";
-  $output .= '<li>Put your site into <a href="' . base_path() . '?q=admin/config/development/maintenance">maintenance mode</a>.</li>' . "\n";
-  $output .= "<li>Install your new files in the appropriate location, as described in the handbook.</li>\n";
+  $output .= "<li><strong><a target=\"_blank\" href=\"admin/config/system/backup_migrate\">Back up your database</a></strong>. This process will change your database values and in case of emergency you may need to revert to a backup.</li>\n";
+  $output .= "<li><strong>Back up system files</strong>. Save a copy of c:/wamp/www/uct folder.</li>\n";
+  $output .= '<li>Make sure no one is using the system during the update</li>' . "\n";
   $output .= "</ol>\n";
   $output .= "<p>When you have performed the steps above, you may proceed.</p>\n";
   $form_action = check_url(drupal_current_script_url(array('op' => 'selection', 'token' => $token)));
@@ -288,7 +287,7 @@ function update_access_denied_page() {
   drupal_set_title('Access denied');
   return '<p>Access denied. You are not authorized to access this page. Log in using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation). If you cannot log in, you will have to edit <code>settings.php</code> to bypass this access check. To do this:</p>
 <ol>
- <li>With a text editor find the settings.php file on your system. From the main Drupal directory that you installed all the files into, go to <code>sites/your_site_name</code> if such directory exists, or else to <code>sites/default</code> which applies otherwise.</li>
+ <li>With a text editor find the settings.php file on your system. From the main directory that you installed all the files into, go to <code>sites/your_site_name</code> if such directory exists, or else to <code>sites/default</code> which applies otherwise.</li>
  <li>There is a line inside your settings.php file that says <code>$update_free_access = FALSE;</code>. Change it to <code>$update_free_access = TRUE;</code>.</li>
  <li>As soon as the update.php script is done, you must change the settings.php file back to its original form with <code>$update_free_access = FALSE;</code>.</li>
  <li>To avoid having this problem in the future, remember to log in to your website using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation) before you backup your database at the beginning of the update process.</li>
