@@ -30,6 +30,10 @@ function avimport_get_valid_headers($type) {
       $optional['UOM 2 QTY'] = 'uom_2_qty';
       $optional['UOM 3'] = 'uom_3_title';
       $optional['UOM 3 QTY'] = 'uom_3_qty';
+      $optional['UOM 4'] = 'uom_4_title';
+      $optional['UOM 4 QTY'] = 'uom_4_qty';
+      $optional['UOM 5'] = 'uom_5_title';
+      $optional['UOM 5 QTY'] = 'uom_5_qty';
       //$optional['EXPIRY DATE'] = 'expiry_date';
       $optional['LOT NO'] = 'lot_no';
       $optional['SHELF LOCATION'] = 'shelf_title';
@@ -212,11 +216,15 @@ function avimport_db_insert_products_row($excel_row) {
     $title = empty($excel_row['UOM ' . $x]) ? '' : trim($excel_row['UOM ' . $x]);
     if (!empty($title)) {
       $uom_id = avbase_get_category_id_by_title($title, 'uom', TRUE);
+      $uom_qty = isset($excel_row['UOM ' . $x . ' QTY']) ? $excel_row['UOM ' . $x . ' QTY'] : NULL;
       if (!empty($uom_id)) {
+        if (is_null($uom_qty) || !is_numeric($uom_qty)) {
+          return t('UOM ' . $x . ' qty is invalid or not found.');
+        }
         $insert_row['data']['uoms'][$uom_id] = array(
           //'uom_id' => avbase_get_category_id_by_title($title, 'uom', TRUE),
           'uom_id' => $uom_id,
-          'qty' => ((int)$excel_row['UOM ' . $x . ' QTY']) ? (int)$excel_row['UOM ' . $x . ' QTY'] : 1,
+          'qty' => $uom_qty,
         );
       }
     }
