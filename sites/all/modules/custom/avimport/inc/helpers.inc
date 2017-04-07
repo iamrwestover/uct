@@ -180,7 +180,7 @@ function avimport_db_insert_products_row($excel_row) {
   if (!empty($title)) {
     // Explode discount text to discount array.
     $discount_text = $title;
-    $discount_text = is_numeric($discount_text) ? ($discount_text * 100) : $discount_text;
+    //$discount_text = is_numeric($discount_text) ? ($discount_text * 100) : $discount_text;
     $discount_parts = explode('/', $discount_text);
     $x = 1;
     foreach ($discount_parts as $k => $v) {

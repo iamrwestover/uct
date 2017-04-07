@@ -114,6 +114,7 @@ function update_script_selection_form($form, &$form_state) {
     $form['links'] = array(
       '#markup' => theme('item_list', array('items' => update_helpful_links())),
     );
+    $form['backtohome'] = array('#markup' => '<br /><a href="' . base_path() . '">Back to UCMC AIS</a>');
 
     // No updates to run, so caches won't get flushed later.  Clear them now.
     drupal_flush_all_caches();
@@ -175,7 +176,7 @@ function update_results_page() {
   }
 
   if ($_SESSION['update_success']) {
-    $output = '<p>Updates were attempted. If you see no failures below, you may proceed happily back to your <a href="' . base_path() . '">site</a>. Otherwise, you may need to update your database manually.' . $log_message . '</p>';
+    $output = '<p>Updates were attempted. If you see no failures below, you may proceed happily back to your <a href="' . base_path() . '">accounting information system</a>. Otherwise, you may need to update your database manually.' . $log_message . '</p>';
   }
   else {
     $updates_remaining = reset($_SESSION['updates_remaining']);
@@ -239,6 +240,7 @@ function update_results_page() {
   unset($_SESSION['update_results']);
   unset($_SESSION['update_success']);
 
+  $output .= '<br /><a href="' . base_path() . '">Back to UCMC AIS</a>';
   return $output;
 }
 
@@ -262,7 +264,7 @@ function update_info_page() {
   update_task_list('info');
   drupal_set_title('UCMC database update');
   $token = drupal_get_token('update');
-  $output = '<p>Use this utility to update your database whenever a new update is installed.</p>';
+  $output = '<p>Use this utility to check for database changes and update it accordingly whenever a new system update is installed.</p>';
   $output .= "<ol>\n";
   $output .= "<li><strong><a target=\"_blank\" href=\"admin/config/system/backup_migrate\">Back up your database</a></strong>. This process will change your database values and in case of emergency you may need to revert to a backup.</li>\n";
   $output .= "<li><strong>Back up system files</strong>. Save a copy of c:/wamp/www/uct folder.</li>\n";
@@ -271,6 +273,7 @@ function update_info_page() {
   $output .= "<p>When you have performed the steps above, you may proceed.</p>\n";
   $form_action = check_url(drupal_current_script_url(array('op' => 'selection', 'token' => $token)));
   $output .= '<form method="post" action="' . $form_action . '"><p><input type="submit" value="Continue" class="form-submit" /></p></form>';
+  $output .= 'or go <a href="' . base_path() . '">back to UCMC AIS</a>';
   $output .= "\n";
   return $output;
 }
@@ -285,13 +288,14 @@ function update_access_denied_page() {
   drupal_add_http_header('Status', '403 Forbidden');
   watchdog('access denied', 'update.php', NULL, WATCHDOG_WARNING);
   drupal_set_title('Access denied');
-  return '<p>Access denied. You are not authorized to access this page. Log in using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation). If you cannot log in, you will have to edit <code>settings.php</code> to bypass this access check. To do this:</p>
-<ol>
- <li>With a text editor find the settings.php file on your system. From the main directory that you installed all the files into, go to <code>sites/your_site_name</code> if such directory exists, or else to <code>sites/default</code> which applies otherwise.</li>
- <li>There is a line inside your settings.php file that says <code>$update_free_access = FALSE;</code>. Change it to <code>$update_free_access = TRUE;</code>.</li>
- <li>As soon as the update.php script is done, you must change the settings.php file back to its original form with <code>$update_free_access = FALSE;</code>.</li>
- <li>To avoid having this problem in the future, remember to log in to your website using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation) before you backup your database at the beginning of the update process.</li>
-</ol>';
+//  return '<p>Access denied. You are not authorized to access this page. Log in using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation). If you cannot log in, you will have to edit <code>settings.php</code> to bypass this access check. To do this:</p>
+//<ol>
+// <li>With a text editor find the settings.php file on your system. From the main directory that you installed all the files into, go to <code>sites/your_site_name</code> if such directory exists, or else to <code>sites/default</code> which applies otherwise.</li>
+// <li>There is a line inside your settings.php file that says <code>$update_free_access = FALSE;</code>. Change it to <code>$update_free_access = TRUE;</code>.</li>
+// <li>As soon as the update.php script is done, you must change the settings.php file back to its original form with <code>$update_free_access = FALSE;</code>.</li>
+// <li>To avoid having this problem in the future, remember to log in to your website using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation) before you backup your database at the beginning of the update process.</li>
+//</ol>';
+  return '<p>Access denied. You are not authorized to access this page. Log in using either an account with the <em>administer software updates</em> permission or the site maintenance account (the account you created during installation). If you cannot log in, you will have to edit <code>settings.php</code> to bypass this access check. To do this:</p>';
 }
 
 /**

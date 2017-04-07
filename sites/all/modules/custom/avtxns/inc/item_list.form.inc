@@ -664,7 +664,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#type' => 'textfield',
         '#title' => 'Discount',
         '#title_display' => 'none',
-        '#maxlength' => 10,
+        '#maxlength' => 17,
         '#element_validate' => array('avtxns_item_list_row_element_validate'),
         '#av_prod_element_validate' => array('avbase_element_validate_product_discount'),
         '#attributes' => array(

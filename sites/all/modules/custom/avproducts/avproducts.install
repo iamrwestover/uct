@@ -146,7 +146,7 @@ function avproducts_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'precision' => '4',
+        'precision' => '5',
         'scale' => '2',
       ),
       'discount2' => array(
@@ -154,7 +154,7 @@ function avproducts_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'precision' => '4',
+        'precision' => '5',
         'scale' => '2',
       ),
       'discount3' => array(
@@ -162,7 +162,7 @@ function avproducts_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'precision' => '4',
+        'precision' => '5',
         'scale' => '2',
       ),
       'discount4' => array(
@@ -170,7 +170,7 @@ function avproducts_schema() {
         'type' => 'numeric',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'precision' => '4',
+        'precision' => '5',
         'scale' => '2',
       ),
       'data' => array(
@@ -212,4 +212,23 @@ function avproducts_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Increase decimal precision of discount fields.
+ */
+function avproducts_update_7101() {
+  $schema = avproducts_schema();
+  $table_name = 'avtbl_products';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'discount1';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  $field_name = 'discount2';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  $field_name = 'discount3';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  $field_name = 'discount4';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  return t('Successfully increased decimal precision of discount fields.');
 }

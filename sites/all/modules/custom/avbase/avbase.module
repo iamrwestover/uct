@@ -706,6 +706,9 @@ function avbase_general_settings_form() {
     '#markup' => l('Flush all caches', 'admin_menu/flush-cache', array('query' => drupal_get_destination() + array('token' => drupal_get_token('admin_menu/flush-cache')))),
     '#access' => user_access('flush caches'),
   );
+  $form['database_update_link'] = array(
+    '#markup' => '<br />' . l('Check for database updates', 'update.php'),
+  );
   //theme_item_list()
   return system_settings_form($form);
 }
