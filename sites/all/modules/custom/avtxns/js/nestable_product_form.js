@@ -138,9 +138,9 @@
 
         self.setOnHandQtyValue($productTitleEl, $onHandQtyEl, $newQtyEl, $UOMFixedEl);
 
-        var transaction = Drupal.settings.avtxns.transaction || '';
-        var discount_text = transaction == 'purchase' ?  (productDetails.discount_text || '') : (productDetails.sales_discount_text || '')
-        $discountEl.val(discount_text);
+        //var transaction = Drupal.settings.avtxns.transaction || '';
+        //var discount_text = transaction == 'purchase' ?  (productDetails.discount_text || '') : (productDetails.sales_discount_text || '');
+        //$discountEl.val(discount_text);
       });
 
 
