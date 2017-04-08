@@ -167,6 +167,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         //$query->leftJoin('avtbl_transaction_details', 'avtxn_reference', 'avtxn_reference.id = avtxn_details.ref_txn_dtl_id');
         //$query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_reference.transaction_id');
         $query->addField('avprod', 'title', 'product_title');
+        $query->addField('avprod', 'qty', 'onhand_qty');
         $query->addField('avprod', 'uom_id', 'base_uom_id');
         if ($row->status == AVTXNS_TXN_STATUS_PENDING) {
           $query->addField('avprod', 'discount1', 'prod_discount1');
@@ -628,7 +629,6 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   }
 
   $element_parents = $element['#parents'];
-  $default_item_rows = drupal_array_get_nested_value($form_state['complete form'], array_slice($element_parents, 0, count($element_parents) - 2));
   $total_product_qty = 0;
   foreach ($item_rows as $item_row_key => $item_row) {
     if (strtolower($item_row['product_title']) != strtolower($element_item_row['product_title'])) {
@@ -637,11 +637,13 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
 
     // Get default qty if available.
     //$item_row_default_value = empty($default_item_rows[$item_row_key]['qty']['#default_value']) ? 0 : $default_item_rows[$item_row_key]['qty']['#default_value'];
-    $item_row_default_value = empty($element['#db_default_qty']) ? 0 : $element['#db_default_qty'];
-    $item_row_default_value = (int) $item_row_default_value;
-    $item_row_default_qty_per_uom = empty($default_item_rows[$item_row_key]['qty_per_uom']['#default_value']) ? 1 : $default_item_rows[$item_row_key]['qty_per_uom']['#default_value'];
-    $item_row_default_qty_per_uom = (int) $item_row_default_qty_per_uom;
-    $item_row_default_base_qty = $item_row_default_value * $item_row_default_qty_per_uom;
+    //$item_row_default_value = empty($element['#db_default_qty']) ? 0 : $element['#db_default_qty'];
+    //$item_row_default_value = (int) $item_row_default_value;
+    ////$item_row_default_qty_per_uom = empty($default_item_rows[$item_row_key]['qty_per_uom']['#default_value']) ? 1 : $default_item_rows[$item_row_key]['qty_per_uom']['#default_value'];
+    //$item_row_default_qty_per_uom = empty($element['#db_def_qpu']) ? 1 : $element['#db_def_qpu'];
+    //$item_row_default_qty_per_uom = (int) $item_row_default_qty_per_uom;
+    //$item_row_default_base_qty = $item_row_default_value * $item_row_default_qty_per_uom;
+    $item_row_default_base_qty = empty($item_row['def_bq']) ? 0 : $item_row['def_bq'];
 
     $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
     $qty = empty($item_row['qty']) ? 0 : (int)$item_row['qty'];
@@ -758,7 +760,8 @@ function avtxns_qty_check_and_reserve() {
   extract($_POST);
 
   $entered_item_id = (int)$entered_item_id;
-  $entered_qty_per_uom = (int)$entered_qty_per_uom;
+  //$entered_qty_per_uom = (int)$entered_qty_per_uom;
+  $entered_qty_per_uom = 1;
   $transaction_id = (int)$transaction_id;
 
   if (!empty($entered_item_id)) {
@@ -784,6 +787,9 @@ function avtxns_qty_check_and_reserve() {
     $entered_base_qty = (is_numeric($entered_qty) ? $entered_qty : 0) * $entered_qty_per_uom;
     if ($entered_base_qty <= $user_available) {
       avtxns_reserve_user_qty($entered_item_id, $entered_base_qty);
+    }
+    else {
+      avtxns_reserve_user_qty($entered_item_id, $user_available);
     }
 
     //$data['valid_qty'] = !empty($entered_qty_is_valid);
@@ -827,7 +833,7 @@ function avtxns_user_reserved_qty($item_id) {
   if (!isset($data[$item_id][$user->uid])) {
     $user_reserved_qty = variable_get('avbase_user_reserved_qty', array());
     $total_reserved = $other_users_reserved = 0;
-    $minutes = 5;
+    $minutes = 2;
     foreach ($user_reserved_qty as $reserved_item_id => $locked_qty) {
       foreach ($locked_qty as $uid => $dtls) {
         if (empty($uid) || !isset($dtls['qty'])) {

@@ -60,7 +60,9 @@ define('AVTXN_AC_SPECIFIC_INVENTORY_ID', 2);
 $ttds = avtxns_txn_types();
 foreach ($ttds as $ttd) {
   define('AVTXNS_PERM_CREATE_' . strtoupper($ttd['type']), 'avbase create transaction ' . $ttd['type']);
-  define('AVTXNS_PERM_EDIT_' . strtoupper($ttd['type']), 'avbase edit transaction ' . $ttd['type']);
+  if (empty($ttd['cant_edit'])) {
+    define('AVTXNS_PERM_EDIT_' . strtoupper($ttd['type']), 'avbase edit transaction ' . $ttd['type']);
+  }
   define('AVTXNS_PERM_VIEW_' . strtoupper($ttd['type']), 'avbase view transaction ' . $ttd['type']);
   if (empty($ttd['cant_change_status'])) {
     define('AVTXNS_PERM_VOID_' . strtoupper($ttd['type']), 'avbase void transaction ' . $ttd['type']);
@@ -83,9 +85,11 @@ function avtxns_permission() {
     $permissions[constant('AVTXNS_PERM_CREATE_' . $ttd_type)] = array(
       'title' => t('@tdname - CREATE', array('@tdname' => $ttd_name)),
     );
-    $permissions[constant('AVTXNS_PERM_EDIT_' . $ttd_type)] = array(
-      'title' => t('@tdname - EDIT', array('@tdname' => $ttd_name)),
-    );
+    if (empty($ttd['cant_edit'])) {
+      $permissions[constant('AVTXNS_PERM_EDIT_' . $ttd_type)] = array(
+        'title' => t('@tdname - EDIT', array('@tdname' => $ttd_name)),
+      );
+    }
     $permissions[constant('AVTXNS_PERM_VIEW_' . $ttd_type)] = array(
       'title' => t('@tdname - VIEW', array('@tdname' => $ttd_name)),
     );
@@ -209,15 +213,17 @@ function avtxns_menu() {
       'file' => 'inc/txn.form.inc',
       'weight' => 0,
     );
-    $items["{$v['base_path']}/%avtxns_txn/edit"] = array(
-      'title' => "Edit {$v['name']}",
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('avtxns_txn_form', $k, 2),
-      'access arguments' => array(constant('AVTXNS_PERM_EDIT_' . $ttype)),
-      'type' => MENU_LOCAL_TASK,
-      'file' => 'inc/txn.form.inc',
-      'weight' => 1,
-    );
+    if (empty($ttd['cant_edit'])) {
+      $items["{$v['base_path']}/%avtxns_txn/edit"] = array(
+        'title' => "Edit {$v['name']}",
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('avtxns_txn_form', $k, 2),
+        'access arguments' => array(constant('AVTXNS_PERM_EDIT_' . $ttype)),
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'inc/txn.form.inc',
+        'weight' => 1,
+      );
+    }
 
     if (!empty($v['credit_txn_types'])) {
       $items["{$v['base_path']}/%avtxns_txn/apply-credits"] = array(
@@ -635,7 +641,7 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'no_total' => TRUE,
       'prevent_duplicate_product' => TRUE,
-      //'cant_edit' => TRUE,
+      'cant_edit' => TRUE,
       'cant_change_status' => TRUE,
       'cant_change_date' => TRUE,
     );

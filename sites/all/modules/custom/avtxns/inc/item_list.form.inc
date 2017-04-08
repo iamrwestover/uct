@@ -474,6 +474,23 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     //    $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-' . $badge_type . '" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
     //  }
     //}
+    if (!empty($prod_row['id'])) {
+      $fields['id'] = array(
+        '#type' => 'value',
+        '#value' => $prod_row['id'],
+      );
+
+      $def_q = empty($db_row_items[$prod_row['id']]->qty) ? 0 : $db_row_items[$prod_row['id']]->qty;
+      $def_qpu = empty($db_row_items[$prod_row['id']]->qty_per_uom) ? 1 : $db_row_items[$prod_row['id']]->qty_per_uom;
+      $fields['def_bq'] = array(
+        '#type' => 'value',
+        '#value' => $def_q * $def_qpu,
+      );
+      //dpm($prod_row);
+      //dpm($prod_row['qty']);
+      //$fields['qty']['#db_default_qty'] = empty($db_row_items[$prod_row['id']]->qty) ? 0 : $db_row_items[$prod_row['id']]->qty;
+      //$fields['qty']['#db_def_qpu'] = empty($db_row_items[$prod_row['id']]->qty_per_uom) ? 1 : $db_row_items[$prod_row['id']]->qty_per_uom;
+    }
 
     if ($ttd['transaction'] == 'accounts') {
       $fields['account_name'] = array(
@@ -623,8 +640,8 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'class' => array('prod-column-qty uk-text-right'),
         ),
         '#default_value' => isset($prod_row['qty']) ? $prod_row['qty'] : '',
-        '#db_default_qty' => empty($prod_row['id']) ? 0 : (empty($db_row_items[$prod_row['id']]->qty) ? 0 : $db_row_items[$prod_row['id']]->qty),
       );
+
       if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY)) || !empty($ttd['bill'])) {
         $fields['qty']['#av_prod_element_validate'][] = 'avbase_element_validate_non_negative_number';
       } else {
@@ -833,10 +850,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     }
 
     if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
+      $fields['onhand_qty'] = array(
+        '#markup' => '<div class="prod-column-onhand-qty' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
+      );
       if (empty($row->id)) {
-        $fields['onhand_qty'] = array(
-          '#markup' => '<div class="prod-column-onhand-qty' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['onhand_qty']) ? $prod_row['onhand_qty'] : '&nbsp;') . '</div>',
-        );
         $fields['new_qty'] = array(
           '#id' => 'product-new-qty-' . $prod_key,
           '#item_row_key' => $prod_key,
