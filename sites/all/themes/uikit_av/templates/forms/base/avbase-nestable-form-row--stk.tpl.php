@@ -24,7 +24,7 @@ $view_mode = !empty($form['#av_view_mode']);
     <div class="uk-grid uk-grid-collapse">
 
       <div class="uk-width-1-5">
-        <div class="av-nestable-cell uk-text-center">
+        <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['onhand_qty']); ?>
         </div>
       </div>
