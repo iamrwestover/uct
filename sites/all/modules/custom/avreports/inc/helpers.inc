@@ -217,7 +217,7 @@ function avreports_product_transaction_history() {
   $query = "SELECT
     avtxn.id, avtxn.transaction_type, avtxn.transaction_date, avtxn.created,
     avtxn_detail.item_id,
-    SUM(avtxn_detail.qty_per_uom * avtxn_detail.qty) AS txn_qty,
+    SUM(CAST(avtxn_detail.qty_per_uom AS SIGNED) * avtxn_detail.qty) AS txn_qty,
     SUM(avtxn_detail.cost * avtxn_detail.qty) as txn_value,
 
     avprod.initial_qty, avprod.initial_value, avprod.initial_value / avprod.initial_qty AS initial_ave_cost
