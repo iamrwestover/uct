@@ -995,7 +995,6 @@ function avbase_order_db_rows_by_best_match($rows, $field_name, $search_string =
   }
   $ordered_rows = array();
   ksort($grouped_rows);
-  //dpm($grouped_rows);
   foreach ($grouped_rows as $gr) {
     $ordered_rows = array_merge($ordered_rows, $gr);
   }
