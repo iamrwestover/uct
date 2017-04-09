@@ -1439,7 +1439,7 @@ function avtxns_group_and_sort_item_list($form, $view_mode) {
       }
       else {
         if (strtoupper($uom_title) == 'CASE') {
-          $cases['OTHERS - ' . $uom_title][$item_key] = $form[$item_key];
+          $cases[$uom_title][$item_key] = $form[$item_key];
         }
         else {
           $item_rows_by_category[$category_title][$item_key] = $form[$item_key];
