@@ -366,6 +366,14 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
+    if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
+      $form['num_box'] = array(
+        '#type' => 'item',
+        '#title' => 'No. of boxes',
+        '#title_display' => 'inline-before',
+        '#markup' => '______________',
+      );
+    }
   }
   //$user = user_load($user->uid);
   //dpm($user);

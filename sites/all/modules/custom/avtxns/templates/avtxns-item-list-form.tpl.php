@@ -76,9 +76,10 @@ $balance_ages_html = drupal_render($form['balance_ages']);
           print ($transaction_id_html ? $transaction_id_html : '');
         ?>
         <div class="uk-hidden printable">
-          <?php print drupal_render($form['encoded_by']); ?>
-          <?php print drupal_render($form['prepared_by']); ?>
-          <?php print drupal_render($form['checked_by']); ?>
+          <?php print (isset($form['encoded_by']) ? drupal_render($form['encoded_by']) : ''); ?>
+          <?php print (isset($form['prepared_by']) ? drupal_render($form['prepared_by']) : ''); ?>
+          <?php print (isset($form['checked_by']) ? drupal_render($form['checked_by']) : ''); ?>
+          <?php print (isset($form['num_box']) ? drupal_render($form['num_box']) : ''); ?>
         </div>
       </div>
       <!--<div class="uk-text-bold uk-text-uppercase">Grand Total</div>-->
