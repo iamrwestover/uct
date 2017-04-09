@@ -1409,3 +1409,8 @@ function avtxns_txn_detail_sum_query_discount_applied() {
 function avtxns_txn_detail_sum_query() {
   return 'SUM(avtxn_detail.qty * avtxn_detail.cost)';
 }
+
+function avtxns_get_item_row_key($item) {
+  $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
+  return "{$reference_type}_db_item_{$item->transaction_id}_{$item->id}";
+}

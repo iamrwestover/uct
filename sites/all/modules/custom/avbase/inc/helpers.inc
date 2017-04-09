@@ -740,8 +740,9 @@ function avbase_element_validate_product_discount($element, &$form_state) {
  * @param $item_rows
  * @param $transaction_row
  * @param bool $from_void
+ * @param array $to_be_deleted_rows
  */
-function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FALSE) {
+function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FALSE, $to_be_deleted_rows = array()) {
   $transaction_row = (object) $transaction_row;
   $transaction_type = empty($transaction_row->transaction_type) ? '' : $transaction_row->transaction_type;
   $ttd = avtxns_txn_types($transaction_type);
@@ -752,6 +753,7 @@ function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FA
   }
 
   $incoming_base_qty = array();
+  $item_rows += $to_be_deleted_rows;
   foreach ($item_rows as $item_row) {
     $item_row = (array) $item_row;
     $item_id = isset($item_row['item_id']) ? $item_row['item_id'] : NULL;

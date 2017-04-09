@@ -155,16 +155,27 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       }
 
       // Delete transaction detail ids that were removed.
+      $to_be_deleted_rows = array();
       if (empty($form_state['#new_record'])) {
         $delete_query = "DELETE FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
+        $sd_query = "SELECT id, transaction_id, item_id, ref_txn_type, (qty * qty_per_uom) AS incoming_base_qty, good_stock
+          FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
         $delete_args = array(':txn_id' => $row['id']);
         if (!empty($transaction_detail_ids)) {
           $delete_query .= " AND id NOT IN (:txn_dtl_ids)";
+          $sd_query .= " AND id NOT IN (:txn_dtl_ids)";
           $delete_args[':txn_dtl_ids'] = $transaction_detail_ids;
         }
         if (!empty($ttd['credit_txn_types'])) {
           $delete_query .= " AND ref_txn_type NOT IN (:txn_types)";
+          $sd_query .= " AND ref_txn_type NOT IN (:txn_types)";
           $delete_args[':txn_types'] = $ttd['credit_txn_types'];
+        }
+        if (!empty($ttd['qty_change'])) {
+          $sd_rs = db_query($sd_query, $delete_args);
+          foreach ($sd_rs as $sd_row) {
+            $to_be_deleted_rows['delete_' . avtxns_get_item_row_key($sd_row)] = $sd_row;
+          }
         }
         db_query($delete_query, $delete_args);
       }
@@ -197,7 +208,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       }
 
       // Update product on-hand qty.
-      avbase_product_qty_update($item_rows, $row);
+      avbase_product_qty_update($item_rows, $row, FALSE, $to_be_deleted_rows);
 
       // Update cost and price.
       if (!empty($ttd['cost_change'])) {

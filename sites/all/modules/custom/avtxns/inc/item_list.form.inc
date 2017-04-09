@@ -401,8 +401,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   $db_row_items = empty($row->items) ? array() : $row->items;
   $initial_item_rows = array();
   foreach ($db_row_items as $item) {
-    $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
-    $initial_item_rows["{$reference_type}_db_item_{$row->id}_{$item->id}"] = (array) $item;
+    $initial_item_rows[avtxns_get_item_row_key($item)] = (array) $item;
   }
 
   // Load selected products if available.
@@ -464,16 +463,17 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $reference_transaction_type = empty($prod_row['ref_txn_type']) ? '' : $prod_row['ref_txn_type'];
     $order_id = empty($prod_row['ref_txn_id']) ? NULL : $prod_row['ref_txn_id'];
     $pending_return_type = empty($ttd['pending_return_type']) ? '-' : $ttd['pending_return_type'];
-    //if (empty($view_mode) && empty($ttd['payment']) && !empty($reference_transaction_type)) {
-    //  $badge_title = strtoupper($reference_transaction_type) . '#';
-    //  $badge_type = $reference_transaction_type == $pending_return_type ? 'success' : 'primary';
-    //
-    //  if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
-    //    //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
-    //    $badge_title .= ' ' . $order_id;
-    //    $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-' . $badge_type . '" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
-    //  }
-    //}
+    if (empty($view_mode) && empty($ttd['payment']) && !empty($reference_transaction_type)) {
+      $badge_title = strtoupper($reference_transaction_type) . '#';
+      $badge_type = $reference_transaction_type == $pending_return_type ? 'success' : 'primary';
+
+      if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
+        //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
+        $badge_title .= ' ' . $order_id;
+        $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-' . $badge_type . '" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
+      }
+    }
+
     if (!empty($prod_row['id'])) {
       $fields['id'] = array(
         '#type' => 'value',
@@ -538,9 +538,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
         '#default_value' => isset($prod_row['product_title']) ? $prod_row['product_title'] : '',
       );
-      if ($order_id) {
-        $fields['product_title']['#attributes']['readonly'] = 'readonly';
-      }
+      //if ($order_id) {
+      //  $fields['product_title']['#attributes']['readonly'] = 'readonly';
+      //}
       if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY && isset($prod_row['qty']) && $prod_row['qty'] == 0 && $view_mode) {
         $fields['product_title']['#avhtml'] = TRUE;
         $fields['product_title']['#default_value'] = '<del>' . check_plain($fields['product_title']['#default_value']) . '</del>';
@@ -890,7 +890,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       );
     }
 
-    if (empty($prod_row['id'])) {
+    if (empty($prod_row['id']) || (empty($ttd['bill']) && empty($ttd['payment']))) {
       $fields['prod_delete_btn'] = array(
         '#name' => 'prod_delete_btn_' . $prod_key,
         '#item_row_key' => $prod_key,
@@ -929,7 +929,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     // Disable some fields if necessary.
     $readonly_fields = array();
-    if (!empty($prod_row['id']) && !empty($ttd['qty_change'])) {
+    if (!empty($prod_row['id']) || !empty($order_id)) {
       $readonly_fields[] = 'product_title';
     }
     if (empty($ttd['total_is_entered_amount'])) {
