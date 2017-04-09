@@ -16,6 +16,11 @@
     /*font-size: 11px;*/
     /*line-height: 1.8em;*/
     height: auto !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  body, h1, h2, h3, h4, h5, h6 {
     /*font-family: sans-serif, times !important;*/
     /*font-family: Courier, sans-serif !important;*/
     /*font-family: dos, sans-serif !important;*/
@@ -25,9 +30,6 @@
     /*font-family: "Verdana", times, sans-serif !important;*/
     /*font-family: "High Speed Draft 10cpi", sans-serif !important;*/
     font-family: "Draft PS", Courier, sans-serif !important;
-  }
-  body * {
-    visibility: hidden;
   }
 
   .printable.uk-hidden {
