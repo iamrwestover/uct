@@ -1450,6 +1450,7 @@ function avtxns_group_and_sort_item_list($form, $view_mode) {
 
     $item_index = 0;
     foreach ($item_rows_by_category as $category_title => $item_rows) {
+      print ($item_index == 0 ? '' : '<br />');
       print ($view_mode ? '<div class="uk-badge uk-badge-warning">' . $category_title . '</div>' : '');
       foreach ($item_rows as $item_key => $item_row) {
         $item_rows[$item_key]['#prod_index'] = $item_index++;

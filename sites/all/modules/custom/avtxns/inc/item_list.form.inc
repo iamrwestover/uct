@@ -290,14 +290,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format(round($row->grand_total, 2), 2) : '0.00');
     // Check if credits are available.
     if ($view_mode && !empty($ttd['credit_txn_types']) && isset($row->status) && $row->status == AVTXNS_TXN_STATUS_OPEN) {
-      $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
-        WHERE avtxn.client_id = :client_id AND avtxn.status IN (:statuses) AND avtxn.transaction_type IN (:ttypes)";
-      $count = db_query($query, array(':client_id' => $row->client_id, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), ':ttypes' => $ttd['credit_txn_types']))->fetchField();
-      if (!empty($count)) {
-        $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits',
-          array('attributes' => array('class' => array('not-printable')))
-        ));
-      }
+      $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits',
+        array('attributes' => array('class' => array('not-printable')))
+      ));
     }
   }
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {

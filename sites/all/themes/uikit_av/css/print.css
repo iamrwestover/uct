@@ -1,14 +1,30 @@
 /* Print */
+/*@font-face { font-family: dotm; src: url('../fonts/dotmatrix/dotm.ttf'); }*/
+@font-face { font-family: courier-draft; src: url('../fonts/courier-draft/courier-draft.ttf'); }
+@font-face { font-family: dos; src: url('../fonts/dos/dos.ttf'); }
+@font-face { font-family: vcrmono; src: url('../fonts/vcrmono/vcrmono.ttf'); }
 @media print {
   @page {
-    margin: 0.5cm 0.5cm 1.5cm;
+    margin: 0.5cm 0.3cm 1cm 0.3cm;
   }
 
   body {
     margin: 0;
-    font-size: 11px;
-    line-height: 1.8em;
+    padding: 0;
+    font-size: 10px;
+    line-height: 12px;
+    /*font-size: 11px;*/
+    /*line-height: 1.8em;*/
     height: auto !important;
+    /*font-family: sans-serif, times !important;*/
+    /*font-family: Courier, sans-serif !important;*/
+    /*font-family: dos, sans-serif !important;*/
+    /*font-family: courier-draft, times, sans-serif !important;*/
+    /*font-family: vcrmono, sans-serif !important;*/
+    /*font-family: "Calibri", times, sans-serif !important;*/
+    /*font-family: "Verdana", times, sans-serif !important;*/
+    /*font-family: "High Speed Draft 10cpi", sans-serif !important;*/
+    font-family: "Draft PS", Courier, sans-serif !important;
   }
   body * {
     visibility: hidden;
@@ -30,12 +46,14 @@
   }
 
   #page-outer-wrapper {
-    margin: 1em !important;
+    margin: 0 !important;
+    /*margin: 1em !important;*/
     padding: 0 !important;
   }
   #print-header .site-name {
     /*text-align: center;*/
-    font-size: 15px;
+    font-size: 16px;
+    line-height: 16px;
   }
   a {
     text-decoration: none;
@@ -47,8 +65,26 @@
     /*text-align: center;*/
     /*line-height: normal;*/
   }
+  .uk-article-title {
+    font-size: 32px;
+    line-height: 32px;
+  }
   .av-nestable-cell {
     padding: 0 5px;
+  }
+  .av-nestable-product-list-view .uk-nestable-item {
+    border-bottom: none;
+  }
+  .av-nestable-product-list-view .uk-badge {
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: normal;
+    border: none;
+    padding: 0 0 0 20px;
+  }
+  .uk-text-small {
+    font-size: 10px;
+    line-height: 12px;
   }
 
   /*#page-title,*/
