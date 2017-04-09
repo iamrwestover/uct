@@ -27,7 +27,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['#attached']['js'][] = AVTXNS_MODULE_PATH . '/js/item_list.form.js';
   }
 
-  $client_status_string = isset($ttd['client_statuses']) ? implode('-', $ttd['client_statuses']) : AVCLIENT_STATUS_ACTIVE;
+  //$client_status_string = isset($ttd['client_statuses']) ? implode('-', $ttd['client_statuses']) : array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
+  $client_status_string = AVCLIENT_STATUS_ACTIVE . '-' . AVCLIENT_STATUS_SUSPENDED;
   if (!empty($ttd['ctd'])) {
     $form['client_name'] = array(
       '#type' => 'textfield',

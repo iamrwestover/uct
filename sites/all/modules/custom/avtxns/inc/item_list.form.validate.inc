@@ -6,7 +6,22 @@
  * @param $form_state
  */
 function avtxns_item_list_fields_validate(&$form, &$form_state) {
+  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
+  $ttd = avtxns_txn_types($transaction_type);
+
   $row_id = empty($form_state['values']['id']) ? NULL : $form_state['values']['id'];
+
+  // If customer is suspended, prevent further deliveries.
+  $client_id = empty($form_state['values']['client_id']) ? NULL : $form_state['values']['client_id'];
+  if (empty($row_id) && !empty($client_id) && in_array($transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY))) {
+    $client_status = db_query("SELECT status FROM {avtbl_clients} WHERE id = :id", array(':id' => $client_id))->fetchField();
+    if ($client_status != AVCLIENT_STATUS_ACTIVE) {
+      $csd = avclients_client_status_details($client_status);
+      form_set_error('client_name', t('@client_type is @client_status.', array('@client_type' => $ttd['ctd']['name'], '@client_status' => $csd['title'])));
+    }
+  }
+
+
 
   $form_state_item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
 
@@ -17,8 +32,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : array();
   $_item_rows = &$_storage['item_rows'];
-  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
-  $ttd = avtxns_txn_types($transaction_type);
+
 
   // Validate total.
   $total = 0;

@@ -237,7 +237,14 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'display_name', $string);
     foreach ($ordered_rows as $row) {
       $row->address_string = avclients_address_string_format($row);
-      $row_html = check_plain($row->display_name) . '<div class="uk-text-muted uk-text-small">' . $row->address_string .  '</div>';
+      $status_html = '';
+      $status_icon_html = '';
+      if ($row->status != AVCLIENT_STATUS_ACTIVE) {
+        $csd = avclients_client_status_details($row->status);
+        $status_icon_html .= '<em><i class="uk-icon-exclamation-circle"></i></em> ';
+        $status_html .= ' <em>' . strtoupper($csd['title']) . '</em>';
+      }
+      $row_html = $status_icon_html . check_plain($row->display_name) . $status_html . '<div class="uk-text-muted uk-text-small">' . $row->address_string .  '</div>';
       $row_html .= '<div style="display: none;" id="av-row-id">' . $row->id . '</div>';
       $row_html .= '<div style="display: none;" id="av-row-json">' . drupal_json_encode($row) . '</div>';
       $matches[$row->display_name] = $row_html;
