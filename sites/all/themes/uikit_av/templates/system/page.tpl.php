@@ -117,10 +117,10 @@
   </div>
 </div>
 <?php
-$memory_usage = memory_get_peak_usage() / 1024 / 1024;
-$memory_limit = (int) ini_get('memory_limit');
-$memory_usage_percentage = $memory_usage / $memory_limit * 100;
-echo number_format($memory_usage, 2) . ' - ' . number_format($memory_limit, 2) . ' - ' . number_format($memory_usage_percentage, 2) . '%';
+//$memory_usage = memory_get_peak_usage() / 1024 / 1024;
+//$memory_limit = (int) ini_get('memory_limit');
+//$memory_usage_percentage = $memory_usage / $memory_limit * 100;
+//echo number_format($memory_usage, 2) . ' - ' . number_format($memory_limit, 2) . ' - ' . number_format($memory_usage_percentage, 2) . '%';
 ?>
 
 <div id="page-outer-wrapper" class="uk-margin-left uk-margin-right">

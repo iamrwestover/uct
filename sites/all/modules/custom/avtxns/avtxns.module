@@ -213,7 +213,7 @@ function avtxns_menu() {
       'file' => 'inc/txn.form.inc',
       'weight' => 0,
     );
-    if (empty($ttd['cant_edit'])) {
+    if (empty($v['cant_edit'])) {
       $items["{$v['base_path']}/%avtxns_txn/edit"] = array(
         'title' => "Edit {$v['name']}",
         'page callback' => 'drupal_get_form',

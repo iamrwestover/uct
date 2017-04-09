@@ -181,7 +181,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         //$query->addField('avtxn_reference', 'transaction_id', 'ref_txn_id');
         //$query->addField('avtxn', 'transaction_type', 'ref_txn_type');
         $query->orderBy('category_title', 'ASC');
-        $query->orderBy('uom_id', 'ASC');
+        $query->orderBy('uom_title', 'DESC');
         $query->orderBy('product_title', 'ASC');
       }
 
@@ -1413,4 +1413,48 @@ function avtxns_txn_detail_sum_query() {
 function avtxns_get_item_row_key($item) {
   $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
   return "{$reference_type}_db_item_{$item->transaction_id}_{$item->id}";
+}
+
+function avtxns_group_and_sort_item_list($form, $view_mode) {
+  if (empty($form['#row_id'])) {
+    print drupal_render_children($form);
+  }
+  else {
+    // Group item rows by category title.
+    $item_rows_by_category = array();
+    $meds = array();
+    $meds_cases = array();
+    $cases = array();
+    foreach (element_children($form) as $item_key) {
+      $category_title = empty($form[$item_key]['#prod_category']) ? t('No Category') : $form[$item_key]['#prod_category'];
+      $category_title = strtoupper($category_title);
+      $uom_title = empty($form[$item_key]['uom_title']['#default_value']) ? '' : $form[$item_key]['uom_title']['#default_value'];
+      if (in_array($category_title, array('MEDS', 'MEDICINE', 'MEDICINES'))) {
+        if (strtoupper($uom_title) == 'CASE') {
+          $meds_cases[$category_title . ' - ' . $uom_title][$item_key] = $form[$item_key];
+        }
+        else {
+          $meds[$category_title][$item_key] = $form[$item_key];
+        }
+      }
+      else {
+        if (strtoupper($uom_title) == 'CASE') {
+          $cases['OTHERS - ' . $uom_title][$item_key] = $form[$item_key];
+        }
+        else {
+          $item_rows_by_category[$category_title][$item_key] = $form[$item_key];
+        }
+      }
+    }
+    $item_rows_by_category = $meds  + $meds_cases + $item_rows_by_category + $cases;
+
+    $item_index = 0;
+    foreach ($item_rows_by_category as $category_title => $item_rows) {
+      print ($view_mode ? '<div class="uk-badge uk-badge-warning">' . $category_title . '</div>' : '');
+      foreach ($item_rows as $item_key => $item_row) {
+        $item_rows[$item_key]['#prod_index'] = $item_index++;
+      }
+      print drupal_render($item_rows);
+    }
+  }
 }

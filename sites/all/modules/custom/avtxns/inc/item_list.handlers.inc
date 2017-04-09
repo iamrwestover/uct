@@ -38,12 +38,12 @@ function avtxns_item_list_prod_submit($form, &$form_state) {
 
 
       for ($x = 0; $x < AVTXNS_TXN_ADD_NEW_ROW_COUNT; $x++) {
-        //$row = db_query("SELECT b.title AS uom_title, a.title AS product_title, 1 AS qty_per_uom, 1 AS qty, a.uom_id, a.cost + 1 AS cost, a.discount1 AS discount_text
-        //FROM avtbl_products a
-        //LEFT JOIN avtbl_categories AS b ON b.id = a.uom_id
-        //ORDER BY RAND() LIMIT 0,1")->fetch();
-        //$_item_rows['new_' . $_counter++] = (array) $row;
-        $_item_rows['new_' . $_counter++] = array();
+        $row = db_query("SELECT b.title AS uom_title, a.title AS product_title, 1 AS qty_per_uom, 1 AS qty, a.uom_id, a.cost + 1 AS cost, 1 AS discount_text
+        FROM avtbl_products a
+        LEFT JOIN avtbl_categories AS b ON b.id = a.uom_id
+        ORDER BY RAND() LIMIT 0,1")->fetch();
+        $_item_rows['new_' . $_counter++] = (array) $row;
+        //$_item_rows['new_' . $_counter++] = array();
       }
       break;
 
