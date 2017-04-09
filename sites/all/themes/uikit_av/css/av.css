@@ -315,3 +315,7 @@ table.sticky-header {
 .uk-tooltip.tt-keyboard-shortcut:after {
   border-top-color: #fafafa;
 }
+
+.uk-badge.txn-ref {
+  position: absolute; top: -9px; left: 0;
+}

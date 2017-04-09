@@ -470,7 +470,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       if ((strstr($prod_key, 'db_item_') && !empty($order_id) && !empty($transaction_type))/* || (empty($view_mode) && !empty($prod_row['reference_id']))*/) {
         //$badge_title .= ' ' . (empty($prod_row['reference_id']) ? $order_id : $prod_row['reference_id']);
         $badge_title .= ' ' . $order_id;
-        $fields['badge'] = array('#markup' => '<span class="uk-badge uk-badge-' . $badge_type . '" style="position: absolute; top: -9px; left: 0;">' . $badge_title . '</span>');
+        $fields['badge'] = array('#markup' => '<span class="txn-ref uk-badge uk-badge-' . $badge_type . '">' . $badge_title . '</span>');
       }
     }
 
