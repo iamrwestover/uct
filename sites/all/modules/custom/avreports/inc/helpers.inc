@@ -220,7 +220,7 @@ function avreports_product_transaction_history() {
     SUM(CAST(avtxn_detail.qty_per_uom AS SIGNED) * avtxn_detail.qty) AS txn_qty,
     SUM(avtxn_detail.cost * avtxn_detail.qty) as txn_value,
 
-    avprod.initial_qty, avprod.initial_value, avprod.initial_value / avprod.initial_qty AS initial_ave_cost
+    avprod.initial_qty, avprod.initial_value
     FROM {avtbl_transaction_details} AS avtxn_detail
     INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
     INNER JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id
@@ -239,12 +239,11 @@ function avreports_product_transaction_history() {
   $rows = array();
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
-    $transaction_date_text = format_date($row->transaction_date, 'custom', 'F d, Y') . ' ' . format_date($row->created, 'custom', 'H:i:s');
-    $timestamp = strtotime($transaction_date_text);
-    //dpm(format_date($timestamp, 'custom', 'F d Y H:i:s'));
-    $rows[$row->item_id]['txn_details'][$row->id] = $row;
     $rows[$row->item_id]['initial_qty'] = $row->initial_qty;
     $rows[$row->item_id]['initial_value'] = $row->initial_value;
+    unset($row->initial_qty);
+    unset($row->initial_value);
+    $rows[$row->item_id]['txn_details'][$row->id] = $row;
     //$rows[$row->item_id]['#initial_ave_cost'] = $row->initial_ave_cost;
   }
 
@@ -259,7 +258,7 @@ function avreports_product_transaction_history() {
 
 
 
-      $product['txn_details'][$txn_id]->asset_value = $asset_value;
+      //$product['txn_details'][$txn_id]->asset_value = $asset_value;
       if ($qty_change == 'increment') {
         $on_hand_qty += $txn_qty;
       }
