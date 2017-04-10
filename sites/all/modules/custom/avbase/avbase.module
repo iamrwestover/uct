@@ -577,10 +577,17 @@ function avbase_general_settings_form() {
   $form['company_information']['site_name'] = array(
     '#type' => 'textfield',
     '#title' => t('Company name'),
-    '#default_value' => variable_get('site_name', 'Drupal'),
+    '#default_value' => variable_get('site_name', 'UCT'),
     '#required' => TRUE,
     '#access' => $user->uid == 1,
   );
+  $form['company_information']['av_company_old_name'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use "Ultimate Care Trading" as company name'),
+    '#description' => 'If unchecked, "Ultimate Care MegaVentures Corporation" will be used.',
+    '#default_value' => variable_get('av_company_old_name', 0),
+  );
+
   $form['company_information']['site_mail'] = array(
     '#type' => 'textfield',
     '#title' => t('E-mail address'),
@@ -710,9 +717,20 @@ function avbase_general_settings_form() {
     '#markup' => '<br />' . l('Check for database updates', 'update.php'),
   );
   //theme_item_list()
+  if (!avbase_user_is_super_admin()) {
+    $form['#submit'][] = 'avbase_general_settings_form_submit';
+  }
   return system_settings_form($form);
 }
 
+function avbase_general_settings_form_submit($form, &$form_state) {
+  if (!empty($form_state['values']['av_company_old_name'])) {
+    $form_state['values']['site_name'] = 'Ultimate Care Trading';
+  }
+  else {
+    $form_state['values']['site_name'] = 'Ultimate Care MegaVentures Corporation';
+  }
+}
 /**
  * Implements hook_library().
  */
