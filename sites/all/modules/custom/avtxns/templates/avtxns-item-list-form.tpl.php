@@ -25,6 +25,25 @@ $element_bottom_margin = $view_mode ? '' : ' uk-margin-small-bottom';
 
 $special_discount_html = drupal_render($form['special_discount']);
 $balance_ages_html = drupal_render($form['balance_ages']);
+
+
+//$table_rows = array(
+//  array(
+//    'data' => array('x' => 'z'),
+//  ),
+//);
+//$table = array(
+//  '#theme' => 'table',
+//  '#header' => array('s' => 'd'),
+//  '#rows' => $table_rows,
+//  //'#empty' => '<div class="uk-text-muted">' . t('-') . '</div>',
+//  '#attributes' => array(
+//    //'id' => 'transaction-list-table',
+//    'class' => array('uk-table-condensed'),
+//  ),
+//);
+//
+//print drupal_render($table);
 ?>
 <div class="printable">
   <div class="uk-grid uk-grid-small">

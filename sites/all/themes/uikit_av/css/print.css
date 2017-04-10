@@ -12,7 +12,7 @@
     /*margin-right: 0.5in;*/
     /*size: 8.5in 11in;*/
     /*size: a4;*/
-    margin-bottom: 0.4in;
+    margin-bottom: 0.5in;
   }
 
   body {
@@ -35,7 +35,7 @@
     /*font-family: "Verdana", times, sans-serif !important;*/
     /*font-family: "High Speed Draft 10cpi", sans-serif !important;*/
     /*font-family: sans-serif !important;*/
-    font-family: sans-serif !important;
+    font-family: monospace !important;
   }
   body, .av-nestable-product-list-view .uk-badge, .uk-text-small {
     font-size: 10px;

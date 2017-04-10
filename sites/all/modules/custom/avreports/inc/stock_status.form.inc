@@ -4,21 +4,22 @@ function avreports_stock_status_form($form, &$form_state) {
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
   $filter_form_settings = array(
-    'date_auto' => array(
-      '#title' => t('Dates'),
-      '#default_value' => 'last_month_to_date',
-    ),
-    'date_from' => array(
-      '#title' => t('Date from'),
-      '#default_value' => $dad_default['date_from'],
-    ),
-    'date_to' => array(
-      '#title' => t('Date to'),
-      '#default_value' => $dad_default['date_to'],
-    ),
-    'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    //'date_auto' => array(
+    //  '#title' => t('Dates'),
+    //  '#default_value' => 'last_month_to_date',
+    //),
+    //'date_from' => array(
+    //  '#title' => t('Date from'),
+    //  '#default_value' => $dad_default['date_from'],
+    //),
+    //'date_to' => array(
+    //  '#title' => t('Date to'),
+    //  '#default_value' => $dad_default['date_to'],
+    //),
+    //'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
+  $form['transaction_list_filter']['avtxns_tl_filter']['#attributes']['class'][] = 'uk-hidden';
 
   // Prepare query variables.
   $select = $joins = $where = $args = array();
