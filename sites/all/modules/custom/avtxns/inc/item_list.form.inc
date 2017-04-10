@@ -27,10 +27,12 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['#attached']['js'][] = AVTXNS_MODULE_PATH . '/js/item_list.form.js';
   }
 
+  $form_header = array();
+  $form_body = array();
   //$client_status_string = isset($ttd['client_statuses']) ? implode('-', $ttd['client_statuses']) : array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
   $client_status_string = AVCLIENT_STATUS_ACTIVE . '-' . AVCLIENT_STATUS_SUSPENDED;
   if (!empty($ttd['ctd'])) {
-    $form['client_name'] = array(
+    $form_header['client_name'] = array(
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#required' => TRUE,
@@ -49,9 +51,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
     if (!empty($row->id) && $view_mode && $row->client_status != AVCLIENT_STATUS_ACTIVE) {
       $csd = avclients_client_status_details($row->client_status);
-      $form['client_name']['#field_suffix'] = '<em class="uk-margin-small-left">[ACCOUNT IS ' . strtoupper($csd['title']) . ']</em>';
+      $form_header['client_name']['#field_suffix'] = '<em class="uk-margin-small-left">[ACCOUNT IS ' . strtoupper($csd['title']) . ']</em>';
     }
-    $form['client_address_string'] = array(
+    $form_header['client_address_string'] = array(
       '#id' => 'client-address',
       '#type' => 'textarea',
       '#title' => 'Address',
@@ -67,12 +69,12 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#access' => $view_mode,
     );
     if (!empty($row->contact_number)) {
-      $form['client_address_string']['#default_value'] .= '<br />' . check_plain($row->contact_number);
+      $form_header['client_address_string']['#default_value'] .= '<br />' . check_plain($row->contact_number);
     }
 
     if (empty($ttd['no_agent'])) {
       $agent_category_id = 'agent' . $ttd['ctd']['type'];
-      $form['agent_name'] = array(
+      $form_header['agent_name'] = array(
         '#id' => 'agent-name',
         '#type' => 'textfield',
         '#title' => t('Agent'),
@@ -96,7 +98,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN)) || !empty($ttd['payment'])) {
-    $form['reference_id'] = array(
+    $form_header['reference_id'] = array(
       '#type' => 'textfield',
       '#title' => 'Reference ID',
       '#title_display' => $view_mode ? 'inline-before' : 'before',
@@ -107,7 +109,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
   }
   if (!empty($ttd['payment'])) {
-    $form['pmt_method_id'] = array(
+    $form_header['pmt_method_id'] = array(
       '#id' => 'pmt-method-id',
       '#type' => 'select',
       '#title' => 'Payment Method',
@@ -117,7 +119,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#empty_value' => 0,
       '#empty_option' => '',
     );
-    $form['reference_id']['#element_validate'][] = 'avtxns_element_validate_reference_id_required';
+    $form_header['reference_id']['#element_validate'][] = 'avtxns_element_validate_reference_id_required';
   }
 
 
@@ -126,7 +128,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     if (!empty($form_state['values']['selected_pos']['transaction_id'])) {
       $form_state['input']['return_type'] = AVTXNS_RETURN_TYPE_RUD;
     }
-    $form['return_type'] = array(
+    $form_header['return_type'] = array(
       '#id' => 'return-type',
       '#type' => 'select',
       '#title' => 'Return type',
@@ -144,7 +146,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   if (empty($ttd['no_terms'])) {
     $term_options = avbase_get_category_options_array('payment_term');
     asort($term_options);
-    $form['term_id'] = array(
+    $form_header['term_id'] = array(
       '#id' => 'term-id',
       '#type' => 'select',
       '#title' => 'Terms',
@@ -164,7 +166,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
 
   if (!empty($ttd['bill'])) {
     $date_format = 'M. d, Y';
-    $form['due_date'] = array(
+    $form_header['due_date'] = array(
       '#id' => 'due-date',
       '#type' => 'textfield',
       '#title' => 'Due date',
@@ -186,7 +188,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER && empty($view_mode)) {
-    $form['email'] = array(
+    $form_header['email'] = array(
       '#id' => 'vendor-email',
       '#type' => 'textfield',
       '#title' => 'E-mail address',
@@ -202,7 +204,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER) {
-    $form['message'] = array(
+    $form_body['message'] = array(
       '#type' => 'textarea',
       '#title' => 'Message to vendor',
       '#default_value' => isset($row->message) ? $row->message : '',
@@ -210,7 +212,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#access' => $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       '#attributes' => array('rows' => 2),
     );
-    $form['address'] = array(
+    $form_body['address'] = array(
       '#type' => 'item',
       '#title' => 'Shipping address',
       '#markup' => nl2br(variable_get('av_company_address', '')),
@@ -218,7 +220,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
   }
 
-  $form['memo'] = array(
+  $form_body['memo'] = array(
     '#type' => 'textarea',
     '#title' => 'Note',
     '#default_value' => empty($row->memo) ? '-' : $row->memo,
@@ -226,39 +228,11 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     '#attributes' => array('rows' => 2),
   );
 
-  //$form['discount_type'] = array(
-  //  '#id' => 'discount-type',
-  //  '#title_display' => 'invisible',
-  //  '#type' => 'select',
-  //  '#title' => 'Discount type',
-  //  '#options' => avbase_get_discount_types(),
-  //  '#default_value' => isset($row->discount_type) ? $row->discount_type : AVBASE_DISCOUNT_PERCENT,
-  //);
-  //
-  //$form['discount_value'] = array(
-  //  '#id' => 'discount-value',
-  //  '#title_display' => 'invisible',
-  //  '#type' => 'textfield',
-  //  '#title' => 'Discount value',
-  //  '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
-  //  '#maxlength' => 19,
-  //  '#element_validate' => array('element_validate_number'),
-  //  //'#special_element_type' => 'number',
-  //  '#attributes' => array(
-  //    //'class' => array(''),
-  //    //'step' => 0.01,
-  //  ),
-  //);
-  //if (!empty($view_mode) && $form['discount_type']['#default_value'] == AVBASE_DISCOUNT_PERCENT) {
-  //  $form['discount_value']['#field_suffix'] = '%';
-  //  $form['discount_type']['#default_value'] = '';
-  //}
-
   $date_format = 'F d, Y';
   $txn_date_timestamp = isset($row->transaction_date) ? $row->transaction_date : time();
   $transaction_date_text = format_date($txn_date_timestamp, 'custom', $date_format);
   if (empty($view_mode)) {
-    $form['transaction_date'] = array(
+    $form_header['transaction_date'] = array(
       '#type' => 'textfield',
       '#title' => 'Date',
       //'#title_display' => 'none',
@@ -276,7 +250,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if ($view_mode) {
-    $form['transaction_id'] = array(
+    $form_header['transaction_id'] = array(
       '#type' => 'item',
       '#title' => 'Transaction No.',
       '#title_display' => 'none',
@@ -287,21 +261,21 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if (empty($ttd['no_total'])) {
-    $form['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format(round($row->grand_total, 2), 2) : '0.00');
+    $form_body['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format(round($row->grand_total, 2), 2) : '0.00');
     // Check if credits are available.
     if ($view_mode && !empty($ttd['credit_txn_types']) && isset($row->status) && $row->status == AVTXNS_TXN_STATUS_OPEN) {
-      $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits',
+      $form_body['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits',
         array('attributes' => array('class' => array('not-printable')))
       ));
     }
   }
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
-    $form['journal_debit_total'] = array('#type' => 'value', '#value' => isset($row->journal_debit_total) ? number_format($row->journal_debit_total, 2) : '0.00');
-    $form['journal_credit_total'] = array('#type' => 'value', '#value' => isset($row->journal_credit_total) ? number_format($row->journal_credit_total, 2) : '0.00');
+    $form_body['journal_debit_total'] = array('#type' => 'value', '#value' => isset($row->journal_debit_total) ? number_format($row->journal_debit_total, 2) : '0.00');
+    $form_body['journal_credit_total'] = array('#type' => 'value', '#value' => isset($row->journal_credit_total) ? number_format($row->journal_credit_total, 2) : '0.00');
   }
 
   if (!empty($ttd['payment'])) {
-    $form['amount_received'] = array(
+    $form_body['amount_received'] = array(
       '#id' => 'amount-received',
       '#type' => 'textfield',
       '#title' => 'Amount ' . ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT ? 'Received' : 'Paid'),
@@ -314,14 +288,14 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#default_value' => isset($row->amount_received) ? avbase_number_format($row->amount_received, 2) : '',
       '#required' => TRUE,
     );
-    $form['amount_to_credit'] = array('#markup' => isset($row->amount_to_credit) ? number_format($row->amount_to_credit, 2) : '0.00');
+    $form_body['amount_to_credit'] = array('#markup' => isset($row->amount_to_credit) ? number_format($row->amount_to_credit, 2) : '0.00');
   }
-  //$form['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
-  //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
+  //$form_body['subtotal'] = array('#type' => 'value', '#value' => isset($row->subtotal) ? number_format($row->subtotal, 2) : '0.00');
+  //$form_body['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
 
   if ($view_mode) {
     avbase_user_extra_details($user);
-    $form['encoded_by'] = array(
+    $form_header['encoded_by'] = array(
       '#type' => 'item',
       '#title' => 'Encoded by',
       '#title_display' => 'inline-before',
@@ -329,7 +303,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
-    $form['received_by'] = array(
+    $form_header['received_by'] = array(
       '#type' => 'item',
       '#title' => 'Received by',
       '#title_display' => 'inline-before',
@@ -337,7 +311,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
-    $form['received_by_date'] = array(
+    $form_header['received_by_date'] = array(
       '#type' => 'item',
       '#title' => 'Date',
       '#title_display' => 'inline-before',
@@ -345,7 +319,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
-    $form['prepared_by'] = array(
+    $form_header['prepared_by'] = array(
       '#type' => 'item',
       '#title' => 'Prepared by',
       '#title_display' => 'inline-before',
@@ -353,7 +327,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
-    $form['checked_by'] = array(
+    $form_header['checked_by'] = array(
       '#type' => 'item',
       '#title' => 'Checked by',
       '#title_display' => 'inline-before',
@@ -362,7 +336,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#access' => $view_mode,
     );
     if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
-      $form['num_box'] = array(
+      $form_header['num_box'] = array(
         '#type' => 'item',
         '#title' => 'No. of boxes',
         '#title_display' => 'inline-before',
@@ -370,6 +344,11 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       );
     }
   }
+
+  $form['form_header'] = $form_header;
+  $form['form_header']['#theme'] = 'avtxns_txn_form_header';
+  $form['form_body'] = $form_body;
+  $form['form_body']['#theme'] = 'avtxns_txn_form_body';
   //$user = user_load($user->uid);
   //dpm($user);
   // Product list.
@@ -439,7 +418,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   $detected_product_ids = array();
 
   $prod_index = -1;
-  $form['product_rows'] = array(
+  $form['form_body']['product_rows'] = array(
     '#tree' => TRUE,
     '#theme' => 'avbase_nestable_form__' . $ttd['tpl_suffix'],
     //'#theme' => 'avbase_nestable_form',
@@ -447,7 +426,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     '#row_id' => empty($row->id) ? NULL : $row->id,
   );
   if (!empty($ttd['payment'])) {
-    $form['product_rows']['#pending_txns_reference_type'] = $ttd['pending_txns_reference_type'];
+    $form['form_body']['product_rows']['#pending_txns_reference_type'] = $ttd['pending_txns_reference_type'];
   }
   //$reference_type = empty($form_state['values']['client_pending_pos_reference_type']) ? '' : $form_state['values']['client_pending_pos_reference_type'];
 
@@ -1020,13 +999,13 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       //unset($fields['total']['#attributes']['class']['mute']);
     }
 
-    $form['product_rows'][$prod_key] = $fields;
-    $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
-    $form['product_rows'][$prod_key]['#prod_category'] = empty($prod_row['category_title']) ? '' : $prod_row['category_title'];
-    $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $ttd['tpl_suffix'];
-    //$form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
-    $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
-    $form['product_rows'][$prod_key]['#suffix'] = '</div>';
+    $form['form_body']['product_rows'][$prod_key] = $fields;
+    $form['form_body']['product_rows'][$prod_key]['#prod_index'] = $prod_index;
+    $form['form_body']['product_rows'][$prod_key]['#prod_category'] = empty($prod_row['category_title']) ? '' : $prod_row['category_title'];
+    $form['form_body']['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $ttd['tpl_suffix'];
+    //$form['form_body']['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
+    $form['form_body']['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
+    $form['form_body']['product_rows'][$prod_key]['#suffix'] = '</div>';
   }
 
   // Save product row details into drupal JS settings.
