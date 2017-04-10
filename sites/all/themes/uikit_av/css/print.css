@@ -5,11 +5,14 @@
 @font-face { font-family: vcrmono; src: url('../fonts/vcrmono/vcrmono.ttf'); }
 @media print {
   @page {
-    /*margin: 0.2in 0.2in 0.4in 0.2in;*/
-    margin-bottom: 0.4in;
+    size: 8.27in 11in;
+    margin: 0.2in 0.2in 0.5in 0.2in;
+    /*margin: 0.2in 0.45in 0.4in 0.2in;*/
+    /*margin-bottom: 0.4in;*/
     /*margin-right: 0.5in;*/
     /*size: 8.5in 11in;*/
     /*size: a4;*/
+
   }
 
   body {
@@ -35,8 +38,8 @@
     /*font-family: sans-serif !important;*/
   }
   body, .av-nestable-product-list-view .uk-badge, .uk-text-small {
-    font-size: 8px;
-    line-height: 12px;
+    font-size: 12px;
+    line-height: 16px;
   }
 
   .printable.uk-hidden {
