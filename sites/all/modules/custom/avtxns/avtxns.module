@@ -285,6 +285,7 @@ function avtxns_theme($existing, $type, $theme, $path) {
   $theme_names = array(
     'avtxns_txn_mail',
     'avtxns_txn_mail_table',
+    'avtxns_txn_footer_notes',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(

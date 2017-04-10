@@ -111,6 +111,8 @@ $balance_ages_html = drupal_render($form['balance_ages']);
   <?php if ($balance_ages_html): ?>
     <div class="uk-width-1-1 uk-margin-top"><?php print $balance_ages_html; ?></div>
   <?php endif; ?>
-  <div class="uk-width-1-4 uk-margin-top uk-hidden printable"><?php print drupal_render($form['received_by']); ?></div>
-  <div class="uk-width-1-4 uk-margin-top uk-hidden printable"><?php print drupal_render($form['received_by_date']); ?></div>
+  <?php if (isset($form['txn_footer_notes'])): ?>
+    <div class="uk-width-2-5 uk-margin-top suk-hidden printable"><?php print drupal_render($form['txn_footer_notes']); ?></div>
+  <?php endif; ?>
+  <!--<div class="uk-width-1-4 uk-margin-top suk-hidden printable">--><?php //print drupal_render($form['received_by_date']); ?><!--</div>-->
 </div>

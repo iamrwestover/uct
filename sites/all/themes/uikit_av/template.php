@@ -459,3 +459,22 @@ function uikit_av_user_admin_roles($variables) {
 
   return $output;
 }
+
+/**
+ * Returns HTML for a sort icon.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - style: Set to either 'asc' or 'desc', this determines which icon to
+ *     show.
+ *
+ * @return string
+ */
+function uikit_av_tablesort_indicator($variables) {
+  if ($variables['style'] == "asc") {
+    return theme('image', array('attributes' => array('class' => array('not-printable')), 'path' => 'misc/arrow-asc.png', 'width' => 13, 'height' => 13, 'alt' => t('sort ascending'), 'title' => t('sort ascending')));
+  }
+  else {
+    return theme('image', array('attributes' => array('class' => array('not-printable')), 'path' => 'misc/arrow-desc.png', 'width' => 13, 'height' => 13, 'alt' => t('sort descending'), 'title' => t('sort descending')));
+  }
+}

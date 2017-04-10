@@ -8,6 +8,7 @@ module_load_include('inc', 'avbase', 'inc/helpers');
 module_load_include('inc', 'avbase', 'inc/crud');
 
 define('AVBASE_MODULE_PATH', drupal_get_path('module', 'avbase'));
+define('AVBASE_HELP_PATH', AVBASE_MODULE_PATH . '/inc/help');
 define('AVBASE_LIBRARIES_PATH', 'sites/all/libraries');
 
 define('AVBASE_DISCOUNT_PERCENT', 1);
@@ -59,6 +60,19 @@ function avbase_theme($existing, $type, $theme, $path) {
       'render element' => 'form',
       'template' => str_replace('_', '-', $theme_name),
       'path' => $template_path,
+    );
+  }
+
+
+  // Help.
+  $theme_names = array(
+    'avbase_help_print',
+  );
+  foreach ($theme_names as $theme_name) {
+    $themes[$theme_name] = array(
+      'variables' => array(),
+      'template' => str_replace('_', '-', $theme_name),
+      'path' => $template_path . '/help',
     );
   }
 
@@ -272,6 +286,15 @@ function avbase_menu() {
     'type' => MENU_CALLBACK,
     'access callback' => 'user_is_logged_in',
     'file' => 'inc/helpers.inc',
+  );
+
+  $items['av/help'] = array(
+    'title' => 'Help',
+    'page callback' => 'avbase_help_home',
+    'access callback' => 'user_is_logged_in',
+    'menu_name' => 'av',
+    'expanded' => TRUE,
+    'file' => 'inc/help/help.inc',
   );
   return $items;
 }

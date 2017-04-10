@@ -220,15 +220,14 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $_max_discount = round($item->$_prod_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
             $prod_discount[] = $_max_discount;
           }
-
-          if ($row->status == AVTXNS_TXN_STATUS_PENDING && $_max_discount && $_discount > $_max_discount) {
+          if ($row->status == AVTXNS_TXN_STATUS_PENDING && $_discount > $_max_discount) {
             $item->discount_over_limit = TRUE;
           }
         }
         $discount = array_filter($discount);
         $prod_discount = array_filter($prod_discount);
         $item->discount_text = implode('/', $discount);
-        $item->max_discount_text = implode('/', $prod_discount);
+        $item->max_discount_text = empty($prod_discount) ? 0 : implode('/', $prod_discount);
         foreach ($discount as $v) {
           if (is_numeric($v)) {
             $v = (float)$v;
@@ -1450,7 +1449,9 @@ function avtxns_group_and_sort_item_list($form, $view_mode) {
 
     $item_index = 0;
     foreach ($item_rows_by_category as $category_title => $item_rows) {
-      print ($item_index == 0 ? '' : '<br />');
+      if ($view_mode) {
+        print ($item_index == 0 ? '' : '<br />');
+      }
       print ($view_mode ? '<div class="uk-badge uk-badge-warning">' . $category_title . '</div>' : '');
       foreach ($item_rows as $item_key => $item_row) {
         $item_rows[$item_key]['#prod_index'] = $item_index++;

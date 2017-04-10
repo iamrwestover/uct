@@ -114,5 +114,15 @@
   .uk-table-condensed th {
     padding: 0px 4px;
   }
+
+  .no-page-break-inside {
+    page-break-inside: avoid;
+  }
+  p {
+    /*/!*position: relative !important;*!/*/
+    /*font-style: italic;*/
+    page-break-inside: avoid !important;
+    /*display: block !important;*/
+  }
 }
 
