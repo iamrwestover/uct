@@ -117,6 +117,17 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   $page_title = empty($row->id) ? t('New @type', array('@type' => $ttd['name'])) : t('@type', array('@type' => $ttd['name']));
   drupal_set_title($page_title);
 
+  if ($view_mode && !empty($row->id)) {
+    $window_title = strtoupper($row->transaction_type) . '# ' . $row->id;
+    if (isset($row->client_name)) {
+      $window_title .= ' .::. ' . strtoupper($row->client_name);
+    }
+    if (isset($row->grand_total)) {
+      $window_title .= ' - ' . number_format($row->grand_total, 2);
+    }
+    avbase_set_window_title($window_title);
+  }
+
   // Transaction status.
   if (isset($row->status) && $row->status != AVTXNS_TXN_STATUS_OPEN) {
     $tsd = avtxns_txn_status_details($row->status);

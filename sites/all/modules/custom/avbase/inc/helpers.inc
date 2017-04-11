@@ -1011,3 +1011,12 @@ function avbase_accounting_number_format($number) {
   }
   return $text;
 }
+
+function avbase_set_window_title($title = NULL, $output = CHECK_PLAIN) {
+  $stored_title = &drupal_static(__FUNCTION__);
+  if (isset($title)) {
+    $stored_title = ($output == PASS_THROUGH) ? $title : check_plain($title);
+  }
+
+  return $stored_title;
+}

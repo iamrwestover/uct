@@ -292,8 +292,7 @@ function avbase_menu() {
     'title' => 'Help',
     'page callback' => 'avbase_help_home',
     'access callback' => 'user_is_logged_in',
-    'menu_name' => 'av',
-    'expanded' => TRUE,
+    'type' => MENU_CALLBACK,
     'file' => 'inc/help/help.inc',
   );
   return $items;
@@ -870,4 +869,15 @@ function avbase_user_role_edit_access($role) {
 
 function avbase_restricted_rids() {
   return array(DRUPAL_ANONYMOUS_RID, DRUPAL_AUTHENTICATED_RID, 8, 3);
+}
+
+/**
+ * Implementation of hook_preprocess_html.
+ * @param $vars
+ */
+function avbase_preprocess_html(&$vars) {
+  $custom_window_title = avbase_set_window_title();
+  if (!empty($custom_window_title)) {
+    $vars['head_title'] = $custom_window_title;
+  }
 }
