@@ -36,13 +36,15 @@
     /*font-family: "Verdana", times, sans-serif !important;*/
     /*font-family: "High Speed Draft 10cpi", sans-serif !important;*/
     /*font-family: sans-serif !important;*/
-    font-family: monospace !important;
+    font-family: Arial !important;
   }
   body, .av-nestable-product-list-view .uk-badge, .uk-text-small {
-    font-size: 10px;
-    /*font-size: 12px;*/
-    line-height: 13px;
-    /*line-height: 16px;*/
+    font-size: 7.5pt; /* 10px */
+    /* 11px */
+    /*font-size: 8pt; */
+    /*line-height: 9pt; /!* 12px *!/*/
+    /* 13px */
+    line-height: 10pt;
   }
 
   .printable.uk-hidden {
