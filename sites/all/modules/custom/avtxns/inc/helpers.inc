@@ -315,7 +315,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     if (!empty($ttd['payable'])) {
       $query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
-        WHERE avtxn_details.ref_txn_dtl_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
+        WHERE avtxn_details.ref_txn_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
       $total_paid_for_invoice = db_query($query, array(':invoice_id' => $row->id))->fetchField();
       $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
       $row->total_paid = $total_paid_for_invoice;

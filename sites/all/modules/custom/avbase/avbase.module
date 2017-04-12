@@ -609,15 +609,21 @@ function avbase_general_settings_form() {
     '#description' => 'If unchecked, "Ultimate Care MegaVentures Corporation" will be used.',
     '#default_value' => variable_get('av_company_old_name', 0),
   );
-
-  $form['company_information']['site_mail'] = array(
+  $form['company_information']['av_checks_payable_to'] = array(
     '#type' => 'textfield',
-    '#title' => t('E-mail address'),
-    '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
+    '#title' => t('All checks payable to'),
+    '#default_value' => variable_get('av_checks_payable_to', 'Ultimate Care Trading'),
     '#required' => TRUE,
-    '#element_validate' => array('avbase_element_validate_email'),
-    '#access' => user_access('administer site configuration'),
   );
+
+  //$form['company_information']['site_mail'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => t('E-mail address'),
+  //  '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
+  //  '#required' => TRUE,
+  //  '#element_validate' => array('avbase_element_validate_email'),
+  //  '#access' => user_access('administer site configuration'),
+  //);
   $form['company_information']['av_company_address'] = array(
     '#type' => 'textarea',
     '#maxlength' => 255,

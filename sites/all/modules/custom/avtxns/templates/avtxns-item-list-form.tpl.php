@@ -112,7 +112,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
 
     <div class="uk-width-1-1 uk-margin-small-top">
       <?php print drupal_render($form['product_rows']); ?>
-      <div class="uk-grid uk-grid-collapse uk-margin-small-top">
+      <div class="uk-grid uk-grid-collapse">
         <?php if (isset($form['journal_debit_total']) && isset($form['journal_credit_total'])): ?>
           <div class="uk-width-4-10 uk-text-right">
             <div class="av-nestable-cell">
@@ -135,37 +135,69 @@ $balance_ages_html = drupal_render($form['balance_ages']);
           </div>
         <?php endif; ?>
 
-        <div class="uk-width-7-10">
-
-          <div class="uk-grid">
+        <?php if (empty($view_mode)): ?>
+          <div class="uk-width-7-10">
             <?php if (isset($form['prod_add_btn'])): ?>
               <div class="uk-width-1-1 uk-text-large"><?php print drupal_render($form['prod_add_btn']); ?>&nbsp;</div>
-            <?php endif; ?>;
-          </div>
-        </div>
-
-        <div class="uk-width-3-10 uk-text-right">
-
-          <div class="uk-grid uk-grid-small uk-margin-small-top">
-            <?php if (isset($form['debit_total'])): ?>
-              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top">Sub total</div>
-              <div class="uk-width-3-6 uk-margin-small-top"><?php print drupal_render($form['debit_total']); ?></div>
-            <?php elseif (isset($form['grand_total'])): ?>
-              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
-              <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print drupal_render($form['grand_total']); ?></h3></div>
-            <?php endif; ?>
-            <?php if (isset($form['apply_credits_link'])): ?>
-              <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"></div>
-              <div class="uk-width-3-6 uk-margin-small-top"><?php print drupal_render($form['apply_credits_link']); ?></div>
-            <?php endif; ?>
-            <?php if (isset($form['amount_received'])): ?>
-              <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-top"><h5>Amount received</h5></div>
-              <div class="uk-width-2-6 uk-margin-top"><?php print drupal_render($form['amount_received']); ?></div>
-              <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-small"><h5>Amount to credit</h5></div>
-              <div class="uk-width-2-6 uk-margin-small"><h5 id="amount-to-credit"><?php print drupal_render($form['amount_to_credit']); ?></h5></div>
             <?php endif; ?>
           </div>
-        </div>
+          <div class="uk-width-3-10 uk-text-right">
+            <div class="uk-grid uk-grid-small">
+              <?php if (isset($form['grand_total'])): ?>
+                <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
+                <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print drupal_render($form['grand_total']); ?></h3></div>
+              <?php endif; ?>
+              <?php if (isset($form['amount_received'])): ?>
+                <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-top"><h5>Amount received</h5></div>
+                <div class="uk-width-2-6 uk-margin-top"><?php print drupal_render($form['amount_received']); ?></div>
+                <div class="uk-width-<?php print ($view_mode ? '4' : '3'); ?>-6 uk-margin-small"><h5>Amount to credit</h5></div>
+                <div class="uk-width-2-6 uk-margin-small"><h5 id="amount-to-credit"><?php print drupal_render($form['amount_to_credit']); ?></h5></div>
+              <?php endif; ?>
+            </div>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($view_mode): ?>
+          <?php if (isset($form['debit_total'])): ?>
+            <div class="uk-width-8-10 uk-margin-small-top uk-text-right">Sub total</div>
+            <div class="uk-width-2-10 uk-margin-small-top uk-text-right"><?php print drupal_render($form['debit_total']); ?></div>
+          <?php elseif (isset($form['grand_total'])): ?>
+            <div class="uk-width-8-10 uk-margin-small-top uk-text-right not-printable"><h3>Total</h3></div>
+            <div class="uk-width-2-10 uk-margin-small-top uk-text-right not-printable"><h3><?php print drupal_render($form['grand_total']); ?></h3></div>
+          <?php endif; ?>
+          <?php if (isset($form['apply_credits_link'])): ?>
+            <div class="uk-width-8-10 uk-margin-small-top uk-text-right"></div>
+            <div class="uk-width-2-10 uk-margin-small-top uk-text-right not-printable"><?php print drupal_render($form['apply_credits_link']); ?></div>
+          <?php endif; ?>
+          <?php if (isset($form['amount_received'])): ?>
+            <div class="uk-width-8-10 uk-margin-top uk-text-right not-printable"><h5>Amount received</h5></div>
+            <div class="uk-width-2-10 uk-margin-top uk-text-right not-printable"><h5><?php print drupal_render($form['amount_received']); ?></h5></div>
+            <div class="uk-width-8-10 uk-text-right not-printable"><h5>Amount to credit</h5></div>
+            <div class="uk-width-2-10 uk-text-right not-printable"><h5><?php print drupal_render($form['amount_to_credit']); ?></h5></div>
+          <?php endif; ?>
+        <?php endif; ?>
+
+        <!--<div class="uk-width-3-10 uk-text-right">-->
+        <!--  <div class="uk-grid uk-grid-small">-->
+        <!--    --><?php //if (isset($form['debit_total'])): ?>
+        <!--      <div class="uk-width---><?php //print ($view_mode ? '3' : '2'); ?><!---6 uk-margin-small-top">Sub total</div>-->
+        <!--      <div class="uk-width-3-6 uk-margin-small-top">--><?php //print drupal_render($form['debit_total']); ?><!--</div>-->
+        <!--    --><?php //elseif (isset($form['grand_total'])): ?>
+        <!--      <div class="uk-width---><?php //print ($view_mode ? '3' : '2'); ?><!---6 uk-margin-small-top"><h3>Total</h3></div>-->
+        <!--      <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total">--><?php //print drupal_render($form['grand_total']); ?><!--</h3></div>-->
+        <!--    --><?php //endif; ?>
+        <!--    --><?php //if (isset($form['apply_credits_link'])): ?>
+        <!--      <div class="uk-width---><?php //print ($view_mode ? '3' : '2'); ?><!---6 uk-margin-small-top"></div>-->
+        <!--      <div class="uk-width-3-6 uk-margin-small-top not-printable">--><?php //print drupal_render($form['apply_credits_link']); ?><!--</div>-->
+        <!--    --><?php //endif; ?>
+        <!--    --><?php //if (isset($form['amount_received'])): ?>
+        <!--      <div class="uk-width---><?php //print ($view_mode ? '4' : '3'); ?><!---6 uk-margin-top"><h5>Amount received</h5></div>-->
+        <!--      <div class="uk-width-2-6 uk-margin-top">--><?php //print drupal_render($form['amount_received']); ?><!--</div>-->
+        <!--      <div class="uk-width---><?php //print ($view_mode ? '4' : '3'); ?><!---6 uk-margin-small"><h5>Amount to credit</h5></div>-->
+        <!--      <div class="uk-width-2-6 uk-margin-small"><h5 id="amount-to-credit">--><?php //print drupal_render($form['amount_to_credit']); ?><!--</h5></div>-->
+        <!--    --><?php //endif; ?>
+        <!--  </div>-->
+        <!--</div>-->
       </div>
 
     </div>
@@ -173,7 +205,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
     <?php if (isset($form['credit_rows'])): ?>
       <div class="uk-width-1-1">
         <?php print drupal_render($form['credit_rows']); ?>
-        <div class="uk-grid uk-grid-collapse uk-margin-small-top">
+        <div class="uk-grid uk-grid-collapse uk-margin-small-top not-printable">
           <div class="uk-width-7-10">
             <!--  -->
           </div>
@@ -190,11 +222,10 @@ $balance_ages_html = drupal_render($form['balance_ages']);
       </div>
     <?php endif; ?>
 
-    <div class="uk-width-7-10">
-
+    <div class="uk-width-7-10 uk-margin-small-top">
       <div class="uk-grid">
         <?php if (isset($form['memo'])): ?>
-          <div class="uk-width-3-10"><?php print drupal_render($form['memo']); ?></div>
+          <div class="uk-width-<?php print (!isset($form['message']) ? 10 : 4); ?>-10"><?php print drupal_render($form['memo']); ?></div>
         <?php endif; ?>
         <?php if (isset($form['message'])): ?>
           <div class="uk-width-3-10"><?php print drupal_render($form['message']); ?></div>
@@ -215,13 +246,63 @@ $balance_ages_html = drupal_render($form['balance_ages']);
     <?php if ($balance_ages_html): ?>
       <div class="uk-width-1-1 uk-margin-top"><?php print $balance_ages_html; ?></div>
     <?php endif; ?>
-    <?php if (isset($form['txn_footer_notes'])): ?>
-      <div class="uk-width-3-5 uk-hidden printable"><?php print drupal_render($form['txn_footer_notes']); ?></div>
-    <?php endif; ?>
+
     <!--<div class="uk-width-1-4 uk-margin-top uk-hidden printable">--><?php //print drupal_render($form['received_by']); ?><!--</div>-->
     <!--<div class="uk-width-1-4 uk-margin-top uk-hidden printable">--><?php //print drupal_render($form['received_by_date']); ?><!--</div>-->
   </div>
+
+  <?php //if (isset($form['txn_footer_notes'])): ?>
+  <!--  --><?php //print drupal_render($form['txn_footer_notes']); ?>
+  <?php //endif; ?>
+
+  <?php if ($view_mode): ?>
+    <div class="uk-grid uk-grid-collapse no-page-break-inside uk-hidden printable">
+      <div class="uk-width-1-1">
+        <div class="uk-grid">
+          <div class="uk-width-7-10">
+            <div class="uk-grid uk-grid-small">
+              <?php if (arg(1) == AVTXNS_TXN_TYPE_DELIVERY): ?>
+                <div class="uk-width-2-3">Received the above items in good order and condition</div>
+                <div class="uk-width-1-3 uk-text-center">All checks payable to</div>
+                <div class="uk-width-2-3">&nbsp;</div>
+                <div class="uk-width-1-3 uk-text-center uk-text-bold"><?php print strtoupper(variable_get('av_checks_payable_to', 'Ultimate Care Trading')); ?></div>
+              <?php endif; ?>
+              <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
+              <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
+              <div class="uk-width-1-3"></div>
+              <div class="uk-width-1-3 uk-text-center">Signature Over Printed Name</div>
+              <div class="uk-width-1-3 uk-text-center">Date</div>
+              <div class="uk-width-1-3"></div>
+            </div>
+          </div>
+          <div class="uk-width-3-10">
+            <div class="uk-grid uk-grid-collapse">
+              <?php if (isset($form['grand_total'])): ?>
+                <div class="uk-width-1-3 uk-text-right"><h3>Total</h3></div>
+                <div class="uk-width-2-3 uk-text-right"><h3><?php print render($form['grand_total']); ?></h3></div>
+              <?php endif; ?>
+              <?php if (isset($form['amount_received'])): ?>
+                <div class="uk-width-1-3 uk-margin-top uk-text-right uk-text-bold">Amount received</div>
+                <div class="uk-width-2-3 uk-margin-top uk-text-right uk-text-bold"><?php print render($form['amount_received']); ?></div>
+                <div class="uk-width-1-3 uk-text-right">Amount to credit</div>
+                <div class="uk-width-2-3 uk-text-right"><?php print render($form['amount_to_credit']); ?></div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <?php if (arg(1) == AVTXNS_TXN_TYPE_DELIVERY): ?>
+        <div class="uk-width-1-1">
+          <br />
+          <span class="uk-text-bold">IMPORTANT:</span> Count goods carefully before signing.<br />Complaints on defective delivery will not be entertained unless the same are noted and informed herein by the hauler's representative.
+        </div>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
 </div>
+
 <?php
 
 //$close_btn_label = empty($form['id']['#value']) ? 'Cancel' : 'Close';

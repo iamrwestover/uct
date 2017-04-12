@@ -51,7 +51,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
     if (!empty($row->id) && $view_mode && $row->client_status != AVCLIENT_STATUS_ACTIVE) {
       $csd = avclients_client_status_details($row->client_status);
-      $form['client_name']['#field_suffix'] = '<em class="uk-margin-small-left">[ACCOUNT IS ' . strtoupper($csd['title']) . ']</em>';
+      $form['client_name']['#field_suffix'] = '<em class="uk-margin-small-left not-printable">[ACCOUNT IS ' . strtoupper($csd['title']) . ']</em>';
     }
     $form['client_address_string'] = array(
       '#id' => 'client-address',
@@ -223,10 +223,16 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   $form['memo'] = array(
     '#type' => 'textarea',
     '#title' => 'Note',
-    '#default_value' => empty($row->memo) ? '-' : $row->memo,
+    '#default_value' => empty($row->memo) ? '' : $row->memo,
     '#maxlength' => 65000,
     '#attributes' => array('rows' => 2),
   );
+  if ($view_mode && !isset($form['message'])) {
+    $form['memo']['#title_display'] = 'inline-before';
+  }
+  if ($view_mode && empty($row->memo)) {
+    unset($form['memo']);
+  }
 
   $date_format = 'F d, Y';
   $txn_date_timestamp = isset($row->transaction_date) ? $row->transaction_date : time();
@@ -264,9 +270,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format(round($row->grand_total, 2), 2) : '0.00');
     // Check if credits are available.
     if ($view_mode && !empty($ttd['credit_txn_types']) && isset($row->status) && $row->status == AVTXNS_TXN_STATUS_OPEN) {
-      $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits',
-        array('attributes' => array('class' => array('not-printable')))
-      ));
+      $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits'));
     }
   }
   elseif ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
@@ -303,9 +307,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
-    $form['txn_footer_notes'] = array(
-      '#theme' => 'avtxns_txn_footer_notes',
-    );
+    //$form['txn_footer_notes'] = array(
+    //  '#theme' => 'avtxns_txn_footer_notes',
+    //);
     $form['prepared_by'] = array(
       '#type' => 'item',
       '#title' => 'Prepared by',

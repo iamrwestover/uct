@@ -61,7 +61,7 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
   // Show created info.
   if ($view_mode && !empty($row->created)) {
     global $user;
-    $form['record_created'] = array('#markup' => '<div class="uk-text-center">' . t('Created by @name - @date', array('@name' => $user->name, '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
+    $form['record_created'] = array('#markup' => '<div class="not-printable uk-text-center">' . t('Created by @name - @date', array('@name' => $user->name, '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
   }
   //if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
   //  // Add extra button to load customer returns.
@@ -118,9 +118,14 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   drupal_set_title($page_title);
 
   if ($view_mode && !empty($row->id)) {
-    $window_title = strtoupper($row->transaction_type) . '# ' . $row->id;
+    $words = explode(' ', variable_get('site_name', 'Ultimate Care Trading'));
+    $acronym = '';
+    foreach ($words as $w) {
+      $acronym .= $w[0];
+    }
+    $window_title = $acronym . ' - ' . strtoupper($row->transaction_type) . '# ' . $row->id;
     if (isset($row->client_name)) {
-      $window_title .= ' .::. ' . strtoupper($row->client_name);
+      $window_title .= ' - ' . strtoupper($row->client_name);
     }
     if (isset($row->grand_total)) {
       $window_title .= ' - ' . number_format($row->grand_total, 2);
