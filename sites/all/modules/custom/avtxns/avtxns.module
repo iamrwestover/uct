@@ -225,15 +225,6 @@ function avtxns_menu() {
         'weight' => 1,
       );
     }
-    $items["{$v['base_path']}/%avtxns_txn/related"] = array(
-      'title' => "Related Transactions",
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('avtxns_related_form', $k, 2),
-      'access arguments' => array(constant('AVTXNS_PERM_VIEW_' . $ttype)),
-      'type' => MENU_LOCAL_TASK,
-      'file' => 'inc/related.form.inc',
-      'weight' => 1,
-    );
 
     if (!empty($v['credit_txn_types'])) {
       $items["{$v['base_path']}/%avtxns_txn/apply-credits"] = array(
@@ -243,9 +234,18 @@ function avtxns_menu() {
         'access arguments' => array(constant('AVTXNS_PERM_EDIT_' . $ttype)),
         'type' => MENU_LOCAL_TASK,
         'file' => 'inc/credits.form.inc',
-        'weight' => 3,
+        'weight' => 2,
       );
     }
+    $items["{$v['base_path']}/%avtxns_txn/related"] = array(
+      'title' => "Related Transactions",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avtxns_related_form', $k, 2),
+      'access arguments' => array(constant('AVTXNS_PERM_VIEW_' . $ttype)),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'inc/related.form.inc',
+      'weight' => 3,
+    );
   }
 
   $items['av/transactions/%avtxns_txn/change-status/%'] = array(

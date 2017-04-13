@@ -8,6 +8,22 @@ function avtxns_related_form($form, &$form_state, $transaction_type, $row) {
 
   drupal_set_title('Transactions related to ' . strtoupper($row->transaction_type) . '# ' . $row->id);
 
+  // Get transaction type details.
+  $ttd = avtxns_txn_types($transaction_type);
+
+  if (!empty($ttd['ctd'])) {
+    $form['client_name'] = array(
+      '#markup' => empty($row->client_name) ? '' : '<div class="uk-text-bold">' . $row->client_name . '</div>',
+      '#title' => $ttd['ctd']['name'],
+    );
+    $form['client_address_string'] = array(
+      '#markup' => empty($row->address_string) ? '' : nl2br($row->address_string),
+    );
+    if (!empty($row->contact_number)) {
+      $form['client_address_string']['#markup'] .= '<br />' . check_plain($row->contact_number);
+    }
+  }
+
   $references = avtxns_get_txn_references(array($row->id));
   $table_rows = array();
   $refs = empty($references[$row->id]['refs']) ? array() : $references[$row->id]['refs'];

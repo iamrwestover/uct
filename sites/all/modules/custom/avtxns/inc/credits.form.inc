@@ -15,6 +15,19 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
   $ttd = avtxns_txn_types($transaction_type);
   drupal_set_title($ttd['name'] . ' Credits');
 
+  if (!empty($ttd['ctd'])) {
+    $form['client_name'] = array(
+      '#markup' => empty($row->client_name) ? '' : '<div class="uk-text-bold">' . $row->client_name . '</div>',
+      '#title' => $ttd['ctd']['name'],
+    );
+    $form['client_address_string'] = array(
+      '#markup' => empty($row->address_string) ? '' : nl2br($row->address_string),
+    );
+    if (!empty($row->contact_number)) {
+      $form['client_address_string']['#markup'] .= '<br />' . check_plain($row->contact_number);
+    }
+  }
+
   // Attachments.
   $form['#attached']['js'][] = AVTXNS_MODULE_PATH . '/js/credits.form.js';
   $form['#validate'][] = 'avtxns_txn_credits_form_validate';
