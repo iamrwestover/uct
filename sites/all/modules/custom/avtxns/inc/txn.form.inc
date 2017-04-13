@@ -149,7 +149,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
         break;
     }
     $form['#prefix'] .= '<span class="uk-text-large not-printable uk-badge ' . $badge_color . '" style="position:absolute; top:0;">&nbsp;' . $icon_html . strtoupper($tsd['title']) . '&nbsp;</span><span class="not-printable">&nbsp;</span>';
-    if ($row->status != AVTXNS_TXN_STATUS_CLOSED) {
+    if ($row->status != AVTXNS_TXN_STATUS_LOCKED) {
       $form['#attributes']['class'][] = 'not-printable';
     }
     $form['#attributes']['class'][] = $form_color_class;
@@ -274,7 +274,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     );
   }
   else {
-    if (in_array($row->status, array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN))) {
+    if (in_array($row->status, array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN))) {
       $buttons['print'] = array(
         '#id' => 'av-print-btn',
         '#type' => 'button',

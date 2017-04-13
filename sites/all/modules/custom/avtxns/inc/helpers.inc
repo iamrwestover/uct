@@ -959,21 +959,40 @@ function avtxns_special_discount_form($term_days) {
  */
 function avtxns_txn_status_details($status = NULL) {
   $statuses = array(
-    AVTXNS_TXN_STATUS_CLOSED => array(
-      'status' => AVTXNS_TXN_STATUS_CLOSED,
+    AVTXNS_TXN_STATUS_LOCKED => array(
+      'status' => AVTXNS_TXN_STATUS_LOCKED,
       'title' => t('Locked'),
+      'badge_class' => 'uk-badge-success',
+      'badge_icon' => 'lock',
+      'color_class' => 'uk-alert-success',
     ),
     AVTXNS_TXN_STATUS_OPEN => array(
       'status' => AVTXNS_TXN_STATUS_OPEN,
       'title' => t('Open'),
+      'badge_class' => 'uk-badge-primary',
+      'badge_icon' => 'circle-o',
+      'color_class' => '',
     ),
     AVTXNS_TXN_STATUS_PENDING => array(
       'status' => AVTXNS_TXN_STATUS_PENDING,
       'title' => t('Pending Approval'),
+      'badge_class' => 'uk-badge-warning',
+      'badge_icon' => 'minus-circle',
+      'color_class' => 'uk-alert-warning',
     ),
     AVTXNS_TXN_STATUS_VOID => array(
       'status' => AVTXNS_TXN_STATUS_VOID,
       'title' => t('Void'),
+      'badge_class' => 'uk-badge-void',
+      'badge_icon' => 'minus-circle',
+      'color_class' => 'uk-row-mute',
+    ),
+    AVTXNS_TXN_STATUS_CLOSED => array(
+      'status' => AVTXNS_TXN_STATUS_CLOSED,
+      'title' => t('Closed'),
+      'badge_class' => '',
+      'badge_icon' => '',
+      'color_class' => '',
     ),
   );
 
@@ -1013,7 +1032,7 @@ function avtxns_txn_change_status($id, $status) {
   }
 
   switch ($row->status) {
-    case AVTXNS_TXN_STATUS_CLOSED:
+    case AVTXNS_TXN_STATUS_LOCKED:
     case AVTXNS_TXN_STATUS_VOID:
       drupal_set_message('Status of Closed and Void transactions cannot be changed.', 'error');
       return FALSE;
@@ -1212,8 +1231,8 @@ function avtxns_product_query_load($param_where = array(), $param_args = array()
 
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avproducts " . implode(' ', $joins);
 
-  //$param_where[] = "avtxn_purchase.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
-  //$param_where[] = "avtxn_sales.status IN (" . AVTXNS_TXN_STATUS_CLOSED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
+  //$param_where[] = "avtxn_purchase.status IN (" . AVTXNS_TXN_STATUS_LOCKED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
+  //$param_where[] = "avtxn_sales.status IN (" . AVTXNS_TXN_STATUS_LOCKED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
 
   //$param_where[] = "avtxn.transaction_type = :txn_type_receive OR (avtxn.transaction_type = :txn_type_invoice AND avtxn_detail.ref_txn_type = :txn_type_delivery)";
   //$param_args[':txn_type_receive'] = AVTXNS_TXN_TYPE_RECEIVE;

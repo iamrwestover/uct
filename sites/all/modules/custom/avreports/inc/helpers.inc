@@ -20,7 +20,7 @@ function avreports_client_balance_aging_form($client_id) {
   $invoice_where = array(
     array('avclients.id', $client->id),
     array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES), 'IN'),
-    array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
+    array('avtxns.status', array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
   );
   $invoices = avtxns_txn_query_load($invoice_where);
   $now = time() /*+ (86400*44)*/;
@@ -235,7 +235,7 @@ function avreports_product_transaction_history() {
   //$args[':ttypes'] = array(AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);
   //$args[':stk_type'] = array(AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);
   $args[':sr'] = AVTXNS_TXN_TYPE_SALES_RETURN;
-  $args[':statuses'] = array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN);
+  $args[':statuses'] = array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN);
   $rows = array();
   $rs = db_query($query, $args);
   foreach ($rs as $row) {

@@ -86,7 +86,7 @@ function avreports_profit_loss_form($form, &$form_state) {
 
   // Build query.
   $pl_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
-  $pl_transaction_statuses = array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN);
+  $pl_transaction_statuses = array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN);
   $select[] = 'avtxn_detail.*';
   $select[] = 'avtxn.transaction_type';
   $select[] = 'avtxn.transaction_date';

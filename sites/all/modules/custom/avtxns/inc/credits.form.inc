@@ -7,8 +7,8 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
     drupal_exit();
   }
 
-  if (!in_array($row->status, array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_OPEN))) {
-    drupal_set_message('Credits cannot be applied on this transaction anymore.', 'warning');
+  if (in_array($row->status, array(AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_PENDING))) {
+    drupal_set_message('Credits cannot be applied on this transaction.', 'warning');
     return array();
   }
 
@@ -131,11 +131,11 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
     );
     $form['bill_total'] = array(
       '#type' => 'hidden',
-      '#default_value' => $row->debit_total,
+      '#default_value' => $row->debit_total - $row->total_paid,
     );
     $form['bill_total_text'] = array(
-      '#markup' => '<div class="uk-text-right uk-text-large"><span class="uk-margin-large-right">'. $ttd['name'] . ' Total</span>
-        <span id="bill-total-text">' . number_format($row->debit_total, 2) .'</span></div>',
+      '#markup' => '<div class="uk-text-right uk-text-large"><span class="uk-margin-large-right">' . $ttd['name'] . ' balance</span>
+        <span id="bill-total-text">' . number_format($row->debit_total - $row->total_paid, 2) .'</span></div>',
     );
 
     // Buttons
@@ -234,9 +234,10 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
 
   $transaction_row = avtxns_txn_load($transaction_id);
   $transaction_row_total = empty($transaction_row->debit_total) ? 0 : $transaction_row->debit_total;
+  $transaction_row_total -= $transaction_row->total_paid;
   $remaining_total = $transaction_row_total - $total_credits_used;
   if (round((float)$remaining_total, 2) < 0) {
-    form_set_error("", t('@tname total cannot be less than 0.', array('@tname' => $ttd['name'])));
+    form_set_error("", t('@tname balance cannot be less than 0.', array('@tname' => $ttd['name'])));
   }
 }
 
@@ -251,7 +252,7 @@ function avtxns_get_client_credits($client_id, $transaction_type) {
   $credit_rows = array();
   $query = "SELECT avtxns.* FROM {avtbl_transactions} avtxns
     WHERE avtxns.client_id = :client_id AND avtxns.status IN (:statuses) AND avtxns.transaction_type IN (:ttypes)";
-  $rs = db_query($query, array(':client_id' => $client_id, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), ':ttypes' => $ttd['credit_txn_types']));
+  $rs = db_query($query, array(':client_id' => $client_id, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), ':ttypes' => $ttd['credit_txn_types']));
   $txn_ids = array();
   foreach ($rs as $row) {
     $txn_ids[$row->id] = $row->id;

@@ -122,6 +122,11 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['reference_id']['#element_validate'][] = 'avtxns_element_validate_reference_id_required';
   }
 
+  if (!empty($ttd['payable']) && $view_mode) {
+    $form['total_paid_text'] = array('#markup' => isset($row->total_paid) ? number_format(round($row->total_paid, 2), 2) : '0.00');
+    $form['rem_bal_text'] = array('#markup' => isset($row->balance) ? number_format(round($row->balance, 2), 2) : '0.00');
+  }
+
 
 
   if (in_array($transaction_type, array(/*AVTXNS_TXN_TYPE_PURCHASE_RETURN, */AVTXNS_TXN_TYPE_SALES_RETURN))) {
@@ -269,7 +274,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   if (empty($ttd['no_total'])) {
     $form['grand_total'] = array('#markup' => isset($row->grand_total) ? number_format(round($row->grand_total, 2), 2) : '0.00');
     // Check if credits are available.
-    if ($view_mode && !empty($ttd['credit_txn_types']) && isset($row->status) && $row->status == AVTXNS_TXN_STATUS_OPEN) {
+    if ($view_mode && !empty($ttd['credit_txn_types']) && isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED))) {
       $form['apply_credits_link'] = array('#markup' => l('Apply credits', $ttd['base_path'] . '/' . $row->id . '/apply-credits'));
     }
   }

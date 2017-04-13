@@ -27,10 +27,11 @@ define('AVTXNS_TXN_TYPE_OTHER_BILLS', 'obll');
 define('AVTXNS_TXN_TYPE_ACCOUNTS_BILL', 'ainv');
 define('AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT', 'stk');
 
-define('AVTXNS_TXN_STATUS_CLOSED', 0);
+define('AVTXNS_TXN_STATUS_LOCKED', 0);
 define('AVTXNS_TXN_STATUS_OPEN', 1);
 define('AVTXNS_TXN_STATUS_PENDING', 2);
 define('AVTXNS_TXN_STATUS_VOID', 3);
+define('AVTXNS_TXN_STATUS_CLOSED', 4); // No more balance, or no more credits.
 
 define('AVTXN_DISCOUNT_MULTIPLIER', variable_get('av_discount_multiplier', '0.4'));
 
@@ -413,7 +414,7 @@ function avtxns_txn_types($type = NULL) {
       'ref_ar_type' => 'credit',
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED),
       'bill' => TRUE,
-      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      //'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), // Allowed statuses on when referenced.
       'payable' => TRUE,
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_DELIVERY,
       //'pending_return_type' => AVTXNS_TXN_TYPE_SALES_RETURN,
@@ -506,7 +507,7 @@ function avtxns_txn_types($type = NULL) {
       //'client_statuses' => array(AVCLIENT_STATUS_ACTIVE),
       'bill' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_INVOICE,
-      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      //'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), // Allowed statuses on when referenced.
       'payable' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
@@ -595,7 +596,7 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
-      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      //'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), // Allowed statuses on when referenced.
       'payable' => TRUE,
       'credit_txn_types' => array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_CREDIT_MEMO, AVTXNS_TXN_TYPE_PAYMENT),
       'ref_ar_type' => 'credit',
@@ -617,7 +618,7 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
-      'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), // Allowed statuses on when referenced.
+      //'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), // Allowed statuses on when referenced.
       'payable' => TRUE,
       'credit_txn_types' => array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_VENDOR_CREDIT, AVTXNS_TXN_TYPE_PAY_BILL),
       'default_account_id' => array(
@@ -742,32 +743,10 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     //$index = 0;
     foreach ($transactions as $row) {
       $sd = avtxns_txn_status_details($row->status);
-      $row_class = '';
+      $row_class = empty($sd['color_class']) ? '' : $sd['color_class'];
+      $badge_class = empty($sd['badge_class']) ? '' : $sd['badge_class'];
+      $badge_icon = empty($sd['badge_icon']) ? '' : $sd['badge_icon'];
       $badge_html = '';
-      $badge_class = '';
-      $badge_icon_html = '';
-      $badge_icon = '';
-      switch ($row->status) {
-        case AVTXNS_TXN_STATUS_OPEN:
-          $badge_class = 'uk-badge-primary';
-          $badge_icon = 'circle-o';
-          break;
-        case AVTXNS_TXN_STATUS_PENDING:
-          $row_class = 'uk-alert-warning';
-          $badge_class = 'uk-badge-warning';
-          $badge_icon = 'minus-circle';
-          break;
-        case AVTXNS_TXN_STATUS_VOID:
-          $row_class = 'uk-row-mute';
-          $badge_class = 'uk-badge-void';
-          $badge_icon = 'minus-circle';
-          break;
-        case AVTXNS_TXN_STATUS_CLOSED:
-          $row_class = 'uk-alert-success';
-          $badge_class = 'uk-badge-success';
-          $badge_icon = 'lock';
-          break;
-      }
       if (!empty($badge_class)) {
         $badge_icon_html = '<i class="uk-icon-justify uk-icon-' . $badge_icon . '"></i>';
         $badge_html = empty($sd['title']) ? '' : ('<span title="' . $sd['title'] . '" class="uk-badge ' . $badge_class . ' uk-margin-small-right" style="position: relative; top: -2px;">' . $badge_icon_html . '</span>');

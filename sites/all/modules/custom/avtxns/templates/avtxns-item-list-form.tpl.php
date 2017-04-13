@@ -163,7 +163,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
             <div class="uk-width-2-10 uk-margin-small-top uk-text-right"><?php print drupal_render($form['debit_total']); ?></div>
           <?php elseif (isset($form['grand_total'])): ?>
             <div class="uk-width-8-10 uk-margin-small-top uk-text-right not-printable"><h3>Total</h3></div>
-            <div class="uk-width-2-10 uk-margin-small-top uk-text-right not-printable"><h3><?php print drupal_render($form['grand_total']); ?></h3></div>
+            <div class="uk-width-2-10 uk-margin-small-top uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><h3><?php print drupal_render($form['grand_total']); ?></h3></div>
           <?php endif; ?>
           <?php if (isset($form['apply_credits_link'])): ?>
             <div class="uk-width-8-10 uk-margin-small-top uk-text-right"></div>
@@ -205,21 +205,17 @@ $balance_ages_html = drupal_render($form['balance_ages']);
     <?php if (isset($form['credit_rows'])): ?>
       <div class="uk-width-1-1">
         <?php print drupal_render($form['credit_rows']); ?>
-        <div class="uk-grid uk-grid-collapse uk-margin-small-top not-printable">
-          <div class="uk-width-7-10">
-            <!--  -->
-          </div>
-
-          <div class="uk-width-3-10 uk-text-right">
-            <div class="uk-grid uk-grid-small uk-margin-small-top">
-              <?php if (isset($form['grand_total'])): ?>
-                <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-6 uk-margin-small-top"><h3>Total</h3></div>
-                <div class="uk-width-3-6 uk-margin-small-top"><h3 class="product-form-grand-total"><?php print drupal_render($form['grand_total']); ?></h3></div>
-              <?php endif; ?>
-            </div>
-          </div>
-        </div>
       </div>
+      <?php if (isset($form['grand_total'])): ?>
+        <div class="uk-width-8-10 uk-text-right not-printable"><h3>Total</h3></div>
+        <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><h3 class="product-form-grand-total"><?php print drupal_render($form['grand_total']); ?></h3></div>
+      <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($view_mode && isset($form['total_paid_text'])): ?>
+      <div class="uk-width-8-10 uk-text-right not-printable">Paid</div>
+      <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><?php print drupal_render($form['total_paid_text']); ?></div>
+      <div class="uk-width-8-10 uk-text-right not-printable">Balance</div>
+      <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><em><?php print drupal_render($form['rem_bal_text']); ?></em></div>
     <?php endif; ?>
 
     <div class="uk-width-7-10 uk-margin-small-top">
@@ -267,8 +263,8 @@ $balance_ages_html = drupal_render($form['balance_ages']);
                 <div class="uk-width-2-3">&nbsp;</div>
                 <div class="uk-width-1-3 uk-text-center uk-text-bold"><?php print strtoupper(variable_get('av_checks_payable_to', 'Ultimate Care Trading')); ?></div>
               <?php endif; ?>
-              <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
-              <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
+              <div class="uk-width-1-3"><hr style="border-color: #ddd;" /></div>
+              <div class="uk-width-1-3"><hr style="border-color: #ddd;" /></div>
               <div class="uk-width-1-3"></div>
               <div class="uk-width-1-3 uk-text-center">Signature Over Printed Name</div>
               <div class="uk-width-1-3 uk-text-center">Date</div>
@@ -279,7 +275,13 @@ $balance_ages_html = drupal_render($form['balance_ages']);
             <div class="uk-grid uk-grid-collapse">
               <?php if (isset($form['grand_total'])): ?>
                 <div class="uk-width-1-3 uk-text-right"><h3>Total</h3></div>
-                <div class="uk-width-2-3 uk-text-right"><h3><?php print render($form['grand_total']); ?></h3></div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><h3><?php print render($form['grand_total']); ?></h3></div>
+              <?php endif; ?>
+              <?php if ($view_mode && isset($form['total_paid_text'])): ?>
+                <div class="uk-width-1-3 uk-text-right">Paid</div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><?php print render($form['total_paid_text']); ?></div>
+                <div class="uk-width-1-3 uk-text-right">Balance</div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><em><?php print render($form['rem_bal_text']); ?></em></div>
               <?php endif; ?>
               <?php if (isset($form['amount_received'])): ?>
                 <div class="uk-width-1-3 uk-margin-top uk-text-right uk-text-bold">Amount received</div>

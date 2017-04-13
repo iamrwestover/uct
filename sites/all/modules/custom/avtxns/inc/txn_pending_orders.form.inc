@@ -191,7 +191,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $conditions = array();
       $conditions[] = array('avtxns.client_id', $client_id);
       if (!empty($ttd['payment'])) {
-        $conditions[] = array('avtxns.status', array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_CLOSED), 'IN');
+        $conditions[] = array('avtxns.status', array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), 'IN');
       }
       else {
         $conditions[] = array('avtxns.status', AVTXNS_TXN_STATUS_OPEN);
@@ -205,10 +205,10 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           continue;
         }
 
-        $pr_statuses = empty($rtd['pr_statuses']) ? array(AVTXNS_TXN_STATUS_OPEN) : $rtd['pr_statuses'];
-        if (!in_array($po_v->status, $pr_statuses)) {
-          continue;
-        }
+        //$pr_statuses = empty($rtd['pr_statuses']) ? array(AVTXNS_TXN_STATUS_OPEN) : $rtd['pr_statuses'];
+        //if (!in_array($po_v->status, $pr_statuses)) {
+        //  continue;
+        //}
         $trimmed_po = new stdClass();
         $trimmed_po->id = $po_v->id;
         $trimmed_po->transaction_type = $po_v->transaction_type;

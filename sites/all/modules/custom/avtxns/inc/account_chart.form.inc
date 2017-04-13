@@ -28,13 +28,13 @@ function avtxns_account_chart_home_form($form, &$form_state) {
     if ($row->account_type == AVTXN_AC_TYPE_AR) {
       $account_balance_where = array(
         array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES), 'IN'),
-        array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
+        array('avtxns.status', array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
       );
     }
     elseif ($row->account_type == AVTXN_AC_TYPE_AP) {
       $account_balance_where = array(
         array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_OTHER_BILLS), 'IN'),
-        array('avtxns.status', array(AVTXNS_TXN_STATUS_CLOSED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
+        array('avtxns.status', array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
       );
     }
     if (!empty($account_balance_where)) {

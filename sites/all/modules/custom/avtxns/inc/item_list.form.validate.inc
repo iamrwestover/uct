@@ -192,7 +192,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
       $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
       $valid_statuses = array(AVTXNS_TXN_STATUS_OPEN);
       if (!empty($ttd['payment'])) {
-        $valid_statuses[] = AVTXNS_TXN_STATUS_CLOSED;
+        $valid_statuses[] = AVTXNS_TXN_STATUS_LOCKED;
       }
       foreach ($rs as $txn) {
         if (!in_array($txn->status, $valid_statuses)) {
