@@ -764,16 +764,16 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
       );
 
-      $fields['ref_txn_dtl_id_text'] = array(
-        '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['ref_txn_dtl_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' . $prod_row['ref_txn_dtl_id']) : '&nbsp;') . '</div>',
+      $fields['ref_txn_id_text'] = array(
+        '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['ref_txn_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' . $prod_row['ref_txn_id']) : '&nbsp;') . '</div>',
       );
       if (empty($view_mode)) {
-        $fields['ref_txn_dtl_id'] = array(
-          '#type' => 'hidden',
+        $fields['ref_txn_id'] = array(
+          '#type' => 'textfield',
           '#title' => 'Reference ID',
           '#title_display' => 'none',
           '#maxlength' => 255,
-          '#default_value' => isset($prod_row['ref_txn_dtl_id']) ? $prod_row['ref_txn_dtl_id'] : '',
+          '#default_value' => isset($prod_row['ref_txn_id']) ? $prod_row['ref_txn_id'] : '',
         );
       }
       $fields['orig_total'] = array(
@@ -919,7 +919,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
     $disabled_fields = array(
       'transaction_date_formatted',
-      'ref_txn_dtl_id',
+      'ref_txn_id',
       'orig_total',
       'balance',
       'previous_payment',

@@ -225,7 +225,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
     <div class="uk-width-7-10 uk-margin-small-top">
       <div class="uk-grid">
         <?php if (isset($form['memo'])): ?>
-          <div class="uk-width-<?php print (!isset($form['message']) ? 10 : 4); ?>-10"><?php print drupal_render($form['memo']); ?></div>
+          <div class="uk-width-<?php print (!isset($form['message']) ? ($view_mode ? '10' : '4') : 4); ?>-10"><?php print drupal_render($form['memo']); ?></div>
         <?php endif; ?>
         <?php if (isset($form['message'])): ?>
           <div class="uk-width-3-10"><?php print drupal_render($form['message']); ?></div>

@@ -288,7 +288,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
         if (!empty($ttd['payment'])) {
           $item_row_id = "{$transaction->transaction_type}_db_item_{$transaction->id}";
           $transaction_arr = (array) $transaction;
-          $transaction_arr['ref_txn_dtl_id'] = $transaction->id;
+          //$transaction_arr['ref_txn_dtl_id'] = $transaction->id;
           // Remember Invoice ID to immediately close invoice after payment, regardless of amount paid.
           $transaction_arr['ref_txn_id'] = $transaction->id;
           $transaction_arr['ref_txn_type'] = $transaction->transaction_type;

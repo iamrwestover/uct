@@ -270,7 +270,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
 
         // Special fields for payment transactions.
         if (!empty($ttd['payment'])) {
-          $invoice = avtxns_txn_load($item->ref_txn_dtl_id);
+          $invoice = avtxns_txn_load($item->ref_txn_id);
           if (!empty($invoice->id)) {
             // Get total paid - excluding payments before this transaction.
             $query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
