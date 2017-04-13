@@ -54,7 +54,8 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     //$form_state['values']['available_credit'] = $total;
   }
   if (!empty($ttd['payment']) && isset($form_state['values']['amount_received'])) {
-    $amount_to_credit = (float) $form_state['values']['amount_received'] - $total;
+    $amount_to_credit = round((float) $form_state['values']['amount_received'], 2) - round($total, 2);
+    $amount_to_credit = round($amount_to_credit, 2);
     if ($amount_to_credit < 0) {
       form_set_error('amount_received', 'Amount received cannot be less than this transaction\'s total amount.');
     }

@@ -296,6 +296,14 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         }
       }
 
+      // If payment is check, send to pending.
+      if (!empty($ttd['payment']) && $form_state['values']['pmt_method_id'] == AVBASE_PMT_METHOD_CHECK && $transaction_status != AVTXNS_TXN_STATUS_PENDING) {
+        if (avtxns_txn_change_status($row['id'], AVTXNS_TXN_STATUS_PENDING)) {
+          $transaction_status = AVTXNS_TXN_STATUS_PENDING;
+          drupal_set_message('Check payments are temporarily sent for approval.', 'warning');
+        }
+      }
+
       $now = time();
       // Close transaction ids.
       if (!empty($close_transaction_ids)) {

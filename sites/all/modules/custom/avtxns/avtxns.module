@@ -1198,7 +1198,12 @@ function avtxns_txn_can_status_change($transaction, $status) {
     return user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type));
   }
   elseif ($status == AVTXNS_TXN_STATUS_OPEN || $status == AVTXNS_TXN_STATUS_PENDING) {
-    return user_access(constant('AVTXNS_PERM_OPEN_' . $transaction_type));
+    if (!empty($ttd['payment'])) {
+      return user_access(constant('AVTXNS_PERM_EDIT_' . $transaction_type));
+    }
+    else {
+      return user_access(constant('AVTXNS_PERM_OPEN_' . $transaction_type));
+    }
   }
   else {
     return TRUE;

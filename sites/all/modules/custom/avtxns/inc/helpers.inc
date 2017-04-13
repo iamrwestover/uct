@@ -1611,8 +1611,8 @@ function avtxns_get_txn_references($txn_ids = array()) {
   $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type
     FROM {avtbl_transaction_details} avtxn_dtls
     INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
-    WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status IN (:statuses)";
-  $rs = db_query($query, array(':ids' => $txn_ids, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_CLOSED)));
+    WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status <> :void_status";
+  $rs = db_query($query, array(':ids' => $txn_ids, ':void_status' => AVTXNS_TXN_STATUS_VOID));
   $references = array();
   foreach ($rs as $row) {
     $references[$row->ref_txn_id]['simple_costs_total'] = isset($references[$row->ref_txn_id]['simple_costs_total']) ? $references[$row->ref_txn_id]['simple_costs_total'] : 0;
