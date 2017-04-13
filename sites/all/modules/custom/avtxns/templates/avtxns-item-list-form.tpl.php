@@ -172,8 +172,8 @@ $balance_ages_html = drupal_render($form['balance_ages']);
           <?php if (isset($form['amount_received'])): ?>
             <div class="uk-width-8-10 uk-margin-top uk-text-right not-printable"><h5>Amount received</h5></div>
             <div class="uk-width-2-10 uk-margin-top uk-text-right not-printable"><h5><?php print drupal_render($form['amount_received']); ?></h5></div>
-            <div class="uk-width-8-10 uk-text-right not-printable"><h5>Amount to credit</h5></div>
-            <div class="uk-width-2-10 uk-text-right not-printable"><h5><?php print drupal_render($form['amount_to_credit']); ?></h5></div>
+            <div class="uk-width-8-10 uk-text-right not-printable">Amount to credit</div>
+            <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><?php print drupal_render($form['amount_to_credit']); ?></div>
           <?php endif; ?>
         <?php endif; ?>
 
@@ -216,6 +216,12 @@ $balance_ages_html = drupal_render($form['balance_ages']);
       <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><?php print drupal_render($form['total_paid_text']); ?></div>
       <div class="uk-width-8-10 uk-text-right not-printable">Balance</div>
       <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><em><?php print drupal_render($form['rem_bal_text']); ?></em></div>
+    <?php endif; ?>
+    <?php if ($view_mode && isset($form['available_credit_text'])): ?>
+      <div class="uk-width-8-10 uk-text-right not-printable">Credits used</div>
+      <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><?php print drupal_render($form['credits_used_text']); ?></div>
+      <div class="uk-width-8-10 uk-text-right not-printable">Remaining credits</div>
+      <div class="uk-width-2-10 uk-text-right not-printable" style="border-bottom: solid 1px #ddd;"><em><?php print drupal_render($form['available_credit_text']); ?></em></div>
     <?php endif; ?>
 
     <div class="uk-width-7-10 uk-margin-small-top">
@@ -287,7 +293,13 @@ $balance_ages_html = drupal_render($form['balance_ages']);
                 <div class="uk-width-1-3 uk-margin-top uk-text-right uk-text-bold">Amount received</div>
                 <div class="uk-width-2-3 uk-margin-top uk-text-right uk-text-bold"><?php print render($form['amount_received']); ?></div>
                 <div class="uk-width-1-3 uk-text-right">Amount to credit</div>
-                <div class="uk-width-2-3 uk-text-right"><?php print render($form['amount_to_credit']); ?></div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><?php print render($form['amount_to_credit']); ?></div>
+              <?php endif; ?>
+              <?php if ($view_mode && isset($form['available_credit_text'])): ?>
+                <div class="uk-width-1-3 uk-text-right">Credits used</div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><?php print render($form['credits_used_text']); ?></div>
+                <div class="uk-width-1-3 uk-text-right">Remaining credits</div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><em><?php print render($form['available_credit_text']); ?></em></div>
               <?php endif; ?>
             </div>
           </div>

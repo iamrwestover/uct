@@ -21,6 +21,8 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       // Remove qty reservations.
       avtxns_remove_user_qty_reservation();
 
+      $form_state_item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
+
       // Get item rows.
       $item_rows = isset($form_state['storage']['item_rows']) ? $form_state['storage']['item_rows'] : array();
 
@@ -67,13 +69,21 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $discount_updates = array();
       foreach ($item_rows as $ir_k => $item_row) {
         // Skip if account_id is empty.
-        if ($ttd['transaction'] == 'accounts' && empty($item_row['account_id'])) {
+        if ($ttd['transaction'] == 'accounts' && empty($form_state_item_rows[$ir_k]['account_id'])) {
           continue;
         }
 
         // Skip if product id is empty.
-        if (empty($ttd['non_product']) && empty($ttd['payment']) && empty($item_row['product_id'])) {
+        if (empty($ttd['non_product']) && empty($ttd['payment']) && empty($form_state_item_rows[$ir_k]['product_id'])) {
           continue;
+        }
+
+        // Skip if payment but 0 total.
+        if (!empty($ttd['payment'])) {
+          $this_row_total = isset($item_row['total']) ? (float)$item_row['total'] : 0;
+          if ($this_row_total <= 0) {
+            continue;
+          }
         }
 
         // Make sure only item rows owned by this owner get saved.
@@ -153,6 +163,24 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           $close_transaction_ids[$item_row['ref_txn_id']] = $item_row['ref_txn_id'];
         }
       }
+
+      // Append all ref_txn_ids from this transaction to list of transactions to reconsider status.
+      if (empty($form_state['#new_record'])) {
+        $ref_query = "SELECT avtxn_details.ref_txn_id
+        FROM {avtbl_transaction_details} AS avtxn_details
+        WHERE avtxn_details.transaction_id = :id AND avtxn_details.ref_txn_id";
+        $ref_args = array(':id' => $row['id']);
+        if (!empty($ttd['credit_txn_types'])) {
+          $ref_query .= " AND ref_txn_type NOT IN (:txn_types)";
+          $ref_args[':txn_types'] = $ttd['credit_txn_types'];
+        }
+        $ref_rs = db_query($ref_query, $ref_args);
+        foreach ($ref_rs as $ref_row) {
+          $close_transaction_ids[$ref_row->ref_txn_id] = $ref_row->ref_txn_id;
+        }
+      }
+
+
 
       // Delete transaction detail ids that were removed.
       $to_be_deleted_rows = array();
@@ -270,10 +298,11 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
 
       $now = time();
       // Close transaction ids.
-      if (!empty($close_transaction_ids) && $transaction_type != AVTXNS_TXN_TYPE_SALES_RETURN) {
-        if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => $close_transaction_ids, ':changed' => $now))) {
-          avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => $close_transaction_ids, '#manner' => 'transaction-auto'));
-        }
+      if (!empty($close_transaction_ids)) {
+        avtxns_txn_reconsider_status($close_transaction_ids);
+        //if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => $close_transaction_ids, ':changed' => $now))) {
+        //  avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => $close_transaction_ids, '#manner' => 'transaction-auto'));
+        //}
       }
 
       // Suspend/re-activate customer if necessary.
@@ -286,14 +315,14 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           drupal_set_message(t('This transaction has been sent for approval. Client\'s @credit_limit credit limit will be reached if this transaction is approved.', array('@credit_limit' => number_format($balance_ages_form['#credit_limit'], 2))), 'warning');
         }
       }
-      elseif ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
-        $balance_ages_form = avreports_client_balance_aging_form($row['client_id']);
-        if ($balance_ages_form['#client_status'] != AVCLIENT_STATUS_ACTIVE && empty($balance_ages_form['#limit_reached']) && $balance_ages_form['#client_type'] == AVCLIENT_TYPE_CUSTOMER) {
-          if (avclients_client_change_status($row['client_id'], AVCLIENT_STATUS_ACTIVE)) {
-            drupal_set_message(t('Account has been reactivated.'));
-          }
-        }
-      }
+      //elseif ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+      //  $balance_ages_form = avreports_client_balance_aging_form($row['client_id']);
+      //  if ($balance_ages_form['#client_status'] != AVCLIENT_STATUS_ACTIVE && empty($balance_ages_form['#limit_reached']) && $balance_ages_form['#client_type'] == AVCLIENT_TYPE_CUSTOMER) {
+      //    if (avclients_client_change_status($row['client_id'], AVCLIENT_STATUS_ACTIVE)) {
+      //      drupal_set_message(t('Account has been reactivated.'));
+      //    }
+      //  }
+      //}
       break;
   }
   return NULL;

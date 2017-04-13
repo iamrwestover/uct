@@ -1,7 +1,6 @@
 <?php
 
 function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
-
   if (empty($row->id) || $row->transaction_type != $transaction_type) {
     drupal_not_found();
     drupal_exit();
@@ -33,12 +32,16 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
   $form['client_id'] = array('#type' => 'value', '#value' => $row->client_id);
   $form['transaction_type'] = array('#type' => 'value', '#value' => $transaction_type);
 
-  $credit_rows = avtxns_get_client_credits($row->client_id, $transaction_type);
   $saved_credit_rows = array();
   $row_credit_items = empty($row->credit_items) ? array() : $row->credit_items;
+  $existing_credit_items = array();
   foreach ($row_credit_items as $rci) {
     $saved_credit_rows[$rci->ref_txn_id] = $rci;
+    $existing_credit_items[$rci->ref_txn_id] = $rci->ref_txn_id;
   }
+
+  $form['existing_credit_items'] = array('#type' => 'value', '#value' => $existing_credit_items);
+  $credit_rows = avtxns_get_client_credits($row->client_id, $transaction_type, $existing_credit_items);
 
   $table_rows = array();
   $form['credit_rows'] = array('#tree' => TRUE);
@@ -85,7 +88,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#title' => 'Amount used',
       '#title_display' => 'none',
       '#maxlength' => 19,
-      '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+      '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length', 'avbase_element_validate_non_negative_number'),
       '#special_element_type' => 'number',
       '#attributes' => array(
         'data-column-name' => 'amt-to-use',
@@ -187,11 +190,15 @@ function avtxns_txn_credits_form_submit($form, &$form_state) {
     }
 
     // Close transaction ids.
-    if (!empty(array_keys($entered_rows))) {
-      if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => array_keys($entered_rows), ':changed' => time()))) {
-        avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => array_keys($entered_rows), '#manner' => 'credits-auto'));
-      }
-    }
+    $reconsider_ids = array_keys($entered_rows);
+    $reconsider_ids[] = $transaction_id;
+    avtxns_txn_reconsider_status($reconsider_ids);
+    //if (!empty(array_keys($entered_rows))) {
+    //
+    //  if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = 0 WHERE id IN (:ids)", array(':ids' => array_keys($entered_rows), ':changed' => time()))) {
+    //    avbase_custom_watchdog("{$transaction_type}__close", "ID: multiple", array('#ids' => array_keys($entered_rows), '#manner' => 'credits-auto'));
+    //  }
+    //}
 
     drupal_set_message('Credit changes saved.');
     avbase_custom_watchdog("credits_saved", "ID: {$transaction_id}", array('#row' => $entered_rows));
@@ -216,7 +223,7 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
   }
   $transaction_type = empty($form_state['values']['transaction_type']) ? NULL : $form_state['values']['transaction_type'];
   $ttd = avtxns_txn_types($transaction_type);
-  $credit_rows = avtxns_get_client_credits($client_id, $transaction_type);
+  $credit_rows = avtxns_get_client_credits($client_id, $transaction_type, $form_state['values']['existing_credit_items']);
   $total_credits_used = 0;
   foreach ($entered_rows as $ek => $er) {
     if (!isset($credit_rows[$ek])) {
@@ -241,7 +248,7 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
   }
 }
 
-function avtxns_get_client_credits($client_id, $transaction_type) {
+function avtxns_get_client_credits($client_id, $transaction_type, $existing_credit_items = array()) {
   $data = &drupal_static(__FUNCTION__, array());
   $data_id = "$client_id:$transaction_type";
   if (isset($data[$data_id])) {
@@ -251,8 +258,19 @@ function avtxns_get_client_credits($client_id, $transaction_type) {
   $ttd = avtxns_txn_types($transaction_type);
   $credit_rows = array();
   $query = "SELECT avtxns.* FROM {avtbl_transactions} avtxns
-    WHERE avtxns.client_id = :client_id AND avtxns.status IN (:statuses) AND avtxns.transaction_type IN (:ttypes)";
-  $rs = db_query($query, array(':client_id' => $client_id, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), ':ttypes' => $ttd['credit_txn_types']));
+    WHERE avtxns.client_id = :client_id AND avtxns.status IN (:statuses) AND avtxns.transaction_type IN (:ttypes)
+    AND avtxns.amount_to_credit > 0";
+  $args = array(
+    ':client_id' => $client_id,
+    ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED),
+    ':ttypes' => $ttd['credit_txn_types']
+  );
+  if (!empty($existing_credit_items)) {
+    $query .= " OR (avtxns.status = :closed AND avtxns.id IN (:existing_credit_ids))";
+    $args[':closed'] = AVTXNS_TXN_STATUS_CLOSED;
+    $args[':existing_credit_ids'] = array_keys($existing_credit_items);
+  }
+  $rs = db_query($query, $args);
   $txn_ids = array();
   foreach ($rs as $row) {
     $txn_ids[$row->id] = $row->id;
@@ -261,16 +279,20 @@ function avtxns_get_client_credits($client_id, $transaction_type) {
   }
 
   if (!empty($txn_ids)) {
-    $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost FROM {avtbl_transaction_details} avtxn_dtls
-        INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
-        WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status != :void_type";
-    $rs = db_query($query, array(':ids' => $txn_ids, ':void_type' => AVTXNS_TXN_STATUS_VOID));
-    foreach ($rs as $row) {
-      $credit_rows[$row->ref_txn_id]->available_credit -= (float)$row->cost;
-      //if ($row->transaction_id == $transaction_id) {
-      //  $credit_rows[$row->ref_txn_id]->amount_used = (float) $row->paid_amount;
-      //}
+    $credits_used = avtxns_get_txn_references($txn_ids);
+    foreach ($credits_used as $cu_k => $cu) {
+      $credit_rows[$cu_k]->available_credit -= (float)$cu['simple_costs_total'];
     }
+    //$query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost FROM {avtbl_transaction_details} avtxn_dtls
+    //    INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
+    //    WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status IN (:statuses)";
+    //$rs = db_query($query, array(':ids' => $txn_ids, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED)));
+    //foreach ($rs as $row) {
+    //  $credit_rows[$row->ref_txn_id]->available_credit -= (float)$row->cost;
+    //  //if ($row->transaction_id == $transaction_id) {
+    //  //  $credit_rows[$row->ref_txn_id]->amount_used = (float) $row->paid_amount;
+    //  //}
+    //}
   }
 
   $data[$data_id] = $credit_rows;

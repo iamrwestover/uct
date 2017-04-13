@@ -15,7 +15,7 @@ module_load_include('inc', 'avtxns', 'inc/account_chart.helpers');
  *
  * @return object
  */
-function avtxns_txn_load($id) {
+function avtxns_txn_load($id, $refresh = FALSE) {
   if (empty($id) || $id == 'new') {
     return FALSE;
   }
@@ -27,13 +27,13 @@ function avtxns_txn_load($id) {
 
   $data = &drupal_static('avbase', array());
   $txns = &$data['txns'];
-  if (isset($txns[$id])) {
+  if (isset($txns[$id]) && !$refresh) {
     return $txns[$id];
   }
 
   $conditions = array();
   $conditions[] = array('avtxns.id', $id);
-  $rows = avtxns_txn_query_load($conditions);
+  $rows = avtxns_txn_query_load($conditions, NULL, NULL, $refresh);
   $row = empty($rows[$id]) ? FALSE : $rows[$id];
 
   // Update static variable.
@@ -47,7 +47,7 @@ function avtxns_txn_load($id) {
  *
  * @return array
  */
-function avtxns_txn_load_ids($ids) {
+function avtxns_txn_load_ids($ids, $refresh = FALSE) {
   if (empty($ids)) {
     return FALSE;
   }
@@ -72,7 +72,7 @@ function avtxns_txn_load_ids($ids) {
   if (!empty($query_ids)) {
     $conditions = array();
     $conditions[] = array('avtxns.id', $query_ids, 'IN');
-    $rows = avtxns_txn_query_load($conditions);
+    $rows = avtxns_txn_query_load($conditions, NULL, NULL, $refresh);
     if (!empty($rows)) {
       $return += $rows;
     }
@@ -87,7 +87,7 @@ function avtxns_txn_load_ids($ids) {
  *
  * @return array
  */
-function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = NULL) {
+function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = NULL, $refresh = FALSE) {
   //if (empty($conditions)) {
   //  return array();
   //}
@@ -102,7 +102,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $_data_id = $conditions;
   sort($_data_id);
   $data_id = md5(json_encode($_data_id));
-  if (isset($data[$data_id])) {
+  if (isset($data[$data_id]) && !$refresh) {
     return $data[$data_id];
   }
 
@@ -180,10 +180,13 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $query->addField('avcat_catprod', 'title', 'category_title');
         //$query->addField('avtxn_reference', 'transaction_id', 'ref_txn_id');
         //$query->addField('avtxn', 'transaction_type', 'ref_txn_type');
+
         $query->orderBy('category_title', 'ASC');
         $query->orderBy('uom_title', 'DESC');
         $query->orderBy('product_title', 'ASC');
       }
+      $query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_details.ref_txn_id');
+      $query->addField('avtxn', 'changed', 'ref_txn_changed');
 
 
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
@@ -964,7 +967,7 @@ function avtxns_txn_status_details($status = NULL) {
       'title' => t('Locked'),
       'badge_class' => 'uk-badge-success',
       'badge_icon' => 'lock',
-      'color_class' => 'uk-alert-success',
+      //'color_class' => 'uk-alert-success',
     ),
     AVTXNS_TXN_STATUS_OPEN => array(
       'status' => AVTXNS_TXN_STATUS_OPEN,
@@ -990,9 +993,9 @@ function avtxns_txn_status_details($status = NULL) {
     AVTXNS_TXN_STATUS_CLOSED => array(
       'status' => AVTXNS_TXN_STATUS_CLOSED,
       'title' => t('Closed'),
-      'badge_class' => '',
-      'badge_icon' => '',
-      'color_class' => '',
+      'badge_class' => 'uk-badge-success',
+      'badge_icon' => 'check-circle',
+      'color_class' => 'uk-alert-success',
     ),
   );
 
@@ -1034,7 +1037,7 @@ function avtxns_txn_change_status($id, $status) {
   switch ($row->status) {
     case AVTXNS_TXN_STATUS_LOCKED:
     case AVTXNS_TXN_STATUS_VOID:
-      drupal_set_message('Status of Closed and Void transactions cannot be changed.', 'error');
+      drupal_set_message('Status of Locked and Void transactions cannot be changed.', 'error');
       return FALSE;
       break;
     case AVTXNS_TXN_STATUS_OPEN:
@@ -1064,20 +1067,21 @@ function avtxns_txn_change_status($id, $status) {
       }
     }
     // Check if each related transaction IDs can be re-opened.
-    if (!empty($related_transaction_ids)) {
-      $query = "SELECT avtxn_details.ref_txn_id, COUNT(avtxn_details.id) AS active_txn_count
-        FROM {avtbl_transaction_details} avtxn_details
-        INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_details.transaction_id
-        WHERE avtxn_details.ref_txn_id IN (:rel_txn_ids) AND avtxn_details.transaction_id <> :txn_id AND avtxns.status <> :txn_status
-        GROUP BY avtxn_details.ref_txn_id";
-      $rs = db_query($query, array(':txn_id' => $row->id, ':txn_status' => AVTXNS_TXN_STATUS_VOID, ':rel_txn_ids' => $related_transaction_ids));
-      $cannot_open = array();
-      foreach ($rs as $rel_row) {
-        $cannot_open[] = $rel_row->ref_txn_id;
-      }
-
-      $can_be_reopened = array_diff($related_transaction_ids, $cannot_open);
-    }
+    //if (!empty($related_transaction_ids)) {
+    //  avtxns_txn_reconsider_status($related_transaction_ids);
+    //  //$query = "SELECT avtxn_details.ref_txn_id, COUNT(avtxn_details.id) AS active_txn_count
+    //  //  FROM {avtbl_transaction_details} avtxn_details
+    //  //  INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_details.transaction_id
+    //  //  WHERE avtxn_details.ref_txn_id IN (:rel_txn_ids) AND avtxn_details.transaction_id <> :txn_id AND avtxns.status <> :txn_status
+    //  //  GROUP BY avtxn_details.ref_txn_id";
+    //  //$rs = db_query($query, array(':txn_id' => $row->id, ':txn_status' => AVTXNS_TXN_STATUS_VOID, ':rel_txn_ids' => $related_transaction_ids));
+    //  //$cannot_open = array();
+    //  //foreach ($rs as $rel_row) {
+    //  //  $cannot_open[] = $rel_row->ref_txn_id;
+    //  //}
+    //  //
+    //  //$can_be_reopened = array_diff($related_transaction_ids, $cannot_open);
+    //}
 
     // Refresh product quantities.
     avbase_product_qty_update($item_rows, $row, TRUE);
@@ -1087,14 +1091,18 @@ function avtxns_txn_change_status($id, $status) {
   if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id = :txn_id", array(':txn_id' => $row->id, ':status' => $status, ':changed' => $now))) {
     avbase_custom_watchdog("txn__status_change", "ID: {$row->id}", array('#status' => $status, '#row' => $row));
 
-    if ($status == AVTXNS_TXN_STATUS_VOID) {
-      // Reopen transactions.
-      if (!empty($can_be_reopened)) {
-        if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id IN (:txn_ids)", array(':txn_ids' => $can_be_reopened, ':status' => AVTXNS_TXN_STATUS_OPEN, ':changed' => $now))) {
-          avbase_custom_watchdog("txn__status_change", "Reopened, IDs: multiple", array('#ids' => $can_be_reopened, '#status' => AVTXNS_TXN_STATUS_OPEN, '#row' => $row));
-        }
-      }
+    if (!empty($related_transaction_ids)) {
+      avtxns_txn_reconsider_status($related_transaction_ids);
     }
+
+    //if ($status == AVTXNS_TXN_STATUS_VOID) {
+    //  // Reopen transactions.
+    //  if (!empty($can_be_reopened)) {
+    //    if (db_query("UPDATE {avtbl_transactions} SET changed = :changed, status = :status WHERE id IN (:txn_ids)", array(':txn_ids' => $can_be_reopened, ':status' => AVTXNS_TXN_STATUS_OPEN, ':changed' => $now))) {
+    //      avbase_custom_watchdog("txn__status_change", "Reopened, IDs: multiple", array('#ids' => $can_be_reopened, '#status' => AVTXNS_TXN_STATUS_OPEN, '#row' => $row));
+    //    }
+    //  }
+    //}
 
     // Suspend client if necessary.
     if ($status == AVTXNS_TXN_STATUS_OPEN && in_array($row->transaction_type, array(AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_INVOICE))) {
@@ -1108,6 +1116,111 @@ function avtxns_txn_change_status($id, $status) {
     return TRUE;
   }
   return FALSE;
+}
+
+/**
+ * Change transaction status to open, locked, or closed, depending on related transactions.
+ * @param array $ids
+ */
+function avtxns_txn_reconsider_status($ids = array()) {
+  //$transactions = avtxns_txn_load_ids($ids);
+  $query = "SELECT avtxns.id, avtxns.status, avtxns.transaction_type, amount_to_credit
+    FROM {avtbl_transactions} AS avtxns
+    WHERE id IN (:ids)";
+  $rs = db_query($query, array(':ids' => $ids));
+  $transactions = array();
+  foreach ($rs as $row) {
+    $transactions[$row->id] = $row;
+  }
+  if (empty($transactions)) {
+    return;
+  }
+
+  $credit_txn_types = avtxns_get_creditable_txn_types();
+
+
+  $update_txns = array();
+  foreach ($transactions as $txn) {
+    $current_status = $txn->status;
+    if (in_array($current_status, array(AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_PENDING))) {
+      continue;
+    }
+    $update_txns[$txn->id] = array(
+      'transaction_type' => $txn->transaction_type,
+      'reference_count' => 0,
+    );
+
+    if (in_array($txn->transaction_type, $credit_txn_types)) {
+      $update_txns[$txn->id]['available_credit'] = (float) $txn->amount_to_credit;
+    }
+    else {
+      $ttd = avtxns_txn_types($txn->transaction_type);
+      $update_txns[$txn->id]['payable'] = !empty($ttd['payable']);
+    }
+  }
+
+  if (!empty($update_txns)) {
+    $txn_references = avtxns_get_txn_references(array_keys($update_txns));
+    foreach ($txn_references as $cu_k => $cu) {
+      $update_txns[$cu_k]['reference_count'] = $cu['ref_count'];
+      if (isset($update_txns[$cu_k]['available_credit'])) {
+        $update_txns[$cu_k]['available_credit'] -= $cu['simple_costs_total'];
+      }
+    }
+  }
+
+
+  //$query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost FROM {avtbl_transaction_details} avtxn_dtls
+  //      INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
+  //      WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status IN (:statuses)";
+  //$rs = db_query($query, array(':ids' => array_keys($update_txns), ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED)));
+  //foreach ($rs as $row) {
+  //  $update_txns[$row->ref_txn_id]['reference_count']++;
+  //  if (isset($update_txns[$row->ref_txn_id]['available_credit'])) {
+  //    $update_txns[$row->ref_txn_id]['available_credit'] -= $row->cost;
+  //  }
+  //}
+
+  $change_txn_status = array();
+  foreach ($update_txns as $ut_k => $ut) {
+    if (isset($ut['reference_count'])) {
+      $change_txn_status[$ut_k] = AVTXNS_TXN_STATUS_LOCKED;
+      if (!empty($ut['payable'])) {
+        $refreshed_txn = avtxns_txn_load($ut_k, TRUE);
+        $balance = round((float)$refreshed_txn->balance, 2);
+        if ($balance <= 0) {
+          $change_txn_status[$ut_k] = AVTXNS_TXN_STATUS_CLOSED;
+        }
+        elseif (empty($ut['reference_count'])) {
+          $change_txn_status[$ut_k] = AVTXNS_TXN_STATUS_OPEN;
+        }
+      }
+      elseif (empty($ut['reference_count'])) {
+        $change_txn_status[$ut_k] = AVTXNS_TXN_STATUS_OPEN;
+      }
+      elseif (isset($ut['available_credit'])) {
+        $available_credit = round((float)$ut['available_credit'], 2);
+        if ($available_credit <= 0) {
+          $change_txn_status[$ut_k] = AVTXNS_TXN_STATUS_CLOSED;
+        }
+      }
+      elseif (in_array($ut['transaction_type'], array(AVTXNS_TXN_TYPE_SALES_ORDER, AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_PURCHASE_ORDER, AVTXNS_TXN_TYPE_RECEIVE))) {
+        $change_txn_status[$ut_k] = AVTXNS_TXN_STATUS_CLOSED;
+      }
+    }
+  }
+
+  $now = time();
+  if (!empty($change_txn_status)) {
+    $query = "UPDATE {avtbl_transactions} SET changed = :changed, status = CASE id";
+    foreach ($change_txn_status as $cts_k => $cts) {
+      $query .= " WHEN $cts_k THEN $cts";
+    }
+    $query .= " END WHERE id IN (" . implode(', ', array_keys($change_txn_status)) . ")";
+    if (db_query($query, array(':changed' => $now))) {
+      avbase_custom_watchdog("txn__status_change", "IDs: multiple", array('#rows' => $change_txn_status));
+    }
+  }
 }
 
 /**
@@ -1478,4 +1591,37 @@ function avtxns_group_and_sort_item_list($form, $view_mode) {
       print drupal_render($item_rows);
     }
   }
+}
+
+function avtxns_get_creditable_txn_types() {
+  $credit_txn_types = array();
+  $txn_types = avtxns_txn_types();
+  foreach ($txn_types as $ttd) {
+    if (empty($ttd['credit_txn_types'])) {
+      continue;
+    }
+    foreach ($ttd['credit_txn_types'] as $ctt) {
+      $credit_txn_types[$ctt] = $ctt;
+    }
+  }
+  return $credit_txn_types;
+}
+
+function avtxns_get_txn_references($txn_ids = array()) {
+  $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type
+    FROM {avtbl_transaction_details} avtxn_dtls
+    INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
+    WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status IN (:statuses)";
+  $rs = db_query($query, array(':ids' => $txn_ids, ':statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_CLOSED)));
+  $references = array();
+  foreach ($rs as $row) {
+    $references[$row->ref_txn_id]['simple_costs_total'] = isset($references[$row->ref_txn_id]['simple_costs_total']) ? $references[$row->ref_txn_id]['simple_costs_total'] : 0;
+    $references[$row->ref_txn_id]['simple_costs_total'] += (float)$row->cost;
+
+    $references[$row->ref_txn_id]['ref_count'] = isset($references[$row->ref_txn_id]['ref_count']) ? $references[$row->ref_txn_id]['ref_count'] : 0;
+    $references[$row->ref_txn_id]['ref_count']++;
+
+    $references[$row->ref_txn_id]['refs'][$row->transaction_id] = $row;
+  }
+  return $references;
 }

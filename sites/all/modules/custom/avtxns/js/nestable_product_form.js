@@ -42,7 +42,7 @@
 
 
     self.bindEvents();
-    self.refreshSubTotalText();
+    self.refreshSubTotalText(true);
     self.refreshDebitTotalText();
     self.refreshCreditTotalText();
 
@@ -584,14 +584,16 @@
   /**
    * Refresh subtotal html text.
    */
-  Drupal.avbaseNestableProductForm.prototype.refreshSubTotalText = function () {
+  Drupal.avbaseNestableProductForm.prototype.refreshSubTotalText = function (init) {
     var subTotal = this.getSubTotal();
     this.$subTotalEl.text(this.moneyFormat(subTotal));
     this.refreshDiscountTotalText();
 
     var amtReceived = parseFloat(this.$amtReceivedEl.val()) || 0;
     //if (amtReceived < subTotal) {
+    if (!init) {
       this.$amtReceivedEl.val(subTotal);
+    }
     //}
     // Refresh Amount To Credit text.
     this.$amtReceivedEl.trigger('change');

@@ -86,6 +86,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     // No valid product detected.
     if (empty($detected_product_ids)) {
       form_set_error('', t('Please add at least one valid item.'));
+      return;
     }
 
     // Save product row details into drupal JS settings.
@@ -113,6 +114,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
     // No valid account detected.
     if (empty($detected_account_ids)) {
       form_set_error('', t('Please add at least one valid account.'));
+      return;
     }
     else {
       // Check to make sure only 1 AP/AR account is entered.
@@ -128,8 +130,9 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
 
       if ($ap_ar_count > 1) {
         form_set_error('', t('You cannot use more than one AR or AP account in the same transaction.'));
+        return;
       }
-      else {
+      elseif (!empty($ap_ar_count)) {
         // Check to make sure AP/AR includes a vendor/customer ID.
         $client_rows = avclient_load_ids($detected_client_ids);
         foreach ($detected_account_ids as $ai_k => $ai) {
@@ -141,9 +144,11 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
           $acd = avtxns_account_chart_types($account_row_type);
           if ($account_row_type == AVTXN_AC_TYPE_AP && $account_row_client_type != AVCLIENT_TYPE_VENDOR) {
             form_set_error('', t('@account_type_name must include a Vendor.', array('@account_type_name' => $acd['name'])));
+            return;
           }
           if ($account_row_type == AVTXN_AC_TYPE_AR && $account_row_client_type != AVCLIENT_TYPE_CUSTOMER) {
             form_set_error('', t('@account_type_name must include a Customer.', array('@account_type_name' => $acd['name'])));
+            return;
           }
         }
       }
@@ -159,6 +164,7 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
       }
       if ($debit_total != $credit_total) {
         form_set_error('', t('Transaction is not balanced. Please make sure that debit and credit totals are equal.'));
+        return;
       }
 
       //form_set_error('', t('fffffffPlease add at least one valid account.'));
@@ -177,33 +183,78 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
   }
   $_item_rows = $merged;
 
-  // Make sure all included reference transaction IDs are still open.
-  if (empty($row_id)) {
-    $ref_txn_ids = array();
-    foreach ($_item_rows as $k => $v) {
-      $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];
-      if ($ref_txn_id) {
-        $ref_txn_ids[$ref_txn_id] = $ref_txn_id;
-      }
-    }
 
-    if (!empty($ref_txn_ids)) {
-      $query = "SELECT id, transaction_type, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
-      $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
-      $valid_statuses = array(AVTXNS_TXN_STATUS_OPEN);
-      if (!empty($ttd['payment'])) {
-        $valid_statuses[] = AVTXNS_TXN_STATUS_LOCKED;
-      }
-      foreach ($rs as $txn) {
-        if (!in_array($txn->status, $valid_statuses)) {
-          form_set_error('', t('Cannot proceed with items from @ttype# @txn_id. Transaction is not available anymore. Try removing these items before proceeding.', array('@ttype' => strtoupper($txn->transaction_type) , '@txn_id' => $txn->id)));
-        }
-      }
+  // Make sure all included reference transaction IDs were not changed while the user is editing.
+  $ref_txn_ids = array();
+  foreach ($_item_rows as $k => $v) {
+    $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];
+    if ($ref_txn_id) {
+      $ref_txn_ids[$ref_txn_id] = $v['ref_txn_changed'];
     }
   }
+  if (!empty($ref_txn_ids)) {
+    $changed_query = "SELECT id, transaction_type, changed FROM {avtbl_transactions} WHERE id IN (:ids)";
+    $changed_rs = db_query($changed_query, array(':ids' => array_keys($ref_txn_ids)));
+    $ref_txn_ids_now = array();
+    foreach ($changed_rs as $cr) {
+      $ref_txn_ids_now[$cr->id] = $cr;
+    }
+    foreach ($ref_txn_ids as $rti_k => $rt_changed) {
+      $ref_current_changed = empty($ref_txn_ids_now[$rti_k]->changed) ? 0 : $ref_txn_ids_now[$rti_k]->changed;
+      $rtn_ttype = empty($ref_txn_ids_now[$rti_k]->transaction_type) ? '' : $ref_txn_ids_now[$rti_k]->transaction_type;
+      if ($rt_changed != $ref_current_changed) {
+        form_set_error('', t('Someone has recently made changes on transaction @ttype# @txn_id. Try reloading or removing these items before proceeding.', array('@ttype' => strtoupper($rtn_ttype) , '@txn_id' => $rti_k)));
+      }
+    }
 
-  if (!empty($ttd['payment']) && empty($_item_rows)) {
-    form_set_error('', t('No payment received.'));
+
+    //$ref_query = "SELECT avtxns.changed, avtxn_details.ref_txn_id
+    //  FROM {avtbl_transaction_details} AS avtxn_details
+    //  INNER JOIN {avtbl_transactions} AS avtxns ON avtxns.id = avtxn_details.transaction_id
+    //  WHERE avtxn_details.transaction_id = :id AND avtxn_details.ref_txn_id";
+    //$ref_args = array(':id' => $row_id);
+    //if (!empty($ttd['credit_txn_types'])) {
+    //  $ref_query .= " AND ref_txn_type NOT IN (:txn_types)";
+    //  $ref_args[':txn_types'] = $ttd['credit_txn_types'];
+    //}
+    //$ref_rs = db_query($ref_query, $ref_args);
+    //$all_ref_txn_ids = array();
+    //foreach ($ref_rs as $ref_row) {
+    //  $all_ref_txn_ids[$ref_row->ref_txn_id] = $ref_row->changed;
+    //}
+    //
+    //dpm($ref_txn_ids);
+    //dpm($all_ref_txn_ids);
+
+//dpm(avtxns_get_item_row_key($));
+  }
+
+  //if (empty($row_id)) {
+  //
+  //  if (!empty($ref_txn_ids)) {
+  //    $query = "SELECT id, transaction_type, status FROM {avtbl_transactions} WHERE id IN (:txn_ids)";
+  //    $rs = db_query($query, array(':txn_ids' => $ref_txn_ids));
+  //    $valid_statuses = array(AVTXNS_TXN_STATUS_OPEN);
+  //    if (!empty($ttd['payment'])) {
+  //      $valid_statuses[] = AVTXNS_TXN_STATUS_LOCKED;
+  //    }
+  //    foreach ($rs as $txn) {
+  //      if (!in_array($txn->status, $valid_statuses)) {
+  //        form_set_error('', t('Cannot proceed with items from @ttype# @txn_id. Status was changed. Try removing these items before proceeding.', array('@ttype' => strtoupper($txn->transaction_type) , '@txn_id' => $txn->id)));
+  //      }
+  //    }
+  //  }
+  //}
+
+  if (!empty($ttd['payment'])) {
+    $total_payment_received = 0;
+    foreach ($form_state_item_rows as $fsir) {
+      $total_payment_received += $fsir['total'];
+    }
+    if ($total_payment_received <= 0) {
+      form_set_error('', t('No payment received.'));
+    }
+
     return;
   }
 }

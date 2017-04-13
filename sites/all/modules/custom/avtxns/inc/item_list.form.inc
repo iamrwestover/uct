@@ -126,6 +126,20 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     $form['total_paid_text'] = array('#markup' => isset($row->total_paid) ? number_format(round($row->total_paid, 2), 2) : '0.00');
     $form['rem_bal_text'] = array('#markup' => isset($row->balance) ? number_format(round($row->balance, 2), 2) : '0.00');
   }
+  $credit_txn_types = avtxns_get_creditable_txn_types();
+  if ($view_mode && in_array($transaction_type, $credit_txn_types)) {
+    $amount_to_credit = isset($row->amount_to_credit) ? (float) $row->amount_to_credit : 0;
+    if ($amount_to_credit > 0) {
+      $refs = avtxns_get_txn_references(array($row->id));
+      $credits_used = 0;
+      foreach ($refs as $cu_k => $cu) {
+        $credits_used += (float)$cu['simple_costs_total'];
+      }
+      $form['credits_used_text'] = array('#markup' => isset($amount_to_credit) ? number_format(round($credits_used, 2), 2) : '0.00');
+      $rem_credit = $amount_to_credit - $credits_used;
+      $form['available_credit_text'] = array('#markup' => isset($rem_credit) ? number_format(round($rem_credit, 2), 2) : '0.00');
+    }
+  }
 
 
 
@@ -458,6 +472,11 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#type' => 'value',
         '#value' => $prod_row['id'],
       );
+      //$fields['ref_txn_changed'] = array(
+      //  '#type' => 'textfield',
+      //  '#value' => $prod_row['ref_txn_changed'],
+      //);
+
 
       $def_q = empty($db_row_items[$prod_row['id']]->qty) ? 0 : $db_row_items[$prod_row['id']]->qty;
       $def_qpu = empty($db_row_items[$prod_row['id']]->qty_per_uom) ? 1 : $db_row_items[$prod_row['id']]->qty_per_uom;
@@ -769,8 +788,13 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
       );
 
+      $ref_txn_id_text = isset($prod_row['ref_txn_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' . $prod_row['ref_txn_id']) : '&nbsp;';
+      if ($view_mode && isset($prod_row['ref_txn_id'])) {
+        $rtd = avtxns_txn_types($prod_row['ref_txn_type']);
+        $ref_txn_id_text = l($ref_txn_id_text, $rtd['base_path'] . '/' . $prod_row['ref_txn_id'] . '/view');
+      }
       $fields['ref_txn_id_text'] = array(
-        '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . (isset($prod_row['ref_txn_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' . $prod_row['ref_txn_id']) : '&nbsp;') . '</div>',
+        '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . $ref_txn_id_text . '</div>',
       );
       if (empty($view_mode)) {
         $fields['ref_txn_id'] = array(
@@ -866,7 +890,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       );
     }
 
-    if (empty($prod_row['id']) || (empty($ttd['bill']) && empty($ttd['payment']))) {
+    if (empty($prod_row['id']) || (empty($ttd['bill']))) {
       $fields['prod_delete_btn'] = array(
         '#name' => 'prod_delete_btn_' . $prod_key,
         '#item_row_key' => $prod_key,

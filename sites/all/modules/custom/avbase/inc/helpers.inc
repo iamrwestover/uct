@@ -818,7 +818,7 @@ function avbase_crud_form_validate($form, $form_state) {
     $query = "SELECT changed FROM {{$table_name}} WHERE id = :row_id";
     $db_last_changed = db_query($query, array(':row_id' => $row_id))->fetchField();
     if ($db_last_changed != $last_changed) {
-      form_set_error('', t('Changes cannot be saved. Someone has recently saved changes on this record while you were editing it.'));
+      form_set_error('', t('Changes cannot be saved. Someone has recently made changes on this record while you were editing it.'));
     }
   }
 }

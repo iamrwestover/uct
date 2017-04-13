@@ -200,10 +200,10 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
       $pos = avtxns_txn_query_load($conditions);
       $floating_pos = array();
       foreach ($pos as $po_k => $po_v) {
-        $rtd = avtxns_txn_types($po_v->transaction_type);
-        if (!empty($ttd['payment']) && round($po_v->balance, 2) <= 0) {
-          continue;
-        }
+        //$rtd = avtxns_txn_types($po_v->transaction_type);
+        //if (!empty($ttd['payment']) && round($po_v->balance, 2) <= 0) {
+        //  continue;
+        //}
 
         //$pr_statuses = empty($rtd['pr_statuses']) ? array(AVTXNS_TXN_STATUS_OPEN) : $rtd['pr_statuses'];
         //if (!in_array($po_v->status, $pr_statuses)) {
@@ -291,6 +291,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           //$transaction_arr['ref_txn_dtl_id'] = $transaction->id;
           // Remember Invoice ID to immediately close invoice after payment, regardless of amount paid.
           $transaction_arr['ref_txn_id'] = $transaction->id;
+          $transaction_arr['ref_txn_changed'] = $transaction->changed;
           $transaction_arr['ref_txn_type'] = $transaction->transaction_type;
           //if (!empty($trigger['#reference_type'])) {
           //  $transaction_arr['reference_type'] = $trigger['#reference_type'];
@@ -317,6 +318,7 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
             unset($item_row_arr['id']);
             $item_row_arr['ref_txn_dtl_id'] = $item_row->id;
             $item_row_arr['ref_txn_id'] = $transaction->id;
+            $item_row_arr['ref_txn_changed'] = $transaction->changed;
             $item_row_arr['ref_txn_type'] = $transaction->transaction_type;
 
             //if (!empty($trigger['#reference_type'])) {
