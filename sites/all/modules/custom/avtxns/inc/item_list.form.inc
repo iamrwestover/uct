@@ -769,10 +769,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       );
       if (empty($view_mode)) {
         $fields['ref_txn_id'] = array(
-          '#type' => 'textfield',
-          '#title' => 'Reference ID',
-          '#title_display' => 'none',
-          '#maxlength' => 255,
+          '#type' => 'hidden',
           '#default_value' => isset($prod_row['ref_txn_id']) ? $prod_row['ref_txn_id'] : '',
         );
       }

@@ -49,7 +49,8 @@
     /*line-height: 10pt;*/
   }
   #page {
-    margin: 0 !important;
+    /*Do not remove*/
+    margin: 0 1px !important;
   }
 
   .printable.uk-hidden {
