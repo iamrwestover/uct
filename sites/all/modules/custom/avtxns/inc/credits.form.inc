@@ -168,7 +168,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
     );
   }
   else {
-    $form['no_credits'] = array('#markup' => '<div class="uk-text-muted">No credits available.</div>');
+    $form['no_credits'] = array('#markup' => '<div class="uk-text-muted uk-text-center">No credits available.</div>');
   }
 
   return $form;

@@ -416,6 +416,6 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     '#visible_in_view_mode' => TRUE,
     '#icon_key' => 'print',
   );
-  
+
   return $form;
 }

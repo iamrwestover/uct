@@ -195,7 +195,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#av_date_format' => $date_format,
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMM. DD, YYYY', minDate: '" . format_date(time(), 'custom', $date_format) . "'}",
+        'data-uk-datepicker' => "{format:'MMM. DD, YYYY'}",
       ),
       '#required' => TRUE,
       //'#access' => !empty($ttd['bill']),
