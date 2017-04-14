@@ -2,7 +2,10 @@
   <div class="uk-width-1-2">
     <?php print drupal_render($form['agent']); ?>
   </div>
-  <div class="uk-width-1-2 uk-text-right">
+  <div class="uk-width-1-2 uk-text-right uk-form-row-compact">
+    <?php if (isset($form['simplified_status'])): ?>
+      <?php print drupal_render($form['simplified_status']); ?>
+    <?php endif; ?>
     <?php print drupal_render($form['date_from']); ?>
   </div>
 </div>

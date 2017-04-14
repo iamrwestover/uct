@@ -682,7 +682,14 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   if (empty($options['#hide_filter_form'])) {
     $filter_form_settings = array(
       'avtxn.id' => array('#access' => TRUE),
-      'search_text' => array('#access' => TRUE),
+      'avclients.display_name' => array(
+        '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_CUSTOMER . '-' . AVCLIENT_TYPE_VENDOR . '/' . AVCLIENT_STATUS_ACTIVE . '-' . AVCLIENT_STATUS_SUSPENDED,
+        '#attributes' => array(
+          'placeholder' => 'customer or vendor name',
+          'class' => array('trigger-ajax-search'),
+        ),
+      ),
+      //'search_text' => array('#access' => TRUE),
       'avtxn.transaction_date' => array('#access' => TRUE),
       'avtxn.transaction_type' => array('#access' => TRUE),
       'avtxn.status' => array('#access' => TRUE),
@@ -743,12 +750,16 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
 
   $rows = array();
   if (!empty($allowed_ttypes)) {
+    $select = $joins = array();
+    $select[] = 'avclients.display_name';
+    $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+
     $rows_per_page = empty($options['#hide_filter_form']) ? 30 : 10;
-    $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, array(), array(), array(), TRUE);
+    $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, $select, $joins, array(), TRUE);
     $page = pager_default_initialize($total_count, $rows_per_page);
     $offset = $rows_per_page * $page;
     $order_by = avbase_build_header_order_array($header);
-    $transactions = avtxns_txns_query_load($where, $args, $rows_per_page, $offset, $order_by);
+    $transactions = avtxns_txns_query_load($where, $args, $rows_per_page, $offset, $order_by, $select, $joins);
     //$index = 0;
     foreach ($transactions as $row) {
       $sd = avtxns_txn_status_details($row->status);
@@ -862,7 +873,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
-        'placeholder' => 'filter by agent',
+        'placeholder' => 'agent name',
         'class' => array('trigger-ajax-search'),
       ),
     );
@@ -973,7 +984,6 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
-      '#access' => FALSE,
     );
   }
 
@@ -987,7 +997,33 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
-      '#access' => FALSE,
+    );
+  }
+
+  if (!empty($settings['simplified_status'])) {
+    $fields['simplified_status'] = empty($settings['simplified_status']) ? array() : $settings['simplified_status'];
+    $fields['simplified_status'] += array(
+      '#type' => 'select',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+    if (isset($fields['simplified_status']['#default_value'])) {
+      $fields['simplified_status']['#attributes']['data-default-value'] = $fields['simplified_status']['#default_value'];
+    }
+  }
+
+  if (!empty($settings['overdue'])) {
+    $fields['overdue'] = empty($settings['overdue']) ? array() : $settings['overdue'];
+    $fields['overdue'] += array(
+      '#type' => 'select',
+      '#options' => array(
+        0 => 'All',
+        1 => 'Overdue',
+      ),
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
     );
   }
 
@@ -1125,6 +1161,18 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
     }
     elseif ($k == 'date_from' && $v != '') {
       avtxns_txn_filter_apply_date($where, $args, $v);
+      continue;
+    }
+    elseif ($k == 'simplified_status') {
+      $simplified_statuses = explode('-', $v);
+      $where['simplified_statuses'] = 'avtxn.status IN (:simplified_statuses)';
+      $args[':simplified_statuses'] = $simplified_statuses;
+      continue;
+    }
+    elseif ($k == 'overdue') {
+      if (!empty($v)) {
+        $where['overdue'] = avtxns_txn_overdue_query();
+      }
       continue;
     }
 

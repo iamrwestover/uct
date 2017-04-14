@@ -59,6 +59,7 @@ function avreports_menu() {
       'type' => MENU_CALLBACK,
       //'menu_name' => 'av',
       //'expanded' => TRUE,
+      'file' => 'inc/txn_list.form.inc',
     );
   }
 
@@ -200,214 +201,7 @@ function avreports_home_form($form, &$form_state) {
   return $form;
 }
 
-/**
- * Transaction List report.
- * @param $form
- * @param $form_state
- * @param $transaction_type
- *
- * @return array
- * @throws Exception
- */
-function avreports_txn_list_form($form, &$form_state, $transaction_type) {
-  global $user;
-  // Transaction type details.
-  $ttd = avtxns_txn_types($transaction_type);
-  $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
-  $filter_form_settings = array(
-    'date_auto' => array(
-      '#default_value' => 'last_month_to_date',
-    ),
-    'date_from' => array(
-      '#default_value' => $dad_default['date_from'],
-    ),
-    'date_to' => array(
-      '#default_value' => $dad_default['date_to'],
-    ),
-    //'avtxn.id' => array('#access' => FALSE),
-    //'search_text' => array('#access' => FALSE),
-    //'avtxn.transaction_date' => array('#default_value' => $today, '#access' => TRUE),
-    //'reset_button' => array('#access' => FALSE),
-    //'search_button' => array('#table_parents' => array('transaction_list_table')),
-  );
-  if (!empty($ttd['ctd'])) {
-    $filter_form_settings['avcat_agent.title'] = array('#autocomplete_path' => 'av/categories/agent' . $ttd['ctd']['type'] . '/autocomplete');
-    $filter_form_settings['avclients.display_name'] = array(
-      '#autocomplete_path' => 'av/clients/autocomplete/' . $ttd['ctd']['type'] . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
-      '#attributes' => array(
-        'placeholder' => 'search customer',
-        'class' => array('trigger-ajax-search'),
-      ),
-    );
-  }
-  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
-  $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
-  $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
-  $where = empty($filter_query['where']) ? array() : $filter_query['where'];
-  $args = empty($filter_query['args']) ? array() : $filter_query['args'];
-  $agent_name = empty($user_filter['avcat_agent.title']) ? '' : $user_filter['avcat_agent.title'];
-
-
-
-  // Headers.
-  $header = array(
-    'id' => array('data' => strtoupper($transaction_type) . '#', 'class' => array('uk-text-center')),
-    'customer' => array('data' => 'Customer', 'class' => array('')),
-    'total' => array('data' => 'Total', 'class' => array('uk-text-right')),
-    'terms' => array('data' => 'Terms', 'class' => array('uk-text-center')),
-    'agent' => array('data' => 'Agent', 'class' => array('')),
-  );
-  if (!empty($agent_name)) {
-    unset($header['agent']);
-  }
-
-
-  $where[] = "avtxn.transaction_type = '" . $transaction_type . "'";
-  $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_LOCKED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
-
-
-
-
-  $select = array();
-  $select[] = 'avtxn_detail.ref_txn_type';
-  $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
-  //$select[] = "IF (
-  //    avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "',
-  //    SUM(avtxn_detail.paid_amount),
-  //    (SUM(
-  //        avtxn_detail.qty
-  //        * avtxn_detail.cost
-  //        * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
-  //        * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
-  //        * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
-  //        * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
-  //      )
-  //    )
-  //  ) AS grand_total";
-  $joins = array();
-  $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
-  $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
-  $transactions = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, $select, $joins, $group_by);
-  $total_receivables = 0;
-  $row_totals = array();
-  foreach ($transactions as $row) {
-    $transaction_type = avtxns_txn_types($row->transaction_type);
-    $view_path = "{$transaction_type['base_path']}/$row->id/view";
-
-    if (!empty($transaction_type['bill'])) {
-      $row_total = empty($row_totals[$row->id]) ? 0 : $row_totals[$row->id];
-      if ($row->ref_txn_type == $transaction_type['pending_txns_reference_type']) {
-        $row_total += $row->grand_total;
-      }
-      else {
-        $row_total -= $row->grand_total;
-      }
-    }
-    else {
-      $row_total = $row->grand_total;
-    }
-    $row_totals[$row->id] = $row_total;
-    $data = array(
-      'id' => array('data' => l($row->id, $view_path), 'class' => array('uk-text-center')),
-      'customer' => check_plain($row->display_name),
-      'total' => array('data' => l(number_format($row_total, 2), $view_path), 'class' => array('uk-text-right')),
-      'terms' => array('data' => check_plain($row->term_name), 'class' => array('uk-text-center')),
-      'agent' => array('data' => check_plain($row->agent_name), 'class' => array('')),
-    );
-    if (!empty($agent_name)) {
-      unset($data['agent']);
-    }
-    $rows[$row->id] = array('data' => $data, 'class' => array('uk-table-middle'));
-  }
-
-  foreach ($row_totals as $rt) {
-    $total_receivables += $rt;
-  }
-
-  if (empty($rows)) {
-    $table_markup = '<div class="uk-margin-top uk-text-muted">No match found.</div>';
-  }
-  else {
-    $table_attributes = array(
-      'id' => 'transaction-list-table',
-      'class' => array('uk-table-condensed uk-table-striped'),
-    );
-    // Add summary rows at the bottom of the table.
-    $rows[] = array('data' => array(array('data' => '&nbsp;', 'colspan' => 10)));
-    $rows[] = array(
-      'data' => array(
-        array('data' => number_format($total_receivables, 2), 'class' => array('uk-text-right'), 'colspan' => 3),
-        array('data' => '', 'colspan' => 2),
-      ),
-      'class' => array('uk-table-middle'),
-    );
-    $rows[] = array('data' => array(array('data' => '- End of list -', 'colspan' => 10, 'class' => array('uk-text-muted uk-text-center'))));
-    $table_markup = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $table_attributes));
-  }
-  //$form['table']['#markup'] = $table_markup;
-
-  $form['transaction_list_table'] = array(
-    '#type' => 'container',
-    '#theme' => 'avreports_txn_list',
-    '#attributes' => array(
-      'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
-    ),
-  );
-  $transaction_list_table['table']['#markup'] = '<!--Do not remove me-->' . $table_markup;
-  if (!empty($rows)) {
-    if (!empty($user_filter['date_from'])) {
-      $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);
-      if (!empty($user_filter['date_to']) && $user_filter['date_from'] != $user_filter['date_to']) {
-        $date_text .= ' - ' . $user_filter['date_to'];
-      }
-      $transaction_list_table['date_from'] = array(
-        '#type' => 'item',
-        '#markup' => $date_text,
-      );
-    }
-    $transaction_list_table['agent'] = array(
-      '#title' => 'Agent',
-      '#title_display' => 'inline-before',
-      '#type' => 'item',
-      '#markup' => check_plain($agent_name),
-      '#access' => !empty($agent_name),
-    );
-    avbase_user_extra_details($user);
-    $transaction_list_table['prepared_by'] = array(
-      '#title' => 'Prepared by',
-      '#title_display' => 'inline-before',
-      '#type' => 'item',
-      '#markup' => check_plain($user->avdata->full_name),
-    );
-    $transaction_list_table['delivered_by'] = array(
-      '#title' => 'Delivered by',
-      '#title_display' => 'inline-before',
-      '#type' => 'item',
-      '#markup' => '_______________________________',
-      //'#access' => $transaction_type == AVTXNS_TXN_TYPE_DELIVERY,
-    );
-  }
-
-  $form['transaction_list_table'] += $transaction_list_table;
-  //$delivery_report
-
-  //$form['delivery_list_printable'] += $delivery_report;
-
-
-  $form['buttons']['#theme'] = 'avbase_crud_button_group';
-  $form['buttons']['print'] = array(
-    '#id' => 'av-print-btn',
-    '#type' => 'button',
-    '#value' => t('Print...'),
-    '#visible_in_view_mode' => TRUE,
-    '#attributes' => array('class' => array('uk-button-primary')),
-  );
-
-  return $form;
-}
 
 /**
  * SOA report.
@@ -436,7 +230,7 @@ function avreports_soa_form($form, &$form_state) {
 
   $where[] = 'avtxn.transaction_type IN (:transaction_types)';
   $args[':transaction_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES);
-  $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_LOCKED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
+  $where[] = "avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_VOID . ")";
 
   // Add today filter.
   $today = format_date(time(), 'custom', 'F d, Y');
@@ -481,8 +275,11 @@ function avreports_soa_form($form, &$form_state) {
   //      )
   //    )
   //  ) AS grand_total";
+  $select[] = 'avclients.display_name';
+
   $joins = array();
   $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
   $order_by = array('avtxn.transaction_date ASC', 'avtxn_detail.id ASC', 'avtxn.id ASC', 'avtxn_detail.ref_txn_type ASC');
   $transactions = empty($client->id) ? array() : avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);

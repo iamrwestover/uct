@@ -841,7 +841,7 @@ function avbase_build_header_order_array($header) {
       }
     }
     if (!empty($order_by_field_name)) {
-      $order_by[] = $order_by_field_name . ' ' . strtoupper($_GET['sort']);
+      $order_by[$order_by_field_name] = $order_by_field_name . ' ' . strtoupper($_GET['sort']);
     }
   }
   return $order_by;
@@ -1019,4 +1019,8 @@ function avbase_set_window_title($title = NULL, $output = CHECK_PLAIN) {
   }
 
   return $stored_title;
+}
+
+function avbase_txn_number_format($type, $id) {
+  return strtoupper($type) . '# ' . $id;
 }

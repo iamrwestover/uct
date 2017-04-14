@@ -319,3 +319,7 @@ table.sticky-header {
 .uk-badge.txn-ref {
   position: absolute; top: -9px; left: 0;
 }
+
+.uk-form-row-compact .uk-form-row {
+  margin-top: 0 !important;
+}

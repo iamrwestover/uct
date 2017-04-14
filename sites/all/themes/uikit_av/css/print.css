@@ -115,13 +115,14 @@
     padding: 0;
   }
 
-  .uk-form-row-compact .uk-form-row {
-    margin-top: 0 !important;
-  }
+
 
   .uk-table-condensed td,
   .uk-table-condensed th {
-    padding: 0 4px;
+    padding: 1px 4px;
+  }
+  .uk-table-condensed td {
+    border: none;
   }
 
   .no-page-break-inside {

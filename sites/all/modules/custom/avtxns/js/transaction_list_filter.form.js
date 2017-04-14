@@ -90,10 +90,6 @@
           return;
         }
         if ($(this).attr('type') == 'checkbox') {
-          //$(this).prop('checked', '');
-          //if ($(this).attr('checked')) {
-          //  $(this).prop('checked', 'checked');
-          //}
           $(this).prop('checked', function () {
             return this.getAttribute('checked') == 'checked';
           });
@@ -103,9 +99,18 @@
             return this.getAttribute('checked') == 'checked';
           });
         }
-        else {
-          $(this).val('');
+        else if ($(this).prop('type') == 'select-one') {
+          $(this).find('option').prop('selected', function() {
+            return this.defaultSelected;
+          });
         }
+        else {
+          $(this).val($(this).attr('value'));
+        }
+      });
+
+      self.$dateAutoEl.find('option').prop('selected', function() {
+        return this.defaultSelected;
       });
       self.$searchBtn.trigger('mousedown');
       e.preventDefault();

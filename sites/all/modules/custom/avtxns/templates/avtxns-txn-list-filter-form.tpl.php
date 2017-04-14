@@ -87,6 +87,17 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['simplified_status'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['simplified_status']); ?>
+    </div>
+  <?php endif; ?>
+  <?php if (isset($form['overdue'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['overdue']); ?>
+    </div>
+  <?php endif; ?>
+
 
 
   <?php if ($table_group_by_html): ?>

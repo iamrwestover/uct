@@ -408,9 +408,9 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
     '#maxlength' => 19,
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
   );
-  if (!empty($row->id)) {
-    $payment['opening_balance']['#disabled'] = TRUE;
-  }
+  //if (!empty($row->id)) {
+  //  $payment['opening_balance']['#disabled'] = TRUE;
+  //}
 
   // Balance ages.
   if ($view_mode && !empty($row->id) && $row->client_type == AVCLIENT_TYPE_CUSTOMER) {

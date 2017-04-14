@@ -268,6 +268,8 @@ $balance_ages_html = drupal_render($form['balance_ages']);
                 <div class="uk-width-1-3 uk-text-center">All checks payable to</div>
                 <div class="uk-width-2-3">&nbsp;</div>
                 <div class="uk-width-1-3 uk-text-center uk-text-bold"><?php print strtoupper(variable_get('av_checks_payable_to', 'Ultimate Care Trading')); ?></div>
+              <?php else: ?>
+                <div class="uk-width-1-1">&nbsp;</div>
               <?php endif; ?>
               <div class="uk-width-1-3"><hr style="border-color: #ddd;" /></div>
               <div class="uk-width-1-3"><hr style="border-color: #ddd;" /></div>

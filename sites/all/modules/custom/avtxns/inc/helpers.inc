@@ -438,7 +438,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
     $select[] = 'avtxn.transaction_type';
     $select[] = 'avtxn.transaction_date';
     $select[] = 'avcat_agent.title AS agent_name';
-    $select[] = 'avclients.display_name';
+    //$select[] = 'avclients.display_name';
     //$select[] = 'avtxn.term_id';
     $select[] = 'avcat_term.title AS term_name';
     $select[] = 'u.name';
@@ -461,7 +461,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
   $select = array_merge($select, $more_select);
 
   $joins = array();
-  $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  //$joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
   $joins[] = 'LEFT JOIN {users} AS u ON u.uid = avtxn.uid';
@@ -1624,4 +1624,8 @@ function avtxns_get_txn_references($txn_ids = array()) {
     $references[$row->ref_txn_id]['refs'][$row->transaction_id] = $row;
   }
   return $references;
+}
+
+function avtxns_txn_overdue_query() {
+  return '(avtxn.due_date <= UNIX_TIMESTAMP() && avtxn.status != ' . AVTXNS_TXN_STATUS_CLOSED . ' && avtxn.status != ' . AVTXNS_TXN_STATUS_VOID . ')';
 }
