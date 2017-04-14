@@ -1608,7 +1608,7 @@ function avtxns_get_creditable_txn_types() {
 }
 
 function avtxns_get_txn_references($txn_ids = array()) {
-  $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type
+  $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type, avtxns.transaction_date
     FROM {avtbl_transaction_details} avtxn_dtls
     INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
     WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status <> :void_status";

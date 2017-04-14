@@ -41,6 +41,7 @@ function avtxns_related_form($form, &$form_state, $transaction_type, $row) {
         'data' => l(strtoupper($v->transaction_type) . '# ' . $v->transaction_id, $link_path),
       ),
       'type' => l($ttd['name'], $link_path),
+      'date' => format_date($v->transaction_date, 'custom', 'F d, Y'),
     );
     if (in_array($v->transaction_type, $credit_txn_types) || in_array($row->transaction_type, $credit_txn_types)) {
       $table_rows[$v->transaction_id]['amount']['data'] = l(number_format($v->cost, 2), $link_path);
@@ -51,6 +52,7 @@ function avtxns_related_form($form, &$form_state, $transaction_type, $row) {
     'amount' => array('data' => 'Amount', 'class' => array('uk-text-right')),
     'txn' => array('data' => 'Transaction', 'class' => ''),
     'type' => array('data' => 'Type', 'class' => ''),
+    'date' => array('data' => 'Date', 'class' => ''),
   );
   $form['related_txns'] = array(
     '#theme' => 'table',

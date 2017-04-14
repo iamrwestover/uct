@@ -1031,7 +1031,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
 
   $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avproducts.id';
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
-  $where[] = "avtxn.status IN (" . AVTXNS_TXN_STATUS_LOCKED . ", " . AVTXNS_TXN_STATUS_OPEN . ")";
+  $where[] = "avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_VOID . ", " . AVTXNS_TXN_STATUS_PENDING . ")";
   if (isset($table_columns['agent_name']) || !empty($user_filter['avcat_agent.title'])) {
     $select[] = 'avcat_agent.title AS agent_name';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
