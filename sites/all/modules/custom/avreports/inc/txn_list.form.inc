@@ -228,10 +228,6 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       $data['agent'] = array('data' => check_plain($row->agent_name));
       $table_rows[$row->id] = array('data' => $data);
 
-      for ($xx = 0; $xx < 100; $xx++) {
-        $table_rows[$row->id + ($xx+200)] = $table_rows[$row->id];
-      }
-
       if ($overdue) {
         $table_rows[$row->id]['class'] = array('uk-alert-danger');
         if (isset($data['client'])) {
@@ -420,6 +416,6 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     '#visible_in_view_mode' => TRUE,
     '#icon_key' => 'print',
   );
-
+  
   return $form;
 }
