@@ -67,6 +67,7 @@ function avbase_theme($existing, $type, $theme, $path) {
   // Help.
   $theme_names = array(
     'avbase_help_print',
+    'avbase_help_ks',
   );
   foreach ($theme_names as $theme_name) {
     $themes[$theme_name] = array(

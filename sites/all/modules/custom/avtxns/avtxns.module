@@ -1067,6 +1067,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     '#value' => t('reset filter'),
     //'#button_label' => '<i class="uk-icon-remove"></i>',
   );
+  $fields['buttons']['reset_button']['#attributes']['data-ks'] = 'CTRL+DEL';
 
   $fields['buttons']['search_button'] = empty($settings['search_button']) ? array() : $settings['search_button'];
   $fields['buttons']['search_button'] += array(

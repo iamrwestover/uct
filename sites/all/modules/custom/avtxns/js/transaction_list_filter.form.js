@@ -14,6 +14,14 @@
     self.$searchBtn = $('#transaction-search-btn');
     $('#avtxns-txn-list-filter-form').once('avtxnsTransactionListForm', function() {
       var $thisForm = $(this);
+      $thisForm.on('keyup keypress', function(e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode === 13) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
       self.$searchEls = $(this).find('.trigger-ajax-search');
       self.$resetBtn = $(this).find('#transaction-reset-btn');
       self.searchEvents();

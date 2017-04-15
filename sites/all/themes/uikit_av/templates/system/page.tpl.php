@@ -111,6 +111,7 @@
 
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
+        <a href="/av/help" title="Help"><i class="uk-icon-question-circle"></i></a>&nbsp;
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>
     </div>

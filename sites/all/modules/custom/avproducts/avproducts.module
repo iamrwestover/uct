@@ -404,6 +404,7 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     '#value' => t('reset filter'),
     '#attributes' => array(
       'class' => array('uk-margin-small-left'),
+      'data-ks' => 'CTRL+DEL',
     ),
   );
 

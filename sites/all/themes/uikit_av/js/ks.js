@@ -7,7 +7,6 @@
         $element.prop('title', '<i class="uk-icon-keyboard-o"></i> ' + $element.data('ks'));
         $element.attr('data-uk-tooltip', "{delay:'500', cls: 'tt-ks'}");
         $(document).bind('keydown', $element.data('ks'), function (e) {
-
           if ($element.is('a')) {
             $element[0].click();
           }
@@ -20,21 +19,15 @@
     }
   };
 
+  // Shortcut to home page.
   $(document).bind('keydown', 'f4', function (e) {
     window.location.href = '/';
     e.preventDefault();
   });
+
+  // Shortcut to first input text or textarea.
+  $(document).bind('keydown', 'alt+ctrl+return', function (e) {
+    $("#region-content-wrapper input:text:not([data-uk-datepicker]), #region-content-wrapper textarea").eq(0).focus();
+    e.preventDefault();
+  });
 }(jQuery));
-//
-//jQuery(document).ready(function ($) {
-//
-//  $('[data-ks]').each(function (i, element) {
-//    var $element = $(element);
-//    $element.prop('title', '<i class="uk-icon-keyboard-o"></i> ' + $element.data('ks'));
-//    $element.attr('data-uk-tooltip', "{delay:'500', cls: 'tt-ks'}");
-//    $(document).bind('keydown', $element.data('ks'), function (e) {
-//      $element.trigger('click');
-//      e.preventDefault();
-//    });
-//  });
-//});
