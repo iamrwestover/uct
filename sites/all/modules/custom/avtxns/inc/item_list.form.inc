@@ -123,7 +123,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if (!empty($ttd['payable']) && $view_mode) {
-    $form['total_paid_text'] = array('#markup' => isset($row->total_paid) ? l('- ' . number_format(round($row->total_paid, 2), 2), $ttd['base_path'] . '/' . $row->id . '/related') : '0.00');
+    $form['total_paid_text'] = array('#markup' => isset($row->total_paid) ? l(number_format(round($row->total_paid, 2), 2), $ttd['base_path'] . '/' . $row->id . '/related') : '0.00');
     $form['rem_bal_text'] = array('#markup' => isset($row->balance) ? number_format(round($row->balance, 2), 2) : '0.00');
   }
   $credit_txn_types = avtxns_get_creditable_txn_types();
@@ -135,7 +135,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       foreach ($refs as $cu_k => $cu) {
         $credits_used += (float)$cu['simple_costs_total'];
       }
-      $form['credits_used_text'] = array('#markup' => isset($amount_to_credit) ? l('- ' . number_format(round($credits_used, 2), 2), $ttd['base_path'] . '/' . $row->id . '/related') : '0.00');
+      $form['credits_used_text'] = array('#markup' => isset($amount_to_credit) ? l(number_format(round($credits_used, 2), 2), $ttd['base_path'] . '/' . $row->id . '/related') : '0.00');
       $rem_credit = $amount_to_credit - $credits_used;
       $form['available_credit_text'] = array('#markup' => isset($rem_credit) ? number_format(round($rem_credit, 2), 2) : '0.00');
     }
@@ -307,6 +307,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'class' => array('uk-text-right'),
+        'data-ks' => 'ALT+CTRL+RIGHT',
       ),
       '#default_value' => isset($row->amount_received) ? avbase_number_format($row->amount_received, 2) : '',
       '#required' => TRUE,

@@ -4,10 +4,12 @@ function avbase_help_home() {
   $output = '';
   $help_items = array();
   $help_items[] = array(
-    'data' => l('Keyboard shortcuts', 'av/help', array('fragment' => 'help-ks')),
+    //'data' => '<a href=""></a>', l('Keyboard shortcuts', '#av/help', array('attributes' => array('data-uk-smooth-scroll' => ''), 'fragment' => 'help-ks')),
+    'data' => '<a href="#help-ks" data-uk-smooth-scroll>Keyboard shortcuts</a>',
   );
   $help_items[] = array(
-    'data' => l('Printing with dot matrix printers', 'av/help', array('fragment' => 'help-print')),
+    //'data' => l('Printing with dot matrix printers', '#av/help', array('attributes' => array('data-uk-smooth-scroll' => ''), 'fragment' => 'help-print')),
+    'data' => '<a href="#help-print" data-uk-smooth-scroll>Printing with dot matrix printers</a>',
   );
 
   $item_list = array('items' => $help_items);

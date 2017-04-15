@@ -130,12 +130,12 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
             $item_row[$discount_field_name] = (float)$v;
             $discount_updates[$discount_field_name][$item_id] = $item_row[$discount_field_name];
           }
+        }
 
-          // Remember transaction detail id to know which rows to insert/update.
-          $transaction_detail_id = empty($item_row['id']) ? 0 : $item_row['id'];
-          if (!empty($transaction_detail_id)) {
-            $transaction_detail_ids[] = $transaction_detail_id;
-          }
+        // Remember transaction detail id to know which rows to insert/update.
+        $transaction_detail_id = empty($item_row['id']) ? 0 : $item_row['id'];
+        if (!empty($transaction_detail_id)) {
+          $transaction_detail_ids[] = $transaction_detail_id;
         }
 
         // Build insert and update array.
@@ -165,7 +165,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       }
 
       // Append all ref_txn_ids from this transaction to list of transactions to reconsider status.
-      if (empty($form_state['#new_record'])) {
+      if (empty($form_state['#new_record']) && !empty($ttd['pending_txns_reference_type'])) {
         $ref_query = "SELECT avtxn_details.ref_txn_id
         FROM {avtbl_transaction_details} AS avtxn_details
         WHERE avtxn_details.transaction_id = :id AND avtxn_details.ref_txn_id";
@@ -195,8 +195,8 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
           $delete_args[':txn_dtl_ids'] = $transaction_detail_ids;
         }
         if (!empty($ttd['credit_txn_types'])) {
-          $delete_query .= " AND ref_txn_type NOT IN (:txn_types)";
-          $sd_query .= " AND ref_txn_type NOT IN (:txn_types)";
+          $delete_query .= " AND (ref_txn_type NOT IN (:txn_types) OR ref_txn_type IS NULl)";
+          $sd_query .= " AND (ref_txn_type NOT IN (:txn_types) OR ref_txn_type IS NULl)";
           $delete_args[':txn_types'] = $ttd['credit_txn_types'];
         }
         if (!empty($ttd['qty_change'])) {

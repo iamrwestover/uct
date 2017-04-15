@@ -111,7 +111,8 @@
 
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
-        <a href="/av/help" title="Help"><i class="uk-icon-question-circle"></i></a>&nbsp;
+        <a href="#av-quick-search" class="uk-icon-search uk-icon-hover" data-uk-modal data-ks="CTRL+SHIFT+F"></a>
+        <a href="/av/help" class="uk-icon-question-circle uk-icon-hover" title="Help"></a>&nbsp;
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>
     </div>
@@ -123,6 +124,19 @@
 //$memory_usage_percentage = $memory_usage / $memory_limit * 100;
 //echo number_format($memory_usage, 2) . ' - ' . number_format($memory_limit, 2) . ' - ' . number_format($memory_usage_percentage, 2) . '%';
 ?>
+
+<!-- This is the modal -->
+<div id="av-quick-search" class="uk-modal">
+  <div class="uk-modal-dialog uk-text-center" style="width: 500px;">
+    <div class="uk-modal-header">
+      <h2><i class="uk-icon-search uk-margin-right"></i>Quick Transaction Search</h2>
+    </div>
+    <div class="uk-form">
+      <input id="av-quick-txn-id" type="text" placeholder="enter transaction id" class="uk-form-large uk-text-center">
+      <div class="uk-text-muted uk-margin-top">ENTER to open on current page.<br />SHIFT+ENTER to open on a new window.</div>
+    </div>
+  </div>
+</div>
 
 <div id="page-outer-wrapper" class="uk-margin-left uk-margin-right">
   <div class="uk-grid uk-grid-collapse uk-hidden printable">

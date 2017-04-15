@@ -186,48 +186,29 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
 
 
   // Make sure all included reference transaction IDs were not changed while the user is editing.
-  $ref_txn_ids = array();
-  foreach ($_item_rows as $k => $v) {
-    $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];
-    if ($ref_txn_id) {
-      $ref_txn_ids[$ref_txn_id] = $v['ref_txn_changed'];
-    }
-  }
-  if (!empty($ref_txn_ids)) {
-    $changed_query = "SELECT id, transaction_type, changed FROM {avtbl_transactions} WHERE id IN (:ids)";
-    $changed_rs = db_query($changed_query, array(':ids' => array_keys($ref_txn_ids)));
-    $ref_txn_ids_now = array();
-    foreach ($changed_rs as $cr) {
-      $ref_txn_ids_now[$cr->id] = $cr;
-    }
-    foreach ($ref_txn_ids as $rti_k => $rt_changed) {
-      $ref_current_changed = empty($ref_txn_ids_now[$rti_k]->changed) ? 0 : $ref_txn_ids_now[$rti_k]->changed;
-      $rtn_ttype = empty($ref_txn_ids_now[$rti_k]->transaction_type) ? '' : $ref_txn_ids_now[$rti_k]->transaction_type;
-      if ($rt_changed != $ref_current_changed) {
-        form_set_error('', t('Someone has recently made changes on transaction @ttype# @txn_id. Try reloading or removing these items before proceeding.', array('@ttype' => strtoupper($rtn_ttype) , '@txn_id' => $rti_k)));
+  if (!empty($ttd['pending_txns_reference_type'])) {
+    $ref_txn_ids = array();
+    foreach ($_item_rows as $k => $v) {
+      $ref_txn_id = empty($v['ref_txn_id']) ? NULL : $v['ref_txn_id'];
+      if ($ref_txn_id) {
+        $ref_txn_ids[$ref_txn_id] = $v['ref_txn_changed'];
       }
     }
-
-
-    //$ref_query = "SELECT avtxns.changed, avtxn_details.ref_txn_id
-    //  FROM {avtbl_transaction_details} AS avtxn_details
-    //  INNER JOIN {avtbl_transactions} AS avtxns ON avtxns.id = avtxn_details.transaction_id
-    //  WHERE avtxn_details.transaction_id = :id AND avtxn_details.ref_txn_id";
-    //$ref_args = array(':id' => $row_id);
-    //if (!empty($ttd['credit_txn_types'])) {
-    //  $ref_query .= " AND ref_txn_type NOT IN (:txn_types)";
-    //  $ref_args[':txn_types'] = $ttd['credit_txn_types'];
-    //}
-    //$ref_rs = db_query($ref_query, $ref_args);
-    //$all_ref_txn_ids = array();
-    //foreach ($ref_rs as $ref_row) {
-    //  $all_ref_txn_ids[$ref_row->ref_txn_id] = $ref_row->changed;
-    //}
-    //
-    //dpm($ref_txn_ids);
-    //dpm($all_ref_txn_ids);
-
-//dpm(avtxns_get_item_row_key($));
+    if (!empty($ref_txn_ids)) {
+      $changed_query = "SELECT id, transaction_type, changed FROM {avtbl_transactions} WHERE id IN (:ids)";
+      $changed_rs = db_query($changed_query, array(':ids' => array_keys($ref_txn_ids)));
+      $ref_txn_ids_now = array();
+      foreach ($changed_rs as $cr) {
+        $ref_txn_ids_now[$cr->id] = $cr;
+      }
+      foreach ($ref_txn_ids as $rti_k => $rt_changed) {
+        $ref_current_changed = empty($ref_txn_ids_now[$rti_k]->changed) ? 0 : $ref_txn_ids_now[$rti_k]->changed;
+        $rtn_ttype = empty($ref_txn_ids_now[$rti_k]->transaction_type) ? '' : $ref_txn_ids_now[$rti_k]->transaction_type;
+        if ($rt_changed != $ref_current_changed) {
+          form_set_error('', t('Someone has recently made changes on transaction @ttype# @txn_id. Try reloading or removing these items before proceeding.', array('@ttype' => strtoupper($rtn_ttype), '@txn_id' => $rti_k)));
+        }
+      }
+    }
   }
 
   //if (empty($row_id)) {
