@@ -307,12 +307,14 @@ table.sticky-header {
 .uk-tooltip.tt-available-qty:after {
   border-top-color: #00a8e6;
 }
-.uk-tooltip.tt-keyboard-shortcut {
+.uk-tooltip.tt-ks {
   background: #fafafa;
   color: #555;
   text-shadow: none;
+  /*border: solid 1px #ddd;*/
+  /*box-shadow: -0 0 5px #888888;*/
 }
-.uk-tooltip.tt-keyboard-shortcut:after {
+.uk-tooltip.tt-ks:after {
   border-top-color: #fafafa;
 }
 

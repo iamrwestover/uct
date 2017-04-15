@@ -248,10 +248,9 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#type' => 'submit',
       '#value' => t('Save'),
       '#icon_key' => 'save',
-      //'#attributes' => array(
-      //  'data-uk-tooltip' => "{delay:'500', cls: 'tt-keyboard-shortcut'}",
-      //  'title' => "Ctrl Alt S",
-      //),
+      '#attributes' => array(
+        'data-ks' => 'CTRL+S',
+      ),
     );
     if ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_ORDER) {
       $buttons['submit_and_send'] = array(
@@ -267,6 +266,9 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       '#type' => 'submit',
       '#value' => t('Save and print'),
       '#icon_key' => 'print',
+      '#attributes' => array(
+        'data-ks' => 'CTRL+P',
+      ),
     );
 
     $buttons['cancel'] = array(
@@ -280,7 +282,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
         '#type' => 'button',
         '#value' => t('Print...'),
         '#visible_in_view_mode' => TRUE,
-        '#attributes' => array('class' => array('suk-button-primary')),
+        '#attributes' => array('class' => array('suk-button-primary'), 'data-ks' => 'CTRL+P'),
         '#icon_key' => 'print',
       );
     }
@@ -338,7 +340,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       'effect' => 'none',
       'event' => 'click',
     );
-    $buttons['submit_and_print']['#attributes'] = $buttons['submit']['#attributes'];
+    $buttons['submit_and_print']['#attributes']['class'][] = 'av-ajax-trigger';
     $buttons['submit_and_print']['#ajax'] = $buttons['submit']['#ajax'];
   }
 

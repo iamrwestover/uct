@@ -1044,7 +1044,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         'wrapper' => 'item-list-new-product-wrapper',
         'effect' => 'none',
       ),
-      '#attributes' => array('class' => array('av-ajax-trigger')),
+      '#attributes' => array('class' => array('av-ajax-trigger'), 'data-ks' => 'CTRL+INSERT', 'data-ks-trigger' => 'mousedown'),
     );
   }
   if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT && !empty($row->id)) {
