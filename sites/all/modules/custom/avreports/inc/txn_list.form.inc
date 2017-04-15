@@ -291,8 +291,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
         '#markup' => $filter_form_settings['simplified_status']['#options'][$user_filter['simplified_status']] . ' ' . $ttd['plural_name'],
       );
       if (!empty($user_filter['overdue'])) {
-        $transaction_list_table['simplified_status']['#markup'] = 'Overdue ' . $ttd['plural_name'];
+        $transaction_list_table['simplified_status']['#markup'] = 'OVERDUE ' . $ttd['plural_name'];
       }
+      $transaction_list_table['simplified_status']['#markup'] = strtoupper($transaction_list_table['simplified_status']['#markup']);
     }
     if (!empty($user_filter['date_from'])) {
       $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);

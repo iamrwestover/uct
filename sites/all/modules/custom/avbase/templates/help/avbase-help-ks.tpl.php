@@ -1,11 +1,11 @@
 <h2 id="help-ks"><?php print $help_title; ?></h2>
 <p>
-  You may <em>hover your mouse on any button</em> to see if a keyboard shortcut is available for it. Other keyboard shortcuts available:
+  You may <em>hover your mouse on any button</em> to see if a keyboard shortcut is available for it. In addition, here's a list of <em>other keyboard shortcuts available</em>:
 </p>
 <table class="uk-table uk-table-condensed uk-table-striped">
   <tr>
-    <td>F4</td>
-    <td>Go to Transactions List page.</td>
+    <td class="uk-width-2-10">F4</td>
+    <td class="uk-width-8-10">Go to Transactions List page.</td>
   </tr>
   <tr>
     <td>F5</td>
@@ -27,6 +27,7 @@
   <tr>
     <td>ALT + CTRL + ENTER</td>
     <td>Set cursor focus to the very first input text or textarea available in the page.</td>
+    <!--This also works on popup modals (e.g., the popup shown when selecting open invoices on Receive Payment transactions).-->
   </tr>
   <tr>
     <td>ALT + CTRL + &larr;</td>
@@ -39,6 +40,10 @@
   <tr>
     <td>ALT + CTRL + &rarr;</td>
     <td>When receiving payment, this will set cursor focus to "Amount Received" input field.</td>
+  </tr>
+  <tr>
+    <td>SPACE</td>
+    <td>Click the button that is currently in focus. You can switch focus into buttons by tabbing. A button is "focused" when the button label is underlined and/or when there is a slight change on the button's color. In addition, if a radio or checkbox is focused, using SPACE will check/select it.</td>
   </tr>
   <tr style="background: #fff;"><td colspan="10"></td></tr>
   <tr>

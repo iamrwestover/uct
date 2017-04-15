@@ -10,6 +10,7 @@
         if ($(this).find('#avtxns-pending-orders-form-wrapper', context).html()) {
           var modal = UIkit.modal('#uk-modal-pending-orders', {center: true, bgclose: false});
           modal.show();
+          $(this).find('input').focus();
 
           $('#pos-selected-submit-btn', context).click(function() {
             modal.hide();
@@ -21,7 +22,7 @@
         // Trigger client PO submit when client field value is changed.
         $(this).blur(function() {
           if ($(this).val() != '') {
-            $('#check-po-btn').trigger('click');
+            $('#check-po-btn').trigger('mousedown');
           }
         });
       });

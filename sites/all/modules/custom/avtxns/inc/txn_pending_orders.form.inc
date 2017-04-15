@@ -84,7 +84,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       'callback' => 'avtxns_txn_form_ajax',
       'wrapper' => 'avtxns-txn-form-wrapper',
       'effect' => 'none',
-      'event' => 'click',
+      //'event' => 'click',
     ),
     '#reference_type' => $ttd['pending_txns_reference_type'],
   );

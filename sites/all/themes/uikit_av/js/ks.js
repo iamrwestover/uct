@@ -38,15 +38,17 @@
   // Shortcut to first input text or textarea.
   $(document).bind('keydown', 'alt+ctrl+return', function (e) {
     var selector = '#region-content-wrapper';
-    if ($('.uk-modal-dialog').is(':visible')) {
-      selector = '.uk-modal-dialog';
-    }
-    $(selector + " input:text:not([data-uk-datepicker]), " + selector + " textarea").eq(0).focus();
+    //if ($('.uk-modal-dialog').is(':visible')) {
+    //  selector = '.uk-modal-dialog';
+    //  console.log($(selector + " input:radio"));
+    //  $(selector + " input:radio, " + selector + " input:checkbox").eq[0].focus();
+    //}
+    $(selector + " input.form-text:not([data-uk-datepicker]), " + selector + " textarea").eq(0).focus();
     e.preventDefault();
   });
   // Shortcut to first input text or textarea.
   $(document).bind('keydown', 'alt+ctrl+left', function (e) {
-    $(".av-nestable-form input:text:not([data-uk-datepicker])").eq(0).focus();
+    $(".av-nestable-form input.form-text:not([data-uk-datepicker])").eq(0).focus();
     e.preventDefault();
   });
 

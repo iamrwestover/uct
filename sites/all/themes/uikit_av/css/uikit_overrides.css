@@ -52,3 +52,11 @@ body, h1, h2, h3, h4, h5, h6, .uk-navbar-nav > li > a {
 .uk-text-italic {
   font-style: italic;
 }
+
+input[type='checkbox']:focus,
+.form-radio:focus {
+  outline: dashed 1px #35b3ee !important;
+}
+.uk-button:focus {
+  text-decoration: underline !important;
+}

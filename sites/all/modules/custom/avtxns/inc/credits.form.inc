@@ -161,6 +161,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#value' => t('Save'),
       '#attributes' => array(
         'class' => array('uk-button-primary'),
+        'data-ks' => 'CTRL+S',
       ),
     );
     $form['buttons']['cancel'] = array(
