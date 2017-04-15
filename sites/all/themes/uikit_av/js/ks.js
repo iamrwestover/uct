@@ -31,14 +31,14 @@
       var $transactionDiv =  $('.av-nestable-form');
       $transactionDiv.once('avKS', function () {
         var $inputEls = $transactionDiv.find('input.form-text:not([readonly]):enabled');
-        $(document).bind('keydown', 'alt+ctrl+left', function (e) {
+        $(document).bind('keydown', 'alt+1', function (e) {
           if ($inputEls.eq(0).is(':visible')) {
             $inputEls.eq(0).focus();
             e.preventDefault();
           }
         });
         // Shortcut to first transaction item text.
-        $(document).bind('keydown', 'alt+ctrl+right', function (e) {
+        $(document).bind('keydown', 'alt+2', function (e) {
           var lt = $inputEls.length - 1;
           if ($inputEls.eq(lt).is(':visible')) {
             $inputEls.eq(lt).focus();
@@ -51,13 +51,18 @@
   };
 
   // Shortcut to home page.
-  $(document).bind('keydown', 'f4', function (e) {
+  $(document).bind('keydown', 'alt+`', function (e) {
     window.location.href = '/';
+    e.preventDefault();
+  });
+  // Shortcut to home page.
+  $(document).bind('keydown', 'alt+q', function (e) {
+    window.open('/', '_blank');
     e.preventDefault();
   });
 
   // Shortcut to first input text or textarea.
-  $(document).bind('keydown', 'alt+ctrl+home', function (e) {
+  $(document).bind('keydown', 'alt+home', function (e) {
     var selector = '#region-content-wrapper';
     //if ($('.uk-modal-dialog').is(':visible')) {
     //  selector = '.uk-modal-dialog';

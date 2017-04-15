@@ -675,7 +675,7 @@ function avtxns_txn_types($type = NULL) {
   foreach ($ret as $r_k => $r) {
     $ret[$r_k]['tpl_suffix'] = isset($ret[$r_k]['tpl_suffix']) ? $ret[$r_k]['tpl_suffix'] : $r_k;
     if ($index <= 9) {
-      $ret[$r_k]['data-ks'] = 'ALT+CTRL+' . $index++;
+      $ret[$r_k]['data-ks'] = 'ALT+' . $index++;
     }
   }
 
@@ -1276,7 +1276,6 @@ function avtxns_txn_can_status_change($transaction, $status) {
 
 function avtxns_quick_txn_search($id) {
   $id = (int) $id;
-  $output = '';
   $type = db_query("SELECT transaction_type FROM {avtbl_transactions} WHERE id = :id", array(':id' => $id))->fetchField();
   if (empty($type)) {
     drupal_set_message('No match found.', 'error');

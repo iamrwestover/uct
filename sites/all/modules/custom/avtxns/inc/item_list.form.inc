@@ -307,7 +307,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
       '#attributes' => array(
         'class' => array('uk-text-right'),
-        'data-ks' => 'ALT+CTRL+RETURN',
+        'data-ks' => 'ALT+3',
       ),
       '#default_value' => isset($row->amount_received) ? avbase_number_format($row->amount_received, 2) : '',
       '#required' => TRUE,
