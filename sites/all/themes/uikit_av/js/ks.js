@@ -22,10 +22,31 @@
             else {
               $element.trigger($element.data('ks-trigger') || 'click');
             }
+            e.preventDefault();
           }
-          e.preventDefault();
         });
       });
+
+      // Shortcut to first transaction item text.
+      var $transactionDiv =  $('.av-nestable-form');
+      $transactionDiv.once('avKS', function () {
+        var $inputEls = $transactionDiv.find('input.form-text:not([readonly]):enabled');
+        $(document).bind('keydown', 'alt+ctrl+left', function (e) {
+          if ($inputEls.eq(0).is(':visible')) {
+            $inputEls.eq(0).focus();
+            e.preventDefault();
+          }
+        });
+        // Shortcut to first transaction item text.
+        $(document).bind('keydown', 'alt+ctrl+right', function (e) {
+          var lt = $inputEls.length - 1;
+          if ($inputEls.eq(lt).is(':visible')) {
+            $inputEls.eq(lt).focus();
+            e.preventDefault();
+          }
+        });
+      });
+
     }
   };
 
@@ -36,7 +57,7 @@
   });
 
   // Shortcut to first input text or textarea.
-  $(document).bind('keydown', 'alt+ctrl+return', function (e) {
+  $(document).bind('keydown', 'alt+ctrl+home', function (e) {
     var selector = '#region-content-wrapper';
     //if ($('.uk-modal-dialog').is(':visible')) {
     //  selector = '.uk-modal-dialog';
@@ -44,11 +65,6 @@
     //  $(selector + " input:radio, " + selector + " input:checkbox").eq[0].focus();
     //}
     $(selector + " input.form-text:not([data-uk-datepicker]), " + selector + " textarea").eq(0).focus();
-    e.preventDefault();
-  });
-  // Shortcut to first input text or textarea.
-  $(document).bind('keydown', 'alt+ctrl+left', function (e) {
-    $(".av-nestable-form input.form-text:not([data-uk-datepicker])").eq(0).focus();
     e.preventDefault();
   });
 
