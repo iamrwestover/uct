@@ -107,6 +107,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
   // Set table pagination and sort settings.
   if (empty($_GET['order'])) {
+    // Set default order.
     $_GET['order'] = $header['date']['data'];
     $_GET['sort'] = 'desc';
     if (isset($header['client'])) {
@@ -125,11 +126,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     }
   }
   $order_by = avbase_build_header_order_array($header);
-  if ($col_due_date && !isset($order_by['due_date'])) {
+  if ($col_due_date && isset($order_by['display_name'])) {
     $order_by['due_date'] = 'due_date ASC';
+    $order_by['transaction_date'] = 'transaction_date ASC';
+    $order_by['id'] = 'id DESC';
   }
-  $order_by['transaction_date'] = 'transaction_date ASC';
-  $order_by['id'] = 'id DESC';
+
 
   $where[] = "avtxn.transaction_type = '" . $transaction_type . "'";
   //dpm($where);
