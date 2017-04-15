@@ -7,7 +7,11 @@
         $element.prop('title', '<i class="uk-icon-keyboard-o"></i> ' + $element.data('ks'));
         $element.attr('data-uk-tooltip', "{delay:'500', cls: 'tt-ks'}");
         $(document).bind('keydown', $element.data('ks'), function (e) {
-          if ($element.is(':visible')) {
+
+          if ($element.is('a')) {
+            $element[0].click();
+          }
+          else if ($element.is(':visible')) {
             $element.trigger($element.data('ks-trigger') || 'click');
           }
           e.preventDefault();

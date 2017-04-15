@@ -335,12 +335,17 @@ function avtxns_txns_home_form($form, &$form_state) {
 // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
   $transaction_types = avtxns_txn_types();
+  $index = 0;
   foreach ($transaction_types as $k => $type) {
     $ttype = strtoupper($k);
     $can_create = user_access(constant('AVTXNS_PERM_CREATE_' . $ttype));
     $button_color_class = empty($type['button_class']) ? '' : $type['button_class'];
+    $link_options = array('attributes' => array('class' => array("uk-button uk-margin-small-right uk-margin-small-bottom $button_color_class")));
+    if ($index <= 9) {
+      $link_options['attributes']['data-ks'] = 'ALT+CTRL+' . $index++;
+    }
     $form["new_$k"] = array(
-      '#markup' => l($type['name'], "{$type['base_path']}/new", array('attributes' => array('class' => array("uk-button uk-margin-small-right uk-margin-small-bottom $button_color_class")))),
+      '#markup' => l($type['name'], "{$type['base_path']}/new", $link_options),
       '#access' => $can_create,
       '#prefix' => empty($type['button_prefix']) ? '' : $type['button_prefix'],
     );
