@@ -671,11 +671,13 @@ function avtxns_txn_types($type = NULL) {
     );
   }
 
-  $index = 0;
+  $index = 1;
   foreach ($ret as $r_k => $r) {
     $ret[$r_k]['tpl_suffix'] = isset($ret[$r_k]['tpl_suffix']) ? $ret[$r_k]['tpl_suffix'] : $r_k;
-    if ($index <= 9) {
+    if ($index <= 10) {
+      if ($index > 9) $index = 0;
       $ret[$r_k]['data-ks'] = 'ALT+' . $index++;
+      if ($index == 1) break;
     }
   }
 
