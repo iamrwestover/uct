@@ -16,7 +16,7 @@
     <td>Opens the Reports page.</td>
   </tr>
   <tr>
-    <td>F4</td>
+    <td>F3</td>
     <td>Shows up a "quick transaction search" form.</td>
   </tr>
   <!--<tr>-->

@@ -20,9 +20,9 @@
       <span class="uk-text-uppercase"><?php print $tsd[0]['title']; ?></span>
     </td>
     <td>
-      Transactions are LOCKED when they are referenced to and from another transaction.
-      <br />For example, an Invoice will be LOCKED if a payment is received for it.
-      <br />Transactions that can be credited (e.g., sales return, credit memo, etc.) will be LOCKED if some of its available credit is applied on another transaction.
+      Transactions are automatically LOCKED when they are referenced to and from another transaction.
+      <br />For example, an Invoice will be LOCKED automatically once a payment is received for it.
+      <br />Transactions that can be credited (e.g., sales return, credit memo, etc.) will be LOCKED automatically when some of its available credit is applied on another transaction.
     </td>
   </tr>
   <tr>
@@ -31,8 +31,8 @@
       <span class="uk-text-uppercase"><?php print $tsd[4]['title']; ?></span>
     </td>
     <td>
-      Transactions are CLOSED when it cannot be used for reference on any future transactions.
-      <br />For example, an invoice that is fully paid will be automatically CLOSED.<br />Transactions that can be credited (e.g., sales return, credit memo, etc.) will be CLOSED when there are no more available credits in it.
+      Transactions are automatically CLOSED when it cannot be used for reference on any future transactions anymore.
+      <br />For example, an invoice that is fully paid will be automatically CLOSED.<br />Transactions that can be credited (e.g., sales return, credit memo, etc.) will be CLOSED automatically when there are no more available credits in it.
     </td>
   </tr>
   <tr>
@@ -42,7 +42,7 @@
     </td>
     <td>
       Some transactions can be sent for approval.
-      <br />For example, deliveries that exceed the configured limit and check payments are temporarily set to PENDING status.
+      <br />For example, deliveries that exceed the configured limit and check payments are automatically set to PENDING status.
       <br />Users with authorized permissions will be able to approve PENDING transactions.
     </td>
   </tr>
@@ -52,7 +52,7 @@
       <span class="uk-text-uppercase"><?php print $tsd[3]['title']; ?></span>
     </td>
     <td>
-      A cancelled transaction is marked as VOID. Only OPEN transactions can be voided. Voiding a transaction will unlock and/or re-open related transactions.
+      To cancel a transaction, you can VOID it. Only OPEN transactions can be voided. Voiding a transaction will unlock and/or re-open transactions that are related to it.
     </td>
   </tr>
 </table>

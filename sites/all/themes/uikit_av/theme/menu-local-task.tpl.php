@@ -31,7 +31,7 @@ if (!empty($link['path'])) {
     //$ttype = arg(1);
     //$ttd = avtxns_txn_types($ttype);
     //$ks = empty($ttd['data-ks']) ? '' : $ttd['data-ks'];
-    $ks = 'F3';
+    $ks = 'F4';
   }
   elseif (strstr($link['path'], '/apply-credits')) {
     $ks = 'F8';

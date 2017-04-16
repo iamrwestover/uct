@@ -111,7 +111,7 @@
 
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
-        <a href="#av-quick-search" class="uk-icon-search uk-icon-hover uk-margin-small-right" data-uk-modal data-ks="F4"></a>
+        <a href="#av-quick-search" class="uk-icon-search uk-icon-hover uk-margin-small-right" data-uk-modal data-ks="F3"></a>
         <a href="/av/help" class="uk-icon-question-circle uk-icon-hover uk-margin-small-right" title="Help"></a>
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>
