@@ -57,6 +57,7 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     '#type' => 'submit',
     '#value' => t('Save'),
     '#icon_key' => 'save',
+    '#attributes' => array('data-ks' => 'CTRL+S'),
   );
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', $ctd['base_path'] , array('attributes' => array('class' => array('uk-button')))),

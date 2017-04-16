@@ -175,6 +175,7 @@ function avbase_category_form($form, &$form_state, $category_id, $row) {
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
+    '#attributes' => array('data-ks' => 'CTRL+S'),
   );
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/categories/' . $category_id),

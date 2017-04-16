@@ -674,10 +674,10 @@ function avtxns_txn_types($type = NULL) {
   $index = 1;
   foreach ($ret as $r_k => $r) {
     $ret[$r_k]['tpl_suffix'] = isset($ret[$r_k]['tpl_suffix']) ? $ret[$r_k]['tpl_suffix'] : $r_k;
-    if ($index <= 10) {
+    if ($index != 0) {
       if ($index > 9) $index = 0;
       $ret[$r_k]['data-ks'] = 'ALT+' . $index++;
-      if ($index == 1) break;
+      if ($index == 1) $index = 0;
     }
   }
 
@@ -769,7 +769,9 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   if (!empty($allowed_ttypes)) {
     $select = $joins = array();
     $select[] = 'avclients.display_name';
+    $select[] = 'avcat_agent.title AS agent_name';
     $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+    $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
 
     $rows_per_page = empty($options['#hide_filter_form']) ? 30 : 10;
     $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, $select, $joins, array(), TRUE);
@@ -890,7 +892,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
-        'placeholder' => 'agent name',
+        'placeholder' => 'Agent name',
         'class' => array('trigger-ajax-search'),
       ),
     );
@@ -903,6 +905,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
+        'placeholder' => 'Area',
         'class' => array('trigger-ajax-search'),
       ),
       '#autocomplete_path' => 'av/categories/area/autocomplete',
@@ -926,6 +929,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
+        'placeholder' => 'Account name',
         'class' => array('trigger-ajax-search'),
       ),
     );

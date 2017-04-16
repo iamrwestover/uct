@@ -55,9 +55,14 @@
     window.location.href = '/';
     e.preventDefault();
   });
-  // Shortcut to home page.
+  // Shortcut to home page in a new tab.
   $(document).bind('keydown', 'alt+q', function (e) {
     window.open('/', '_blank');
+    e.preventDefault();
+  });
+  // Shortcut to reports page.
+  $(document).bind('keydown', 'alt+r', function (e) {
+    window.location.href = '/av/reports';
     e.preventDefault();
   });
 

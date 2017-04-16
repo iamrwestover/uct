@@ -437,10 +437,10 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
     $select[] = 'avtxn.status';
     $select[] = 'avtxn.transaction_type';
     $select[] = 'avtxn.transaction_date';
-    $select[] = 'avcat_agent.title AS agent_name';
+    //$select[] = 'avcat_agent.title AS agent_name';
     //$select[] = 'avclients.display_name';
     //$select[] = 'avtxn.term_id';
-    $select[] = 'avcat_term.title AS term_name';
+    //$select[] = 'avcat_term.title AS term_name';
     $select[] = 'u.name';
     //$select[] = 'avtxn_detail.ref_txn_type';
     //$select[] = 'avtxn_detail.ref_txn_dtl_id';
@@ -462,8 +462,8 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
 
   $joins = array();
   //$joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
+  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
+  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
   $joins[] = 'LEFT JOIN {users} AS u ON u.uid = avtxn.uid';
   $joins = array_merge($joins, $more_joins);
   //$joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
@@ -962,19 +962,27 @@ function avtxns_special_discount_form($term_days) {
  */
 function avtxns_txn_status_details($status = NULL) {
   $statuses = array(
-    AVTXNS_TXN_STATUS_LOCKED => array(
-      'status' => AVTXNS_TXN_STATUS_LOCKED,
-      'title' => t('Locked'),
-      'badge_class' => 'uk-badge-success',
-      'badge_icon' => 'lock',
-      //'color_class' => 'uk-alert-success',
-    ),
     AVTXNS_TXN_STATUS_OPEN => array(
       'status' => AVTXNS_TXN_STATUS_OPEN,
       'title' => t('Open'),
       'badge_class' => 'uk-badge-primary',
       'badge_icon' => 'circle-o',
       'color_class' => '',
+    ),
+    AVTXNS_TXN_STATUS_LOCKED => array(
+      'status' => AVTXNS_TXN_STATUS_LOCKED,
+      'title' => t('Locked'),
+      'badge_class' => 'uk-badge-primary',
+      'badge_icon' => 'lock',
+      //'badge_icon' => 'shield',
+      //'color_class' => 'uk-alert-success',
+    ),
+    AVTXNS_TXN_STATUS_CLOSED => array(
+      'status' => AVTXNS_TXN_STATUS_CLOSED,
+      'title' => t('Closed'),
+      'badge_class' => 'uk-badge-success',
+      'badge_icon' => 'check-circle',
+      'color_class' => 'uk-alert-success',
     ),
     AVTXNS_TXN_STATUS_PENDING => array(
       'status' => AVTXNS_TXN_STATUS_PENDING,
@@ -989,13 +997,6 @@ function avtxns_txn_status_details($status = NULL) {
       'badge_class' => 'uk-badge-void',
       'badge_icon' => 'minus-circle',
       'color_class' => 'uk-row-mute',
-    ),
-    AVTXNS_TXN_STATUS_CLOSED => array(
-      'status' => AVTXNS_TXN_STATUS_CLOSED,
-      'title' => t('Closed'),
-      'badge_class' => 'uk-badge-success',
-      'badge_icon' => 'check-circle',
-      'color_class' => 'uk-alert-success',
     ),
   );
 
@@ -1607,6 +1608,21 @@ function avtxns_get_creditable_txn_types() {
   return $credit_txn_types;
 }
 
+function avtxns_get_refable_txn_types() {
+  $types = array();
+  $txn_types = avtxns_txn_types();
+  foreach ($txn_types as $ttd) {
+    if (empty($ttd['pending_txns_reference_type'])) {
+      continue;
+    }
+    $ptrt = (array) $ttd['pending_txns_reference_type'];
+    foreach ($ptrt as $ctt) {
+      $types[$ctt] = $ctt;
+    }
+  }
+  return $types;
+}
+
 function avtxns_get_txn_references($txn_ids = array()) {
   $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type, avtxns.transaction_date
     FROM {avtbl_transaction_details} avtxn_dtls
@@ -1628,4 +1644,18 @@ function avtxns_get_txn_references($txn_ids = array()) {
 
 function avtxns_txn_overdue_query() {
   return '(avtxn.due_date <= UNIX_TIMESTAMP() && avtxn.status != ' . AVTXNS_TXN_STATUS_CLOSED . ' && avtxn.status != ' . AVTXNS_TXN_STATUS_VOID . ')';
+}
+
+function avtxns_txn_list_table_add_date_from(&$transaction_list_table, $user_filter) {
+  $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);
+  if (!empty($date_text)) {
+    $date_to = empty($user_filter['date_to']) ? '' : check_plain($user_filter['date_to']);
+    if (!empty($date_to) && $user_filter['date_from'] != $date_to) {
+      $date_text .= ' - ' . $user_filter['date_to'];
+    }
+    $transaction_list_table['date_from'] = array(
+      '#type' => 'item',
+      '#markup' => $date_text,
+    );
+  }
 }

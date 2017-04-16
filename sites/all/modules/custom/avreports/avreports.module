@@ -167,6 +167,7 @@ function avreports_home_form($form, &$form_state) {
   $buttons = array();
   foreach ($transaction_types as $k => $type) {
     $buttons[$k . '_list'] = array('#markup' => l($type['name'] . ' List', 'av/reports/transaction-list/' . $k, array('attributes' => array('class' => array('uk-button uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+    $buttons[$k . '_list']['#prefix'] = empty($type['button_prefix']) ? '' : $type['button_prefix'];
   }
   $form['txn_reports'] = array(
     '#type' => 'fieldset',
@@ -305,8 +306,9 @@ function avreports_soa_form($form, &$form_state) {
     if (!empty($row->id)) {
       // Get transaction type details.
       $ttd = avtxns_txn_types($row->transaction_type);
-      $view_path = "{$ttd['base_path']}/$row->id/view";
-      $reference = l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path);
+      $view_path_suffix = 'view';
+      $view_path = "{$ttd['base_path']}/$row->id/";
+
 
       // Get reference transaction type details.
       if (!empty($row->ref_txn_type)) {
@@ -319,17 +321,22 @@ function avreports_soa_form($form, &$form_state) {
           break;
         case AVTXNS_TXN_TYPE_SALES_RETURN:
           $description = t('Returns');
+          $view_path_suffix = 'apply-credits';
           break;
         case AVTXNS_TXN_TYPE_PAYMENT:
-          $description = t('Payment credit');
+          $description = t('Credit from overpayment');
+          $view_path_suffix = 'apply-credits';
           break;
         case AVTXNS_TXN_TYPE_CREDIT_MEMO:
           $description = t('Credit memo');
+          $view_path_suffix = 'apply-credits';
           break;
         default:
           $description = $ttd['name'];
           break;
       }
+      $view_path .= $view_path_suffix;
+      $reference = l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path);
       $description = l($description, $view_path);
       $date_string = l($date_string, $view_path);
     }
@@ -673,16 +680,7 @@ function avreports_inventory_ranking_form($form, &$form_state, $transaction_kind
       $client = avclient_query_load(array('avclients.display_name = :name'), array(':name' => $client_name));
       $client = array_shift($client);
     }
-    if (!empty($user_filter['date_from'])) {
-      $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);
-      if (!empty($user_filter['date_to']) && $user_filter['date_from'] != $user_filter['date_to']) {
-        $date_text .= ' - ' . $user_filter['date_to'];
-      }
-      $transaction_list_table['date_from'] = array(
-        '#type' => 'item',
-        '#markup' => $date_text,
-      );
-    }
+    avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
     $transaction_list_table['client_name'] = array(
       '#title' => $ctd['name'],
       '#title_display' => 'none',
@@ -1012,16 +1010,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     $client = avclient_query_load(array('avclients.display_name = :name'), array(':name' => $client_name));
     $client = array_shift($client);
   }
-  if (!empty($user_filter['date_from'])) {
-    $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);
-    if (!empty($user_filter['date_to']) && $user_filter['date_from'] != $user_filter['date_to']) {
-      $date_text .= ' - ' . $user_filter['date_to'];
-    }
-    $transaction_list_table['date_from'] = array(
-      '#type' => 'item',
-      '#markup' => $date_text,
-    );
-  }
+  avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
   if (!empty($client_name)) {
     $transaction_list_table['client_name'] = array(
       '#title' => $ctd['name'],

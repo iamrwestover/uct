@@ -30,10 +30,18 @@
     var doneTypingInterval = 500;
 
     self.$searchEls.on('change', function () {
-      if ($(this).hasClass('trigger-search-on-keyup')) {
+      if ($(this).hasClass('trigger-search-on-keyup') || $(this).hasClass('form-autocomplete')) {
         return;
       }
       self.$searchBtn.trigger('click');
+    });
+
+    // For autocomplete fields.
+    self.$searchEls.on('blur', function () {
+      if (!$(this).hasClass('form-autocomplete')) {
+        return;
+      }
+      self.$searchBtn.trigger('mousedown');
     });
 
     self.$searchEls.on('keyup', function () {

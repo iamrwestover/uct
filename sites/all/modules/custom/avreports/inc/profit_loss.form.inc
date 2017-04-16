@@ -405,16 +405,7 @@ function avreports_profit_loss_form($form, &$form_state) {
     ),
   );
 
-  if (!empty($user_filter['date_from'])) {
-    $date_text = empty($user_filter['date_from']) ? '' : check_plain($user_filter['date_from']);
-    if (!empty($user_filter['date_to']) && $user_filter['date_from'] != $user_filter['date_to']) {
-      $date_text .= ' - ' . $user_filter['date_to'];
-    }
-    $transaction_list_table['date_from'] = array(
-      '#type' => 'item',
-      '#markup' => $date_text,
-    );
-  }
+  avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
 
   $form['transaction_list_table'] += $transaction_list_table;
 

@@ -51,6 +51,7 @@ function avproducts_product_form($form, &$form_state, $row, $view_mode = FALSE) 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
+    '#attributes' => array('data-ks' => 'CTRL+S'),
   );
   $form['buttons']['cancel'] = array(
     '#markup' => l('Cancel', 'av/products'),

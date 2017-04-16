@@ -22,9 +22,9 @@ if (arg(3) == 'backup_migrate' && $user->uid != 1) {
   unset($breadcrumb[3]);
 }
 
-if (isset($breadcrumb[1]) && strstr($breadcrumb[1], 'Transactions')) {
-  $breadcrumb[1] = '<span data-uk-tooltip="{delay:\'500\', cls: \'tt-ks\'}" title=\'<i class="uk-icon-keyboard-o"></i> F4\'>' . $breadcrumb[1] . '</span>';
-}
+//if (isset($breadcrumb[1]) && strstr($breadcrumb[1], 'Transactions')) {
+//  $breadcrumb[1] = '<span data-uk-tooltip="{delay:\'500\', cls: \'tt-ks\'}" title=\'<i class="uk-icon-keyboard-o"></i> F4\'>' . $breadcrumb[1] . '</span>';
+//}
 
 if (arg(0) == 'user') {
   $breadcrumb[1] = l('Users', 'av/users');

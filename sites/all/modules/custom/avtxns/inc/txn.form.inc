@@ -136,15 +136,15 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   // Transaction status.
   if (isset($row->status) && $row->status != AVTXNS_TXN_STATUS_OPEN) {
     $tsd = avtxns_txn_status_details($row->status);
-    $badge_color = 'uk-badge-success';
+    $badge_color = $tsd['badge_class'];
     $icon_html = '';
     $form_color_class = '';
     switch ($row->status) {
-      case AVTXNS_TXN_STATUS_PENDING:
-        $badge_color = 'uk-badge-warning';
-        break;
+      //case AVTXNS_TXN_STATUS_PENDING:
+      //  $badge_color = 'uk-badge-warning';
+      //  break;
       case AVTXNS_TXN_STATUS_VOID:
-        $badge_color = 'uk-badge-void';
+        //$badge_color = 'uk-badge-void';
         $form_color_class = 'uk-alert uk-alert-mute';
         break;
     }

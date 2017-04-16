@@ -64,7 +64,15 @@
     var doneTypingInterval = 500;
 
     self.$searchEls.on('change', function () {
-      if ($(this).hasClass('trigger-search-on-keyup')) {
+      if ($(this).hasClass('trigger-search-on-keyup') || $(this).hasClass('form-autocomplete')) {
+        return;
+      }
+      self.$searchBtn.trigger('mousedown');
+    });
+
+    // For autocomplete fields.
+    self.$searchEls.on('blur', function () {
+      if (!$(this).hasClass('form-autocomplete')) {
         return;
       }
       self.$searchBtn.trigger('mousedown');
@@ -87,9 +95,9 @@
       }, doneTypingInterval);
     });
 
-    self.$searchEls.on('autocompleteSelect', function(e, node) {
-      self.$searchBtn.trigger('mousedown');
-    });
+    //self.$searchEls.on('autocompleteSelect', function(e, node) {
+    //  self.$searchBtn.trigger('mousedown');
+    //});
 
     self.$resetBtn.click(function(e) {
       self.$searchEls.each(function() {

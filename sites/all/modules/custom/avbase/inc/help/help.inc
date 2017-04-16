@@ -4,6 +4,9 @@ function avbase_help_home() {
   $output = '';
   $help_items = array();
   $help_items[] = array(
+    'data' => '<a href="#help-txn-status" data-uk-smooth-scroll>Transaction statuses</a>',
+  );
+  $help_items[] = array(
     //'data' => '<a href=""></a>', l('Keyboard shortcuts', '#av/help', array('attributes' => array('data-uk-smooth-scroll' => ''), 'fragment' => 'help-ks')),
     'data' => '<a href="#help-ks" data-uk-smooth-scroll>Keyboard shortcuts</a>',
   );
@@ -15,7 +18,8 @@ function avbase_help_home() {
   $item_list = array('items' => $help_items);
   $output .= theme('item_list', $item_list);
 
+  $output .= theme('avbase_help_txn_status', array('help_title' => 'Transaction statuses'));
   $output .= theme('avbase_help_ks', array('help_title' => 'Keyboard shortcuts'));
   $output .= theme('avbase_help_print', array('help_title' => 'Printing with dot matrix printers'));
-  return $output;
+  return '<div class="printable">' . $output . '</div>';
 }

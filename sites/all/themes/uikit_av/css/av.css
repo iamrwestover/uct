@@ -19,6 +19,8 @@ body {
   background: #333e4c;
   color: #798d9b;
   text-align: center;
+  padding-bottom: 4px;
+  padding-top: 4px;
 }
 html #menu-toggle .uk-nav.uk-nav-offcanvas > li.uk-active > a {
   background: #1f2a37;
@@ -33,6 +35,10 @@ html:not(.uk-touch) #menu-toggle .uk-nav-offcanvas > li > a:hover {
 }
 #menu-toggle .uk-nav-offcanvas a > i {
   min-width: 20px;
+}
+#menu-toggle .uk-nav-offcanvas>li>a {
+  padding-bottom: 9px;
+  padding-top: 9px;
 }
 
 /* Top area */
