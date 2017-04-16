@@ -86,7 +86,7 @@ function avreports_profit_loss_form($form, &$form_state) {
 
   // Build query.
   $pl_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
-  $pl_transaction_statuses = array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN);
+  $pl_transaction_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
   $select[] = 'avtxn_detail.*';
   $select[] = 'avtxn.transaction_type';
   $select[] = 'avtxn.transaction_date';
@@ -95,7 +95,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   $select['grand_total_discounted'] = avtxns_txn_detail_sum_query_discount_applied() . ' AS grand_total_discounted';
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
   $where[] = 'avtxn.transaction_type IN (:txn_types)';
-  $where[] = 'avtxn.status IN (:txn_statuses)';
+  $where[] = 'avtxn.status NOT IN (:txn_statuses)';
   $args[':txn_types'] = $pl_transaction_types;
   $args[':txn_statuses'] = $pl_transaction_statuses;
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
@@ -197,7 +197,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   $cogs_query = "SELECT avtxn.id, avtxn.transaction_type, avtxn.transaction_date, avtxn_detail.item_id
     FROM {avtbl_transaction_details} AS avtxn_detail
     INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
-    WHERE avtxn_detail.item_id AND avtxn.transaction_type IN (:ttypes) AND avtxn.status IN (:txn_statuses)";
+    WHERE avtxn_detail.item_id AND avtxn.transaction_type IN (:ttypes) AND avtxn.status NOT IN (:txn_statuses)";
   $cogs_args = array();
   $cogs_args[':ttypes'] = array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_DELIVERY);
   $cogs_args[':txn_statuses'] = $pl_transaction_statuses;
