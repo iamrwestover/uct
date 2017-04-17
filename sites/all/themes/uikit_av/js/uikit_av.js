@@ -35,14 +35,18 @@ jQuery(document).ready(function ($) {
 
   // Toggle offcanvas menu.
   var $panel = $('#menu-toggle');
+  var offcanvasTimeout;
   $panel.find('.uk-offcanvas-bar').hover(function () {
     if ($panel.hasClass('offcanvas-expanded')) {
       return;
     }
-    UIkit.offcanvas.show('#menu-toggle', {mode: 'reveal'});
-    $panel.removeClass('offcanvas-collapsed');
-    $panel.addClass('offcanvas-expanded');
+    offcanvasTimeout = setTimeout (function() {
+      UIkit.offcanvas.show('#menu-toggle', {mode: 'reveal'});
+      $panel.removeClass('offcanvas-collapsed');
+      $panel.addClass('offcanvas-expanded');
+    }, 1000);
   }, function () {
+    clearTimeout(offcanvasTimeout);
     if ($panel.hasClass('offcanvas-collapsed')) {
       return;
     }
