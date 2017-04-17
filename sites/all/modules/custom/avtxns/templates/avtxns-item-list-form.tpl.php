@@ -271,8 +271,8 @@ $balance_ages_html = drupal_render($form['balance_ages']);
               <?php else: ?>
                 <div class="uk-width-1-1">&nbsp;</div>
               <?php endif; ?>
-              <div class="uk-width-1-3"><hr style="border-color: #ddd;" /></div>
-              <div class="uk-width-1-3"><hr style="border-color: #ddd;" /></div>
+              <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
+              <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
               <div class="uk-width-1-3"></div>
               <div class="uk-width-1-3 uk-text-center">Signature Over Printed Name</div>
               <div class="uk-width-1-3 uk-text-center">Date</div>

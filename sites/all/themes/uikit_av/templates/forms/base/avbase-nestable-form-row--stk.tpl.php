@@ -1,8 +1,7 @@
 <?php
 $view_mode = !empty($form['#av_view_mode']);
 ?>
-<div class="uk-grid uk-grid-collapse" style="position: relative;">
-  <?php print drupal_render($form['badge']); ?>
+<div class="uk-grid uk-grid-collapse no-page-break-inside" style="position: relative;">
   <div class="uk-width-5-10">
 
     <div class="uk-grid uk-grid-collapse">

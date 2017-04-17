@@ -1,8 +1,8 @@
 /* Print */
 /*@font-face { font-family: dotm; src: url('../fonts/dotmatrix/dotm.ttf'); }*/
-@font-face { font-family: courier-draft; src: url('../fonts/courier-draft/courier-draft.ttf'); }
-@font-face { font-family: dos; src: url('../fonts/dos/dos.ttf'); }
-@font-face { font-family: vcrmono; src: url('../fonts/vcrmono/vcrmono.ttf'); }
+/*@font-face { font-family: courier-draft; src: url('../fonts/courier-draft/courier-draft.ttf'); }*/
+/*@font-face { font-family: dos; src: url('../fonts/dos/dos.ttf'); }*/
+/*@font-face { font-family: vcrmono; src: url('../fonts/vcrmono/vcrmono.ttf'); }*/
 @media print {
   @page {
     /*size: 8.5in 11in;*/
@@ -36,11 +36,13 @@
     /*font-family: "Verdana", times, sans-serif !important;*/
     /*font-family: "High Speed Draft 10cpi", sans-serif !important;*/
     /*font-family: sans-serif !important;*/
-    font-family: sans-serif !important;
+    font-family: "Century Gothic", monospace !important;
   }
   body, .av-nestable-product-list-view .uk-badge, .uk-text-small {
     font-size: 10px;
-    line-height: 13px;
+    line-height: 11px;
+    letter-spacing: 0.5px;
+    /*font-weight: 500;*/
     /*font-size: 7.5pt; /!* 10px *!/*/
     /* 11px */
     /*font-size: 8pt; */
