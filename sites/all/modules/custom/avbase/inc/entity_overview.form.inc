@@ -85,7 +85,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
   }
 
   // Build query.
-  $query = "SELECT * FROM avtbl_clients WHERE " . implode(' AND ', $where) . " ORDER BY created DESC LIMIT 10";
+  $query = "SELECT * FROM avtbl_clients WHERE " . implode(' AND ', $where) . " ORDER BY created DESC LIMIT 20";
   $rs = db_query($query, $args);
   $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'display_name', $search_string);
 
