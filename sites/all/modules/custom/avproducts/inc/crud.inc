@@ -626,7 +626,7 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
       $discount_text = isset($values['discount']) ? trim($values['discount']) : '';
       $discount_parts = explode('/', $discount_text);
       $x = 1;
-      $row['discount1'] = $row['discount2'] = $row['discount3'] = $row['discount4'] = 0;
+
       foreach ($discount_parts as $k => $v) {
         if (!is_numeric($v)) {
           continue;

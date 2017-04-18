@@ -11,7 +11,7 @@ define('AV_STYLE_CLASS_BTN_PRIMARY', 'uk-button-primary');
 function avbase_get_categories($group_id = NULL) {
   $data = &drupal_static(__FUNCTION__, array());
   if (empty($data)) {
-    $query = "SELECT * FROM {avtbl_categories}";
+    $query = "SELECT * FROM {avtbl_categories} ORDER BY title";
     $result = db_query($query);
     $rows = array();
     foreach ($result as $k => $row) {

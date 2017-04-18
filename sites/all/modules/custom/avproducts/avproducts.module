@@ -193,6 +193,7 @@ function avproducts_home_form($form, &$form_state) {
     'id' => array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
     'display_name' => array('data' => 'Name', 'field' => 'title'),
     'category' => array('data' => 'Category', 'field' => 'category_id'),
+    'principal' => array('data' => 'Principal', 'field' => 'principal_id'),
     'uom' => array('data' => 'Base UOM', 'field' => 'uom_id'),
     //array('data' => 'Description', 'field' => 'description'),
     'cost' => array('data' => 'Cost', 'field' => 'cost', 'style' => 'width: 100px; text-align: right'),
@@ -229,7 +230,7 @@ function avproducts_home_form($form, &$form_state) {
   }
   $result = $query->execute();
 
-  $categories = avbase_get_categories_multiple(array('product_cat', 'uom'));
+  $categories = avbase_get_categories_multiple(array('product_cat', 'uom', 'principal'));
   $rows = array();
   $can_edit = user_access(AVPRODUCTS_PERM_PRODUCT_EDIT);
   foreach ($result as $row) {
@@ -249,6 +250,7 @@ function avproducts_home_form($form, &$form_state) {
       'id' => array('data' => $row->id, 'class' => array('uk-hidden')),
       'display_name' => $linked_name,
       'category' => isset($categories[$row->category_id]) ? check_plain($categories[$row->category_id]->title) : '',
+      'principal' => isset($categories[$row->principal_id]) ? check_plain($categories[$row->principal_id]->title) : '',
       'uom' => isset($categories[$row->uom_id]) ? check_plain($categories[$row->uom_id]->title) : '',
       //'description' => truncate_utf8(check_plain($row->description), 90, FALSE, TRUE),
       'cost' => array('data' => number_format($row->cost, 2), 'style' => 'text-align: right'),
@@ -368,6 +370,18 @@ function avproduct_list_filter_form($form, &$form_state, $settings = array()) {
     '#options' => avbase_get_category_options_array('product_cat'),
     '#empty_value' => '',
     '#empty_option' => '- Category -',
+    '#attributes' => array(
+      'class' => array('trigger-ajax-search'),
+    ),
+  );
+
+  $fields['avprod.principal_id'] = empty($settings['avprod.principal_id']) ? array() : $settings['avprod.principal_id'];
+  $fields['avprod.principal_id'] = array(
+    '#type' => 'select',
+    //'#title' => 'Category',
+    '#options' => avbase_get_category_options_array('principal'),
+    '#empty_value' => '',
+    '#empty_option' => '- Principal -',
     '#attributes' => array(
       'class' => array('trigger-ajax-search'),
     ),

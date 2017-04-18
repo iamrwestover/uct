@@ -183,9 +183,10 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         //$query->addField('avtxn_reference', 'transaction_id', 'ref_txn_id');
         //$query->addField('avtxn', 'transaction_type', 'ref_txn_type');
 
-        $query->orderBy('category_title', 'ASC');
+        //$query->orderBy('category_title', 'ASC');
         $query->orderBy('uom_title', 'DESC');
-        $query->orderBy('product_title', 'ASC');
+        $query->orderBy('id', 'ASC');
+        //$query->orderBy('product_title', 'ASC');
       }
       $query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_details.ref_txn_id');
       $query->addField('avtxn', 'changed', 'ref_txn_changed');

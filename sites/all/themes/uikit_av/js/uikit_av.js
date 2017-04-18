@@ -44,7 +44,7 @@ jQuery(document).ready(function ($) {
       UIkit.offcanvas.show('#menu-toggle', {mode: 'reveal'});
       $panel.removeClass('offcanvas-collapsed');
       $panel.addClass('offcanvas-expanded');
-    }, 1000);
+    }, 500);
   }, function () {
     clearTimeout(offcanvasTimeout);
     if ($panel.hasClass('offcanvas-collapsed')) {

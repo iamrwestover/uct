@@ -271,38 +271,21 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
 
         // Send transaction status to PENDING if one of the products' discount is over the limit.
         //$transaction_row = avtxns_txn_load($row['id']);
-        if (!empty($ttd['product_discount_check']) && (is_null($transaction_status) || $transaction_status == AVTXNS_TXN_STATUS_OPEN)) {
+        if (!empty($ttd['product_discount_check']) && !empty($entered_discounts) && (is_null($transaction_status) || $transaction_status == AVTXNS_TXN_STATUS_OPEN)) {
           $set_to_pending = FALSE;
           $query = "SELECT id, title,
             " . avproducts_discount_value_query() . " AS discount
             FROM {avtbl_products}
             WHERE id IN (:ids)";
           $du_rs = db_query($query, array(':ids' => array_keys($entered_discounts)));
-          //dpm($entered_discounts);
-          //dpm($item_rows);
           foreach ($du_rs as $du_row) {
             $compare_with = empty($entered_discounts[$du_row->id]) ? array() : $entered_discounts[$du_row->id];
             foreach ($compare_with as $cw_discount) {
-              //dpm($du_row->title . '='. round(((float) (1 - $cw_discount)), 4) . ' >? ' .(((float) $du_row->discount)));
-
               if (round(((float) (1 - $cw_discount)), 4) > round(((float) $du_row->discount), 4)) {
                 $set_to_pending = TRUE;
                 break;
               }
             }
-
-            //for ($x = 1; $x <= 4; $x++) {
-            //  $discount_field_name = 'discount' . $x;
-            //  $existing_discount_value = empty($du_row->$discount_field_name) ? 0 : $du_row->$discount_field_name;
-            //  $incoming_discount_value = empty($discount_updates[$discount_field_name][$du_row->id]) ? 0 : $discount_updates[$discount_field_name][$du_row->id];
-            //  if ($incoming_discount_value > ($existing_discount_value * AVTXN_DISCOUNT_MULTIPLIER)) {
-            //    $set_to_pending = TRUE;
-            //    break;
-            //  }
-            //  if ($set_to_pending) {
-            //    break;
-            //  }
-            //}
           }
 
           if ($set_to_pending) {

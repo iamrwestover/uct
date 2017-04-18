@@ -6,7 +6,10 @@
   <div class="uk-width-1-10">
     <?php print drupal_render($form['avprod.category_id']); ?>
   </div>
-  <div class="uk-width-5-10">
+  <div class="uk-width-2-10">
+    <?php print drupal_render($form['avprod.principal_id']); ?>
+  </div>
+  <div class="uk-width-4-10">
     <?php print drupal_render($form['low_stock']); ?>
     <?php print drupal_render($form['no_stock']); ?>
     <?php print drupal_render($form['buttons']['reset_button']); ?>
