@@ -16,7 +16,7 @@ function avbase_category_payment_term_form_alter(&$form, $db_row) {
     '#default_value' => isset($db_row->data['days']) ? $db_row->data['days'] : '',
     '#maxlength' => 3,
     '#required' => TRUE,
-    '#element_validate' => array('avbase_element_validate_non_negative_number'),
+    '#element_validate' => array('avbase_element_validate_non_negative_integer'),
     '#special_element_type' => 'number',
     '#weight' => 1.1,
   );

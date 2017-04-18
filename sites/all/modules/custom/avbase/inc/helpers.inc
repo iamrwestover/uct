@@ -672,7 +672,17 @@ function avbase_get_category_id_by_title($title, $group_id, $insert_if_not_found
 function avbase_element_validate_non_negative_number($element, &$form_state) {
   $value = $element['#value'];
   if ($value !== '' && (!is_numeric($value) || floatval($value) != $value || $value < 0)) {
-    form_error($element, t('%name must not be less than 0.', array('%name' => $element['#title'])));
+    form_error($element, t('%name must be a valid number and is not less than 0.', array('%name' => $element['#title'])));
+  }
+}
+
+/**
+ * Form element validation handler for number elements.
+ */
+function avbase_element_validate_non_negative_integer($element, &$form_state) {
+  $value = $element['#value'];
+  if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value < 0)) {
+    form_error($element, t('%name must be a whole number and must not be less than 0.', array('%name' => $element['#title'])));
   }
 }
 

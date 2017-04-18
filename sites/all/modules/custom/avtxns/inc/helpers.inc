@@ -110,6 +110,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query->leftJoin('avtbl_clients', 'avclients', 'avclients.id = avtxns.client_id');
   $query->leftJoin('avtbl_categories', 'avcat_agent', "avcat_agent.id = avtxns.agent_id AND avcat_agent.group_id = CONCAT('agent', avclients.client_type)");
   $query->leftJoin('avtbl_categories', 'avcat_terms', 'avcat_terms.id = avtxns.term_id');
+  $query->leftJoin('users', 'u', 'u.uid = avtxns.uid');
   $query->addField('avclients', 'display_name', 'client_name');
   $query->addField('avclients', 'address');
   $query->addField('avclients', 'city');
@@ -121,6 +122,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $query->addField('avcat_agent', 'title', 'agent_name');
   $query->addField('avcat_terms', 'title', 'term_name');
   $query->addField('avcat_terms', 'data', 'term_data');
+  $query->addField('u', 'name');
   $query->fields('avtxns');
   //->fields('avclient', array('display_name'))
   //->condition('avtxns.id', $id)
@@ -192,6 +194,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
+        //dpm($item);
         // Capitalize item title.
         if (!empty($item->product_title)) {
           $item->product_title = strtoupper($item->product_title);
@@ -209,6 +212,8 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         $item->total = $item->cost * $item->qty;
         $discount = array();
         $prod_discount = array();
+        $entered_discount = NULL;
+        $existing_discount = NULL;
         for ($x = 1; $x <= 4; $x++) {
           $_discount = 0;
           $_max_discount = 0;
@@ -223,12 +228,23 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $_max_discount = round($item->$_prod_discount_name * AVTXN_DISCOUNT_MULTIPLIER, 2);
             $prod_discount[] = $_max_discount;
           }
-          if ($row->status == AVTXNS_TXN_STATUS_PENDING && $_discount > $_max_discount) {
-            $item->discount_over_limit = TRUE;
-          }
+          //if ($row->status == AVTXNS_TXN_STATUS_PENDING && $_discount > $_max_discount) {
+          //  $item->discount_over_limit = TRUE;
+          //}
+
+          $this_dc_val = (1 - ((float) $_discount / 100));
+          $entered_discount = is_null($entered_discount) ? $this_dc_val : ($entered_discount * $this_dc_val);
+          $this_dc_val = (1 - ((float) $_max_discount / 100));
+          $existing_discount = is_null($existing_discount) ? $this_dc_val : ($existing_discount * $this_dc_val);
         }
         $discount = array_filter($discount);
         $prod_discount = array_filter($prod_discount);
+        $existing_discount = round((float)(1 - $existing_discount), 4);
+        $entered_discount = round((float)(1 - $entered_discount), 4);
+
+        if ($row->status == AVTXNS_TXN_STATUS_PENDING && $entered_discount > $existing_discount) {
+          $item->discount_over_limit = TRUE;
+        }
         $item->discount_text = implode('/', $discount);
         $item->max_discount_text = empty($prod_discount) ? 0 : implode('/', $prod_discount);
         foreach ($discount as $v) {

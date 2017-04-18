@@ -234,14 +234,14 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     '#title' => 'ROP',
     '#default_value' => isset($row->rop) ? $row->rop : '',
     '#maxlength' => 10,
-    '#element_validate' => array('element_validate_integer_positive'),
+    '#element_validate' => array('avbase_element_validate_non_negative_integer'),
   );
   $info['eoq'] = array(
     '#type' => 'textfield',
     '#title' => 'EOQ',
     '#default_value' => isset($row->eoq) ? $row->eoq : '',
     '#maxlength' => 10,
-    '#element_validate' => array('element_validate_integer_positive'),
+    '#element_validate' => array('avbase_element_validate_non_negative_integer'),
   );
   $info['price'] = array(
     '#id' => 'uom-price',
@@ -328,7 +328,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
 
   $info['discount'] = array(
     '#type' => 'textfield',
-    '#title' => 'Purchase discount (%)',
+    '#title' => 'Discount limit (%)',
     '#maxlength' => 10,
     '#element_validate' => array('avbase_element_validate_product_discount'),
     '#default_value' => isset($row->discount_text) ? $row->discount_text : '',
@@ -508,7 +508,7 @@ function avproducts_qty_validate($element, &$form_state, $form) {
     $form_state['values']['qty'] = $form_state['values']['initial_qty'];
     $element['#value'] = $form_state['values']['qty'];
   }
-  avbase_element_validate_non_negative_number($element, $form_state);
+  avbase_element_validate_non_negative_integer($element, $form_state);
 }
 
 /**
@@ -626,6 +626,7 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
       $discount_text = isset($values['discount']) ? trim($values['discount']) : '';
       $discount_parts = explode('/', $discount_text);
       $x = 1;
+      $row['discount1'] = $row['discount2'] = $row['discount3'] = $row['discount4'] = 0;
       foreach ($discount_parts as $k => $v) {
         if (!is_numeric($v)) {
           continue;

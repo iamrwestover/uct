@@ -380,3 +380,7 @@ function avproducts_product_change_status($id, $status) {
   }
   return FALSE;
 }
+
+function avproducts_discount_value_query() {
+  return "1 - ((1 - discount1 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - discount2 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - discount3 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - discount4 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . "))";
+}

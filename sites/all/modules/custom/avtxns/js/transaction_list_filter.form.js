@@ -22,10 +22,6 @@
         }
       });
 
-      self.$searchEls = $(this).find('.trigger-ajax-search');
-      self.$resetBtn = $(this).find('#transaction-reset-btn');
-      self.searchEvents();
-
       // Date auto field.
       self.$dateAutoEl = $(this).find('#date-auto');
       self.$dateFromEl = $(this).find('#date-from');
@@ -46,8 +42,13 @@
         self.$dateAutoEl.val('custom');
       });
       self.$dateToEl.change(function () {
+        self.$dateFromEl.val($(this).val());
         self.$dateAutoEl.val('custom');
       });
+
+      self.$searchEls = $(this).find('.trigger-ajax-search');
+      self.$resetBtn = $(this).find('#transaction-reset-btn');
+      self.searchEvents();
     });
 
     self.pagerLinkEvents();

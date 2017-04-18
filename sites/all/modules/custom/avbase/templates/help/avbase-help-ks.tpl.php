@@ -50,6 +50,10 @@
     <td>When receiving payment, this will set input focus to "Amount Received" textfield.</td>
   </tr>
   <tr>
+    <td>CTRL+INSERT</td>
+    <td>Adds new empty rows when creating or editing a transaction.</td>
+  </tr>
+  <tr>
     <td>SPACE</td>
     <td>Clicks the button that is currently in focus. You can switch input focus by tabbing. A button is "focused" when the button label is underlined and/or when there is a slight change on the button's color.<br />If a radio or checkbox is focused, using SPACE will check/select it.</td>
   </tr>
@@ -67,15 +71,19 @@
     <td>Switches tabs.</td>
   </tr>
   <tr>
-    <td>CTRL+F4</td>
+    <td>CTRL+W or CTRL+F4</td>
     <td>Closes the current tab.</td>
+  </tr>
+  <tr>
+    <td>CTRL+SHIFT+T</td>
+    <td>Re-opens recently closed tab.</td>
   </tr>
   <tr>
     <td>CTRL+F</td>
     <td>Searches for a word on the current page.</td>
   </tr>
   <tr>
-    <td>F5</td>
+    <td>F5 or CTRL+R</td>
     <td>Refreshes the current page.</td>
   </tr>
   <tr>

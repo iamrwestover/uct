@@ -60,8 +60,7 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
 
   // Show created info.
   if ($view_mode && !empty($row->created)) {
-    global $user;
-    $form['record_created'] = array('#markup' => '<div class="not-printable uk-text-center">' . t('Created by @name - @date', array('@name' => $user->name, '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
+    $form['record_created'] = array('#markup' => '<div class="not-printable uk-text-center">' . t('Created by @name - @date', array('@name' => $row->name, '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
   }
   //if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
   //  // Add extra button to load customer returns.
@@ -292,7 +291,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)) && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_VOID)) {
         $buttons['void_btn'] = array(
           '#markup' => l('Void transaction', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_VOID, array(
-            'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right'),
+            'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right', 'data-ks' => 'CTRL+D'),
             'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
             'icon_key' => 'minus-circle',
             'icon_classes' => array('uk-margin-small-right'),
@@ -318,7 +317,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
       if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_PENDING)) && ($row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY || !empty($ttd['payment'])) && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN)) {
         $buttons['open_btn'] = array(
           '#markup' => l('Approve', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_OPEN, array(
-            'attributes' => array('class' => 'uk-button uk-button-success uk-margin-small-right'),
+            'attributes' => array('class' => 'uk-button uk-button-success uk-margin-small-right', 'data-ks' => 'CTRL+O'),
             'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
             'icon_key' => 'thumbs-o-up',
             'icon_classes' => array('uk-margin-small-right'),
@@ -420,6 +419,7 @@ HTML;
 
   if ($status == AVTXNS_TXN_STATUS_VOID) {
     $description .= '<br /><br /><em class="uk-text-large uk-margin-top">This action cannot be undone.</em>';
+    $description = '<div class="uk-alert-danger" style="padding: 1em;">' . $description . '</div>';
   }
   $form_state['id'] = $row->id;
   $form_state['status'] = $status;

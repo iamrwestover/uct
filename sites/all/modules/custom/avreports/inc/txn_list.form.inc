@@ -33,7 +33,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
   // Custom date optionsdetails.
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default_key = empty($ttd['payable']) ? 'this_week' : 'last_month_to_date';
+  $dad_default_key = empty($ttd['payable']) ? 'today' : 'this_week';
   $dad_default = empty($dad[$dad_default_key]) ? array() : $dad[$dad_default_key];
   $filter_form_settings = array(
     'date_auto' => array(

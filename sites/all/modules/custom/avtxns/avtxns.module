@@ -498,7 +498,7 @@ function avtxns_txn_types($type = NULL) {
       'pending_txns_reference_type' => AVTXNS_TXN_TYPE_PURCHASE_ORDER,
       'qty_change' => 'increment',
       'cost_change' => TRUE,
-      'product_discount_overwrite' => TRUE,
+      //'product_discount_overwrite' => TRUE,
     );
     $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
       'button_class' => 'uk-button-primary',
