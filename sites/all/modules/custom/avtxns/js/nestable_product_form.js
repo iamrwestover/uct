@@ -210,6 +210,7 @@
               var v = value.value || '';
               if (v.charAt(0) == c) {
                 $UOMEl.val(v);
+                return;
               }
             });
           }
