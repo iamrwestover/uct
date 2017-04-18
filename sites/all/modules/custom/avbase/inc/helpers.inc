@@ -1034,3 +1034,21 @@ function avbase_set_window_title($title = NULL, $output = CHECK_PLAIN) {
 function avbase_txn_number_format($type, $id) {
   return strtoupper($type) . '# ' . $id;
 }
+
+function avbase_query_supplements(&$query, $where = array(), $order_by = array(), $limit = NULL, $offset = NULL, $group_by = array()) {
+  if (!empty($where)) {
+    $query .= " WHERE " . implode(' AND ', $where);
+  }
+  if (!empty($group_by)) {
+    $query .= " GROUP BY " . implode(', ', $group_by);
+  }
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
+  }
+  if (!is_null($limit)) {
+    $query .= " LIMIT $limit";
+    if (!is_null($offset)) {
+      $query .= " OFFSET $offset";
+    }
+  }
+}

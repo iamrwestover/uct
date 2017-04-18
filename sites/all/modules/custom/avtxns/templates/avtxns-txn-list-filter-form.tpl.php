@@ -46,7 +46,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
   <?php if ($date_from): ?>
-    <div class="uk-width-2-10">
+    <div class="uk-width-2-10 uk-margin-small-bottom">
       <?php print $date_from; ?>
     </div>
   <?php endif; ?>
@@ -108,6 +108,27 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php if ($table_columns_html): ?>
     <div class="uk-width-1-10">
       <?php print $table_columns_html; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if (isset($form['settings']['all_products'])): ?>
+    <div class="uk-width-2-10">
+      <?php print drupal_render($form['settings']['all_products']); ?>
+    </div>
+  <?php endif; ?>
+  <?php if (isset($form['settings']['stock_status'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['settings']['stock_status']); ?>
+    </div>
+  <?php endif; ?>
+  <?php if (isset($form['settings']['preferred_vendor'])): ?>
+    <div class="uk-width-3-10">
+      <?php print drupal_render($form['settings']['preferred_vendor']); ?>
+    </div>
+  <?php endif; ?>
+  <?php if (isset($form['settings']['principal_name'])): ?>
+    <div class="uk-width-2-10">
+      <?php print drupal_render($form['settings']['principal_name']); ?>
     </div>
   <?php endif; ?>
 

@@ -471,7 +471,7 @@ function avtxns_txn_types($type = NULL) {
       'payment' => TRUE,
       'cant_change_date' => TRUE,
       'no_terms' => TRUE,
-      'no_agent' => TRUE,
+      //'no_agent' => TRUE,
       'total_is_entered_amount' => TRUE,
       'ref_ar_type' => 'credit',
       'non_product' => TRUE,
@@ -770,8 +770,10 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $select = $joins = array();
     $select[] = 'avclients.display_name';
     $select[] = 'avcat_agent.title AS agent_name';
+    $select[] = 'u.name';
     $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
+    $joins[] = 'LEFT JOIN {users} AS u ON u.uid = avtxn.uid';
 
     $rows_per_page = empty($options['#hide_filter_form']) ? 30 : 10;
     $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, $select, $joins, array(), TRUE);
@@ -919,6 +921,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#maxlength' => 255,
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
+        'placeholder' => 'Principal'
       ),
     );
   }
@@ -1065,6 +1068,55 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'checkboxes',
       '#title' => 'Columns',
       '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
+  if (!empty($settings['all_products'])) {
+    $fields['settings']['all_products'] = empty($settings['all_products']) ? array() : $settings['all_products'];
+    $fields['settings']['all_products'] += array(
+      '#type' => 'select',
+      '#title' => 'Products',
+      '#options' => array('In a DR, SO or PO on selected dates', 'All products'),
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+  if (!empty($settings['stock_status'])) {
+    $fields['settings']['stock_status'] = empty($settings['stock_status']) ? array() : $settings['stock_status'];
+    $fields['settings']['stock_status'] += array(
+      '#type' => 'select',
+      '#title' => 'Status',
+      '#options' => array(
+        'all' => 'All',
+        'low' => 'Low stock',
+        'os' => 'Out of stock'
+      ),
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+  if (!empty($settings['principal_name'])) {
+    $fields['settings']['principal_name'] = empty($settings['principal_name']) ? array() : $settings['principal_name'];
+    $fields['settings']['principal_name'] += array(
+      '#type' => 'textfield',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+        'placeholder' => 'Principal'
+      ),
+    );
+  }
+  if (!empty($settings['preferred_vendor'])) {
+    $fields['settings']['preferred_vendor'] = empty($settings['preferred_vendor']) ? array() : $settings['preferred_vendor'];
+    $fields['settings']['preferred_vendor'] += array(
+      '#type' => 'textfield',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'placeholder' => 'Vendor name',
         'class' => array('trigger-ajax-search'),
       ),
     );

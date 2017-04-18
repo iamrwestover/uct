@@ -458,7 +458,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
     //$select[] = 'avclients.display_name';
     //$select[] = 'avtxn.term_id';
     //$select[] = 'avcat_term.title AS term_name';
-    $select[] = 'u.name';
+    //$select[] = 'u.name';
     //$select[] = 'avtxn_detail.ref_txn_type';
     //$select[] = 'avtxn_detail.ref_txn_dtl_id';
     //$select[] = "IF (
@@ -481,7 +481,7 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
   //$joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
-  $joins[] = 'LEFT JOIN {users} AS u ON u.uid = avtxn.uid';
+  //$joins[] = 'LEFT JOIN {users} AS u ON u.uid = avtxn.uid';
   $joins = array_merge($joins, $more_joins);
   //$joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   //$joins[] = "LEFT JOIN {avtbl_transaction_details} AS avtxn_detail_ref ON
@@ -512,18 +512,18 @@ function avtxns_txns_query_load($param_where = array(), $param_args = array(), $
 
 
   if ($count_query) {
-    $rows = db_query($query, $param_args)->fetchField();
+    $data[$data_id] = db_query($query, $param_args)->fetchField();
   }
   else {
-    $rs = db_query($query, $param_args);
-    $rows = array();
-    foreach ($rs as $row) {
-      $rows[] = $row;
-    }
+    $data[$data_id] = db_query($query, $param_args);
+    //$rows = $rs;
+    //foreach ($rs as $row) {
+    //  $rows[] = $row;
+    //}
   }
 
-  $data[$data_id] = $rows;
-  return $rows;
+  //$data[$data_id] = $rows;
+  return $data[$data_id];
 }
 
 /**

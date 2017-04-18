@@ -14,6 +14,9 @@
     <?php if (isset($form['area_name'])): ?>
       <?php print drupal_render($form['area_name']); ?>
     <?php endif; ?>
+    <?php if (isset($form['principal_name'])): ?>
+      <?php print drupal_render($form['principal_name']); ?>
+    <?php endif; ?>
   </div>
   <div class="uk-width-1-3 uk-text-right">
     <?php if (isset($form['simplified_status'])): ?>

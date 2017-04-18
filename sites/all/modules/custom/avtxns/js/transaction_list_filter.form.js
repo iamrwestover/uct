@@ -42,7 +42,7 @@
         self.$dateAutoEl.val('custom');
       });
       self.$dateToEl.change(function () {
-        self.$dateFromEl.val($(this).val());
+        //self.$dateFromEl.val($(this).val());
         self.$dateAutoEl.val('custom');
       });
 

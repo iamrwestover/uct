@@ -26,7 +26,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $col_due_date = !empty($ttd['bill']);
   $col_paid = !empty($ttd['payable']);
   $col_terms = empty($ttd['no_terms']);
-  $col_agent = $col_client && empty($ttd['non_product']);
+  $col_agent = $col_client && empty($ttd['no_agent']);
   $col_memo = $transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT || $ttd['transaction'] == 'accounts';
   //$col_account_name = $ttd['transaction'] == 'accounts';
   $col_total = $transaction_type != AVTXNS_TXN_TYPE_JOURNAL;

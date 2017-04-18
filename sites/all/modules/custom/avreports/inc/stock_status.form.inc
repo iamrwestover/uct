@@ -1,49 +1,60 @@
 <?php
-
 function avreports_stock_status_form($form, &$form_state) {
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
+  $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
   $filter_form_settings = array(
-    //'date_auto' => array(
-    //  '#title' => t('Dates'),
-    //  '#default_value' => 'last_month_to_date',
-    //),
-    //'date_from' => array(
-    //  '#title' => t('Date from'),
-    //  '#default_value' => $dad_default['date_from'],
-    //),
-    //'date_to' => array(
-    //  '#title' => t('Date to'),
-    //  '#default_value' => $dad_default['date_to'],
-    //),
-    //'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'date_auto' => array(
+      '#title' => t('Dates'),
+      '#default_value' => 'this_week',
+    ),
+    'date_from' => array(
+      '#title' => t('Date from'),
+      '#default_value' => $dad_default['date_from'],
+    ),
+    'date_to' => array(
+      '#title' => t('Date to'),
+      '#default_value' => $dad_default['date_to'],
+    ),
+    'preferred_vendor' => array(
+      '#title' => 'Preferred Vendor',
+      '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_VENDOR . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
+    ),
+    'principal_name' => array(
+      '#title' => t('Principal'),
+      '#autocomplete_path' => 'av/categories/principal/autocomplete',
+    ),
+    'all_products' => array('#default_value' => 0),
+    'stock_status' => array('#default_value' => 'all'),
+    'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
-  $form['transaction_list_filter']['avtxns_tl_filter']['#attributes']['class'][] = 'uk-hidden';
-
   // Prepare query variables.
   $select = $joins = $where = $args = array();
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
-  //$where = empty($filter_query['where']) ? array() : $filter_query['where'];
-  //$args = empty($filter_query['args']) ? array() : $filter_query['args'];
+  $where = empty($filter_query['where']) ? array() : $filter_query['where'];
+  $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+
+  $all_products = !empty($user_filter['settings']['all_products']);
+  //if ($all_products) {
+  //  $where = $args = array();
+  //}
 
   $header = array();
-  $header['title'] = array('data' => 'Product', 'field' => 'title');
-  $header['vendor'] = array('data' => 'Preferred Vendor');
-  $header['on_hand'] = array('data' => 'On Hand', 'field' => 'qty', 'class' => array('uk-text-right'));
-  $header['uom'] = array('data' => 'UOM');
-  $header['on_so'] = array('data' => 'On SO', 'class' => array('uk-text-right'));
-  $header['on_po'] = array('data' => 'On PO', 'class' => array('uk-text-right'));
-  $header['rop'] = array('data' => 'Reorder Pt.', 'field' => 'rop', 'class' => array('uk-text-right'));
+  $header['product_title'] = array('data' => 'Product', 'field' => 'title');
+  //$header['principal'] = array('data' => 'Principal', 'field' => 'principal_title');
+  $header['vendor'] = array('data' => 'Preferred Vendor', 'field' => 'vendor_name');
+  $header['onhand'] = array('data' => 'On Hand', 'field' => 'onhand', 'class' => array('uk-text-right'));
+  $header['uom'] = array('data' => 'UOM', 'field' => 'uom_title');
+  $header['dr_total'] = array('data' => 'Delivered', 'field' => 'dr_total', 'class' => array('uk-text-right'));
+  $header['on_so'] = array('data' => 'On SO', 'field' => 'so_total', 'class' => array('uk-text-right'));
+  $header['on_po'] = array('data' => 'On PO', 'field' => 'po_total', 'class' => array('uk-text-right'));
+  $header['rop'] = array('data' => 'ROP', 'field' => 'rop', 'class' => array('uk-text-right'));
+  $header['eoq'] = array('data' => 'EOQ', 'field' => 'eoq', 'class' => array('uk-text-right'));
   $header['cost'] = array('data' => 'Cost', 'field' => 'cost', 'class' => array('uk-text-right'));
   $header['price'] = array('data' => 'Price', 'field' => 'price', 'class' => array('uk-text-right'));
 
 
-  if (empty($_GET['order'])) {
-    $_GET['order'] = 'On Hand';
-    $_GET['sort'] = 'asc';
-  }
   // Set table pagination and sort settings.
   if (!empty($user_filter['settings']['table_href'])) {
     $table_ajax_href = $user_filter['settings']['table_href'];
@@ -55,70 +66,88 @@ function avreports_stock_status_form($form, &$form_state) {
       }
     }
   }
+  // Set default order.
+  if (empty($_GET['order'])) {
+    $_GET['order'] = $header['onhand']['data'];
+    $_GET['sort'] = 'ASC';
+  }
   $order_by = avbase_build_header_order_array($header);
 
-  //$select[] = 'avprod.*';
-  //$select[] = 'avtxn.transaction_type';
-  //$select[] = '(IF(avtxn.transaction_type = :po, 1, 2)) AS on_so';
-  //$select[] = '(IF(avtxn.transaction_type = :so, 1, 2)) AS on_po';
-  //$joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
-  //$joins[] = 'LEFT JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
-  $where[] = 'avprod.status = :active';
-  //$where[] = 'avprod.id < 10';
-  //$where[] = 'avtxn.status IS NULL OR avtxn.status IN (:status)';
-  $args[':active'] = AVPRODUCTS_STATUS_ACTIVE;
-  //$args[':po'] = AVTXNS_TXN_TYPE_PURCHASE_ORDER;
-  //$args[':so'] = AVTXNS_TXN_TYPE_SALES_ORDER;
-  //$args[':status'] = array(AVTXNS_TXN_STATUS_OPEN);
-  //$query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
-  //$group_by = array('avprod.id');
-  //if (!empty($where)) {
-  //  $query .= " WHERE " . implode(' AND ', $where);
-  //}
-  //if (!empty($group_by)) {
-  //  $query .= " GROUP BY " . implode(', ', $group_by);
-  //}
-  //if (!empty($order_by)) {
-  //  $query .= " ORDER BY " . implode(', ', $order_by);
-  //}
-  //$rs = db_query($query, $args);
-  $product_rows = avproduct_query_load($where, $args, '', $order_by);
-  $pr_ids = array();
-  foreach ($product_rows as $pr) {
-    $pr_ids[] = $pr->id;
-  }
-  $query = "SELECT
-    avtxn.transaction_type,
-    avtxn_detail.item_id,
-    SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) as txn_qty
-    FROM {avtbl_transaction_details} AS avtxn_detail
-    INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
-    WHERE avtxn.status IN (:status) AND avtxn.transaction_type IN (:types)
-    AND avtxn_detail.item_id IN (:ids)
-    GROUP BY avtxn_detail.item_id, avtxn.transaction_type
-    ";
-  $targs = array();
-  $targs[':status'] = array(AVTXNS_TXN_STATUS_OPEN);
-  $targs[':ids'] = $pr_ids;
-  $targs[':types'] = array(AVTXNS_TXN_TYPE_PURCHASE_ORDER, AVTXNS_TXN_TYPE_SALES_ORDER);
-  $rs = db_query($query, $targs);
-  $trows = array();
-  foreach ($rs as $row) {
-    $trows[$row->item_id][$row->transaction_type] = $row;
+  // Supporting order by if ordered by On Hand.
+  if (isset($order_by['onhand'])) {
+    $order_by['dr_total'] = 'dr_total DESC';
+    $order_by['so_total'] = 'so_total DESC';
+    $order_by['po_total'] = 'po_total ASC';
   }
 
+
+  $select = array();
+  $products_join = $all_products ? 'LEFT JOIN' : 'INNER JOIN';
+  $select[] = 'avprod.id AS product_id';
+  $select[] = 'avprod.title AS product_title';
+  $select[] = 'avprod.qty AS onhand';
+  $select[] = 'avprod.rop';
+  $select[] = 'avprod.eoq';
+  $select[] = 'avprod.cost';
+  $select[] = 'avprod.price';
+  $select[] = 'SUM(IF(avtxn.transaction_type = :po_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS po_total';
+  $select[] = 'SUM(IF(avtxn.transaction_type = :so_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS so_total';
+  $select[] = 'SUM(IF(avtxn.transaction_type = :dr_type, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS dr_total';
+  $select[] = 'avvendor.display_name AS vendor_name';
+  $select[] = 'avcat_uom.title AS uom_title';
+  //$select[] = 'avcat_principal.title AS principal_title';
+  $joins[] = $products_join . ' {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
+  $joins['avtxn'] = $products_join . ' {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status <> :void_type AND avtxn.transaction_type IN (:ttypes)';
+  if (!empty($where)) {
+    $joins['avtxn'] .= ' AND ' . implode(' AND ', $where);
+    $where = array();
+  }
+  $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendor ON avvendor.id = avprod.vendor_id';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
+
+  $args[':po_type'] = AVTXNS_TXN_TYPE_PURCHASE_ORDER;
+  $args[':so_type'] = AVTXNS_TXN_TYPE_SALES_ORDER;
+  $args[':dr_type'] = AVTXNS_TXN_TYPE_DELIVERY;
+  $args[':open_status'] = AVTXNS_TXN_STATUS_OPEN;
+  $args[':void_type'] = AVTXNS_TXN_STATUS_VOID;
+  $args[':ttypes'] = array(AVTXNS_TXN_TYPE_PURCHASE_ORDER, AVTXNS_TXN_TYPE_SALES_ORDER, AVTXNS_TXN_TYPE_DELIVERY);
+  $group_by = array();
+  $group_by[] = 'avprod.id';
+
+  switch ($user_filter['settings']['stock_status']) {
+    case 'low':
+      $where[] = '(avprod.qty < 1 OR avprod.rop <= avprod.qty)';
+      break;
+    case 'os':
+      $where[] = 'avprod.qty < 1';
+      break;
+  }
+  if (!empty($user_filter['settings']['principal_name'])) {
+    $joins[] = 'INNER JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id AND avcat_principal.title = :principal_name';
+    $args[':principal_name'] = $user_filter['settings']['principal_name'];
+  }
+  if (!empty($user_filter['settings']['preferred_vendor'])) {
+    $where[] = 'avvendor.display_name = :preferred_vendor';
+    $args[':preferred_vendor'] = $user_filter['settings']['preferred_vendor'];
+  }
+  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+
+  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  $rs = db_query($query, $args);
+
   $table_rows = array();
-  foreach ($product_rows as $p_id => $row) {
+  foreach ($rs as $row) {
     $data = array();
-    $data['title'] = array('data' => check_plain($row->title));
+    $data['product_title'] = array('data' => l($row->product_title, 'av/products/' . $row->product_id . '/view'));
+    //$data['principal'] = array('data' => check_plain($row->principal_title));
     $data['vendor'] = array('data' => check_plain($row->vendor_name));
-    $data['on_hand'] = array('data' => $row->qty, 'class' => array('uk-text-right'));
+    $data['onhand'] = array('data' => number_format($row->onhand), 'class' => array('uk-text-right'));
     $data['uom'] = array('data' => check_plain($row->uom_title));
-    $on_so = empty($trows[$p_id][AVTXNS_TXN_TYPE_SALES_ORDER]->txn_qty) ? 0 : $trows[$p_id][AVTXNS_TXN_TYPE_SALES_ORDER]->txn_qty;
-    $on_po = empty($trows[$p_id][AVTXNS_TXN_TYPE_PURCHASE_ORDER]->txn_qty) ? 0 : $trows[$p_id][AVTXNS_TXN_TYPE_PURCHASE_ORDER]->txn_qty;
-    $data['on_so'] = array('data' => $on_so, 'class' => array('uk-text-right'));
-    $data['on_po'] = array('data' => $on_po, 'class' => array('uk-text-right'));
-    $data['rop'] = array('data' => $row->rop, 'class' => array('uk-text-right'));
+    $data['dr_total'] = array('data' => number_format($row->dr_total), 'class' => array('uk-text-right'));
+    $data['on_so'] = array('data' => number_format($row->so_total), 'class' => array('uk-text-right'));
+    $data['on_po'] = array('data' => number_format($row->po_total), 'class' => array('uk-text-right'));
+    $data['rop'] = array('data' => number_format($row->rop), 'class' => array('uk-text-right'));
+    $data['eoq'] = array('data' => number_format($row->eoq), 'class' => array('uk-text-right'));
     $data['cost'] = array('data' => number_format($row->cost, 2), 'class' => array('uk-text-right'));
     $data['price'] = array('data' => number_format($row->price, 2), 'class' => array('uk-text-right'));
     $table_rows[] = array('data' => $data);
@@ -135,18 +164,24 @@ function avreports_stock_status_form($form, &$form_state) {
       'class' => array('uk-table-condensed uk-table-hover'),
     ),
   );
+  avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
+  if (!empty($user_filter['avcat_principal.title'])) {
+    $transaction_list_table['principal_name'] = array(
+      '#type' => 'item',
+      '#title' => 'Principal',
+      '#title_display' => 'inline-before',
+      '#markup' => check_plain($user_filter['avcat_principal.title']),
+    );
+  }
 
   $form['transaction_list_table'] = array(
     '#type' => 'container',
-    '#theme' => 'avreports_inventory_ranking',
+    '#theme' => 'avreports_txn_list',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
       'class' => array('printable')
     ),
   );
-
-  avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
-
   $form['transaction_list_table'] += $transaction_list_table;
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
