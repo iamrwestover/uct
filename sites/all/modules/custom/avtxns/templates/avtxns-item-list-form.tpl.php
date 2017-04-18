@@ -47,7 +47,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
 ?>
 <div class="printable">
   <div class="uk-grid uk-grid-small">
-    <div class="uk-width-7-10">
+    <div class="uk-width-7-10 av-ph2">
 
       <div class="uk-grid uk-grid-small">
         <div class="uk-width-1-2">
@@ -87,7 +87,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
 
     </div>
 
-    <div class="uk-width-3-10 uk-form-row-compact">
+    <div class="uk-width-3-10 uk-form-row-compact av-ph2">
       <div class="<?php print ($view_mode ? 'uk-text-right' : ''); ?>">
         <?php print drupal_render($form['transaction_date']); ?>
         <?php
