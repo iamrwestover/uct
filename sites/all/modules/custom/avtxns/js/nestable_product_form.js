@@ -202,6 +202,18 @@
         else if (e.keyCode === 9) {
           avDropdown.select(true);
         }
+        else {
+          var c = String.fromCharCode(e.which);
+          var data = avDropdownData($productTitleEl.data('selected-product-id'));
+          if (data.length) {
+            $.each(data, function(index, value) {
+              var v = value.value || '';
+              if (v.charAt(0) == c) {
+                $UOMEl.val(v);
+              }
+            });
+          }
+        }
       });
       $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data, x) {
         $qtyPerUOMEl.val(data.qtyperuom);
