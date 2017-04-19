@@ -11,6 +11,7 @@ module_load_include('inc', 'avclients', 'inc/helpers');
 
 define('AVCLIENT_TYPE_CUSTOMER', 1);
 define('AVCLIENT_TYPE_VENDOR', 2);
+define('AVCLIENT_TYPE_BRANCH', 3);
 
 define('AVCLIENT_STATUS_DISABLED', 0);
 define('AVCLIENT_STATUS_ACTIVE', 1);
@@ -265,6 +266,12 @@ function avclients_client_types($client_type = NULL) {
       'base_path' => 'av/vendors',
       'name' => 'Vendor',
       'plural_name' => 'Vendors',
+    );
+    $ret[AVCLIENT_TYPE_BRANCH] = array(
+      'type' => AVCLIENT_TYPE_BRANCH,
+      'base_path' => 'av/branches',
+      'name' => 'Branch',
+      'plural_name' => 'Branches',
     );
   }
 

@@ -66,9 +66,11 @@ function avbase_users_home_form($form, &$form_state) {
     $rows[] = array(
       'data' => array(
         'id' => array('data' => $row->uid, 'class' => array('uk-hidden')),
-        'name' => array('data' => $is_superadmin ? 'Anonymous' : $user_view_link),
-        'username' => array('data' =>  $is_superadmin ? '?' : check_plain($row->name)),
-        'roles' => array('data' => $is_superadmin ? '?' : implode(', ', $users_roles)),
+        //'name' => array('data' => $is_superadmin ? 'Anonymous' : $user_view_link),
+        'name' => array('data' => $user_view_link),
+        'username' => array('data' =>  $is_superadmin ? '-' : check_plain($row->name)),
+        //'roles' => array('data' => $is_superadmin ? '?' : implode(', ', $users_roles)),
+        'roles' => array('data' => implode(', ', $users_roles)),
         'actions' => $is_superadmin ? '' : $actions_html,
       ),
       'class' => array('uk-table-middle'),

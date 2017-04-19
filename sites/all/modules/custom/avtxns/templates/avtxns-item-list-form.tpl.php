@@ -110,7 +110,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
 
 
 
-    <div class="uk-width-1-1 uk-margin-small-top">
+    <div class="uk-width-1-1 uk-margin-top">
       <?php print drupal_render($form['product_rows']); ?>
       <div class="uk-grid uk-grid-collapse">
         <?php if (isset($form['journal_debit_total']) && isset($form['journal_credit_total'])): ?>

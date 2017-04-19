@@ -112,7 +112,7 @@
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
         <a href="#av-quick-search" class="uk-icon-search uk-icon-hover uk-margin-small-right" data-uk-modal data-ks="F3"></a>
-        <a href="/av/help" class="uk-alert-success uk-icon-small uk-icon-question-circle uk-icon-hover uk-margin-small-right" title="Help"></a>
+        <a href="/av/help" class="uk-icon-small uk-icon-question-circle uk-icon-hover uk-margin-small-right" style="color: #659f13" title="Help"></a>
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>
     </div>
@@ -150,7 +150,7 @@
     <div class="uk-width-2-5 uk-text-right">
       <?php if ($title): ?><div class="uk-article-title"><?php print $title; ?></div><?php endif; ?>
     </div>
-    <hr class="uk-width-1-1 uk-margin-small" />
+    <hr class="uk-width-1-1 uk-margin-small uk-margin-top" />
   </div>
 
   <div<?php print $page_container_attributes; ?>>

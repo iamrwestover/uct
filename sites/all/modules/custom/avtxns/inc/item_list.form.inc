@@ -101,7 +101,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     }
   }
 
-  if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN)) || !empty($ttd['payment'])) {
+  if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN)) || !empty($ttd['payment'])) {
     $form['reference_id'] = array(
       '#type' => 'textfield',
       '#title' => 'Reference ID',

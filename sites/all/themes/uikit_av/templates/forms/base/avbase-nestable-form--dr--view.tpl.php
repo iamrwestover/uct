@@ -11,12 +11,12 @@ $view_mode = !empty($form['#av_view_mode']);
               Qty
             </div>
           </div>
-          <div class="uk-width-2-10" style="width: 10%;">
+          <div class="uk-width-2-10" style="width: 12%;">
             <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'left' : 'center'); ?>">
               UOM
             </div>
           </div>
-          <div class="uk-width-7-10" style="width: 80%;"><div class="av-nestable-cell">Product</div></div>
+          <div class="uk-width-7-10" style="width: 78%;"><div class="av-nestable-cell">Product</div></div>
         </div>
       </div>
 

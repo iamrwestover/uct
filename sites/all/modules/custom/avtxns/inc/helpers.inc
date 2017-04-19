@@ -1244,12 +1244,17 @@ function avtxns_txn_reconsider_status($ids = array()) {
 /**
  * Return transaction type list as options array.
  */
-function avtxns_txn_types_options_array() {
+function avtxns_txn_types_options_array($flat = FALSE) {
   $options = array();
   $types = avtxns_txn_types();
   foreach ($types as $t_k => $t) {
     if (user_access(constant('AVTXNS_PERM_VIEW_' . strtoupper($t_k)))) {
-      $options[$t_k] = $t['name'];
+      if ($flat) {
+        $options[$t_k] = $t['name'];
+      }
+      else {
+        $options[strtoupper($t['transaction'])][$t_k] = $t['name'];
+      }
     }
   }
   return $options;

@@ -356,12 +356,14 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     if (!empty($user_filter['avclients.display_name'])) {
       $client = avclient_query_load(array('avclients.display_name = :name'), array(':name' => $user_filter['avclients.display_name']));
       $client = array_shift($client);
-      $transaction_list_table['client_name'] = array(
-        '#type' => 'item',
-        '#markup' => '<div class="uk-text-bold">' . check_plain($client->display_name) . '</div>' . nl2br($client->address_string),
-      );
-      if (!empty($client->contact_number)) {
-        $transaction_list_table['client_name']['#markup'] .= '<br />Contact #: ' . check_plain($client->contact_number);
+      if (!empty($client->id)) {
+        $transaction_list_table['client_name'] = array(
+          '#type' => 'item',
+          '#markup' => '<div class="uk-text-bold">' . check_plain($client->display_name) . '</div>' . nl2br($client->address_string),
+        );
+        if (!empty($client->contact_number)) {
+          $transaction_list_table['client_name']['#markup'] .= '<br />Contact #: ' . check_plain($client->contact_number);
+        }
       }
     }
     if (!empty($user_filter['avcat_area.title'])) {
