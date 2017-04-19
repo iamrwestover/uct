@@ -206,10 +206,12 @@
           var c = String.fromCharCode(e.which);
           var data = avDropdownData($productTitleEl.data('selected-product-id'));
           if (data.length) {
-            $.each(data, function(index, value) {
-              var v = value.value || '';
+            $.each(data, function(index, data) {
+              var v = data.value || '';
               if (v.charAt(0) == c) {
                 $UOMEl.val(v);
+                $qtyPerUOMEl.val(data.qtyPerUOM);
+                $UOMEl.trigger('change');
                 return;
               }
             });

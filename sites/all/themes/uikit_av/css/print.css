@@ -36,16 +36,22 @@
     /*font-family: "Verdana", times, sans-serif !important;*/
     /*font-family: "High Speed Draft 10cpi", sans-serif !important;*/
     /*font-family: sans-serif !important;*/
-    font-family: "Century Gothic", sans-serif !important;
+    font-family: "Lucida Console", sans-serif !important;
   }
   body, .av-nestable-product-list-view .uk-badge, .uk-text-small {
-    font-size: 10px;
+    font-size: 11px;
     line-height: 11px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.2px;
   }
   .site-name, .site-address, .site-contact-number, .av-ph2, .av-nestable-form-header {
-    /*font-size: 11px;*/
-    /*line-height: 10px;*/
+    font-size: 10px;
+    line-height: 10px;
+    letter-spacing: 0.1px;
+  }
+  #client-id {
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: bold;
   }
   #page {
     /*Do not remove*/
@@ -100,7 +106,7 @@
   .av-nestable-product-list-view .uk-badge {
     font-weight: normal;
     border: none;
-    padding: 0 0 0 20px;
+    padding: 0 0 0 105px;
   }
   /*#page-title,*/
   #avtxns-txn-list-filter-form,

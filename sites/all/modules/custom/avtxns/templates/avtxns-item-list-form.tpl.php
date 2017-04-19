@@ -263,27 +263,31 @@ $balance_ages_html = drupal_render($form['balance_ages']);
         <div class="uk-grid">
           <div class="uk-width-7-10">
             <div class="uk-grid uk-grid-small">
+              <?php
+                $payable_to = strtoupper(variable_get('av_checks_payable_to', 'Ultimate Care Trading'));
+                $hide_payable_to = $payable_to == 'HIDE';
+              ?>
               <?php if (arg(1) == AVTXNS_TXN_TYPE_DELIVERY): ?>
-                <div class="uk-width-2-3">Received the above items in good order and condition</div>
-                <div class="uk-width-1-3 uk-text-center">All checks payable to</div>
+                <div class="uk-width-2-3 av-ph2">Received the above items in good order and condition</div>
+                <div class="uk-width-1-3 uk-text-center"><?php print ($hide_payable_to ? '' : 'All checks payable to'); ?></div>
                 <div class="uk-width-2-3">&nbsp;</div>
-                <div class="uk-width-1-3 uk-text-center uk-text-bold"><?php print strtoupper(variable_get('av_checks_payable_to', 'Ultimate Care Trading')); ?></div>
+                <div class="uk-width-1-3 uk-text-center uk-text-bold"><?php print ($hide_payable_to ? '' : $payable_to); ?></div>
               <?php else: ?>
                 <div class="uk-width-1-1">&nbsp;</div>
               <?php endif; ?>
               <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
               <div class="uk-width-1-3"><hr style="border-color: #000;" /></div>
               <div class="uk-width-1-3"></div>
-              <div class="uk-width-1-3 uk-text-center">Signature Over Printed Name</div>
-              <div class="uk-width-1-3 uk-text-center">Date</div>
+              <div class="uk-width-1-3 uk-text-center av-ph2">Signature Over Printed Name</div>
+              <div class="uk-width-1-3 uk-text-center av-ph2">Date</div>
               <div class="uk-width-1-3"></div>
             </div>
           </div>
           <div class="uk-width-3-10">
             <div class="uk-grid uk-grid-collapse">
               <?php if (isset($form['grand_total'])): ?>
-                <div class="uk-width-1-3 uk-text-right"><h3>Total</h3></div>
-                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><h3><?php print render($form['grand_total']); ?></h3></div>
+                <div class="uk-width-1-3 uk-text-right"><h4>Total</h4></div>
+                <div class="uk-width-2-3 uk-text-right" style="border-bottom: solid 1px #ddd;"><h4><?php print render($form['grand_total']); ?></h4></div>
               <?php endif; ?>
               <?php if ($view_mode && isset($form['total_paid_text'])): ?>
                 <div class="uk-width-1-3 uk-text-right">Paid</div>
@@ -312,7 +316,7 @@ $balance_ages_html = drupal_render($form['balance_ages']);
       <?php if (arg(1) == AVTXNS_TXN_TYPE_DELIVERY): ?>
         <div class="uk-width-1-1">
           <br />
-          <span class="uk-text-bold">IMPORTANT:</span> Count goods carefully before signing.<br />Complaints on defective delivery will not be entertained unless the same are noted and informed herein by the hauler's representative.
+          <span class="uk-text-bold av-ph2">IMPORTANT:</span> Count goods carefully before signing.<br />Complaints on defective delivery will not be entertained unless the same are noted and informed herein by the hauler's representative.
         </div>
       <?php endif; ?>
     </div>

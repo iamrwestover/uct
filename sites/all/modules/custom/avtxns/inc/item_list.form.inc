@@ -440,6 +440,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     '#transaction' => $ttd['transaction'],
     '#row_id' => empty($row->id) ? NULL : $row->id,
   );
+  if ($view_mode) {
+    $form['product_rows']['#theme'] .= '__view';
+  }
+
   if (!empty($ttd['payment'])) {
     $form['product_rows']['#pending_txns_reference_type'] = $ttd['pending_txns_reference_type'];
   }
@@ -867,7 +871,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           '#title_display' => 'none',
           '#maxlength' => 10,
           '#element_validate' => array('avtxns_item_list_row_element_validate'),
-          '#av_prod_element_validate' => array('element_validate_integer_positive'),
+          '#av_prod_element_validate' => array('avbase_element_validate_non_negative_integer'),
           '#attributes' => array(
             'data-column-name' => 'new-qty',
             'class' => array('prod-column-new-qty uk-text-right'),
@@ -1025,6 +1029,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
     $form['product_rows'][$prod_key]['#prod_index'] = $prod_index;
     $form['product_rows'][$prod_key]['#prod_category'] = empty($prod_row['category_title']) ? '' : $prod_row['category_title'];
     $form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row__' . $ttd['tpl_suffix'];
+    if ($view_mode) {
+      $form['product_rows'][$prod_key]['#theme'] .= '__view';
+    }
     //$form['product_rows'][$prod_key]['#theme'] = 'avbase_nestable_form_row';
     $form['product_rows'][$prod_key]['#prefix'] = '<div id="item-list-product-row-' . $prod_key . '-wrapper" class="uk-nestable-item">';
     $form['product_rows'][$prod_key]['#suffix'] = '</div>';

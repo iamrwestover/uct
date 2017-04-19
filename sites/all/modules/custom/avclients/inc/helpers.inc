@@ -233,7 +233,12 @@ function avclients_autocomplete($client_type_string, $status_string, $string = '
     //  LEFT JOIN {avtbl_categories} avcat_terms ON avcat_terms.id = avclients.term_id
     //  WHERE " . implode(' AND ', $where) . " ORDER BY display_name LIMIT 8";
     //$rs = db_query($query, $args);
-    $rs = avclient_query_load($where, $args, 8, array('display_name'));
+    $order_by = array();
+    $order_by [] = 'CASE WHEN display_name LIKE :like_entire_string THEN 1 WHEN display_name = :entire_string THEN 2 ELSE 3 END';
+    $args[':like_entire_string'] = '%' . db_like($string) . '%';
+    $args[':entire_string'] = $string;
+    $order_by[] = 'display_name';
+    $rs = avclient_query_load($where, $args, 8, $order_by);
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'display_name', $string);
     foreach ($ordered_rows as $row) {
       $row->address_string = avclients_address_string_format($row);

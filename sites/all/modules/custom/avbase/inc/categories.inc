@@ -325,7 +325,12 @@ function avbase_category_autocomplete($category_ids_string, $string = '') {
     }
 
     // Build query.
-    $query = "SELECT * FROM avtbl_categories WHERE " . implode(' AND ', $where) . " ORDER BY title LIMIT 8";
+    $query = "SELECT * FROM avtbl_categories WHERE " . implode(' AND ', $where) . "
+    ORDER BY
+      CASE WHEN title LIKE :like_entire_string THEN 1 WHEN title = :entire_string THEN 2 ELSE 3 END,
+      title LIMIT 8";
+    $args[':like_entire_string'] = '%' . db_like($string) . '%';
+    $args[':entire_string'] = $string;
     $rs = db_query($query, $args);
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
 

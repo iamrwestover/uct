@@ -971,7 +971,8 @@ function avbase_order_db_rows_by_best_match($rows, $field_name, $search_string =
   $grouped_rows = array();
   $string_arr = explode(' ', $search_string);
   foreach ($rows as $row) {
-    if (strtolower($row->$field_name) == strtolower($search_string)) {
+    //if (strtolower($row->$field_name) == strtolower($search_string)) {
+    if (strpos(strtolower($row->$field_name), strtolower($search_string)) === 0) {
       // Prioritize exact match.
       $grouped_rows[0][] = $row;
     }

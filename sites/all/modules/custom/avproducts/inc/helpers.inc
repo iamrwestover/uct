@@ -219,7 +219,12 @@ function avproducts_autocomplete($string = '') {
     // Build query.
     //$query = "SELECT * FROM avtbl_products WHERE " . implode(' AND ', $where) . " ORDER BY title LIMIT 8";
     //$rs = db_query($query, $args);
-    $rs = avproduct_query_load($where, $args, '8', array('title'));
+    $order_by = array();
+    $order_by [] = 'CASE WHEN avprod.title LIKE :like_entire_string THEN 1 WHEN avprod.title = :entire_string THEN 2 ELSE 3 END';
+    $args[':like_entire_string'] = '%' . db_like($string) . '%';
+    $args[':entire_string'] = $string;
+    $order_by[] = 'avprod.title';
+    $rs = avproduct_query_load($where, $args, '8', $order_by);
     $ordered_rows = avbase_order_db_rows_by_best_match($rs, 'title', $string);
 
     foreach ($ordered_rows as $row) {
@@ -382,5 +387,5 @@ function avproducts_product_change_status($id, $status) {
 }
 
 function avproducts_discount_value_query() {
-  return "1 - ((1 - discount1 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - discount2 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - discount3 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - discount4 / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . "))";
+  return "1 - ((1 - IFNULL(discount1,0) / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - IFNULL(discount2,0) / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - IFNULL(discount3,0) / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . ") * (1 - IFNULL(discount4,0) / 100 * " . ((float) AVTXN_DISCOUNT_MULTIPLIER) . "))";
 }

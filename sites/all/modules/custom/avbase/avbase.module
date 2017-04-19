@@ -616,6 +616,7 @@ function avbase_general_settings_form() {
     '#title' => t('All checks payable to'),
     '#default_value' => variable_get('av_checks_payable_to', 'Ultimate Care Trading'),
     '#required' => TRUE,
+    '#description' => 'Input "hide" to hide this from print.',
   );
 
   //$form['company_information']['site_mail'] = array(
