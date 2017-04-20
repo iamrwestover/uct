@@ -170,6 +170,8 @@ function avreports_stock_status_form($form, &$form_state) {
     $where[] = 'avvendor.display_name = :preferred_vendor';
     $args[':preferred_vendor'] = $user_filter['settings']['preferred_vendor'];
   }
+  $where[] = 'avprod.status = :active_prod';
+  $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
 
   avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
