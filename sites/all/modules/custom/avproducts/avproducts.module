@@ -175,7 +175,7 @@ function avproducts_home_form($form, &$form_state) {
   }
 
   $form['filter'] = avproduct_list_filter_form(NULL, $form_state);
-  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
+  $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY, 'data-ks' => 'F4'));
   $form['new_button'] = array(
     '#markup' => l('New product', 'av/products/add', $btn_options),
     '#access' => user_access(AVPRODUCTS_PERM_PRODUCT_CREATE),
@@ -185,6 +185,7 @@ function avproducts_home_form($form, &$form_state) {
     '#value' => t('Order selected products'),
     '#attributes' => array(
       'class' => array('uk-margin-small-left'),
+      'data-ks' => 'CTRL+D',
     ),
     '#access' => user_access(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_PURCHASE_ORDER))),
   );
@@ -336,7 +337,7 @@ function avproducts_home_form_submit($form, &$form_state) {
       'total' => $v->eoq * $v->cost,
     );
   }
-  $_SESSION['selected_products'] = $item_rows;
+  $_SESSION['preload']['products'] = $item_rows;
   $form_state['redirect'] = 'av/po/new';
 }
 

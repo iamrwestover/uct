@@ -31,7 +31,7 @@ function avtxns_related_form($form, &$form_state, $transaction_type, $row) {
   foreach ($refs as $k => $v) {
     $ttd = avtxns_txn_types($v->transaction_type);
     $end_path = '/view';
-    if (!empty($ttd['payable'])) {
+    if (in_array($transaction_type, $credit_txn_types) && !empty($ttd['payable'])) {
       $end_path = '/apply-credits';
     }
     $link_path = $ttd['base_path'] . '/' . $v->transaction_id . $end_path;

@@ -33,6 +33,9 @@ if (!empty($link['path'])) {
     //$ks = empty($ttd['data-ks']) ? '' : $ttd['data-ks'];
     $ks = 'F4';
   }
+  elseif (strstr($link['path'], '/return')) {
+    $ks = 'F6';
+  }
   elseif (strstr($link['path'], '/apply-credits')) {
     $ks = 'F8';
   }

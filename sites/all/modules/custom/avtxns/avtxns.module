@@ -246,6 +246,19 @@ function avtxns_menu() {
         'weight' => 2,
       );
     }
+    if ($v['type'] == AVTXNS_TXN_TYPE_DELIVERY) {
+      $items["{$v['base_path']}/%avtxns_txn/return"] = array(
+        'title' => 'Return Products',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('avtxns_return_form', $k, 2),
+        //'access callback' => array(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_SALES_RETURN))),
+        'access callback' => 'avtxns_return_form_access',
+        'access arguments' => array($k, 2),
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'inc/return.form.inc',
+        'weight' => 3,
+      );
+    }
     $items["{$v['base_path']}/%avtxns_txn/related"] = array(
       'title' => "Related",
       'page callback' => 'drupal_get_form',
@@ -253,7 +266,7 @@ function avtxns_menu() {
       'access arguments' => array(constant('AVTXNS_PERM_VIEW_' . $ttype)),
       'type' => MENU_LOCAL_TASK,
       'file' => 'inc/related.form.inc',
-      'weight' => 3,
+      'weight' => 4,
     );
   }
 
@@ -1384,4 +1397,15 @@ function avtxns_quick_txn_search($id) {
     $ttd = avtxns_txn_types($type);
     drupal_goto($ttd['base_path'] . '/' . $id . '/view');
   }
+}
+function avtxns_return_form_access($transaction_type, $row) {
+  if (empty($row->id) || $row->transaction_type != $transaction_type) {
+    return FALSE;
+  }
+
+  if ($row->status != AVTXNS_TXN_STATUS_CLOSED) {
+    return FALSE;
+  }
+
+  return user_access(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_SALES_RETURN)));
 }

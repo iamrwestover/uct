@@ -1579,32 +1579,8 @@ function avtxns_group_and_sort_item_list($form, $view_mode) {
   }
   else {
     // Group item rows by category title.
-    $item_rows_by_category = array();
-    $meds = array();
-    $meds_cases = array();
-    $cases = array();
-    foreach (element_children($form) as $item_key) {
-      $category_title = empty($form[$item_key]['#prod_category']) ? t('No Category') : $form[$item_key]['#prod_category'];
-      $category_title = strtoupper($category_title);
-      $uom_title = empty($form[$item_key]['uom_title']['#default_value']) ? '' : $form[$item_key]['uom_title']['#default_value'];
-      if (in_array($category_title, array('MEDS', 'MEDICINE', 'MEDICINES'))) {
-        if (strtoupper($uom_title) == 'CASE') {
-          $meds_cases[$category_title . ' - ' . $uom_title][$item_key] = $form[$item_key];
-        }
-        else {
-          $meds[$category_title][$item_key] = $form[$item_key];
-        }
-      }
-      else {
-        if (strtoupper($uom_title) == 'CASE') {
-          $cases[$uom_title][$item_key] = $form[$item_key];
-        }
-        else {
-          $item_rows_by_category[$category_title][$item_key] = $form[$item_key];
-        }
-      }
-    }
-    $item_rows_by_category = $meds  + $meds_cases + $item_rows_by_category + $cases;
+    $item_rows_by_category = avtxns_item_rows_by_category($form);
+
 
     $item_index = 0;
     foreach ($item_rows_by_category as $category_title => $item_rows) {
@@ -1618,6 +1594,43 @@ function avtxns_group_and_sort_item_list($form, $view_mode) {
       print drupal_render($item_rows);
     }
   }
+}
+function avtxns_item_rows_by_category($form) {
+  $meds = array();
+  $meds_cases = array();
+  $cases = array();
+  $item_rows_by_category = array();
+  foreach (element_children($form) as $item_key) {
+    if (is_object($form[$item_key])) {
+      $category_title = isset($form[$item_key]->category_title) ? check_plain($form[$item_key]->category_title) : NULL;
+      $uom_title = isset($form[$item_key]->uom_title) ? check_plain($form[$item_key]->uom_title) : NULL;
+    }
+    else {
+      $category_title = empty($form[$item_key]['#prod_category']) ? t('No Category') : $form[$item_key]['#prod_category'];
+      $uom_title = empty($form[$item_key]['uom_title']['#default_value']) ? '' : $form[$item_key]['uom_title']['#default_value'];
+    }
+    $category_title = strtoupper($category_title);
+
+
+    if (in_array($category_title, array('MEDS', 'MEDICINE', 'MEDICINES'))) {
+      if (strtoupper($uom_title) == 'CASE') {
+        $meds_cases[$category_title . ' - ' . $uom_title][$item_key] = $form[$item_key];
+      }
+      else {
+        $meds[$category_title][$item_key] = $form[$item_key];
+      }
+    }
+    else {
+      if (strtoupper($uom_title) == 'CASE') {
+        $cases[$uom_title][$item_key] = $form[$item_key];
+      }
+      else {
+        $item_rows_by_category[$category_title][$item_key] = $form[$item_key];
+      }
+    }
+  }
+  $item_rows_by_category = $meds  + $meds_cases + $item_rows_by_category + $cases;
+  return $item_rows_by_category;
 }
 
 function avtxns_get_creditable_txn_types() {

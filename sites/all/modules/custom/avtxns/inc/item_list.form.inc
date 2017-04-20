@@ -49,6 +49,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
         'entity_group' => 'clients',
       ),
     );
+    if (empty($row->id) && empty($form['client_name']['#default_value']) && !empty($_SESSION['preload']['client_name'])) {
+      $form['client_name']['#default_value'] = $_SESSION['preload']['client_name'];
+    }
     if (!empty($row->id) && $view_mode) {
       $form['client_name']['#default_value'] = l($form['client_name']['#default_value'], $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
       $form['client_name']['#avhtml'] = TRUE;
@@ -94,6 +97,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
         '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
         //'#access' => empty($ttd['payment']),
       );
+      if (empty($row->id) && empty($form['agent_name']['#default_value']) && !empty($_SESSION['preload']['agent_name'])) {
+        $form['agent_name']['#default_value'] = $_SESSION['preload']['agent_name'];
+      }
       // Override agent name with the one selected from pending transactions.
       if (!empty($form_state['#pending_agent_name'])) {
         $form_state['input']['agent_name'] = $form_state['#pending_agent_name'];
@@ -287,7 +293,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     );
     $current_txn_date_text = format_date($now, 'custom', $date_format);
     if (empty($row->id) && $transaction_date_text != $current_txn_date_text) {
-      $form['transaction_date']['#field_suffix'] = '<em>Last transaction date used is not current.<br />Today is ' . $current_txn_date_text . '.</em>';
+      $form['transaction_date']['#field_suffix'] = '<em class="uk-color-orange"><i class="uk-icon-exclamation-triangle uk-margin-small-right"></i>Remembered transaction date is not current.
+      <br /><i class="uk-icon-exclamation-triangle uk-margin-small-right"></i>Today is ' . $current_txn_date_text . '.</em>';
     }
   }
 
@@ -420,10 +427,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
 
   // Load selected products if available.
   if (empty($row->id)) {
-    $selected_product_rows = empty($_SESSION['selected_products']) ? array() : $_SESSION['selected_products'];
+    $selected_product_rows = empty($_SESSION['preload']['products']) ? array() : $_SESSION['preload']['products'];
     $initial_item_rows = $selected_product_rows;
-    unset($_SESSION['selected_products']);
   }
+  unset($_SESSION['preload']);
 
   // Get item rows.
   $_storage['item_rows'] = isset($_storage['item_rows']) ? $_storage['item_rows'] : $initial_item_rows;
