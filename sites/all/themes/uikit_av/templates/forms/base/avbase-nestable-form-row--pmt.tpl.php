@@ -25,7 +25,7 @@ $view_mode = !empty($form['#av_view_mode']);
 
 <div class="uk-grid uk-grid-collapse no-page-break-inside" style="position: relative;">
   <?php print drupal_render($form['badge']); ?>
-  <div class="uk-width-3-10">
+  <div class="uk-width-2-10">
 
     <div class="uk-grid uk-grid-collapse">
       <?php if (!$view_mode): ?>
@@ -43,7 +43,7 @@ $view_mode = !empty($form['#av_view_mode']);
     </div>
   </div>
 
-  <div class="uk-width-7-10">
+  <div class="uk-width-8-10">
 
     <div class="uk-grid uk-grid-collapse">
       <div class="uk-width-<?php print ($view_mode ? '2' : '1'); ?>-10">
@@ -57,25 +57,25 @@ $view_mode = !empty($form['#av_view_mode']);
           <?php print drupal_render($form['orig_total']); ?>
         </div>
       </div>
-      <?php if ($view_mode): ?>
-        <div class="uk-width-2-10">
-          <div class="av-nestable-cell uk-text-right uk-text-warning">
-            <?php print drupal_render($form['new_balance']); ?>
-          </div>
-        </div>
-      <?php endif; ?>
+      <?php //if ($view_mode): ?>
+      <!--  <div class="uk-width-2-10">-->
+      <!--    <div class="av-nestable-cell uk-text-right uk-text-warning">-->
+      <!--      --><?php //print drupal_render($form['balance']); ?>
+      <!--    </div>-->
+      <!--  </div>-->
+      <?php //endif; ?>
       <div class="uk-width-2-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['previous_payment']); ?>
         </div>
       </div>
-      <?php if (empty($view_mode)): ?>
+      <?php //if (empty($view_mode)): ?>
         <div class="uk-width-2-10">
-          <div class="av-nestable-cell uk-text-right">
+          <div class="av-nestable-cell uk-text-right<?php print($view_mode ? ' uk-text-warning' : ''); ?>">
             <?php print drupal_render($form['balance']); ?>
           </div>
         </div>
-      <?php endif; ?>
+      <?php //endif; ?>
       <div class="uk-width-2-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['total']); ?>

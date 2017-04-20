@@ -14,6 +14,7 @@ scripts[] = js/offcanvas.js
 scripts[] = js/modal.js
 scripts[] = js/jquery.hotkeys.js
 scripts[] = js/ks.js
+;scripts[] = js/jquery.dirtyforms.min.js
 
 regions[header] = 'Page heading'
 regions[intro] = 'Introduction'

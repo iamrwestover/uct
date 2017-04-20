@@ -257,8 +257,17 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     unset($form['memo']);
   }
 
+
+  //$last_txn_date_timestamp = empty($_SESSION['txn_date']) ? NULL : '';
   $date_format = 'F d, Y';
-  $txn_date_timestamp = isset($row->transaction_date) ? $row->transaction_date : time();
+  $txn_date_timestamp = NULL;
+  if (empty($row->id) && isset($_SESSION['txn_date']) && empty($ttd['cant_change_date'])) {
+    $txn_date_timestamp = (int) $_SESSION['txn_date'];
+  }
+  $now = time();
+  if (is_null($txn_date_timestamp)) {
+    $txn_date_timestamp = isset($row->transaction_date) ? $row->transaction_date : $now;
+  }
   $transaction_date_text = format_date($txn_date_timestamp, 'custom', $date_format);
   if (empty($view_mode)) {
     $form['transaction_date'] = array(
@@ -276,6 +285,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       //'#access' => empty($view_mode),
       '#disabled' => !empty($ttd['cant_change_date']),
     );
+    $current_txn_date_text = format_date($now, 'custom', $date_format);
+    if (empty($row->id) && $transaction_date_text != $current_txn_date_text) {
+      $form['transaction_date']['#field_suffix'] = '<em>Last transaction date used is not current.<br />Today is ' . $current_txn_date_text . '.</em>';
+    }
   }
 
   if ($view_mode) {
@@ -832,7 +845,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           'class' => array('uk-text-right'),
         ),
       );
-      if (empty($view_mode) && !empty($ttd['payment'])) {
+      if (/*empty($view_mode) && */!empty($ttd['payment'])) {
         $fields['balance'] = array(
           '#type' => 'textfield',
           '#title' => 'Balance',
@@ -845,18 +858,18 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         );
       }
 
-      if ($view_mode && !empty($ttd['payment'])) {
-        $fields['new_balance'] = array(
-          '#type' => 'textfield',
-          '#title' => 'New Balance',
-          '#title_display' => 'none',
-          '#maxlength' => 255,
-          '#default_value' => avbase_number_format((round($prod_row['balance'], 2) - round($prod_row['cost'], 2)), 2),
-          '#attributes' => array(
-            'class' => array('uk-text-right'),
-          ),
-        );
-      }
+      //if ($view_mode && !empty($ttd['payment'])) {
+      //  $fields['new_balance'] = array(
+      //    '#type' => 'textfield',
+      //    '#title' => 'New Balance',
+      //    '#title_display' => 'none',
+      //    '#maxlength' => 255,
+      //    '#default_value' => avbase_number_format((round($prod_row['balance'], 2) - round($prod_row['cost'], 2)), 2),
+      //    '#attributes' => array(
+      //      'class' => array('uk-text-right'),
+      //    ),
+      //  );
+      //}
     }
 
     if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {

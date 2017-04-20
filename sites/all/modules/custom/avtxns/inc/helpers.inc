@@ -293,15 +293,19 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
           $invoice = avtxns_txn_load($item->ref_txn_id);
           if (!empty($invoice->id)) {
             // Get total paid - excluding payments before this transaction.
-            $query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
-              INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
-              WHERE avtxn_details.ref_txn_id = :invoice_id AND avtxn_details.transaction_id < :payment_id
-                 AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
-            $total_paid_for_invoice = db_query($query, array(':invoice_id' => $invoice->id, ':payment_id' => $row->id))->fetchField();
-            $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
-            $item->balance = $invoice->grand_total - $total_paid_for_invoice;
-            $item->previous_payment = $total_paid_for_invoice;
-            $item->grand_total = $invoice->grand_total;
+            //$query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
+            //  INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
+            //  WHERE avtxn_details.ref_txn_id = :invoice_id AND avtxn_details.transaction_id < :payment_id
+            //     AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
+            //$total_paid_for_invoice = db_query($query, array(':invoice_id' => $invoice->id, ':payment_id' => $row->id))->fetchField();
+            //$total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
+            //$item->balance = $invoice->grand_total - $total_paid_for_invoice;
+            //$item->previous_payment = $total_paid_for_invoice;
+            //$item->grand_total = $invoice->grand_total;
+
+            $item->balance = isset($invoice->balance) ? $invoice->balance : 0;
+            $item->previous_payment = isset($invoice->total_paid) ? $invoice->total_paid : 0;
+            $item->grand_total = isset($invoice->grand_total) ? $invoice->grand_total : 0;
           }
         }
 

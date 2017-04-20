@@ -435,6 +435,8 @@ function avtxns_update_7102() {
  */
 function avtxns_update_7103() {
   $rids = array(3, 8);
+
+  // TRANsfer OUT.
   $query = "DELETE FROM {role_permission} WHERE permission LIKE :str";
   $args = array();
   $args[':str'] = '%' . db_like('transaction ' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
@@ -456,6 +458,29 @@ function avtxns_update_7103() {
   }
   $query->execute();
 
+  // Transfer IN.
+  $query = "DELETE FROM {role_permission} WHERE permission LIKE :str";
+  $args = array();
+  $args[':str'] = '%' . db_like('transaction ' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
+  db_query($query, $args);
+  $permissions = array();
+  $ops = array('create', 'edit', 'view', 'void');
+  foreach ($rids as $rid) {
+    foreach ($ops as $op) {
+      $permissions[] = array(
+        'rid' => $rid,
+        'permission' => 'avbase ' . $op . ' transaction ' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN,
+        'module' => 'avtxns',
+      );
+    }
+  }
+  $query = db_insert('role_permission')->fields(array('rid', 'permission', 'module'));
+  foreach ($permissions as $record) {
+    $query->values($record);
+  }
+  $query->execute();
+
+  // BRAnches.
   $query = "DELETE FROM {role_permission} WHERE permission LIKE :str";
   $args = array();
   $args[':str'] = '%' . db_like('client_' . AVCLIENT_TYPE_BRANCH);

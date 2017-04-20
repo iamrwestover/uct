@@ -30,6 +30,11 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
       $ttd = avtxns_txn_types($transaction_type);
 
+      // Remember transaction date.
+      if (!empty($form_state['#new_record']) && !empty($form_state['values']['transaction_date']) && empty($ttd['cant_change_date'])) {
+        $_SESSION['txn_date'] = $form_state['values']['transaction_date'];
+      }
+
       // Get current transaction status.
       $transaction_status = isset($form_state['values']['transaction_status']) ? $form_state['values']['transaction_status'] : NULL;
 

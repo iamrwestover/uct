@@ -20,6 +20,7 @@
               $element[0].click();
             }
             else {
+              $(':focus').trigger('blur');
               $element.trigger($element.data('ks-trigger') || 'click');
             }
             e.preventDefault();

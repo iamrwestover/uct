@@ -29,9 +29,16 @@
     });
   }
 
+
+
 }(jQuery));
 
 jQuery(document).ready(function ($) {
+  //$('form').dirtyForms();
+  //$(document).bind('proceed.dirtyforms', function() {
+  //  console.log('xr');
+  //});
+  //console.log('srd');
 
   // Toggle offcanvas menu.
   var $panel = $('#menu-toggle');
