@@ -1175,7 +1175,17 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       ),
     );
   }
-
+  if (!empty($settings['selectable'])) {
+    $fields['settings']['selectable'] = empty($settings['selectable']) ? array() : $settings['selectable'];
+    $fields['settings']['selectable'] += array(
+      '#type' => 'select',
+      '#title' => 'Selectable list',
+      '#options' => array(0 => 'No', 1 => 'Yes - response to filters may become slower'),
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
   // Set fields' resistance to reset button.
   //foreach ($fields as $k => $v) {
   //

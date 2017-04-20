@@ -25,6 +25,7 @@ function avreports_stock_status_form($form, &$form_state) {
     ),
     'all_products' => array('#default_value' => 0),
     'stock_status' => array('#default_value' => 'all'),
+    'selectable' => array('#default_value' => 0),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
@@ -36,9 +37,9 @@ function avreports_stock_status_form($form, &$form_state) {
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
 
   $all_products = !empty($user_filter['settings']['all_products']);
-  //if ($all_products) {
-  //  $where = $args = array();
-  //}
+  $selectable_list = !empty($user_filter['settings']['selectable']);
+
+
 
   $header = array();
   $header['product_title'] = array('data' => 'PRODUCT', 'field' => 'title');
@@ -194,20 +195,28 @@ function avreports_stock_status_form($form, &$form_state) {
     $data['eoq'] = array('data' => number_format($row->eoq), 'class' => array('uk-text-right'));
     $data['cost'] = array('data' => number_format($row->cost, 2), 'class' => array('uk-text-right'));
     $data['price'] = array('data' => number_format($row->price, 2), 'class' => array('uk-text-right'));
-    $table_rows[] = array('data' => $data);
+
+    // Careful when adding classes on rows, check if tableselect mode is ON.
+    $table_rows[$row->product_id] = $data;
   }
 
 
   $transaction_list_table['table'] = array(
-    '#theme' => 'table',
     '#header' => $header,
-    '#rows' => $table_rows,
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => array(
       'id' => 'transaction-list-table',
       'class' => array('uk-table-condensed uk-table-hover uk-text-small'),
     ),
   );
+  if ($selectable_list) {
+    $transaction_list_table['table']['#type'] = 'tableselect';
+    $transaction_list_table['table']['#options'] = $table_rows;
+  }
+  else {
+    $transaction_list_table['table']['#theme'] = 'table';
+    $transaction_list_table['table']['#rows'] = $table_rows;
+  }
   avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
   if (!empty($user_filter['avcat_principal.title'])) {
     $transaction_list_table['principal_name'] = array(
@@ -215,6 +224,18 @@ function avreports_stock_status_form($form, &$form_state) {
       '#title' => 'Principal',
       '#title_display' => 'inline-before',
       '#markup' => check_plain($user_filter['avcat_principal.title']),
+    );
+  }
+
+  // Button.
+  if ($selectable_list) {
+    $transaction_list_table['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Order selected products'),
+      '#attributes' => array(
+        'class' => array('uk-button-primary uk-margin-top'),
+        'data-ks' => 'CTRL+D',
+      ),
     );
   }
 
@@ -237,4 +258,48 @@ function avreports_stock_status_form($form, &$form_state) {
     '#icon_key' => 'print',
   );
   return $form;
+}
+
+function avreports_stock_status_form_validate($form, &$form_state) {
+  $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
+
+  $selected = array();
+  foreach ($ids as $k => $v) {
+    if (empty($v)) {
+      continue;
+    }
+    $selected[] = $v;
+  }
+
+  if (empty($selected)) {
+    form_set_error('', t('Please select at least 1 product.'));
+    return;
+  }
+
+  if (count($selected) > AVTXNS_TXN_ROW_LIMIT) {
+    form_set_error('', t('Maximum number of items allowed per transaction is %max.', array('%max' => AVTXNS_TXN_ROW_LIMIT)));
+    return;
+  }
+}
+
+function avreports_stock_status_form_submit($form, &$form_state) {
+  $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
+
+
+  $product_rows = avproduct_load_ids($ids);
+  $item_rows = array();
+  $i = 0;
+  foreach ($product_rows as $v) {
+    $item_rows['new_' . $i++] = array(
+      'item_id' => $v->id,
+      'product_title' => $v->title,
+      'uom_title' => $v->uom_title,
+      'qty_per_uom' => 1,
+      'qty' => $v->eoq,
+      'cost' => $v->cost,
+      'total' => $v->eoq * $v->cost,
+    );
+  }
+  $_SESSION['preload']['products'] = $item_rows;
+  $form_state['redirect'] = 'av/po/new';
 }

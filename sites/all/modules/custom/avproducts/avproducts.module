@@ -324,11 +324,17 @@ function avproducts_home_form_submit($form, &$form_state) {
     return;
   }
 
+  if (count($selected) > AVTXNS_TXN_ROW_LIMIT) {
+    drupal_set_message(t('Maximum number of items allowed per transaction is %max.', array('%max' => AVTXNS_TXN_ROW_LIMIT)));
+    return;
+  }
+
   $product_rows = avproduct_load_ids($selected);
   $item_rows = array();
   $i = 0;
   foreach ($product_rows as $v) {
     $item_rows['new_' . $i++] = array(
+      'item_id' => $v->id,
       'product_title' => $v->title,
       'uom_title' => $v->uom_title,
       'qty_per_uom' => 1,

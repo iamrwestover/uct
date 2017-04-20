@@ -67,12 +67,12 @@ function avtxns_return_form($form, &$form_state, $transaction_type, $row) {
   return $form;
 }
 
-function avtxns_return_form_submit($form, &$form_state) {
+function avtxns_return_form_validate($form, &$form_state) {
   $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
   $transaction = empty($form_state['values']['transaction']) ? array() : $form_state['values']['transaction'];
 
   if (empty($transaction->id) || empty($transaction->items)) {
-    drupal_set_message(t('Invalid transaction.'), 'error');
+    form_set_error('', t('Invalid transaction.'));
     return;
   }
 
@@ -85,9 +85,19 @@ function avtxns_return_form_submit($form, &$form_state) {
   }
 
   if (empty($selected)) {
-    drupal_set_message(t('Please select at least 1 product to return.'), 'error');
+    form_set_error('', t('Please select at least 1 product to return.'));
     return;
   }
+
+  if (count($selected) > AVTXNS_TXN_ROW_LIMIT) {
+    form_set_error('', t('Maximum number of items allowed per transaction is %max.', array('%max' => AVTXNS_TXN_ROW_LIMIT)));
+    return;
+  }
+}
+
+function avtxns_return_form_submit($form, &$form_state) {
+  $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
+  $transaction = empty($form_state['values']['transaction']) ? array() : $form_state['values']['transaction'];
 
 
   $item_rows = array();

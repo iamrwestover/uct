@@ -2,6 +2,11 @@
   $mid_class = isset($form['client_name']) ? 'uk-width-1-3 uk-text-center' : 'uk-width-2-3';
 ?>
 <div class="uk-grid uk-form-row-compact">
+  <?php if (isset($form['submit'])): ?>
+    <div class="uk-width-1-1">
+      <?php print drupal_render($form['submit']); ?>
+    </div>
+  <?php endif; ?>
   <?php if (isset($form['client_name'])): ?>
     <div class="uk-width-1-3">
       <?php print drupal_render($form['client_name']); ?>
