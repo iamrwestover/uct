@@ -1649,6 +1649,18 @@ function avtxns_get_refable_txn_types() {
   return $types;
 }
 
+function avtxns_get_qty_change_txn_types() {
+  $types = array();
+  $txn_types = avtxns_txn_types();
+  foreach ($txn_types as $ttd) {
+    if (empty($ttd['qty_change'])) {
+      continue;
+    }
+    $types[] = $ttd['type'];
+  }
+  return $types;
+}
+
 function avtxns_get_txn_references($txn_ids = array()) {
   $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type, avtxns.transaction_date
     FROM {avtbl_transaction_details} avtxn_dtls

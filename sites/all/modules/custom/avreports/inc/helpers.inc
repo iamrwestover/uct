@@ -230,7 +230,7 @@ function avreports_product_transaction_history() {
     ORDER BY avtxn.transaction_date, avtxn.created
   ";
   $args = array();
-  $args[':ttypes'] = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);
+  $args[':ttypes'] = avtxns_get_qty_change_txn_types();
   //$args[':ttypes'] = array(AVTXNS_TXN_TYPE_RECEIVE);
   //$args[':ttypes'] = array(AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);
   //$args[':stk_type'] = array(AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);

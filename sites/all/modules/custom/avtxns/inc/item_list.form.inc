@@ -666,10 +666,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       } else {
         $fields['qty']['#av_prod_element_validate'][] = 'element_validate_integer_positive';
       }
-      if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY || $transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN) {
+      if (!empty($ttd['check_enough_qty'])) {
         $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_enough_qty';
         $fields['qty']['#attributes']['class'][] = 'js-qty-validate';
-        $fields['qty']['#attributes']['data-uk-tooltip'] = "{cls: 'tt-available-qty'}";
+        $fields['qty']['#attributes']['data-uk-tooltip'] = "{cls: 'tt-blue'}";
       }
 
       $fields['cost'] = array(

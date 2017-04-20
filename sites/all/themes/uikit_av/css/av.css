@@ -303,12 +303,12 @@ table.sticky-header {
 }
 
 /* Tooltip */
-.uk-tooltip.tt-available-qty {
+.uk-tooltip.tt-blue {
   background: #00a8e6;
   color: #fff;
   text-shadow: none;
 }
-.uk-tooltip.tt-available-qty:after {
+.uk-tooltip.tt-blue:after {
   border-top-color: #00a8e6;
 }
 .uk-tooltip.tt-ks {
@@ -328,4 +328,9 @@ table.sticky-header {
 
 .uk-form-row-compact .uk-form-row {
   margin-top: 0 !important;
+}
+
+.page-av-reports-stock-status #transaction-list-table-wrapper .sticky-header {
+  font-size: 11px;
+  line-height: 16px;
 }
