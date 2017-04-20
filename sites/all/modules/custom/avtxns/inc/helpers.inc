@@ -1497,6 +1497,11 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
       'date_from' => format_date($now, 'custom', $date_format),
       'date_to' => format_date($now, 'custom', $date_format),
     ),
+    'yesterday' => array(
+      'title' => 'Yesterday',
+      'date_from' => format_date(strtotime('yesterday'), 'custom', $date_format),
+      'date_to' => format_date(strtotime('yesterday'), 'custom', $date_format),
+    ),
     'this_week' => array(
       'title' => 'This week',
       'date_from' => format_date(strtotime('last Monday'), 'custom', $date_format),
@@ -1516,11 +1521,6 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
       'title' => 'This fiscal year',
       'date_from' => format_date($this_fiscal_date_timestamp, 'custom', $date_format),
       'date_to' => format_date($now, 'custom', $date_format),
-    ),
-    'yesterday' => array(
-      'title' => 'Yesterday',
-      'date_from' => format_date(strtotime('yesterday'), 'custom', $date_format),
-      'date_to' => format_date(strtotime('yesterday'), 'custom', $date_format),
     ),
     'last_month' => array(
       'title' => 'Last month',

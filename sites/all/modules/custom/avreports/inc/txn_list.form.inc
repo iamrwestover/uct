@@ -292,13 +292,13 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       //  $table_rows[$row->id]['class'] = array('uk-alert-warning');
       //}
 
-      //$sorted_by = empty($_GET['order']) ? '' : $_GET['order'];
-      //if ($col_client_show) {
-      //  if ($sorted_by == $header['client']['data'] && $last_client_name == $row->display_name) {
-      //    $table_rows[$row->id]['data']['client']['data'] = '';
-      //  }
-      //  $last_client_name = $row->display_name;
-      //}
+      $sorted_by = empty($_GET['order']) ? '' : $_GET['order'];
+      if ($col_client_show) {
+        if ($sorted_by == $header['client']['data'] && $last_client_name == $row->display_name) {
+          $table_rows[$row->id]['data']['client']['data'] = '';
+        }
+        $last_client_name = $row->display_name;
+      }
 
     }
     else {
@@ -337,7 +337,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => array(
       'id' => 'transaction-list-table',
-      'class' => array('uk-table-condensed '),
+      'class' => array('uk-table-condensed uk-table-hover'),
     ),
   );
 
