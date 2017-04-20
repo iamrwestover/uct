@@ -672,6 +672,26 @@ function avtxns_txn_types($type = NULL) {
       'cant_change_status' => TRUE,
       'cant_change_date' => TRUE,
     );
+    $ret[AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT] = array(
+      //'button_class' => 'uk-button-success',
+      'type' => AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT,
+      'base_path' => 'av/' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT,
+      'transaction' => 'inventory',
+      'name' => 'Stock Transfer - OUT',
+      'plural_name' => 'Stock Transfers - OUT',
+      'ctd' => avclients_client_types(AVCLIENT_TYPE_BRANCH),
+      'qty_change' => 'decrement',
+      'no_terms' => TRUE,
+      'no_agent' => TRUE,
+      'no_discount' => TRUE,
+      //'account_ids' => array(
+      //  'default' => array(
+      //    //AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+      //    AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+      //    AVTXN_AC_SPECIFIC_COGS_ID => 'debit',
+      //  ),
+      //),
+    );
     $ret[AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN] = array(
       //'button_class' => 'uk-button-primary',
       'type' => AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN,
@@ -681,9 +701,10 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Stock Transfers - IN',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_BRANCH),
       'qty_change' => 'increment',
-      'cost_change' => TRUE,
+      //'cost_change' => TRUE,
       'no_terms' => TRUE,
       'no_agent' => TRUE,
+      'no_discount' => TRUE,
       //'product_discount_overwrite' => TRUE,
     );
   }

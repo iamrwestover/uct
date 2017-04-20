@@ -33,6 +33,7 @@ foreach ($ctds as $ctd) {
 function avclients_menu() {
   $items = array();
   $client_types = avclients_client_types();
+  $index = 0;
   foreach ($client_types as $k => $v) {
     $v_type = $v['type'];
     $items["{$v['base_path']}"] = array(
@@ -42,6 +43,7 @@ function avclients_menu() {
       'access arguments' => array(constant("AVCLIENTS_PERM_VIEW_{$v_type}")),
       'menu_name' => 'av',
       'expanded' => TRUE,
+      'weight' => -49 + $index++,
     );
 
     $items["{$v['base_path']}/add"] = array(
@@ -272,6 +274,10 @@ function avclients_client_types($client_type = NULL) {
       'base_path' => 'av/branches',
       'name' => 'Branch',
       'plural_name' => 'Branches',
+      'no_category' => TRUE,
+      'no_agent' => TRUE,
+      'no_company' => TRUE,
+      'no_payment' => TRUE,
     );
   }
 

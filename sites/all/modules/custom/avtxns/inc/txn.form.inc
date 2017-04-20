@@ -60,7 +60,7 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
 
   // Show created info.
   if ($view_mode && !empty($row->created)) {
-    $form['record_created'] = array('#markup' => '<div class="not-printable uk-text-center">' . t('Created by @name - @date', array('@name' => $row->name, '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
+    $form['record_created'] = array('#markup' => '<div class="not-printable uk-text-center">' . t('Created by @name - @date', array('@name' => (empty($row->name) ? '' : check_plain($row->name)), '@date' => format_date($row->created, 'custom', 'l, F d, Y h:i A'))) . '</div>');
   }
   //if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
   //  // Add extra button to load customer returns.

@@ -165,35 +165,10 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
  *
  * @return array
  */
-function avbase_entity_overview_buttons_form(&$form_state, $row) {
-  if (empty($row->id)) {
-    return array();
-  }
-  $entity_id = empty($row->id) ? '' : $row->id;
-
-  $transaction_buttons = array();
-  $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
-  $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
-  $ctd = avclients_client_types($row->client_type);
+function avbase_entity_overview_buttons_form(&$form_state, $row, $entity_type) {
+  $ctd = avclients_client_types($entity_type);
   $menu_path = $ctd['base_path'];
   $entity_title = $ctd['name'];
-
-  $transaction_button_list_markup = '<li>' . implode('</li><li>', $transaction_buttons) . '</li>';
-  $transaction_buttons_markup = <<<HTML
-<!-- This is the container enabling the JavaScript -->
-<div class="uk-button-dropdown uk-text-left" data-uk-dropdown>
-  <!-- This is the button toggling the dropdown -->
-  <a class="uk-button uk-button-primary">New transaction<i class="uk-margin-small-left uk-icon-caret-down"></i></a>
-  <!-- This is the dropdown -->
-  <div class="uk-dropdown uk-dropdown-small">
-    <ul class="uk-nav uk-nav-dropdown">
-      $transaction_button_list_markup
-    </ul>
-  </div>
-</div>
-HTML;
-
-
   $other_buttons = array();
   if (user_access(constant("AVCLIENTS_PERM_CREATE_{$ctd['type']}"))) {
     $other_buttons['new_entity'] = l(t('New') . ' ' . $entity_title, "$menu_path/add", array('attributes' => array(
@@ -201,10 +176,45 @@ HTML;
     )));
   }
 
-  if ($entity_id && user_access(constant("AVCLIENTS_PERM_EDIT_{$ctd['type']}"))) {
-    $other_buttons['edit_entity'] = l(t('Edit'), "$menu_path/{$row->id}/edit", array('attributes' => array(
-      'class' => array('uk-button uk-button-success uk-margin-small-left')
-    )));
+  if (!empty($row->id)) {
+    $entity_id = empty($row->id) ? '' : $row->id;
+    $transaction_buttons = array();
+    $transaction_buttons[] = l(t('Sales Order'), 'av/sales-order/new');
+    $transaction_buttons[] = l(t('Delivery'), 'av/delivery/new');
+
+
+
+    $transaction_button_list_markup = '<li>' . implode('</li><li>', $transaction_buttons) . '</li>';
+    $transaction_buttons_markup = <<<HTML
+  <!-- This is the container enabling the JavaScript -->
+  <div class="uk-button-dropdown uk-text-left" data-uk-dropdown>
+    <!-- This is the button toggling the dropdown -->
+    <a class="uk-button uk-button-primary">New transaction<i class="uk-margin-small-left uk-icon-caret-down"></i></a>
+    <!-- This is the dropdown -->
+    <div class="uk-dropdown uk-dropdown-small">
+      <ul class="uk-nav uk-nav-dropdown">
+        $transaction_button_list_markup
+      </ul>
+    </div>
+  </div>
+HTML;
+
+
+    if (user_access(constant("AVCLIENTS_PERM_CREATE_{$ctd['type']}"))) {
+      $other_buttons['new_entity'] = l(t('New') . ' ' . $entity_title, "$menu_path/add", array(
+        'attributes' => array(
+          'class' => array('uk-button uk-button-success uk-margin-small-left')
+        )
+      ));
+    }
+
+    if ($entity_id && user_access(constant("AVCLIENTS_PERM_EDIT_{$ctd['type']}"))) {
+      $other_buttons['edit_entity'] = l(t('Edit'), "$menu_path/{$row->id}/edit", array(
+        'attributes' => array(
+          'class' => array('uk-button uk-button-success uk-margin-small-left')
+        )
+      ));
+    }
   }
 
   $form = array(
@@ -241,7 +251,7 @@ function avbase_entity_overview_info_form(&$form_state, $entity_type = NULL) {
     '#type' => 'container',
     '#attributes' => array('id' => 'entity-info-wrapper'),
   );
-  $form['entity_info_container']['buttons'] = avbase_entity_overview_buttons_form($form_state, $row);
+  $form['entity_info_container']['buttons'] = avbase_entity_overview_buttons_form($form_state, $row, $entity_type);
   $form['entity_info_container']['buttons']['#prefix'] = '<div style="position: absolute; top: -52px; right: 0;">';
   $form['entity_info_container']['buttons']['#suffix'] = '</div>';
 

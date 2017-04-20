@@ -382,3 +382,100 @@ function avtxns_update_7101() {
   return t('Successfully increased decimal precision of discount fields.');
 }
 
+/**
+ * Update menus for new transaction types: Stock Transfer IN and OUT.
+ */
+function avtxns_update_7102() {
+  //$query = "SELECT mlid FROM {menu_links} WHERE link_title='customers'";
+  //$mlid = db_query($query)->fetchField();
+  //if (!empty($mlid)) {
+  //  $menu_link = menu_link_load($mlid);
+  //  $menu_link['weight'] = -49;
+  //  menu_link_save($menu_link);
+  //}
+  //
+  //$query = "SELECT mlid FROM {menu_links} WHERE link_title='vendors'";
+  //$mlid = db_query($query)->fetchField();
+  //if (!empty($mlid)) {
+  //  $menu_link = menu_link_load($mlid);
+  //  $menu_link['weight'] = -48;
+  //  menu_link_save($menu_link);
+  //}
+  //
+  //$query = "SELECT mlid FROM {menu_links} WHERE link_title='branches'";
+  //$mlid = db_query($query)->fetchField();
+  //if (!empty($mlid)) {
+  //  $menu_link = menu_link_load($mlid);
+  //  $menu_link['weight'] = -47;
+  //  menu_link_save($menu_link);
+  //}
+  //
+  //$query = "SELECT mlid FROM {menu_links} WHERE link_title='products'";
+  //$mlid = db_query($query)->fetchField();
+  //if (!empty($mlid)) {
+  //  $menu_link = menu_link_load($mlid);
+  //  $menu_link['weight'] = -46;
+  //  menu_link_save($menu_link);
+  //}
+  //
+  $query = "UPDATE {menu_links} SET weight = -49 WHERE link_title = 'Customers'";
+  db_query($query);
+  $query = "UPDATE {menu_links} SET weight = -48 WHERE link_title = 'Vendors'";
+  db_query($query);
+  $query = "UPDATE menu_links SET weight = -47 WHERE link_title = 'Branches'";
+  db_query($query);
+  $query = "UPDATE {menu_links} SET weight = -46 WHERE link_title = 'Products'";
+  db_query($query);
+
+  return t('Menu update finished.');
+}
+
+/**
+ * Update role permissions for new transaction types: Stock Transfer IN and OUT.
+ */
+function avtxns_update_7103() {
+  $rids = array(3, 8);
+  $query = "DELETE FROM {role_permission} WHERE permission LIKE :str";
+  $args = array();
+  $args[':str'] = '%' . db_like('transaction ' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
+  db_query($query, $args);
+  $permissions = array();
+  $ops = array('create', 'edit', 'view', 'void');
+  foreach ($rids as $rid) {
+    foreach ($ops as $op) {
+      $permissions[] = array(
+        'rid' => $rid,
+        'permission' => 'avbase ' . $op . ' transaction ' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT,
+        'module' => 'avtxns',
+      );
+    }
+  }
+  $query = db_insert('role_permission')->fields(array('rid', 'permission', 'module'));
+  foreach ($permissions as $record) {
+    $query->values($record);
+  }
+  $query->execute();
+
+  $query = "DELETE FROM {role_permission} WHERE permission LIKE :str";
+  $args = array();
+  $args[':str'] = '%' . db_like('client_' . AVCLIENT_TYPE_BRANCH);
+  db_query($query, $args);
+  $permissions = array();
+  $ops = array('create', 'edit', 'view', 'change status');
+  foreach ($rids as $rid) {
+    foreach ($ops as $op) {
+      $permissions[] = array(
+        'rid' => $rid,
+        'permission' => 'avbase ' . $op . ' client_' . AVCLIENT_TYPE_BRANCH,
+        'module' => 'avclients',
+      );
+    }
+  }
+  $query = db_insert('role_permission')->fields(array('rid', 'permission', 'module'));
+  foreach ($permissions as $record) {
+    $query->values($record);
+  }
+  $query->execute();
+
+  return t('Role permissions updated.');
+}

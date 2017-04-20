@@ -322,12 +322,11 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   //$form['discounted_value'] = array('#type' => 'value', '#value' => isset($row->discounted_value) ? number_format($row->discounted_value, 2) : '0.00');
 
   if ($view_mode) {
-    avbase_user_extra_details($user);
     $form['encoded_by'] = array(
       '#type' => 'item',
       '#title' => 'Encoded by',
       '#title_display' => 'inline-before',
-      '#markup' => $user->name,
+      '#markup' => empty($row->name) ? '' : check_plain($row->name),
       //'#maxlength' => 65000,
       //'#access' => $view_mode,
     );
@@ -678,29 +677,31 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       );
       
 
-      $max_discount_html = '';
-      if ($view_mode && !empty($prod_row['discount_over_limit'])) {
-        $max_discount_html = '<br /><div class="uk-text-small">' . ($view_mode ? 'Limit: ' : '') . '<em>' . $prod_row['max_discount_text'] . '</em></div>';
-      }
-      $fields['discount'] = array(
-        '#id' => 'product-discount-' . $prod_key,
-        '#item_row_key' => $prod_key,
-        '#type' => 'textfield',
-        '#title' => 'Discount',
-        '#title_display' => 'none',
-        '#maxlength' => 25,
-        '#element_validate' => array('avtxns_item_list_row_element_validate'),
-        '#av_prod_element_validate' => array('avbase_element_validate_product_discount'),
-        '#attributes' => array(
-          'data-column-name' => 'discount',
-          'class' => array('prod-column-discount uk-text-right'),
-        ),
-        '#default_value' => isset($prod_row['discount_text']) ? $prod_row['discount_text'] : '',
-        '#dont_require' => TRUE,
-        //'#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN)),
-      );
-      if (!empty($max_discount_html)) {
-        $fields['discount']['#field_suffix'] = $max_discount_html;
+      if (empty($ttd['no_discount'])) {
+        $max_discount_html = '';
+        if ($view_mode && !empty($prod_row['discount_over_limit'])) {
+          $max_discount_html = '<br /><div class="uk-text-small">' . ($view_mode ? 'Limit: ' : '') . '<em>' . $prod_row['max_discount_text'] . '</em></div>';
+        }
+        $fields['discount'] = array(
+          '#id' => 'product-discount-' . $prod_key,
+          '#item_row_key' => $prod_key,
+          '#type' => 'textfield',
+          '#title' => 'Discount',
+          '#title_display' => 'none',
+          '#maxlength' => 25,
+          '#element_validate' => array('avtxns_item_list_row_element_validate'),
+          '#av_prod_element_validate' => array('avbase_element_validate_product_discount'),
+          '#attributes' => array(
+            'data-column-name' => 'discount',
+            'class' => array('prod-column-discount uk-text-right'),
+          ),
+          '#default_value' => isset($prod_row['discount_text']) ? $prod_row['discount_text'] : '',
+          '#dont_require' => TRUE,
+          //'#access' => !in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN)),
+        );
+        if (!empty($max_discount_html)) {
+          $fields['discount']['#field_suffix'] = $max_discount_html;
+        }
       }
 
 

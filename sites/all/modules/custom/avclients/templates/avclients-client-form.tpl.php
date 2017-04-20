@@ -6,7 +6,9 @@ $vertical_margin_class = $view_mode ? 'uk-margin-bottom' : 'uk-margin-small-bott
 $form['info']['#access'] = FALSE;
 $form['contact']['#access'] = FALSE;
 $form['address']['#access'] = FALSE;
-$form['payment']['#access'] = FALSE;
+if (isset($form['payment'])) {
+  $form['payment']['#access'] = FALSE;
+}
 $form['misc']['#access'] = FALSE;
 
 //unset($form['contact']['email']['#title']);
@@ -34,10 +36,12 @@ $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # /
 $view_mode = !empty($form['#av_view_mode']);
 
 $transactions_html = drupal_render($form['transactions']);
-$payment_method_html = drupal_render($form['payment']['payment_method_id']);
-$balance_ages_html = drupal_render($form['payment']['balance_ages']);
 $area_html = drupal_render($form['info']['area_id']);
 $website_html = drupal_render($form['contact']['website']);
+if (isset($form['payment'])) {
+  $payment_method_html = drupal_render($form['payment']['payment_method_id']);
+  $balance_ages_html = drupal_render($form['payment']['balance_ages']);
+}
 ?>
 
 <?php if ($view_mode): ?>
@@ -89,7 +93,9 @@ $website_html = drupal_render($form['contact']['website']);
         <li><a href="">Recent Transactions</a></li>
       <?php endif; ?>
       <li><a href="">Address</a></li>
-      <li><a href="">Payment</a></li>
+      <?php if (isset($form['payment'])): ?>
+        <li><a href="">Payment</a></li>
+      <?php endif; ?>
     </ul>
     <ul id="more-info" class="uk-switcher">
       <?php if ($transactions_html): ?>
@@ -118,31 +124,34 @@ $website_html = drupal_render($form['contact']['website']);
         </div>
 
       </li>
-      <li class="uk-panel uk-panel-box">
-        <div class="uk-grid">
-          <div class="uk-width-1-2">
-            <div class="uk-grid uk-grid-small">
-              <?php if ($payment_method_html): ?>
-                <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print $payment_method_html; ?></div>
-              <?php endif; ?>
-              <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['term_id']); ?></div>
-              <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['discount_type']); ?></div>
-              <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['discount_value']); ?></div>
-            </div>
-          </div>
 
-          <div class="uk-width-1-2">
-            <div class="uk-grid uk-grid-small">
-              <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['payment']['opening_balance']); ?></div>
-              <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['payment']['credit_limit']); ?></div>
+      <?php if (isset($form['payment'])): ?>
+        <li class="uk-panel uk-panel-box">
+          <div class="uk-grid">
+            <div class="uk-width-1-2">
+              <div class="uk-grid uk-grid-small">
+                <?php if ($payment_method_html): ?>
+                  <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print $payment_method_html; ?></div>
+                <?php endif; ?>
+                <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['term_id']); ?></div>
+                <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['discount_type']); ?></div>
+                <div class="uk-width-1-3 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['discount_value']); ?></div>
+              </div>
             </div>
-          </div>
 
-          <?php if ($balance_ages_html): ?>
-            <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print $balance_ages_html; ?></div>
-          <?php endif; ?>
-        </div>
-      </li>
+            <div class="uk-width-1-2">
+              <div class="uk-grid uk-grid-small">
+                <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['payment']['opening_balance']); ?></div>
+                <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['payment']['credit_limit']); ?></div>
+              </div>
+            </div>
+
+            <?php if ($balance_ages_html): ?>
+              <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print $balance_ages_html; ?></div>
+            <?php endif; ?>
+          </div>
+        </li>
+      <?php endif; ?>
     </ul>
   </div>
 </div>

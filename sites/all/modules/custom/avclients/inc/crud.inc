@@ -34,7 +34,9 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
   avclients_client_form_address_fields($form, $ctd, $row, $view_mode);
 
   // Payment group.
-  avclients_client_form_payment_fields($form, $ctd, $row, $view_mode);
+  if (empty($ctd['no_payment'])) {
+    avclients_client_form_payment_fields($form, $ctd, $row, $view_mode);
+  }
 
   // Transaction group.
   avclients_vendor_form_transaction_fields($form, $ctd, $form_state, $row, $view_mode);
@@ -192,12 +194,14 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     '#default_value' => isset($row->last_name) ? $row->last_name : '',
     '#maxlength' => 32,
   );
-  $info['company'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Company',
-    '#default_value' => isset($row->company) ? $row->company : '',
-    '#maxlength' => 255,
-  );
+  if (empty($ctd['no_company'])) {
+    $info['company'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Company',
+      '#default_value' => isset($row->company) ? $row->company : '',
+      '#maxlength' => 255,
+    );
+  }
   $info['_created'] = array(
     '#type' => 'textfield',
     '#title' => 'Date added',
@@ -205,14 +209,16 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     '#disabled' => TRUE,
     '#access' => !empty($row->id),
   );
-  $info['category_id'] = array(
-    '#type' => 'select',
-    '#title' => 'Category',
-    '#options' => avbase_get_category_options_array("category" . $ctd['type']),
-    '#empty_value' => 0,
-    '#empty_option' => '- Select -',
-    '#default_value' => isset($row->category_id) ? $row->category_id : 0,
-  );
+  if (empty($ctd['no_category'])) {
+    $info['category_id'] = array(
+      '#type' => 'select',
+      '#title' => 'Category',
+      '#options' => avbase_get_category_options_array("category" . $ctd['type']),
+      '#empty_value' => 0,
+      '#empty_option' => '- Select -',
+      '#default_value' => isset($row->category_id) ? $row->category_id : 0,
+    );
+  }
   $area_options = avbase_get_category_options_array('area');
   asort($area_options);
   $info['area_id'] = array(
@@ -243,50 +249,57 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_client_name'),
   );
-  $info['agent_name'] = array(
-    '#id' => 'agent-name',
-    '#type' => 'textfield',
-    '#title' => t('Agent'),
-    '#maxlength' => 255,
-    '#autocomplete_path' => "av/categories/agent{$ctd['type']}/autocomplete",
-    '#element_validate' => array('avbase_element_validate_category_exists'),
-    '#element_validate_conditions' => array('group_id' => "agent{$ctd['type']}"),
-    '#element_save_id' => 'agent_id',
-    '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
-  );
+  if (empty($ctd['no_agent'])) {
+    $info['agent_name'] = array(
+      '#id' => 'agent-name',
+      '#type' => 'textfield',
+      '#title' => t('Agent'),
+      '#maxlength' => 255,
+      '#autocomplete_path' => "av/categories/agent{$ctd['type']}/autocomplete",
+      '#element_validate' => array('avbase_element_validate_category_exists'),
+      '#element_validate_conditions' => array('group_id' => "agent{$ctd['type']}"),
+      '#element_save_id' => 'agent_id',
+      '#default_value' => empty($row->agent_name) ? '' : $row->agent_name,
+    );
+  }
 
-  $term_options = avbase_get_category_options_array('payment_term');
-  asort($term_options);
-  $info['term_id'] = array(
-    '#id' => 'term-id',
-    '#type' => 'select',
-    '#title' => 'Payment term',
-    '#options' => $term_options,
-    '#default_value' => isset($row->term_id) ? $row->term_id : 0,
-    '#empty_value' => 0,
-    '#empty_option' => '- Select -',
-    '#avbase_payment_terms_js' => array('preventChildrenHide' => FALSE),
-  );
-  $info['discount_type'] = array(
-    '#id' => 'discount-type',
-    '#type' => 'select',
-    '#title' => 'Discount type',
-    '#options' => avbase_get_discount_types(),
-    '#default_value' => isset($row->discount_type) ? $row->discount_type : 1,
-  );
-  $info['discount_value'] = array(
-    '#id' => 'discount-value',
-    '#type' => 'textfield',
-    '#title' => 'Discount value',
-    '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
-    '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
-    '#special_element_type' => 'number',
-    '#attributes' => array(
-      //'class' => array(''),
-      'step' => 0.01,
-    ),
-  );
+  if (empty($ctd['no_payment'])) {
+    $term_options = avbase_get_category_options_array('payment_term');
+    asort($term_options);
+    $info['term_id'] = array(
+      '#id' => 'term-id',
+      '#type' => 'select',
+      '#title' => 'Payment term',
+      '#options' => $term_options,
+      '#default_value' => isset($row->term_id) ? $row->term_id : 0,
+      '#empty_value' => 0,
+      '#empty_option' => '- Select -',
+      '#avbase_payment_terms_js' => array('preventChildrenHide' => FALSE),
+    );
+    //$info['discount_type'] = array(
+    //  '#id' => 'discount-type',
+    //  '#type' => 'select',
+    //  '#title' => 'Discount type',
+    //  '#options' => avbase_get_discount_types(),
+    //  '#default_value' => isset($row->discount_type) ? $row->discount_type : 1,
+    //);
+    //$info['discount_value'] = array(
+    //  '#id' => 'discount-value',
+    //  '#type' => 'textfield',
+    //  '#title' => 'Discount value',
+    //  '#default_value' => isset($row->discount_value) ? round($row->discount_value, 2) : '',
+    //  '#maxlength' => 19,
+    //  '#element_validate' => array(
+    //    'element_validate_number',
+    //    'avbase_element_validate_money_length'
+    //  ),
+    //  '#special_element_type' => 'number',
+    //  '#attributes' => array(
+    //    //'class' => array(''),
+    //    'step' => 0.01,
+    //  ),
+    //);
+  }
   $form['info'] += $info;
 }
 

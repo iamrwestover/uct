@@ -171,26 +171,6 @@ function avbase_element_validate_date($element, &$form_state, $form) {
  * @param $form_state
  * @param $form
  */
-function avbase_element_validate_display_name($element, &$form_state, $form) {
-  $values = isset($form_state['values']) ? $form_state['values'] : array();
-  $record_id = isset($values['id']) ? $values['id'] : 0;
-  //$table_name = $values['table_name'];
-  $display_name = $element['#value'];
-  $exists = db_query("SELECT id FROM {avtbl_customers} WHERE display_name = :display_name AND id <> :id", array(':display_name' => $display_name, ':id' => $record_id))->fetch();
-  if (!$exists) {
-    $exists = db_query("SELECT id FROM {avtbl_vendors} WHERE display_name = :display_name AND id <> :id", array(':display_name' => $display_name, ':id' => $record_id))->fetch();
-  }
-  if ($exists) {
-    form_error($element, t('Another customer or vendor is already using this @field_title', array('@field_title' => $element['#title'])));
-  }
-}
-
-/**
- * Check if element is a valid and unique display_name.
- * @param $element
- * @param $form_state
- * @param $form
- */
 function avbase_element_validate_client_name($element, &$form_state, $form) {
   $values = isset($form_state['values']) ? $form_state['values'] : array();
   $record_id = isset($values['id']) ? $values['id'] : 0;
@@ -198,31 +178,7 @@ function avbase_element_validate_client_name($element, &$form_state, $form) {
   $display_name = $element['#value'];
   $exists = db_query("SELECT id FROM {avtbl_clients} WHERE display_name = :display_name AND id <> :id", array(':display_name' => $display_name, ':id' => $record_id))->fetch();
   if ($exists) {
-    form_error($element, t('Another customer or vendor is already using this @field_title', array('@field_title' => $element['#title'])));
-  }
-}
-
-
-/**
- * Check if element contains an existing display_name.
- * @param $element
- * @param $form_state
- * @param $form
- * @todo phase this function out
- */
-function avbase_element_validate_display_name_exists($element, &$form_state, $form) {
-  $table_name = $element['#table_name'];
-  $display_name = $element['#value'];
-  if (trim($display_name) == '') {
-    return;
-  }
-  $row = db_query("SELECT id FROM {{$table_name}} WHERE display_name = :display_name", array(':display_name' => $display_name))->fetch();
-  if (!$row) {
-    form_error($element, t('Selected @field_title doesn\'t exist.', array('@field_title' => $element['#title'])));
-  }
-  else {
-    // Set extra form state value for this element.
-    avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
+    form_error($element, t('Another customer, vendor, or branch is already using this @field_title', array('@field_title' => $element['#title'])));
   }
 }
 

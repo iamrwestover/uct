@@ -58,8 +58,9 @@ $icons = array(
   'default' => 'circle-o',
   'av/dashboard' => 'dashboard',
   'av/customers' => 'users',
-  'av/products' => 'tags',
   'av/vendors' => 'truck',
+  'av/branches' => 'industry',
+  'av/products' => 'tags',
   'av/transactions' => 'tasks',
   'admin/people' => 'user-plus',
   'av/categories' => 'square',
@@ -67,7 +68,8 @@ $icons = array(
   'av/settings' => 'cog',
   'av/import' => 'database',
   'av/reports' => 'folder-open',
-  'admin/config/system/backup_migrate' => 'folder-open',
+  'av/chart-of-accounts' => 'paperclip',
+  'admin/config/system/backup_migrate' => 'archive',
 );
 //foreach (element_children($menu_tree) as $v) {
 //  dpm($v . '=' . $menu_tree[$v]['#title'] . '=' . $menu_tree[$v]['#href']);
