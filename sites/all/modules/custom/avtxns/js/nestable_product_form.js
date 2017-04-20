@@ -100,6 +100,7 @@
       var $UOMEl = $thisRow.find('.prod-column-uom-title');
       var $qtyPerUOMEl = $thisRow.find('.prod-column-qty-per-uom');
       var $costEl = $thisRow.find('.prod-column-cost');
+      var $goodStockEl = $thisRow.find('.prod-column-good-stock');
       var $qtyEl = $thisRow.find('.prod-column-qty');
       var $discountEl = $thisRow.find('.prod-column-discount');
       var $totalEl = $thisRow.find('.prod-column-total');
@@ -193,7 +194,7 @@
         }
       });
       $UOMEl.keydown(function(e) {
-        if ((e.keyCode === 40) && !avDropdown.visible) {
+        if ((e.keyCode === 40) && e.altKey && !avDropdown.visible) {
           // DOWN.
           $UOMEl.trigger('click');
           e.preventDefault();
@@ -201,6 +202,10 @@
         }
         else if (e.keyCode === 9) {
           avDropdown.select(true);
+          if (avDropdown.selected) {
+            e.preventDefault();
+            avDropdown.selected = null;
+          }
         }
         else {
           var c = String.fromCharCode(e.which);
@@ -209,6 +214,7 @@
             $.each(data, function(index, data) {
               var v = data.value || '';
               if (v.charAt(0) == c) {
+                avDropdown.selected = null;
                 $UOMEl.val(v);
                 $qtyPerUOMEl.val(data.qtyPerUOM);
                 $UOMEl.trigger('change');
@@ -216,6 +222,11 @@
               }
             });
           }
+        }
+      });
+      $UOMEl.keydown(function(e) {
+        if (!avDropdown.visible) {
+          self.switchRowFocus(e, $thisRow);
         }
       });
       $uomWrapperEl.on('selectitem.uk.autocomplete', function(e, data, x) {
@@ -474,6 +485,15 @@
         $qtyDiffEl.val(qtyDiff || 0);
       });
       $newQtyEl.keydown(function(e) {
+        self.switchRowFocus(e, $thisRow);
+      });
+
+      $goodStockEl.keydown(function(e) {
+        if ((e.keyCode === 40) && e.altKey) {
+          // DOWN.
+          $(this).trigger('click');
+          return;
+        }
         self.switchRowFocus(e, $thisRow);
       });
     });

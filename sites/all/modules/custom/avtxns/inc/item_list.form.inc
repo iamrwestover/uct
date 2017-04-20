@@ -580,6 +580,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#element_validate_conditions' => array('group_id' => 'uom'),
         '#element_save_id' => 'uom_id',
         '#attributes' => array(
+          'data-column-name' => 'uom-title',
           'class' => array('prod-column-uom-title'),
         ),
         '#av_dropdown' => TRUE,
@@ -638,6 +639,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
           '#options' => array(t('Bad'), t('Good')),
           '#default_value' => isset($prod_row['good_stock']) ? $prod_row['good_stock'] : '',
           '#element_validate' => $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN ? array('avtxns_item_list_row_element_validate') : array(),
+          '#attributes' => array(
+            'data-column-name' => 'good-stock',
+            'class' => array('prod-column-good-stock'),
+          ),
           //'#av_prod_element_validate' => array('avbase_element_validate_required'),
         );
       }
