@@ -150,7 +150,7 @@
     <div class="uk-width-2-5 uk-text-right">
       <?php if ($title): ?><div class="uk-article-title"><?php print $title; ?></div><?php endif; ?>
     </div>
-    <hr class="uk-width-1-1 uk-margin-small uk-margin-top" />
+    <hr class="uk-width-1-1 uk-margin-small" style="margin-top:12px;" />
   </div>
 
   <div<?php print $page_container_attributes; ?>>

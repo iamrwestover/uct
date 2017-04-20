@@ -300,6 +300,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
         array('@ttype' => strtoupper($ttd['type']), '@id' => $row->id, '@date' => $transaction_date_text, '@time' => format_date($row->created, 'custom', 'h:i A')))),
       //'#access' => $view_mode,
     );
+    $noi = empty($row->items) ? 0 : count($row->items);
+    if (!empty($noi)) {
+      $form['transaction_id']['#markup'] = $noi . ' ' . ($noi > 1 ? 'entries' : 'entry') . ' - ' . $form['transaction_id']['#markup'];
+    }
   }
 
   if (empty($ttd['no_total'])) {
