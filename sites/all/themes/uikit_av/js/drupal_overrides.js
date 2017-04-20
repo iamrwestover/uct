@@ -148,4 +148,25 @@
       $(this.ariaLive).empty();
     };
   }
+
+  /**
+   * Handler for the "keydown" event.
+   */
+  Drupal.jsAC.prototype.onkeydown = function (input, e) {
+    if (!e) {
+      e = window.event;
+    }
+    switch (e.keyCode) {
+      case 40: // down arrow.
+        this.selectDown();
+        return false;
+      case 38: // up arrow.
+        this.selectUp();
+        return false;
+      case 9: // Tab.
+        if (this.popup) return false; else return true;
+      default: // All other keys.
+        return true;
+    }
+  };
 }(jQuery));
