@@ -311,6 +311,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     if (!empty($noi)) {
       $form['transaction_id']['#markup'] = $noi . ' ' . ($noi > 1 ? 'entries' : 'entry') . ' - ' . $form['transaction_id']['#markup'];
     }
+    if (!empty($row->ref_txn_id) && !empty($row->ref_txn_type)) {
+      $form['transaction_id']['#markup'] .= '<br />Ref. ' . avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id);
+    }
   }
 
   if (empty($ttd['no_total'])) {
@@ -827,7 +830,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
       );
 
-      $ref_txn_id_text = isset($prod_row['ref_txn_id']) ? (strtoupper($prod_row['ref_txn_type']) . '# ' . $prod_row['ref_txn_id']) : '&nbsp;';
+      $ref_txn_id_text = isset($prod_row['ref_txn_id']) ? (avbase_txn_number_format($prod_row['ref_txn_type'], $prod_row['ref_txn_id'])) : '&nbsp;';
       if ($view_mode && isset($prod_row['ref_txn_id'])) {
         $rtd = avtxns_txn_types($prod_row['ref_txn_type']);
         $ref_txn_id_text = l($ref_txn_id_text, $rtd['base_path'] . '/' . $prod_row['ref_txn_id'] . '/view');
@@ -835,6 +838,16 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       $fields['ref_txn_id_text'] = array(
         '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . $ref_txn_id_text . '</div>',
       );
+
+      $items_ref_txn_id_text = isset($prod_row['items_ref_txn_id']) ? (avbase_txn_number_format($prod_row['items_ref_txn_type'], $prod_row['items_ref_txn_id'])) : '&nbsp;';
+      if ($view_mode && isset($prod_row['items_ref_txn_id'])) {
+        $rtd = avtxns_txn_types($prod_row['items_ref_txn_type']);
+        $items_ref_txn_id_text = l($items_ref_txn_id_text, $rtd['base_path'] . '/' . $prod_row['items_ref_txn_id'] . '/view');
+      }
+      $fields['items_ref_txn_id_text'] = array(
+        '#markup' => '<div class="' . ($view_mode ? '' : ' fake-form-text') . '">' . $items_ref_txn_id_text . '</div>',
+      );
+
       if (empty($view_mode)) {
         $fields['ref_txn_id'] = array(
           '#type' => 'hidden',
@@ -872,6 +885,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
             'class' => array('uk-text-right'),
           ),
         );
+        if (!$view_mode && !empty($row->id)) {
+          $fields['balance']['#default_value'] = avbase_number_format((round($prod_row['balance'], 2) + round($prod_row['cost'], 2)), 2);
+        }
       }
 
       //if ($view_mode && !empty($ttd['payment'])) {

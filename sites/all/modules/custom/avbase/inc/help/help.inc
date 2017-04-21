@@ -4,7 +4,7 @@ function avbase_help_home() {
   $output = '';
   $output .= <<<HTML
   <div class="uk-panel uk-panel-box">
-    <div class="uk-badge uk-badge-danger uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent 170420 update:</div>
+    <div class="uk-badge uk-badge-danger uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent v1.170420 update:</div>
     <ul class="uk-list">
       <li>- &uarr; and &darr; now also switches focus on UOM fields.</li>
       <li>- ALT+&darr; now opens UOM dropdown list.</li>

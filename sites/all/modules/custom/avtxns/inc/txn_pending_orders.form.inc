@@ -31,29 +31,31 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
     '#tree' => TRUE,
   );
 
-  $header = array(
-    'transaction_id' => array('data' => '#', 'class' => 'suk-text-right'),
-    'agent_name' => array('data' => t('Agent'), 'class' => ''),
-    'transaction_date' => array('data' => t('Transaction Date')),
-    'total' => array('data' => t('Total'), 'class' => 'uk-text-right'),
-  );
-  if (!empty($ttd['payment'])) {
-    unset($header['agent_name']);
+  $col_ref_txn_id = !empty($ttd['bill']) || !empty($ttd['payment']);
+  $header = array();
+  $header['transaction_id'] = array('data' => 'Txn#');
+  if ($col_ref_txn_id) {
+    $header['items_ref_txn_id'] = array('data' => 'Ref. Txn#');
   }
+
+  $header['agent_name'] = array('data' => t('Agent'), 'class' => '');
+  $header['transaction_date'] = array('data' => t('Date'));
+  $header['total'] = array('data' => t('Total'), 'class' => 'uk-text-right');
+
   $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
   $table_rows = array();
   //$transaction_details = array();
   foreach ($client_pending_pos as $k => $v) {
     //$transaction_details[$v->id] = $v;
-    $table_rows[$v->id] = array(
-      'transaction_id' => array('data' => t('@ttype# @order_num', array('@ttype' => strtoupper($v->transaction_type), '@order_num' => $v->id)), 'class' => array('suk-text-right')),
-      'agent_name' => check_plain($v->agent_name),
-      'transaction_date' => format_date($v->transaction_date, 'custom', 'Y M d'),
-      'total' => array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right')),
-    );
-    if (!empty($ttd['payment'])) {
-      unset($table_rows[$v->id]['agent_name']);
+    $table_rows[$v->id] = array();
+    $table_rows[$v->id]['transaction_id'] = array('data' => t('@txn_num', array('@txn_num' => avbase_txn_number_format($v->transaction_type, $v->id))), 'class' => array('suk-text-right'));
+    if ($col_ref_txn_id) {
+      $items_ref_txn_num = empty($v->items_ref_txn_id) ? '' : avbase_txn_number_format($v->items_ref_txn_type, $v->items_ref_txn_id);
+      $table_rows[$v->id]['items_ref_txn_id'] = array('data' => t('@txn_num', array('@txn_num' => $items_ref_txn_num)), 'class' => array('suk-text-right'));
     }
+    $table_rows[$v->id]['agent_name'] = check_plain($v->agent_name);
+    $table_rows[$v->id]['transaction_date'] = format_date($v->transaction_date, 'custom', 'Y M d');
+    $table_rows[$v->id]['total'] = array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right'));
   }
 
   if (!empty($table_rows)) {
@@ -145,6 +147,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   $pending_orders_form['#modal_options'] = array(
     'modal_id' => 'pending-orders',
     'modal_title' => $modal_title,
+    'modal_classes' => array('uk-modal-dialog-large'),
   );
   $form['pending_orders'] = $pending_orders_form;
 
@@ -215,6 +218,10 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
         $trimmed_po->agent_name = $po_v->agent_name;
         $trimmed_po->transaction_date = $po_v->transaction_date;
         $trimmed_po->grand_total = $po_v->grand_total;
+        if (!empty($po_v->items_ref_txn_id) || !empty($po_v->items_ref_txn_type)) {
+          $trimmed_po->items_ref_txn_id = $po_v->items_ref_txn_id;
+          $trimmed_po->items_ref_txn_type = $po_v->items_ref_txn_type;
+        }
         $floating_pos[] = $trimmed_po;
       }
 

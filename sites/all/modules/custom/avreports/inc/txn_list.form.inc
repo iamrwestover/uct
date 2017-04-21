@@ -251,7 +251,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
     if (!isset($table_rows[$row->id])) {
       if ($col_client_show) {
-        $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'), 'style' => 'background: #fff;');
+        $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
       }
       $data['date'] = array('data' => l(format_date($row->transaction_date, 'custom', 'Y-M-d'), $view_path));
       $data['id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path));
@@ -292,13 +292,13 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       //  $table_rows[$row->id]['class'] = array('uk-alert-warning');
       //}
 
-      $sorted_by = empty($_GET['order']) ? '' : $_GET['order'];
-      if ($col_client_show) {
-        if ($sorted_by == $header['client']['data'] && $last_client_name == $row->display_name) {
-          $table_rows[$row->id]['data']['client']['data'] = '';
-        }
-        $last_client_name = $row->display_name;
-      }
+      //$sorted_by = empty($_GET['order']) ? '' : $_GET['order'];
+      //if ($col_client_show) {
+      //  if ($sorted_by == $header['client']['data'] && $last_client_name == $row->display_name) {
+      //    $table_rows[$row->id]['data']['client']['data'] = '';
+      //  }
+      //  $last_client_name = $row->display_name;
+      //}
 
     }
     else {

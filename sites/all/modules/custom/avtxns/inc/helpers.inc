@@ -143,6 +143,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
   $rows = array();
   foreach ($rs as $row) {
     $ttd = avtxns_txn_types($row->transaction_type);
+    $pending_txns_reference_type = empty($ttd['pending_txns_reference_type']) ? array() : (array) $ttd['pending_txns_reference_type'];
     $subtotal = 0;
     $credit_total = 0;
     $debit_total = 0;
@@ -195,7 +196,11 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
-        //dpm($item);
+        if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
+          $row->items_ref_txn_id = $item->ref_txn_id;
+          $row->items_ref_txn_type = $item->ref_txn_type;
+        }
+
         // Capitalize item title.
         if (!empty($item->product_title)) {
           $item->product_title = strtoupper($item->product_title);
@@ -306,6 +311,10 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
             $item->balance = isset($invoice->balance) ? $invoice->balance : 0;
             $item->previous_payment = isset($invoice->total_paid) ? $invoice->total_paid : 0;
             $item->grand_total = isset($invoice->grand_total) ? $invoice->grand_total : 0;
+            if (isset($invoice->items_ref_txn_id)) {
+              $item->items_ref_txn_id = $invoice->items_ref_txn_id;
+              $item->items_ref_txn_type = $invoice->items_ref_txn_type;
+            }
           }
         }
 

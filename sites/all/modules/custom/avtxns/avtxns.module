@@ -1180,7 +1180,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['settings']['selectable'] += array(
       '#type' => 'select',
       '#title' => 'Selectable list',
-      '#options' => array(0 => 'No', 1 => 'Yes - response to filters may become slower'),
+      '#options' => array(0 => 'No', 1 => 'Yes (response to filters may become slower)'),
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),

@@ -112,7 +112,7 @@
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
         <?php if (empty($_SESSION['seen_recent_updates'])): ?>
-          <a href="/av/help" class="uk-button uk-button-danger uk-button-mini uk-margin-small-right"><i class="uk-icon-check"></i> notable updates</a>
+          <a href="/av/help" class="uk-button uk-button-danger uk-button-mini uk-margin-small-right">v1.170420 - what's new?</a>
         <?php endif; ?>
         <a href="#av-quick-search" class="uk-icon-search uk-icon-hover uk-margin-small-right" data-uk-modal data-ks="F3"></a>
         <a href="/av/help" class="uk-icon-small uk-icon-question-circle uk-icon-hover uk-margin-small-right uk-color-green" title="Help"></a>
@@ -231,7 +231,7 @@
 </div>
 
 <?php if ($offcanvas_main || $offcanvas_secondary): ?>
-  <div id="menu-toggle" class="uk-offcanvas uk-active">
+  <div id="menu-toggle" class="uk-offcanvas uk-active not-printable">
     <div class="uk-offcanvas-bar">
       <?php print $offcanvas_main; ?>
       <?php print $offcanvas_secondary; ?>

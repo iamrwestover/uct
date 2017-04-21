@@ -25,57 +25,47 @@ $view_mode = !empty($form['#av_view_mode']);
 
 <div class="uk-grid uk-grid-collapse no-page-break-inside" style="position: relative;">
   <?php print drupal_render($form['badge']); ?>
-  <div class="uk-width-2-10">
+  <div class="uk-width-4-10">
 
     <div class="uk-grid uk-grid-collapse">
-      <?php if (!$view_mode): ?>
-        <div class="uk-width-1-2 uk-text-center" style="width: 7%;">
-          <div class="av-nestable-cell">
-            <span class="av-nestable-row-num" style="<?php print $view_mode ? 'top: 0;' : ''; ?>"><?php print $form['#prod_index'] + 1; ?></span>
-          </div>
-        </div>
-      <?php endif; ?>
-      <div class="uk-width-1-2" style="width: <?php print ($view_mode ? '100' : '93'); ?>%;">
+      <div class="uk-width-2-6">
         <div class="av-nestable-cell">
           <?php print drupal_render($form['transaction_date_formatted']); ?>
+        </div>
+      </div>
+      <div class="uk-width-2-6">
+        <div class="av-nestable-cell">
+          <?php print drupal_render($form['ref_txn_id_text']); ?>
+          <?php print drupal_render($form['ref_txn_id']); ?>
+        </div>
+      </div>
+      <div class="uk-width-2-6">
+        <div class="av-nestable-cell">
+          <?php print drupal_render($form['items_ref_txn_id_text']); ?>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="uk-width-8-10">
+  <div class="uk-width-6-10">
 
     <div class="uk-grid uk-grid-collapse">
-      <div class="uk-width-<?php print ($view_mode ? '2' : '1'); ?>-10">
-        <div class="av-nestable-cell">
-        <?php print drupal_render($form['ref_txn_id_text']); ?>
-        <?php print drupal_render($form['ref_txn_id']); ?>
-        </div>
-      </div>
-      <div class="uk-width-2-10">
+
+      <div class="uk-width-3-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['orig_total']); ?>
         </div>
       </div>
-      <?php //if ($view_mode): ?>
-      <!--  <div class="uk-width-2-10">-->
-      <!--    <div class="av-nestable-cell uk-text-right uk-text-warning">-->
-      <!--      --><?php //print drupal_render($form['balance']); ?>
-      <!--    </div>-->
-      <!--  </div>-->
-      <?php //endif; ?>
-      <div class="uk-width-2-10">
+      <div class="uk-width-<?php print ($view_mode ? '3' : '2'); ?>-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['previous_payment']); ?>
         </div>
       </div>
-      <?php //if (empty($view_mode)): ?>
-        <div class="uk-width-2-10">
-          <div class="av-nestable-cell uk-text-right<?php print($view_mode ? ' uk-text-warning' : ''); ?>">
-            <?php print drupal_render($form['balance']); ?>
-          </div>
+      <div class="uk-width-2-10">
+        <div class="av-nestable-cell uk-text-right<?php print($view_mode ? ' uk-text-warning' : ''); ?>">
+          <?php print drupal_render($form['balance']); ?>
         </div>
-      <?php //endif; ?>
+      </div>
       <div class="uk-width-2-10">
         <div class="av-nestable-cell uk-text-right">
           <?php print drupal_render($form['total']); ?>
