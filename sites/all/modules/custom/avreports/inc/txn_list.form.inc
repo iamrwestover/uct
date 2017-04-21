@@ -146,12 +146,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
   if (empty($_GET['order'])) {
     // Set default order.
-    $_GET['order'] = $header['date']['data'];
+    $_GET['order'] = $header['id']['data'];
     $_GET['sort'] = 'desc';
-    if (isset($header['client'])) {
-      $_GET['order'] = $header['client']['data'];
-      $_GET['sort'] = 'asc';
-    }
+    //if (isset($header['client'])) {
+    //  $_GET['order'] = $header['client']['data'];
+    //  $_GET['sort'] = 'asc';
+    //}
   }
   $order_by = avbase_build_header_order_array($header);
   if ($col_due_date && isset($order_by['display_name'])) {

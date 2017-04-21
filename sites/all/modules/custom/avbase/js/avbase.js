@@ -83,7 +83,7 @@ jQuery(document).ready(function ($) {
 
   //// Auto focus on first textbox or textarea.
   //console.log($("input:text"));
-  $("#region-content-wrapper input.form-text:not([data-uk-datepicker]), #region-content-wrapper textarea, #region-content-wrapper number").eq(0).focus()
+  $("#region-content-wrapper input.form-text:not([data-uk-datepicker]):not(.trigger-ajax-search), #region-content-wrapper textarea, #region-content-wrapper number").eq(0).focus()
 });
 
 var avbaseGetUrlParameter = function getUrlParameter(sParam) {
