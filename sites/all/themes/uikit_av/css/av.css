@@ -290,6 +290,9 @@ table tr.uk-alert-warning {
 table.sticky-header {
   z-index: 1;
 }
+.av-frs tr td {
+  cursor: pointer;
+}
 
 .uk-alert-mute {
   background-color: #fafafa;
@@ -338,3 +341,10 @@ table.sticky-header {
 .uk-color-orange {
   color: #e28327;
 }
+.uk-color-blue {
+  color: #00a8e6;
+}
+.uk-color-green {
+  color: #659f13;
+}
+

@@ -768,7 +768,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $form['transaction_list_filter'] = avtxns_txn_list_filter_form(NULL, $form_state, $filter_form_settings);
     $form['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'search agent, customer, vendor';
   }
-  $client_header = 'Customer / Vendor';
+  $client_header = 'Client';
   //if (arg(1) == 'vendors') {
   //  $client_header = 'Vendor';
   //}

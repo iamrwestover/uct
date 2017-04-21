@@ -64,7 +64,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       '#options' => $table_rows,
       //'#sticky' => FALSE,
       //'#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
-      '#attributes' => array('class' => array('uk-table-striped')),
+      '#attributes' => array('class' => array('uk-table-hover av-frs')),
       //'#prefix' => '<div id="avtxns-pending-orders-form-wrapper">',
       //'#suffix' => '</div>',
       '#multiple' => (count($reference_type) > 1 || in_array($reference_type[0], array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN))),

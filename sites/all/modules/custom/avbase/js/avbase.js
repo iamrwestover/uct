@@ -30,13 +30,37 @@
         //window.scrollTo(0, 0);
       });
 
+      // Autoclick checkbox/radio when clicking on a table tr.
+      $('.av-frs tbody tr').once('avbaseFRS', function() {
+        var $input = $(this).find('input').eq(0);
+        var $row = $(this);
+        $row.click(function(e) {
+          $input.prop("checked", !$input.is(':checked'))
+        });
+
+        $input.keydown(function (e) {
+          if (e.keyCode === 38) {
+            // UP.
+            var $prevRow = $row.prev();
+            $prevRow.find('input').focus();
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          else if(e.keyCode === 40) {
+            // DOWN.
+            var $nextRow = $row.next();
+            $nextRow.find('input').focus().select();
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        });
+      });
     }
   };
 }(jQuery));
 
 
 jQuery(document).ready(function ($) {
-
   var $form = $('form');
 
   // Prevent double submission of forms.

@@ -172,7 +172,7 @@ function avbase_entity_overview_buttons_form(&$form_state, $row, $entity_type) {
   $other_buttons = array();
   if (user_access(constant("AVCLIENTS_PERM_CREATE_{$ctd['type']}"))) {
     $other_buttons['new_entity'] = l(t('New') . ' ' . $entity_title, "$menu_path/add", array('attributes' => array(
-      'class' => array('uk-button uk-button-success uk-margin-small-left')
+      'class' => array('uk-button uk-button-primary uk-margin-small-left')
     )));
   }
 
@@ -200,18 +200,18 @@ function avbase_entity_overview_buttons_form(&$form_state, $row, $entity_type) {
 HTML;
 
 
-    if (user_access(constant("AVCLIENTS_PERM_CREATE_{$ctd['type']}"))) {
-      $other_buttons['new_entity'] = l(t('New') . ' ' . $entity_title, "$menu_path/add", array(
-        'attributes' => array(
-          'class' => array('uk-button uk-button-success uk-margin-small-left')
-        )
-      ));
-    }
+    //if (user_access(constant("AVCLIENTS_PERM_CREATE_{$ctd['type']}"))) {
+    //  $other_buttons['new_entity'] = l(t('New') . ' ' . $entity_title, "$menu_path/add", array(
+    //    'attributes' => array(
+    //      'class' => array('uk-button uk-button-primary uk-margin-small-left')
+    //    )
+    //  ));
+    //}
 
     if ($entity_id && user_access(constant("AVCLIENTS_PERM_EDIT_{$ctd['type']}"))) {
       $other_buttons['edit_entity'] = l(t('Edit'), "$menu_path/{$row->id}/edit", array(
         'attributes' => array(
-          'class' => array('uk-button uk-button-success uk-margin-small-left')
+          'class' => array('uk-button uk-button-primary uk-margin-small-left')
         )
       ));
     }

@@ -60,7 +60,7 @@ function avtxns_return_form($form, &$form_state, $transaction_type, $row) {
     '#header' => $header,
     '#options' => $table_rows,
     '#empty' => '<div class="uk-text-muted">' . t('No items found.') . '</div>',
-    '#attributes' => array('class' => array('uk-table-condensed uk-row-hover')),
+    '#attributes' => array('class' => array('uk-table-condensed uk-table-hover av-frs')),
   );
 
   $form['transaction'] = array('#type' => 'value', '#value' => $row);

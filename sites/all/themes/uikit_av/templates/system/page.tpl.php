@@ -111,8 +111,11 @@
 
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
+        <?php if (empty($_SESSION['seen_recent_updates'])): ?>
+          <a href="/av/help" class="uk-button uk-button-danger uk-button-mini uk-margin-small-right"><i class="uk-icon-check"></i> notable updates</a>
+        <?php endif; ?>
         <a href="#av-quick-search" class="uk-icon-search uk-icon-hover uk-margin-small-right" data-uk-modal data-ks="F3"></a>
-        <a href="/av/help" class="uk-icon-small uk-icon-question-circle uk-icon-hover uk-margin-small-right" style="color: #659f13" title="Help"></a>
+        <a href="/av/help" class="uk-icon-small uk-icon-question-circle uk-icon-hover uk-margin-small-right uk-color-green" title="Help"></a>
         <i class="uk-icon-calendar"></i>&nbsp;&nbsp;<?php print format_date(time(), 'custom', 'l, F j, Y'); ?>
       </div>
     </div>

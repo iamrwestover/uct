@@ -38,6 +38,10 @@
     <td>When creating or editing a transaction, this will switch input focus to and from the item above/below.</td>
   </tr>
   <tr>
+    <td>ALT+&darr;</td>
+    <td>Opens currently focused dropdown fields.</td>
+  </tr>
+  <tr>
     <td>ALT+1</td>
     <td>When creating or editing a transaction, this will set input focus to the very first transaction item.</td>
   </tr>
