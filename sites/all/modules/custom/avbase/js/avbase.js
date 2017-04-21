@@ -34,8 +34,9 @@
       $('.av-frs tbody tr').once('avbaseFRS', function() {
         var $input = $(this).find('input').eq(0);
         var $row = $(this);
-        $row.click(function(e) {
-          $input.prop("checked", !$input.is(':checked'))
+        $row.find('td:not(:first-child)').click(function(e) {
+          $input.trigger('click');
+          //$input.prop("checked", !$input.is(':checked'))
         });
 
         $input.keydown(function (e) {
