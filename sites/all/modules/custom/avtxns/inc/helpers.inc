@@ -196,7 +196,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
       $details_rs = $query->execute();
       foreach ($details_rs as $item) {
-        if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
+        if (!isset($row->items_ref_txn_id) && !empty($item->ref_txn_id) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
           $row->items_ref_txn_id = $item->ref_txn_id;
           $row->items_ref_txn_type = $item->ref_txn_type;
         }

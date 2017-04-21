@@ -21,6 +21,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   // Transaction type details.
   $ttd = avtxns_txn_types($transaction_type);
 
+  // Pending ref types.
+  $pending_txns_reference_type = empty($ttd['pending_txns_reference_type']) ? array() : (array) $ttd['pending_txns_reference_type'];
+
   // Extra columns
   $col_client = !empty($ttd['ctd']);
   $col_due_date = !empty($ttd['bill']);
@@ -30,6 +33,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $col_memo = $transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT || $ttd['transaction'] == 'accounts';
   //$col_account_name = $ttd['transaction'] == 'accounts';
   $col_total = $transaction_type != AVTXNS_TXN_TYPE_JOURNAL;
+  //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
+  $col_items_ref_txn_id = count($pending_txns_reference_type) == 1;
 
   // Custom date optionsdetails.
   $dad = avtxns_txn_list_filter_date_auto_options();
@@ -112,6 +117,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   }
   $header['date'] = array('data' => 'Date', 'field' => 'transaction_date');
   $header['id'] = array('data' => strtoupper($transaction_type) . '#', 'field' => 'id');
+  if ($col_items_ref_txn_id) {
+    $header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'id');
+  }
   if ($col_terms) {
     $header['term'] = array('data' => 'Terms', 'field' => 'term_name');
   }
@@ -175,6 +183,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $select[] = avtxns_txn_overdue_query() . ' AS overdue';
   }
   $select[] = 'avtxn_detail.ref_txn_type';
+  if ($col_items_ref_txn_id) {
+    $select[] = 'avtxn_detail.ref_txn_id';
+  }
   $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
   if ($col_paid) {
     $select[] = "(
@@ -255,6 +266,10 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       }
       $data['date'] = array('data' => l(format_date($row->transaction_date, 'custom', 'Y-M-d'), $view_path));
       $data['id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path));
+      //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
+      if ($col_items_ref_txn_id) {
+        $data['items_ref_txn_id'] = array();
+      }
       if ($col_terms) {
         $data['term'] = array('data' => check_plain($row->term_name));
       }
@@ -304,6 +319,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     else {
       $table_rows[$row->id]['data']['total']['data'] =  $row_total_html;
       $table_rows[$row->id]['data']['balance']['data'] =  $row_bal_html;
+    }
+
+    if ($col_items_ref_txn_id && !empty($row->ref_txn_id) && empty($table_rows[$row->id]['data']['items_ref_txn_id']) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
+      $irtd = avtxns_txn_types($row->ref_txn_type);
+      $irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
+      $table_rows[$row->id]['data']['items_ref_txn_id'] = array('data' => l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path));
     }
   }
 

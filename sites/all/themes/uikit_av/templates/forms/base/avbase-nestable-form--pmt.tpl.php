@@ -9,12 +9,12 @@ $view_mode = !empty($form['#av_view_mode']);
           <div class="uk-width-2-6"><div class="av-nestable-cell">Date</div></div>
           <div class="uk-width-2-6">
             <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'left' : 'center'); ?>">
-              Txn#
+              Txn.#
             </div>
           </div>
           <div class="uk-width-2-6">
             <div class="av-nestable-cell uk-text-<?php print ($view_mode ? 'left' : 'center'); ?>">
-              Ref. Txn#
+              Ref. Txn.#
             </div>
           </div>
         </div>
