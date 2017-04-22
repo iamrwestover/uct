@@ -195,7 +195,7 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
       $to_be_deleted_rows = array();
       if (empty($form_state['#new_record'])) {
         $delete_query = "DELETE FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
-        $sd_query = "SELECT id, transaction_id, item_id, ref_txn_type, (qty * qty_per_uom) AS incoming_base_qty, good_stock
+        $sd_query = "SELECT id, transaction_id, item_id, ref_txn_type, (qty * qty_per_uom) AS incoming_base_qty
           FROM {avtbl_transaction_details} WHERE transaction_id = :txn_id";
         $delete_args = array(':txn_id' => $row['id']);
         if (!empty($transaction_detail_ids)) {
