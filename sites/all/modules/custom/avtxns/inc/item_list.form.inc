@@ -311,8 +311,8 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     if (!empty($noi)) {
       $form['transaction_id']['#markup'] = $noi . ' ' . ($noi > 1 ? 'entries' : 'entry') . ' - ' . $form['transaction_id']['#markup'];
     }
-    if (!empty($row->ref_txn_id) && !empty($row->ref_txn_type)) {
-      $form['transaction_id']['#markup'] .= '<br />Ref. ' . avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id);
+    if (!empty($row->items_ref_txn_id) && !empty($row->items_ref_txn_type)) {
+      $form['transaction_id']['#markup'] .= '<br />Ref. ' . avbase_txn_number_format($row->items_ref_txn_type, $row->items_ref_txn_id);
     }
   }
 

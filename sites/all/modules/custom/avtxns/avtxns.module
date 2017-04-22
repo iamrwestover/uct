@@ -777,7 +777,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //}
   $header = array(
     //'status' => array('data' => '&nbsp;', 'style' => 'width: 65px;'),
-    'transaction_id' => array('data' => '#', 'field' => 'avtxn.id'),
+    'transaction_id' => array('data' => 'Txn.#', 'field' => 'avtxn.id'),
     'date' => array('data' => 'Date', 'field' => 'avtxn.transaction_date'),
     'transaction_type' => array('data' => 'Type', 'field' => 'avtxn.transaction_type'),
     'client_name' => array('data' => $client_header, 'field' => 'avclients.display_name'),
