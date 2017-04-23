@@ -724,9 +724,6 @@ function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FA
     $item_row = (array) $item_row;
     $item_id = isset($item_row['item_id']) ? $item_row['item_id'] : NULL;
     $item_id = empty($item_id) ? (isset($item_row['product_id']) ? $item_row['product_id'] : NULL) : $item_id;
-    if (empty($item_id)) {
-      continue;
-    }
 
     $this_prod_total_incoming_base_qty = empty($incoming_base_qty[$item_id]) ? 0 : $incoming_base_qty[$item_id];
     $previous_incoming_base_qty = empty($item_row['incoming_base_qty']) ? 0 : $item_row['incoming_base_qty'];
@@ -736,9 +733,9 @@ function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FA
     $item_row_qty = isset($item_row['qty']) ? $item_row['qty'] : 0;
     $item_row_qty_per_uom = isset($item_row['qty_per_uom']) ? $item_row['qty_per_uom'] : 1;
     $item_row_incoming_base_qty = ($item_row_qty * $item_row_qty_per_uom);
-    //if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item_row['good_stock'])) {
-    //  $item_row_incoming_base_qty = 0;
-    //}
+    if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item_row['good_stock'])) {
+      $item_row_incoming_base_qty = 0;
+    }
 
     if (!empty($item_id)) {
       $incoming_base_qty[$item_id] = $this_prod_total_incoming_base_qty + $item_row_incoming_base_qty - $previous_incoming_base_qty;
