@@ -777,7 +777,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //}
   $header = array(
     //'status' => array('data' => '&nbsp;', 'style' => 'width: 65px;'),
-    'transaction_id' => array('data' => 'Txn.#', 'field' => 'avtxn.id'),
+    'transaction_id' => array('data' => 'Transaction #', 'field' => 'avtxn.id'),
     'date' => array('data' => 'Date', 'field' => 'avtxn.transaction_date'),
     'transaction_type' => array('data' => 'Type', 'field' => 'avtxn.transaction_type'),
     'client_name' => array('data' => $client_header, 'field' => 'avclients.display_name'),
@@ -808,6 +808,13 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     }
   }
 
+  // Set default order.
+  if (empty($_GET['order'])) {
+    $_GET['order'] = $header['transaction_id']['data'];
+    $_GET['sort'] = 'DESC';
+  }
+  $order_by = avbase_build_header_order_array($header);
+
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
   // Make sure only transactions that this user has VIEW permission are listed.
@@ -833,7 +840,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     $total_count = avtxns_txns_query_load($where, $args, NULL, NULL, NULL, $select, $joins, array(), TRUE);
     $page = pager_default_initialize($total_count, $rows_per_page);
     $offset = $rows_per_page * $page;
-    $order_by = avbase_build_header_order_array($header);
+
     $transactions = avtxns_txns_query_load($where, $args, $rows_per_page, $offset, $order_by, $select, $joins);
     //$index = 0;
     foreach ($transactions as $row) {
@@ -988,6 +995,19 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#attributes' => array(
         'placeholder' => 'Account name',
         'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
+  if (!empty($settings['avprod.title'])) {
+    $fields['avprod.title'] = empty($settings['avprod.title']) ? array() : $settings['avprod.title'];
+    $fields['avprod.title'] += array(
+      '#type' => 'textfield',
+      '#autocomplete_path' => 'av/products/autocomplete',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+        'placeholder' => 'Product name'
       ),
     );
   }
@@ -1273,7 +1293,7 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
     }
     //$query_field_aliases = empty($query_exceptions[$k]['#query_field_aliases']) ? array() : $query_exceptions[$k]['#query_field_aliases'];
     $v = trim($v);
-    $arg_name = 'arg_' . $arg_index++;
+    $arg_name = str_replace('.', '', $k);
     if ($k == 'search_text' && $v != '') {
       $or = array();
       $or[] = "avcat_agent.title LIKE :$arg_name";
@@ -1325,9 +1345,9 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
       //  }
       //}
       //else {
-        $where[] = "{$k} = :$arg_name";
+        $where[$k] = "{$k} = :$arg_name";
       //}
-      $args[":$arg_name"] = $v;
+      $args[":{$arg_name}"] = $v;
     }
   }
 

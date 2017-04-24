@@ -13,6 +13,9 @@
     </div>
   <?php endif; ?>
   <div class="<?php print $mid_class; ?>">
+    <?php if (isset($form['product_name'])): ?>
+      <?php print drupal_render($form['product_name']); ?>
+    <?php endif; ?>
     <?php if (isset($form['agent_name'])): ?>
       <?php print drupal_render($form['agent_name']); ?>
     <?php endif; ?>

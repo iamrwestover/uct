@@ -147,7 +147,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
   );
   $info['title'] = array(
     '#type' => 'textfield',
-    '#title' => 'Title',
+    '#title' => 'Name',
     '#default_value' => isset($row->title) ? $row->title : '',
     '#maxlength' => 255,
     '#required' => TRUE,

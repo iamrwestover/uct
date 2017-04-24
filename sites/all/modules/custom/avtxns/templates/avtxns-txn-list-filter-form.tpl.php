@@ -28,6 +28,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['avprod.title'])): ?>
+    <div class="uk-width-3-10">
+      <?php print drupal_render($form['avprod.title']); ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($transaction_type_html): ?>
     <div class="uk-width-2-10">
       <?php print $transaction_type_html; ?>

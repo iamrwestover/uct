@@ -106,6 +106,15 @@ function avreports_menu() {
     'file' => 'inc/stock_status.form.inc',
   );
 
+  $items['av/reports/stock-history'] = array(
+    'title' => 'Stock History',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_stock_history_form'),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/stock_history.form.inc',
+  );
+
   return $items;
 }
 
@@ -180,6 +189,7 @@ function avreports_home_form($form, &$form_state) {
   // Inventory.
   $buttons = array();
   $buttons['stock_status'] = array('#markup' => l('Stock Status', 'av/reports/stock-status', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['stock_history'] = array('#markup' => l('Stock History', 'av/reports/stock-history', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $buttons['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $buttons['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $form['inventory_reports'] = array(

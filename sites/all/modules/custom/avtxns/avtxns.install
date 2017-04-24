@@ -166,7 +166,6 @@ function avtxns_schema() {
       'qty_per_uom' => array(
         'description' => 'TODO: please describe this field!',
         'type' => 'int',
-        'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'description' => array(
@@ -503,4 +502,31 @@ function avtxns_update_7103() {
   $query->execute();
 
   return t('Role permissions updated.');
+}
+
+/**
+ * Change qty per uom field attributes.
+ */
+function avtxns_update_7104() {
+  $schema = avtxns_schema();
+  $table_name = 'avtbl_transaction_details';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'qty_per_uom';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  return t('Successfully updated field attributes of qty_per_uom.');
+}
+
+/**
+ * Bad stocks returned are now considered as an increment on on-hand quantity.
+ * This update will adjust related products' on-hand quantity accordingly.
+ */
+function avtxns_update_7105() {
+  $schema = avtxns_schema();
+  $table_name = 'avtbl_transaction_details';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'qty_per_uom';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  return t('Successfully updated field attributes of qty_per_uom.');
 }

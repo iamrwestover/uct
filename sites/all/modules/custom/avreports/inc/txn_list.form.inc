@@ -264,7 +264,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       if ($col_client_show) {
         $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
       }
-      $data['date'] = array('data' => l(format_date($row->transaction_date, 'custom', 'Y-M-d'), $view_path));
+      $data['date'] = array('data' => l(format_date($row->transaction_date, 'custom', 'M-d-Y'), $view_path));
       $data['id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path));
       //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
       if ($col_items_ref_txn_id) {

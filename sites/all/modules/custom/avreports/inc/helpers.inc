@@ -215,9 +215,9 @@ function avreports_product_transaction_history() {
   //SUM(avtxn_detail.cost * avtxn_detail.qty) / SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) as txn_ave_cost,
   //SUM(avtxn_detail.cost * avtxn_detail.qty) / SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) as txn_ave_cost,
   $query = "SELECT
-    avtxn.id, avtxn.transaction_type, avtxn.transaction_date, avtxn.created,
+    avtxn.id, avtxn.transaction_type, avtxn.transaction_date,
     avtxn_detail.item_id,
-    SUM(CAST(avtxn_detail.qty_per_uom AS SIGNED) * avtxn_detail.qty) AS txn_qty,
+    SUM(avtxn_detail.qty_per_uom * avtxn_detail.qty) AS txn_qty,
     SUM(avtxn_detail.cost * avtxn_detail.qty) as txn_value,
 
     avprod.initial_qty, avprod.initial_value
@@ -227,7 +227,7 @@ function avreports_product_transaction_history() {
     WHERE avtxn.transaction_type IN (:ttypes) AND avtxn.status IN (:statuses)
     AND IF(avtxn.transaction_type = :sr, avtxn_detail.good_stock = 1, 1)
     GROUP BY avtxn.id, avtxn_detail.item_id
-    ORDER BY avtxn.transaction_date, avtxn.created
+    ORDER BY avtxn.transaction_date
   ";
   $args = array();
   $args[':ttypes'] = avtxns_get_qty_change_txn_types();

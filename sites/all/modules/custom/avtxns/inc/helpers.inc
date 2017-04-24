@@ -1676,14 +1676,16 @@ function avtxns_get_refable_txn_types() {
   return $types;
 }
 
-function avtxns_get_qty_change_txn_types() {
+function avtxns_get_qty_change_txn_types($change_type = NULL) {
   $types = array();
   $txn_types = avtxns_txn_types();
   foreach ($txn_types as $ttd) {
     if (empty($ttd['qty_change'])) {
       continue;
     }
-    $types[] = $ttd['type'];
+    if (is_null($change_type) || $ttd['qty_change'] == $change_type) {
+      $types[] = $ttd['type'];
+    }
   }
   return $types;
 }
