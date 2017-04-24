@@ -56,13 +56,13 @@ function avreports_stock_status_form($form, &$form_state) {
   $header['day_ave']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['day_ave']['title'] = 'Average Sales Per Day';
 
-  $header['dr_total'] = array('data' => 'OUT(S)', 'field' => 'dr_total', 'class' => array('uk-text-right'));
+  $header['dr_total'] = array('data' => 'OUT(D)', 'field' => 'dr_total', 'class' => array('uk-text-right'));
   $header['dr_total']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['dr_total']['title'] = 'Out (Sales)';
+  $header['dr_total']['title'] = 'Out (Deliveries)';
 
   $header['stou_total'] = array('data' => 'OUT(T)', 'field' => 'stou_total', 'class' => array('uk-text-right'));
   $header['stou_total']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['stou_total']['title'] = 'Out (Transferred)';
+  $header['stou_total']['title'] = 'Out (Transfers)';
 
   $header['on_so'] = array('data' => 'SO', 'field' => 'so_total', 'class' => array('uk-text-right'));
   $header['on_so']['data-uk-tooltip'] = '{cls: "tt-blue"}';
