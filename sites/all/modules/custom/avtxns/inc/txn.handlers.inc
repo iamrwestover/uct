@@ -211,6 +211,9 @@ function avtxns_avbase_crud_dbchange_txn($op, $row, $form_state) {
         if (!empty($ttd['qty_change'])) {
           $sd_rs = db_query($sd_query, $delete_args);
           foreach ($sd_rs as $sd_row) {
+            if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($sd_row->good_stock)) {
+              continue;
+            }
             $to_be_deleted_rows['delete_' . avtxns_get_item_row_key($sd_row)] = $sd_row;
           }
         }

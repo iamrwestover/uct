@@ -725,6 +725,10 @@ function avbase_product_qty_update($item_rows, $transaction_row, $from_void = FA
     $item_id = isset($item_row['item_id']) ? $item_row['item_id'] : NULL;
     $item_id = empty($item_id) ? (isset($item_row['product_id']) ? $item_row['product_id'] : NULL) : $item_id;
 
+    if (empty($item_id)) {
+      continue;
+    }
+
     $this_prod_total_incoming_base_qty = empty($incoming_base_qty[$item_id]) ? 0 : $incoming_base_qty[$item_id];
     $previous_incoming_base_qty = empty($item_row['incoming_base_qty']) ? 0 : $item_row['incoming_base_qty'];
     $previous_incoming_base_qty = empty($item_row['id']) ? 0 : $previous_incoming_base_qty;

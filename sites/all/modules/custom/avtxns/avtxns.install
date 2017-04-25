@@ -522,24 +522,24 @@ function avtxns_update_7104() {
  * This update will adjust related products' on-hand quantity accordingly.
  */
 function avtxns_update_7105() {
-  $query = "SELECT
-    SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) AS add_count,
-    avtxn_detail.item_id AS add_to_item_id
-    FROM {avtbl_transaction_details} AS avtxn_detail
-    INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id=avtxn_detail.transaction_id
-      AND avtxn.transaction_type='" . AVTXNS_TXN_TYPE_SALES_RETURN . "'
-      AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID . "
-    WHERE good_stock = 0 GROUP BY avtxn_detail.item_id";
-  $rs = db_query($query);
-
-  $cases = '';
-  $ids = array();
-  foreach ($rs as $row) {
-    $cases .= " WHEN {$row->add_to_item_id} THEN {$row->add_count}";
-    $ids[] = $row->add_to_item_id;
-  }
-  if (!empty($cases)) {
-    db_query("UPDATE {avtbl_products} SET qty = qty + (CASE id" . $cases . " END) WHERE id IN(:ids)", array(':ids' => $ids));
-  }
-  return t('Adjustments on on hand quantities finished.');
+  //$query = "SELECT
+  //  SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) AS add_count,
+  //  avtxn_detail.item_id AS add_to_item_id
+  //  FROM {avtbl_transaction_details} AS avtxn_detail
+  //  INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id=avtxn_detail.transaction_id
+  //    AND avtxn.transaction_type='" . AVTXNS_TXN_TYPE_SALES_RETURN . "'
+  //    AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID . "
+  //  WHERE good_stock = 0 GROUP BY avtxn_detail.item_id";
+  //$rs = db_query($query);
+  //
+  //$cases = '';
+  //$ids = array();
+  //foreach ($rs as $row) {
+  //  $cases .= " WHEN {$row->add_to_item_id} THEN {$row->add_count}";
+  //  $ids[] = $row->add_to_item_id;
+  //}
+  //if (!empty($cases)) {
+  //  db_query("UPDATE {avtbl_products} SET qty = qty + (CASE id" . $cases . " END) WHERE id IN(:ids)", array(':ids' => $ids));
+  //}
+  //return t('Adjustments on on hand quantities finished.');
 }
