@@ -1439,11 +1439,11 @@ function avtxns_txn_filter_apply_date(&$where, &$args, $date_string, $date_type 
 
   $placeholder_name = ':' . $date_type . '_stamp';
   if ($date_type == 'date_from') {
-    $where[] = 'avtxn.transaction_date >= ' . $placeholder_name;
+    $where[$date_type] = 'avtxn.transaction_date >= ' . $placeholder_name;
   }
   else {
     $timestamp = strtotime('+1 day', $timestamp);
-    $where[] = 'avtxn.transaction_date < ' . $placeholder_name;
+    $where[$date_type] = 'avtxn.transaction_date < ' . $placeholder_name;
   }
 
   $args[$placeholder_name] = $timestamp;

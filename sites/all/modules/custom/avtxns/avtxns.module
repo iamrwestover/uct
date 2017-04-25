@@ -961,6 +961,31 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
+  if (!empty($settings['category_id'])) {
+    $fields['category_id'] = empty($settings['category_id']) ? array() : $settings['category_id'];
+    $fields['category_id'] += array(
+      '#title' => 'Category',
+      '#type' => 'select',
+      '#empty_value' => '',
+      '#empty_option' => '- Category -',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+  if (!empty($settings['avcat_prodcat.id'])) {
+    $fields['avcat_prodcat.id'] = empty($settings['avcat_prodcat.id']) ? array() : $settings['avcat_prodcat.id'];
+    $fields['avcat_prodcat.id'] += array(
+      '#title' => 'Category',
+      '#type' => 'select',
+      '#empty_value' => '',
+      '#empty_option' => '- Category -',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
   if (!empty($settings['avcat_area.title'])) {
     $fields['avcat_area.title'] = empty($settings['avcat_area.title']) ? array() : $settings['avcat_area.title'];
     $fields['avcat_area.title'] += array(
@@ -1108,6 +1133,33 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
     if (isset($fields['simplified_status']['#default_value'])) {
       $fields['simplified_status']['#attributes']['data-default-value'] = $fields['simplified_status']['#default_value'];
+    }
+  }
+  if (!empty($settings['client_status'])) {
+    $fields['client_status'] = empty($settings['client_status']) ? array() : $settings['client_status'];
+    $fields['client_status'] += array(
+      '#type' => 'select',
+      '#title' => 'Status',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+    if (isset($fields['client_status']['#default_value'])) {
+      $fields['client_status']['#attributes']['data-default-value'] = $fields['client_status']['#default_value'];
+    }
+  }
+
+  if (!empty($settings['product_status'])) {
+    $fields['product_status'] = empty($settings['product_status']) ? array() : $settings['product_status'];
+    $fields['product_status'] += array(
+      '#type' => 'select',
+      '#title' => 'Status',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+    if (isset($fields['product_status']['#default_value'])) {
+      $fields['product_status']['#attributes']['data-default-value'] = $fields['product_status']['#default_value'];
     }
   }
 
@@ -1325,6 +1377,18 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
       $simplified_statuses = explode('-', $v);
       $where['simplified_statuses'] = 'avtxn.status IN (:simplified_statuses)';
       $args[':simplified_statuses'] = $simplified_statuses;
+      continue;
+    }
+    elseif ($k == 'client_status') {
+      $client_statuses = explode('-', $v);
+      $where['client_statuses'] = 'avclients.status IN (:client_statuses)';
+      $args[':client_statuses'] = $client_statuses;
+      continue;
+    }
+    elseif ($k == 'product_status') {
+      $product_statuses = explode('-', $v);
+      $where['product_statuses'] = 'avprod.status IN (:product_statuses)';
+      $args[':product_statuses'] = $product_statuses;
       continue;
     }
     elseif ($k == 'overdue') {

@@ -415,13 +415,13 @@ function avclients_client_form_payment_fields(&$form, $ctd, $row, $view_mode = F
     '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
     '#access' => $ctd['type'] == AVCLIENT_TYPE_CUSTOMER,
   );
-  $payment['opening_balance'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Opening balance',
-    '#default_value' => isset($row->opening_balance) ? ($view_mode ? number_format($row->opening_balance, 2) : avbase_number_format($row->opening_balance)) : '',
-    '#maxlength' => 19,
-    '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
-  );
+  //$payment['opening_balance'] = array(
+  //  '#type' => 'textfield',
+  //  '#title' => 'Opening balance',
+  //  '#default_value' => isset($row->opening_balance) ? ($view_mode ? number_format($row->opening_balance, 2) : avbase_number_format($row->opening_balance)) : '',
+  //  '#maxlength' => 19,
+  //  '#element_validate' => array('element_validate_number', 'avbase_element_validate_money_length'),
+  //);
   //if (!empty($row->id)) {
   //  $payment['opening_balance']['#disabled'] = TRUE;
   //}

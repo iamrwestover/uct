@@ -218,12 +218,12 @@ function avreports_stock_status_form($form, &$form_state) {
     $transaction_list_table['table']['#rows'] = $table_rows;
   }
   avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
-  if (!empty($user_filter['avcat_principal.title'])) {
+  if (!empty($user_filter['settings']['principal_name'])) {
     $transaction_list_table['principal_name'] = array(
       '#type' => 'item',
       '#title' => 'Principal',
       '#title_display' => 'inline-before',
-      '#markup' => check_plain($user_filter['avcat_principal.title']),
+      '#markup' => check_plain($user_filter['settings']['principal_name']),
     );
   }
 
@@ -244,7 +244,7 @@ function avreports_stock_status_form($form, &$form_state) {
     '#theme' => 'avreports_txn_list',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
+      'class' => array('printable av-sticky-small')
     ),
   );
   $form['transaction_list_table'] += $transaction_list_table;

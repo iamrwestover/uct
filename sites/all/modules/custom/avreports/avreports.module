@@ -115,6 +115,26 @@ function avreports_menu() {
     'file' => 'inc/stock_history.form.inc',
   );
 
+  $client_types = avclients_client_types();
+  foreach ($client_types as $ct) {
+    $list_path = 'av/reports/client-list/' . $ct['type'];
+    $items[$list_path] = array(
+      'title' => $ct['name'] . ' List',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('avreports_client_list_form', 3),
+      'access arguments' => array(AVREPORTS_PERM_TXN_LIST),
+      'type' => MENU_CALLBACK,
+      'file' => 'inc/client_list.form.inc',
+    );
+  }
+  $items['av/reports/product-list'] = array(
+    'title' => 'Product List',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_product_list_form'),
+    'access arguments' => array(AVREPORTS_PERM_TXN_LIST),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/product_list.form.inc',
+  );
   return $items;
 }
 
@@ -198,6 +218,21 @@ function avreports_home_form($form, &$form_state) {
   );
   $form['inventory_reports'] += $buttons;
   $form['inventory_reports']['#access'] = user_access(AVREPORTS_PERM_INVENTORY);
+
+  // List.
+  $buttons = array();
+  $client_types = avclients_client_types();
+  foreach ($client_types as $ct) {
+    $list_path = 'av/reports/client-list/' . $ct['type'];
+    $buttons['client_' . $ct['type']] = array('#markup' => l($ct['plural_name'], $list_path, array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  }
+  $buttons['product_list'] = array('#markup' => l('Products', 'av/reports/product-list', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $form['lists'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Lists'),
+  );
+  $form['lists'] += $buttons;
+  $form['lists']['#access'] = user_access(AVREPORTS_PERM_TXN_LIST);
 
   // Accounting.
   $buttons = array();

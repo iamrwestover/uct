@@ -1,26 +1,27 @@
 <?php
 
 function avbase_help_home() {
+  $seen_updates = variable_get('av_seen_updates', array());
+  $vnum = 'v1.170425';
+  if (empty($seen_updates[$vnum])) {
+    $seen_updates[$vnum] = TRUE;
+    variable_set('av_seen_updates', $seen_updates);
+  }
+
   $output = '';
   $output .= <<<HTML
   <div class="uk-panel uk-panel-box">
-    <div class="uk-badge uk-badge-danger uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent v1.170420 update:</div>
+    <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- &uarr; and &darr; now also switches focus on UOM fields.</li>
-      <li>- ALT+&darr; now opens UOM dropdown list.</li>
-      <li>- &uarr; and &darr; now also switches focus on checkboxes/radios, e.g. when adding pending invoices on a payment transaction.</li>
-      <li>- Full rows can now be clicked to mark checkboxes/radios, e.g. when adding pending invoices on a payment transaction.</li>
-      <li>- Stock transfer to and from branches is now available.</li>
-      <li>- Products can now be returned easily via "Return items" link (F6) on CLOSED Deliveries.</li>
-      <li>- Products can now be ordered easily using the Stock Status Report.</li>
-      <li>- New columns on Stock Status Report.</li>
-      <li>- Fixed bug Agent field loses focus when tabbing from Customer/Vendor field.</li>
+      <li>- Fixes on Stock History, Products, Customers, Branches, and Vendors List report.</li>
+      <li>- Minor changes to print based on user feedback.</li>
+      <!--<li>- Bad stocks on Sales Returns are now considered as an increment to on-hand quantity.</li>-->
       <li>- Various bugs and performance fixes.</li>
     </ul>
   </div>
   <hr />
 HTML;
-  $_SESSION['seen_recent_updates'] = TRUE;
+
 
   $help_items = array();
   $help_items[] = array(

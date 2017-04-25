@@ -29,6 +29,9 @@ if (arg(3) == 'backup_migrate' && $user->uid != 1) {
 if (arg(0) == 'user') {
   $breadcrumb[1] = l('Users', 'av/users');
 }
+elseif (arg(1) == 'reports' && arg(2) != '' && empty($breadcrumb[1])) {
+  $breadcrumb[1] = l('Reports', 'av/reports');
+}
 
 // Provide a navigational heading to give context for breadcrumb links to
 // screen-reader users. Make the heading invisible with .uk-hidden.

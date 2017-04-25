@@ -26,6 +26,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
   // Extra columns
   $col_client = !empty($ttd['ctd']);
+  $col_area = $col_client && empty($ttd['ctd']['no_area']);
   $col_due_date = !empty($ttd['bill']);
   $col_paid = !empty($ttd['payable']);
   $col_terms = empty($ttd['no_terms']);
@@ -83,6 +84,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       '#title' => $ttd['ctd']['name'],
       '#autocomplete_path' => 'av/clients/autocomplete/' . $ttd['ctd']['type'] . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
     );
+  }
+  if ($col_area) {
     $filter_form_settings['avcat_area.title'] = array('#title' => 'Area');
   }
   if ($col_agent) {
@@ -207,6 +210,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $select[] = 'avclients.id AS client_id';
     $select[] = 'avclients.display_name';
     $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  }
+  if ($col_area) {
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
   }
   if ($col_agent) {

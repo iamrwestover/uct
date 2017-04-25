@@ -263,6 +263,9 @@ $balance_ages_html = drupal_render($form['balance_ages']);
         <div class="uk-grid">
           <div class="uk-width-7-10">
             <div class="uk-grid uk-grid-small">
+              <div class="uk-width-1-1">&nbsp;</div>
+              <div class="uk-width-1-1">&nbsp;</div>
+              <div class="uk-width-1-1">&nbsp;</div>
               <?php
                 $payable_to = strtoupper(variable_get('av_checks_payable_to', 'Ultimate Care Trading'));
                 $hide_payable_to = $payable_to == 'HIDE';

@@ -141,9 +141,11 @@ function avreports_stock_history_form($form, &$form_state) {
 //GROUP BY avtxn.id, avtxn_detail.item_id
 //ORDER BY avtxn_detail.item_id ASC, avtxn.transaction_date ASC, avtxn.id ASC;");
 
-    $i_query = "SELECT id, title, initial_qty AS onhand, initial_value AS asset_value, initial_value/initial_qty AS ave_cost, initial_qty_date
-      FROM avtbl_products
-      WHERE avtbl_products.title = (:prod_title)";
+    $i_query = "SELECT avprod.id, avprod.title, initial_qty AS onhand,
+      initial_value AS asset_value, initial_value/initial_qty AS ave_cost, initial_qty_date, avcat_uom.title AS uom_title
+      FROM avtbl_products AS avprod
+      LEFT JOIN avtbl_categories AS avcat_uom ON avcat_uom.id = avprod.uom_id
+      WHERE avprod.title = (:prod_title)";
     $i_rs = db_query($i_query, array(':prod_title' => $user_filter['avprod.title']));
     $prod_init = array();
     foreach ($i_rs as $row) {
@@ -152,7 +154,6 @@ function avreports_stock_history_form($form, &$form_state) {
         $selected_product_id = $row->id;
       }
     }
-
 
     if (!empty($prod_init)) {
       $ave_cost_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
@@ -164,13 +165,13 @@ function avreports_stock_history_form($form, &$form_state) {
       $select[] = 'avtxn.transaction_date';
       $select[] = 'avtxn.transaction_type';
       $select[] = 'avtxn.client_id';
-      $joins[] = 'INNER JOIN avtbl_transactions AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN (:ttypes)';
+      $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN (:ttypes)';
 
       //$select[] = 'avprod.title AS product_title';
-      $joins[] = 'LEFT JOIN avtbl_products AS avprod ON avprod.id = avtxn_detail.item_id';
+      $joins[] = 'LEFT JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id';
 
       $select[] = 'avclient.display_name AS client_name';
-      $joins[] = 'LEFT JOIN avtbl_clients AS avclient ON avclient.id = avtxn.client_id';
+      $joins[] = 'LEFT JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id';
 
       //$where[] = 'avprod.title.item_id = :prod_title';
       $where[] = 'avtxn.status <> ' . AVTXNS_TXN_STATUS_VOID;
@@ -186,28 +187,32 @@ function avreports_stock_history_form($form, &$form_state) {
       $order_by[] = 'avtxn.transaction_date ASC';
       $order_by[] = 'avtxn.id ASC';
       $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transaction_details} AS avtxn_detail " . implode(' ', $joins);
+
+      unset($where['date_from']);
+      unset($args[':date_from_stamp']);
       avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
       $rs = db_query($query, $args);
 
-$y=0;
-
+      $date_from = strtotime($user_filter['date_from']);
       foreach ($rs as $row) {
         // Initial Values.
         if (!empty($prod_init[$row->item_id]) && empty($table_rows[$row->item_id . '_init'])) {
           $init = &$prod_init[$row->item_id];
-          $data = array();
-          $data['transaction_type'] = array('data' => 'Added product');
-          $data['transaction_date'] = array('data' => format_date($init->initial_qty_date, 'custom', 'M-d-Y'));
-          $data['transaction_id'] = array('data' => '');
-          $data['client_name'] = array('data' => '');
-          $data['row_qty'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
-          $data['amount'] = array('data' => '', 'class' => array('uk-text-right'));
-          //$data['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
-          $data['onhand'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
-          $data['ave_cost'] = array('data' => number_format($init->ave_cost, 2), 'class' => array('uk-text-right'));
-          $data['asset_value'] = array('data' => number_format($init->asset_value, 2), 'class' => array('uk-text-right'));
-          // Careful when adding classes on rows, check if tableselect mode is ON.
-          $table_rows[$row->item_id . '_init'] = $data;
+          if ($date_from <= $init->initial_qty_date) {
+            $data = array();
+            $data['transaction_type'] = array('data' => 'Added product');
+            $data['transaction_date'] = array('data' => format_date($init->initial_qty_date, 'custom', 'M-d-Y'));
+            $data['transaction_id'] = array('data' => '');
+            $data['client_name'] = array('data' => '');
+            $data['row_qty'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
+            $data['amount'] = array('data' => '', 'class' => array('uk-text-right'));
+            //$data['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
+            $data['onhand'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
+            $data['ave_cost'] = array('data' => number_format($init->ave_cost, 2), 'class' => array('uk-text-right'));
+            $data['asset_value'] = array('data' => number_format($init->asset_value, 2), 'class' => array('uk-text-right'));
+            // Careful when adding classes on rows, check if tableselect mode is ON.
+            $table_rows[$row->item_id . '_init'] = $data;
+          }
         }
 
         if (empty($init)) {
@@ -218,21 +223,24 @@ $y=0;
         $init->onhand += $row->row_qty;
         $init->ave_cost = in_array($row->transaction_type, $ave_cost_types) ? (((float)$row->row_cost + $init->asset_value) / $init->onhand) : $init->ave_cost;
         $init->asset_value = $init->ave_cost * $init->onhand;
-        $ttd = avtxns_txn_types($row->transaction_type);
-        $data = array();
-        $data['transaction_type'] = array('data' => $ttd['name']);
-        $data['transaction_date'] = array('data' => format_date($row->transaction_date, 'custom', 'M-d-Y'));
-        $data['transaction_id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $ttd['base_path'] . "/{$row->transaction_id}/view"));
-        $data['client_name'] = array('data' => l($row->client_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
-        $data['row_qty'] = array('data' => number_format($row->row_qty), 'class' => array('uk-text-right'));
-        $data['amount'] = array('data' => (is_null($row->row_cost) ? '' : number_format($row->row_cost, 2)), 'class' => array('uk-text-right'));
-        //$data['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
-        $data['onhand'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
-        $data['ave_cost'] = array('data' => number_format($init->ave_cost, 2), 'class' => array('uk-text-right'));
-        $data['asset_value'] = array('data' => number_format($init->asset_value, 2), 'class' => array('uk-text-right'));
+        if ($date_from <= $row->transaction_date) {
+          $ttd = avtxns_txn_types($row->transaction_type);
+          $data = array();
+          $txn_view_path = $ttd['base_path'] . "/{$row->transaction_id}/view";
+          $data['transaction_type'] = array('data' => l($ttd['name'], $txn_view_path));
+          $data['transaction_date'] = array('data' => l(format_date($row->transaction_date, 'custom', 'M-d-Y'), $txn_view_path));
+          $data['transaction_id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $txn_view_path));
+          $data['client_name'] = array('data' => l($row->client_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
+          $data['row_qty'] = array('data' => number_format($row->row_qty), 'class' => array('uk-text-right'));
+          $data['amount'] = array('data' => (is_null($row->row_cost) ? '' : number_format($row->row_cost, 2)), 'class' => array('uk-text-right'));
+          //$data['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
+          $data['onhand'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
+          $data['ave_cost'] = array('data' => number_format($init->ave_cost, 2), 'class' => array('uk-text-right'));
+          $data['asset_value'] = array('data' => number_format($init->asset_value, 2), 'class' => array('uk-text-right'));
 
-        // Careful when adding classes on rows, check if tableselect mode is ON.
-        $table_rows[$row->transaction_id] = $data;
+          // Careful when adding classes on rows, check if tableselect mode is ON.
+          $table_rows[$row->transaction_id] = $data;
+        }
       }
     }
   }
@@ -258,6 +266,7 @@ $y=0;
     );
     if (!empty($init)) {
       $transaction_list_table['product_name']['#markup'] .= '<br />On Hand: ' . number_format($init->onhand);
+      $transaction_list_table['product_name']['#markup'] .= empty($init->uom_title) ? '' : (' (' . check_plain($init->uom_title) . ')');
       $transaction_list_table['product_name']['#markup'] .= '<br />Asset Value: ' . number_format($init->asset_value, 2);
     }
   }
@@ -266,7 +275,7 @@ $y=0;
     '#theme' => 'avreports_txn_list',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
+      'class' => array('printable av-sticky-small')
     ),
   );
   $form['transaction_list_table'] += $transaction_list_table;

@@ -26,6 +26,15 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
     $view_mode = TRUE;
   }
 
+  if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+    $schema_version = db_query("SELECT schema_version FROM {system} WHERE name = 'avtxns'")->fetchField();
+    if (empty($schema_version) || $schema_version < 7105) {
+      drupal_set_message('Your database design seem to be outdated. Please Check For Database Changes first before proceeding with Sales Return transactions.', 'warning');
+      drupal_access_denied();
+      drupal_exit();
+    }
+  }
+
   // Get transaction type details.
   $ttd = avtxns_txn_types($transaction_type);
 

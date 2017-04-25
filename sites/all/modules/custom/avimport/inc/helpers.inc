@@ -35,7 +35,7 @@ function avimport_get_valid_headers($type) {
       $optional['UOM 5'] = 'uom_5_title';
       $optional['UOM 5 QTY'] = 'uom_5_qty';
       //$optional['EXPIRY DATE'] = 'expiry_date';
-      $optional['LOT NO'] = 'lot_no';
+      //$optional['LOT NO'] = 'lot_no';
       $optional['SHELF LOCATION'] = 'shelf_title';
       $optional['DISCOUNT'] = 'discount';
       $optional['PRINCIPAL'] = 'principal_title';
@@ -58,7 +58,7 @@ function avimport_get_valid_headers($type) {
       $optional['CITY'] = 'city';
       $optional['PROVINCE'] = 'province';
       $optional['ZIP CODE'] = 'zip_code';
-      $optional['OPENING BALANCE'] = 'opening_balance';
+      //$optional['OPENING BALANCE'] = 'opening_balance';
       break;
 
     case 'customers':
@@ -80,9 +80,9 @@ function avimport_get_valid_headers($type) {
       $optional['PROVINCE'] = 'province';
       $optional['ZIP CODE'] = 'zip_code';
       $optional['PAYMENT METHOD'] = 'payment_method';
-      $optional['STATUS'] = 'status';
+      //$optional['STATUS'] = 'status';
       $optional['CREDIT LIMIT'] = 'credit_limit';
-      $optional['OPENING BALANCE'] = 'opening_balance';
+      //$optional['OPENING BALANCE'] = 'opening_balance';
       break;
   }
 

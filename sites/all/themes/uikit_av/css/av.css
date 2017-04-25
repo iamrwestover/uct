@@ -334,7 +334,7 @@ table.sticky-header {
   margin-top: 0 !important;
 }
 
-.page-av-reports-stock-status #transaction-list-table-wrapper .sticky-header {
+#transaction-list-table-wrapper.av-sticky-small .sticky-header {
   font-size: 11px;
   line-height: 16px;
 }

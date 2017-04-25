@@ -53,6 +53,13 @@
     line-height: 12px;
     font-weight: bold;
   }
+  .av-nestable-form {
+    padding-bottom: 1em !important;
+    /*border-color: #000;*/
+  }
+  .av-nestable-product-list-view .av-nestable-form-header {
+    /*border-color: #000;*/
+  }
   #page {
     /*Do not remove*/
     margin: 0 1px !important;
