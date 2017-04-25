@@ -1,10 +1,11 @@
 <?php
 
 function avbase_help_home() {
+  global $user;
   $seen_updates = variable_get('av_seen_updates', array());
-  $vnum = 'v1.170425';
-  if (empty($seen_updates[$vnum])) {
-    $seen_updates[$vnum] = TRUE;
+  $vnum = 'v1.170425-2';
+  if (empty($seen_updates[$vnum][$user->uid])) {
+    $seen_updates[$vnum][$user->uid] = TRUE;
     variable_set('av_seen_updates', $seen_updates);
   }
 
