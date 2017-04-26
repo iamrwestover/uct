@@ -1,6 +1,6 @@
 <?php
 
-function avreports_product_list_form($form, &$form_state) {
+function avreports_product_list_form($form, &$form_state, $complete_columns = TRUE, $selectable_list = FALSE, $default_order_key = 'title') {
 
     // Filter form.
   $filter_form_settings = array(
@@ -12,6 +12,7 @@ function avreports_product_list_form($form, &$form_state) {
       '#title' => t('Principal'),
       '#autocomplete_path' => 'av/categories/principal/autocomplete',
     ),
+    'stock_status' => array('#default_value' => ($complete_columns ? 'all' : 'os')),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
@@ -40,23 +41,32 @@ function avreports_product_list_form($form, &$form_state) {
 
   $header = array();
   $header['title'] = array('data' => 'TITLE', 'field' => 'title');
-  $header['uom'] = array('data' => 'BASE UOM', 'field' => 'uom_title');
-  $header['onhand'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'), 'field' => 'qty');
-  $header['cost'] = array('data' => 'COST', 'class' => array('uk-text-right'), 'field' => 'cost');
-  $header['price'] = array('data' => 'SALES PRICE', 'class' => array('uk-text-right'), 'field' => 'price');
-  $header['rop'] = array('data' => 'ROP', 'class' => array('uk-text-right'), 'field' => 'rop');
-  $header['eoq'] = array('data' => 'EOQ', 'class' => array('uk-text-right'), 'field' => 'eoq');
-  if ($col_category_show) {
-    $header['category'] = array('data' => 'CATEGORY', 'field' => 'category_name');
+  if ($complete_columns) {
+    $header['uom'] = array('data' => 'BASE UOM', 'field' => 'uom_title');
   }
-  $header['shelf'] = array('data' => 'SHELF LOCATION', 'field' => 'shelf_name');
-  $header['discount'] = array('data' => 'DISCOUNT', 'class' => array('uk-text-center'));
+  $header['onhand'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'), 'field' => 'qty');
+  if ($complete_columns) {
+    $header['cost'] = array('data' => 'COST', 'class' => array('uk-text-right'), 'field' => 'cost');
+    $header['price'] = array('data' => 'SALES PRICE', 'class' => array('uk-text-right'), 'field' => 'price');
+    $header['rop'] = array('data' => 'ROP', 'class' => array('uk-text-right'), 'field' => 'rop');
+    $header['eoq'] = array('data' => 'EOQ', 'class' => array('uk-text-right'), 'field' => 'eoq');
+    if ($col_category_show) {
+      $header['category'] = array('data' => 'CATEGORY', 'field' => 'category_name');
+    }
+    $header['shelf'] = array('data' => 'SHELF LOCATION', 'field' => 'shelf_name');
+    $header['discount'] = array('data' => 'DISCOUNT', 'class' => array('uk-text-center'));
+  }
+
   if ($col_vendor_show) {
     $header['preferred_vendor'] = array('data' => 'PREFERRED VENDOR', 'field' => 'avclients.display_name');
   }
-  if ($col_principal_show) {
-    $header['principal'] = array('data' => 'PRINCIPAL', 'field' => 'principal_name');
+
+  if ($complete_columns) {
+    if ($col_principal_show) {
+      $header['principal'] = array('data' => 'PRINCIPAL', 'field' => 'principal_name');
+    }
   }
+
 
 
   // Set table pagination and sort settings.
@@ -73,7 +83,7 @@ function avreports_product_list_form($form, &$form_state) {
 
   // Set default order.
   if (empty($_GET['order'])) {
-    $_GET['order'] = $header['title']['data'];
+    $_GET['order'] = $header[$default_order_key]['data'];
     $_GET['sort'] = 'ASC';
   }
   $order_by = avbase_build_header_order_array($header);
@@ -92,6 +102,15 @@ function avreports_product_list_form($form, &$form_state) {
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
   $joins[] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avprod.vendor_id';
 
+  switch ($user_filter['settings']['stock_status']) {
+    case 'low':
+      $where[] = '(avprod.qty < 1 OR avprod.rop <= avprod.qty)';
+      break;
+    case 'os':
+      $where[] = 'avprod.qty < 1';
+      break;
+  }
+
   //$where[] = 'avclients.client_type = :ctype';
   //$args[':ctype'] = $client_type;
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
@@ -100,32 +119,41 @@ function avreports_product_list_form($form, &$form_state) {
   foreach ($rs as $row) {
     $data = array();
     $data['title'] = array('data' => l($row->title, "av/products/{$row->id}/view"));
-    $data['uom'] = array('data' => check_plain($row->uom_title));
+    if ($complete_columns) {
+      $data['uom'] = array('data' => check_plain($row->uom_title));
+    }
     $data['onhand'] = array('data' => number_format($row->qty), 'class' => array('uk-text-right'));
-    $data['cost'] = array('data' => number_format($row->cost, 2), 'class' => array('uk-text-right'));
-    $data['price'] = array('data' => number_format($row->price, 2), 'class' => array('uk-text-right'));
-    $data['rop'] = array('data' => number_format($row->rop), 'class' => array('uk-text-right'));
-    $data['eoq'] = array('data' => number_format($row->eoq), 'class' => array('uk-text-right'));
-    if ($col_category_show) {
-      $data['category'] = array('data' => check_plain($row->category_name));
-    }
-    $data['shelf'] = array('data' => check_plain($row->shelf_name));
-
-    $discount = array();
-    for ($x = 1; $x <= 4; $x++) {
-      $_discount_name = "discount$x";
-      if (isset($row->$_discount_name)) {
-        $discount[] = round($row->$_discount_name, 2);
+    if ($complete_columns) {
+      $data['cost'] = array('data' => number_format($row->cost, 2), 'class' => array('uk-text-right'));
+      $data['price'] = array('data' => number_format($row->price, 2), 'class' => array('uk-text-right'));
+      $data['rop'] = array('data' => number_format($row->rop), 'class' => array('uk-text-right'));
+      $data['eoq'] = array('data' => number_format($row->eoq), 'class' => array('uk-text-right'));
+      if ($col_category_show) {
+        $data['category'] = array('data' => check_plain($row->category_name));
       }
+      $data['shelf'] = array('data' => check_plain($row->shelf_name));
+
+      $discount = array();
+      for ($x = 1; $x <= 4; $x++) {
+        $_discount_name = "discount$x";
+        if (isset($row->$_discount_name)) {
+          $discount[] = round($row->$_discount_name, 2);
+        }
+      }
+      $discount = array_filter($discount);
+      $data['discount'] = array('data' => implode('/', $discount), 'class' => array('uk-text-center'));
     }
-    $discount = array_filter($discount);
-    $data['discount'] = array('data' => implode('/', $discount), 'class' => array('uk-text-center'));
+
     if ($col_vendor_show) {
       $data['preferred_vendor'] = array('data' => l($row->vendor_name, 'av/vendors/' . $row->vendor_id . '/view'));
     }
-    if ($col_principal_show) {
-      $data['principal'] = array('data' => check_plain($row->principal_name));
+
+    if ($complete_columns) {
+      if ($col_principal_show) {
+        $data['principal'] = array('data' => check_plain($row->principal_name));
+      }
     }
+
 
     // Careful when adding classes on rows, check if tableselect mode is ON.
     $row_class = array();
@@ -133,7 +161,13 @@ function avreports_product_list_form($form, &$form_state) {
     if (!empty($psd['color_class'])) {
       $row_class[] = $psd['color_class'];
     }
-    $table_rows[] = array('data' => $data, 'class' => $row_class);
+    if ($selectable_list) {
+      $data['#attributes']['class'] = $row_class;
+      $table_rows[$row->id] = $data;
+    }
+    else {
+      $table_rows[] = array('data' => $data, 'class' => $row_class);
+    }
   }
 
   $transaction_list_table['table'] = array(
@@ -144,8 +178,15 @@ function avreports_product_list_form($form, &$form_state) {
       'class' => array('uk-table-condensed uk-table-hover uk-text-small'),
     ),
   );
-  $transaction_list_table['table']['#theme'] = 'table';
-  $transaction_list_table['table']['#rows'] = $table_rows;
+  if ($selectable_list) {
+    $transaction_list_table['table']['#type'] = 'tableselect';
+    $transaction_list_table['table']['#options'] = $table_rows;
+    $transaction_list_table['table']['#attributes']['class'][] = 'av-frs';
+  }
+  else {
+    $transaction_list_table['table']['#theme'] = 'table';
+    $transaction_list_table['table']['#rows'] = $table_rows;
+  }
 
 
   if (!empty($user_filter['avclients.display_name'])) {

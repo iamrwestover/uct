@@ -63,12 +63,12 @@ function avreports_sales_to_trade_form($form, &$form_state) {
 
   // Headers.
   $header = array(
-    'agent_name' => array('data' => 'Agent', 'field' => 'agent_name'),
-    'client_name' => array('data' => 'Customer', 'field' => 'client_name'),
-    'client_address' => array('data' => 'Address'),
-    'principal_name' => array('data' => 'Principal', 'field' => 'principal_name'),
-    'item_name' => array('data' => 'Product', 'field' => 'avproducts.title'),
-    'qty_out' => array('data' => 'Qty.', 'field' => 'qty_out'),
+    'agent_name' => array('data' => 'AGENT', 'field' => 'agent_name'),
+    'client_name' => array('data' => 'CUSTOMER', 'field' => 'client_name'),
+    'client_address' => array('data' => 'ADDRESS'),
+    'principal_name' => array('data' => 'PRINCIPAL', 'field' => 'principal_name'),
+    'item_name' => array('data' => 'PRODUCT', 'field' => 'avproducts.title'),
+    'qty_out' => array('data' => 'QTY.', 'field' => 'qty_out'),
     'uom' => array('data' => 'UOM', 'field' => 'avcat_uom.title'),
   );
   $table_columns = empty($user_filter['settings']['table_columns']) ? array() : $user_filter['settings']['table_columns'];
@@ -78,7 +78,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       unset($header[$h_k]);
     }
   }
-  $header['total_sales'] = array('data' => 'Sales', 'field' => 'total_sales', 'class' => array('uk-text-right'));
+  $header['total_sales'] = array('data' => 'SALES', 'field' => 'total_sales', 'class' => array('uk-text-right'));
 
   // Build query.
   // Add default date from and date to.
@@ -255,7 +255,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
 
   $table_attributes = array(
     'id' => 'transaction-list-table',
-    'class' => array('uk-table-condensed uk-table-hover sprintable'),
+    'class' => array('uk-table-condensed uk-table-hover uk-text-small'),
   );
 
   //$pager_html = empty($options['#hide_filter_form']) ? theme('pager', array('tags' => array())) : '';
@@ -271,7 +271,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     '#theme' => 'avreports_inventory_ranking',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
+      'class' => array('printable av-sticky-small')
     ),
   );
   //$transaction_list_table['table']['#markup'] = '<!--Do not remove me-->' . $table_markup;

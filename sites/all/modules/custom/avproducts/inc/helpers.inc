@@ -371,16 +371,17 @@ function avproducts_product_status_details($status = NULL) {
  *
  * @return bool
  */
-function avproducts_product_change_status($id, $status) {
-  if (empty($id) || !is_numeric($id)) {
-    return FALSE;
-  }
+function avproducts_product_change_status($ids, $status) {
+  $ids = (array) $ids;
+  //if (empty($id) || !is_numeric($id)) {
+  //  return FALSE;
+  //}
   if (!array_key_exists($status, avproducts_product_status_details())) {
     return FALSE;
   }
 
-  if (db_query("UPDATE {avtbl_products} SET status = :status WHERE id = :product_id", array(':product_id' => $id, ':status' => $status))) {
-    avbase_custom_watchdog("product__status_change", "ID: {$id}", array('#status' => $status));
+  if (db_query("UPDATE {avtbl_products} SET status = :status WHERE id IN (:product_ids)", array(':product_ids' => $ids, ':status' => $status))) {
+    avbase_custom_watchdog("product__status_change", (count($ids) > 1 ? 'mul' : $ids[0]), array('#status' => $status));
     return TRUE;
   }
   return FALSE;

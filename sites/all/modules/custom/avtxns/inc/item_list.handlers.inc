@@ -27,8 +27,10 @@ function avtxns_item_list_prod_submit($form, &$form_state) {
       // Add button triggered it.
 
       // Limit to row count per transaction.
-      $form_state['#max_rows_reached'] = count($_item_rows) >= AVTXNS_TXN_ROW_LIMIT;
-      if ($form_state['#max_rows_reached']) {
+      $rows_to_add = AVTXNS_TXN_ROW_LIMIT - count($_item_rows);
+      $rows_to_add = AVTXNS_TXN_ADD_NEW_ROW_COUNT < $rows_to_add ? AVTXNS_TXN_ADD_NEW_ROW_COUNT : $rows_to_add;
+      $form_state['#new_rows_to_add'] = $rows_to_add;
+      if ($rows_to_add < 1) {
         break;
       }
 
@@ -37,7 +39,7 @@ function avtxns_item_list_prod_submit($form, &$form_state) {
       $_counter = &$_storage['new_row_counter'];
 
 
-      for ($x = 0; $x < AVTXNS_TXN_ADD_NEW_ROW_COUNT; $x++) {
+      for ($x = 0; $x < $rows_to_add; $x++) {
         //$row = db_query("SELECT b.title AS uom_title, a.title AS product_title, 1 AS qty_per_uom, 1 AS qty, a.uom_id, a.cost + 1 AS cost, 1 AS discount_text
         //FROM avtbl_products a
         //LEFT JOIN avtbl_categories AS b ON b.id = a.uom_id
@@ -63,10 +65,11 @@ function avtxns_item_list_prod_js($form, $form_state) {
   $output = array();
 
   if ($trigger['#name'] == 'prod_add_btn') {
-    if (empty($form_state['#max_rows_reached'])) {
+    $rows_to_add = empty($form_state['#new_rows_to_add']) ? 0 : (int)$form_state['#new_rows_to_add'];
+    if ($rows_to_add > 0) {
       $product_elements = $form['product_rows'];
       $keys = element_children($product_elements);
-      $keys = array_splice($keys, (count($keys) - AVTXNS_TXN_ADD_NEW_ROW_COUNT));
+      $keys = array_splice($keys, (count($keys) - $rows_to_add));
       $new_elements = array();
       $last_key = NULL;
       foreach ($keys as $k) {
@@ -87,7 +90,7 @@ function avtxns_item_list_prod_js($form, $form_state) {
       $output = $new_elements;
     }
     else {
-      $output = '<div class="uk-text-muted uk-text-center">Maximum number of items per transaction has been reached.</div>';
+      $output = '<div id="item-list-new-product-wrapper" class="uk-text-muted uk-text-center">Maximum number of items per transaction has been reached.</div>';
     }
   }
   elseif (strstr($trigger['#name'], 'product_id')) {

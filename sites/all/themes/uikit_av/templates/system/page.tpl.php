@@ -112,11 +112,11 @@
     <div class="uk-width-small-1-2 uk-hidden-small">
       <div class="uk-text-right">
         <?php
-          $vnum = 'v1.170425-2';
+          $vnum = AVBASE_SYSTEM_VERSION;
           $seen_updates = variable_get('av_seen_updates', array());
         ?>
         <?php if (!empty($user->uid) && empty($seen_updates[$vnum][$user->uid])): ?>
-          <a title="See what's new" href="/av/help" class="uk-button uk-button-primary uk-button-mini uk-margin-small-right">* recently updated to <?php print $vnum; ?></a>
+          <a title="See what's new" href="/av/help" class="uk-button uk-button-primary uk-button-mini uk-margin-small-right"><i class="uk-icon-laptop uk-margin-small-right"></i><?php print $vnum; ?></a>
         <?php endif; ?>
         <a href="#av-quick-search" class="uk-icon-search uk-icon-hover uk-margin-small-right" data-uk-modal data-ks="F3"></a>
         <a href="/av/help" class="uk-icon-small uk-icon-question-circle uk-icon-hover uk-margin-small-right uk-color-green" title="Help"></a>

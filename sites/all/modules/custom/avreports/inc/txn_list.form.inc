@@ -65,12 +65,13 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   );
   if (in_array($transaction_type, avtxns_get_refable_txn_types()) || in_array($transaction_type, avtxns_get_creditable_txn_types())) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
+    $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED] = 'Open and Closed';
   }
   if (!empty($ttd['payment']) || $transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_PENDING] = 'Pending';
   }
   if (in_array($transaction_type, avtxns_get_creditable_txn_types())) {
-    $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN] = 'With available credits';
+    //$filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN] = 'With available credits';
   }
   //elseif (in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN))) {
   //  unset($filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED]);
@@ -103,7 +104,6 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   //$agent_name = empty($user_filter['avcat_agent.title']) ? '' : $user_filter['avcat_agent.title'];
 
 
-
   // Show hide columns depending on selected filters.
   $col_client_show = $col_client && empty($user_filter['avclients.display_name']);
   $col_agent_show = $col_agent && empty($user_filter['avcat_agent.title']);
@@ -119,9 +119,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $header['client'] = array('data' => $ttd['ctd']['name'], 'field' => 'display_name');
   }
   $header['date'] = array('data' => 'Date', 'field' => 'transaction_date');
-  $header['id'] = array('data' => strtoupper($transaction_type) . '#', 'field' => 'id');
+  $header['id'] = array('data' => strtoupper($transaction_type) . '#', 'field' => 'avtxn.id');
   if ($col_items_ref_txn_id) {
-    $header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'id');
+    $header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'avtxn_detail.ref_txn_id');
   }
   if ($col_terms) {
     $header['term'] = array('data' => 'Terms', 'field' => 'term_name');
@@ -166,9 +166,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   }
   $order_by = avbase_build_header_order_array($header);
   if ($col_due_date && isset($order_by['display_name'])) {
-    $order_by['due_date'] = 'due_date ASC';
-    $order_by['transaction_date'] = 'transaction_date ASC';
-    $order_by['id'] = 'id DESC';
+    $order_by['avtxn.due_date'] = 'due_date ASC';
+    $order_by['avtxn.transaction_date'] = 'transaction_date ASC';
+    $order_by['avtxn.id'] = 'id DESC';
   }
 
 
@@ -180,6 +180,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
 
   $select = array();
+  $select[] = 'avtxn.id';
+  $select[] = 'avtxn.status';
+  $select[] = 'avtxn.transaction_type';
   $select[] = 'avtxn.transaction_date';
   if ($col_due_date) {
     $select[] = 'avtxn.due_date';
@@ -223,13 +226,17 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
   }
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
-  $transactions = avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
+
+  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
+  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  $rs = db_query($query, $args);
+  //$transactions = avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
   $list_total = $paid_total = $balance_total = 0;
   $row_totals = array();
   $table_rows = array();
   //$now = time();
   $last_client_name = '';
-  foreach ($transactions as $row) {
+  foreach ($rs as $row) {
     //$overdue = $col_due_date && $row->due_date <= $now && $row->status != AVTXNS_TXN_STATUS_CLOSED;
     //$overdue = $overdue && $row->status != AVTXNS_TXN_STATUS_VOID;
     $overdue = empty($row->overdue) ? FALSE : $row->overdue;
@@ -258,7 +265,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $row_total_html = l(number_format($row_total, 2), $view_path);
     $row_bal_html = '';
     if ($col_paid) {
-      $row_bal_html = number_format($row_total - $row->paid_amount, 2);
+      $row_bal_html = number_format(round($row_total - $row->paid_amount, 2), 2);
     }
 
     if ($overdue) {

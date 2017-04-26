@@ -1518,8 +1518,8 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
     ),
     'last_week' => array(
       'title' => 'Last week',
-      'date_from' => format_date(strtotime('last Monday', strtotime('this Monday')), 'custom', $date_format),
-      'date_to' => format_date(strtotime('last Sunday', strtotime('tomorrow')), 'custom', $date_format),
+      'date_from' => format_date(strtotime('last Monday', strtotime('last Sunday')), 'custom', $date_format),
+      'date_to' => format_date(strtotime('last Sunday'), 'custom', $date_format),
     ),
     'this_month' => array(
       'title' => 'This month',

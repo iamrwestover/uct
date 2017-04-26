@@ -69,12 +69,6 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
-  <?php if ($transaction_date): ?>
-    <div class="uk-width-2-10">
-      <?php print $transaction_date; ?>
-    </div>
-  <?php endif; ?>
-
   <?php if (isset($form['category_id'])): ?>
     <div class="uk-width-1-10">
       <?php print drupal_render($form['category_id']); ?>
@@ -93,8 +87,14 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php endif; ?>
 
   <?php if ($principal_html): ?>
-    <div class="uk-width-3-10">
+    <div class="uk-width-2-10">
       <?php print $principal_html; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($transaction_date): ?>
+    <div class="uk-width-2-10">
+      <?php print $transaction_date; ?>
     </div>
   <?php endif; ?>
 

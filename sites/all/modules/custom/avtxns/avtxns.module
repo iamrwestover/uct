@@ -357,6 +357,7 @@ function avtxns_txns_home_form($form, &$form_state) {
 // Set autocomplete off.
   $form['#attributes']['autocomplete'] = 'off';
   $transaction_types = avtxns_txn_types();
+  $buttons = array();
   foreach ($transaction_types as $k => $type) {
     $ttype = strtoupper($k);
     $can_create = user_access(constant('AVTXNS_PERM_CREATE_' . $ttype));
@@ -365,13 +366,21 @@ function avtxns_txns_home_form($form, &$form_state) {
     if (!empty($type['data-ks'])) {
       $link_options['attributes']['data-ks'] = $type['data-ks'];
     }
-    $form["new_$k"] = array(
+    $buttons["new_$k"] = array(
       '#markup' => l($type['name'], "{$type['base_path']}/new", $link_options),
       '#access' => $can_create,
       '#prefix' => empty($type['button_prefix']) ? '' : $type['button_prefix'],
     );
   }
-  $form['hr'] = array('#markup' => '<div class="uk-text-small">&nbsp;</div>');
+  $form['buttons'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('uk-text-center')
+    ),
+    //'#suffix' => '<hr />',
+  );
+  $form['buttons'] += $buttons;
+  //$form['hr'] = array('#markup' => '<div class="uk-text-small">&nbsp;</div>');
 
   $form['txns_list'] = avtxns_txn_list_form($form, $form_state);
   return $form;
@@ -765,8 +774,11 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
       'avtxn.transaction_type' => array('#access' => TRUE),
       'avtxn.status' => array('#access' => TRUE),
     );
+    $filter_form_settings['avcat_agent.title'] = array(
+      '#autocomplete_path' => 'av/categories/agent' . AVCLIENT_TYPE_CUSTOMER . '-agent' . AVCLIENT_TYPE_VENDOR . '/autocomplete',
+    );
     $form['transaction_list_filter'] = avtxns_txn_list_filter_form(NULL, $form_state, $filter_form_settings);
-    $form['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'search agent, customer, vendor';
+    //$form['transaction_list_filter']['search_text']['#attributes']['placeholder'] = 'search agent, customer, vendor';
   }
   $client_header = 'Client';
   //if (arg(1) == 'vendors') {
@@ -808,12 +820,16 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     }
   }
 
+
   // Set default order.
   if (empty($_GET['order'])) {
     $_GET['order'] = $header['transaction_id']['data'];
     $_GET['sort'] = 'DESC';
   }
   $order_by = avbase_build_header_order_array($header);
+  if (empty($order_by)) {
+    $order_by['avtxn.id'] = 'avtxn.id DESC';
+  }
 
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
@@ -955,7 +971,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
-        'placeholder' => 'Agent name',
+        'placeholder' => 'agent name',
         'class' => array('trigger-ajax-search'),
       ),
     );
@@ -993,7 +1009,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
-        'placeholder' => 'Area',
+        'placeholder' => 'area',
         'class' => array('trigger-ajax-search'),
       ),
       '#autocomplete_path' => 'av/categories/area/autocomplete',
@@ -1007,7 +1023,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#maxlength' => 255,
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
-        'placeholder' => 'Principal'
+        'placeholder' => 'principal'
       ),
     );
   }
@@ -1018,7 +1034,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
-        'placeholder' => 'Account name',
+        'placeholder' => 'account name',
         'class' => array('trigger-ajax-search'),
       ),
     );
@@ -1032,7 +1048,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#maxlength' => 255,
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
-        'placeholder' => 'Product name'
+        'placeholder' => 'product name'
       ),
     );
   }
@@ -1214,7 +1230,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['settings']['stock_status'] = empty($settings['stock_status']) ? array() : $settings['stock_status'];
     $fields['settings']['stock_status'] += array(
       '#type' => 'select',
-      '#title' => 'Status',
+      '#title' => 'Stock status',
       '#options' => array(
         'all' => 'All',
         'low' => 'Low stock',
@@ -1232,7 +1248,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#maxlength' => 255,
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
-        'placeholder' => 'Principal'
+        'placeholder' => 'principal'
       ),
     );
   }
@@ -1242,7 +1258,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#maxlength' => 255,
       '#attributes' => array(
-        'placeholder' => 'Vendor name',
+        'placeholder' => 'vendor name',
         'class' => array('trigger-ajax-search'),
       ),
     );

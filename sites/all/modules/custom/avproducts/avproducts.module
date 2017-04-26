@@ -98,6 +98,30 @@ function avproducts_menu() {
   //  'file' => 'inc/crud.inc',
   //  'weight' => 2,
   //);
+  $items["av/products/batch-update"] = array(
+    'title' => 'Batch update products',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avproducts_product_batch_update_form'),
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_EDIT),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/batch_update.form.inc',
+  );
+  $items["av/products/batch-update/status/%"] = array(
+    'title' => 'Batch update product status',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avproducts_product_batch_change_status_confirm_form', 4),
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_EDIT),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/batch_update.form.inc',
+  );
+  $items["av/products/batch-update/field/%"] = array(
+    'title' => 'Batch update product field',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avproducts_product_batch_update_field_confirm_form', 4),
+    'access arguments' => array(AVPRODUCTS_PERM_PRODUCT_EDIT),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/batch_update.form.inc',
+  );
   $items['av/products/autocomplete'] = array(
     'title' => 'Products Autocomplete',
     'page callback' => 'avproducts_autocomplete',
@@ -180,15 +204,19 @@ function avproducts_home_form($form, &$form_state) {
     '#markup' => l('New product', 'av/products/add', $btn_options),
     '#access' => user_access(AVPRODUCTS_PERM_PRODUCT_CREATE),
   );
-  $form['order_button'] = array(
-    '#type' => 'submit',
-    '#value' => t('Order selected products'),
-    '#attributes' => array(
-      'class' => array('uk-margin-small-left'),
-      'data-ks' => 'CTRL+D',
-    ),
-    '#access' => user_access(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_PURCHASE_ORDER))),
+  $form['batch_update_button'] = array(
+    '#markup' => l('Batch update', 'av/products/batch-update', array('attributes' => array('class' => array('uk-button uk-margin-small-left')))),
+    '#access' => user_access(AVPRODUCTS_PERM_PRODUCT_EDIT),
   );
+  //$form['order_button'] = array(
+  //  '#type' => 'submit',
+  //  '#value' => t('Order selected products'),
+  //  '#attributes' => array(
+  //    'class' => array('uk-margin-small-left'),
+  //    'data-ks' => 'CTRL+D',
+  //  ),
+  //  '#access' => user_access(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_PURCHASE_ORDER))),
+  //);
 
   $header = array(
     'id' => array('data' => 'ID', 'field' => 'id', 'sort' => 'desc', 'class' => array('uk-hidden')),
@@ -297,9 +325,11 @@ function avproducts_home_form($form, &$form_state) {
   //  'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc')
   //);
   $form['table'] = array(
-    '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $rows,
+    //'#type' => 'tableselect',
+    //'#options' => $rows,
+    '#theme' => 'table',
+    '#rows' => $rows,
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => $table_attributes,
     '#prefix' => '<div id="products-list-table-wrapper">',
