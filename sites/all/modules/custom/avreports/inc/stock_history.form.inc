@@ -195,27 +195,27 @@ function avreports_stock_history_form($form, &$form_state) {
       $rs = db_query($query, $args);
 
       $date_from = strtotime($user_filter['date_from']);
-      foreach ($rs as $row) {
-        // Initial Values.
-        if (!empty($prod_init[$row->item_id]) && empty($table_rows[$row->item_id . '_init'])) {
-          $init = &$prod_init[$row->item_id];
-          if ($date_from <= $init->initial_qty_date) {
-            $data = array();
-            $data['transaction_type'] = array('data' => 'Added product');
-            $data['transaction_date'] = array('data' => format_date($init->initial_qty_date, 'custom', 'M-d-Y'));
-            $data['transaction_id'] = array('data' => '');
-            $data['client_name'] = array('data' => '');
-            $data['row_qty'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
-            $data['amount'] = array('data' => '', 'class' => array('uk-text-right'));
-            //$data['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
-            $data['onhand'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
-            $data['ave_cost'] = array('data' => number_format($init->ave_cost, 2), 'class' => array('uk-text-right'));
-            $data['asset_value'] = array('data' => number_format($init->asset_value, 2), 'class' => array('uk-text-right'));
-            // Careful when adding classes on rows, check if tableselect mode is ON.
-            $table_rows[$row->item_id . '_init'] = $data;
-          }
-        }
 
+      // First row for initial values.
+      if (!empty($prod_init[$selected_product_id]) && empty($table_rows[$selected_product_id . '_init'])) {
+        $init = &$prod_init[$selected_product_id];
+        if ($date_from <= $init->initial_qty_date) {
+          $data = array();
+          $data['transaction_type'] = array('data' => 'Added product');
+          $data['transaction_date'] = array('data' => format_date($init->initial_qty_date, 'custom', 'M-d-Y'));
+          $data['transaction_id'] = array('data' => '');
+          $data['client_name'] = array('data' => '');
+          $data['row_qty'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
+          $data['amount'] = array('data' => '', 'class' => array('uk-text-right'));
+          //$data['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
+          $data['onhand'] = array('data' => number_format($init->onhand), 'class' => array('uk-text-right'));
+          $data['ave_cost'] = array('data' => number_format($init->ave_cost, 2), 'class' => array('uk-text-right'));
+          $data['asset_value'] = array('data' => number_format($init->asset_value, 2), 'class' => array('uk-text-right'));
+          // Careful when adding classes on rows, check if tableselect mode is ON.
+          $table_rows[$selected_product_id . '_init'] = $data;
+        }
+      }
+      foreach ($rs as $row) {
         if (empty($init)) {
           continue;
         }
