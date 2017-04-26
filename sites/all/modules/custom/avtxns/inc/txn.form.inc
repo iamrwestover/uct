@@ -27,7 +27,7 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
   }
 
   $schema_version = db_query("SELECT schema_version FROM {system} WHERE name = 'avtxns'")->fetchField();
-  if (empty($schema_version) || $schema_version < 7107) {
+  if (empty($schema_version) || $schema_version < 7108) {
     drupal_set_message(t('Your database design seem to be outdated. Please !link first before proceeding with any transaction.', array('!link' => l('Check For Database Changes', 'update.php'))), 'warning');
     drupal_access_denied();
     drupal_exit();

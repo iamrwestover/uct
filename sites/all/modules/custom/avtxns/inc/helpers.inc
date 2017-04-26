@@ -271,9 +271,9 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
 
         $item->qty_per_uom = empty($item->qty_per_uom) ? 1 : $item->qty_per_uom;
         $item->incoming_base_qty = $item->qty * $item->qty_per_uom;
-        if ($row->transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item->good_stock)) {
-          $item->incoming_base_qty = 0;
-        }
+        //if ($row->transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && empty($item->good_stock)) {
+        //  $item->incoming_base_qty = 0;
+        //}
         $item->remaining_base_qty = $item->incoming_base_qty;
 
 

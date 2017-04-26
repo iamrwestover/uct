@@ -165,8 +165,7 @@ function avreports_stock_history_form($form, &$form_state) {
       $select[] = 'avtxn.transaction_date';
       $select[] = 'avtxn.transaction_type';
       $select[] = 'avtxn.client_id';
-      $joins[] = "INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
-       AND (avtxn.transaction_type IN (:ttypes) AND (IF(avtxn.transaction_type='sr', good_stock=1, 1)))";
+      $joins[] = "INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN (:ttypes)";
 
       //$select[] = 'avprod.title AS product_title';
       $joins[] = 'LEFT JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id';
