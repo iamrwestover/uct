@@ -327,6 +327,10 @@ function avtxns_theme($existing, $type, $theme, $path) {
     );
   }
 
+  $themes['avtxns_account_chart_home_form'] = array(
+    'render element' => 'form',
+    'file' => 'inc/account_chart.form.inc',
+  );
   return $themes;
 }
 

@@ -14,6 +14,7 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Added feature to easily group and sort chart of accounts.</li>
       <li>- Fixed bug where "add new row" button won't add new rows when max rows is reached (even after removing some rows to free up slots).</li>
       <li>- Some transaction list report (like Invoice List) now has an additional "Open and Closed" filter.</li>
       <li>- Reference ID added on Customer Charge and Other Bills transactions.</li>

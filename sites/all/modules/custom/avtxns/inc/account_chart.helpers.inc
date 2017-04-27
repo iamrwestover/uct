@@ -233,8 +233,8 @@ function avtxns_account_chart_autocomplete($account_type_string, $string = '') {
     }
 
     $rows = avtxns_account_chart_query_load($where, $args, '8');
-    $rows_tree = avbase_rows_build_tree($rows, 0, FALSE);
-    $matches = avtxns_account_chart_autocomplete_matches($rows_tree);
+    //$rows_tree = avbase_rows_build_tree($rows, 0, FALSE);
+    $matches = avtxns_account_chart_autocomplete_matches($rows);
 
     //$where = array();
     //$args = array(':string' => $string);
@@ -270,8 +270,9 @@ function avtxns_account_chart_autocomplete($account_type_string, $string = '') {
 function avtxns_account_chart_autocomplete_matches($tree, $depth = 0) {
   $matches = array();
   foreach ($tree as $row) {
+    $row = (array) $row;
     $account_type = empty($row['account_type']) ? '' : $row['account_type'];
-    if (in_array($account_type, array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP))) {
+    if (in_array($row['id'], array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
       continue;
     }
 
@@ -314,17 +315,47 @@ function avtxns_element_validate_account_chart_name($element, &$form_state) {
   elseif (!empty($element['#parent_chart_of_account']) && $row->id == $this_row_id) {
     form_error($element, t('Cannot select self as @field_title.', array('@field_title' => $element['#title'])));
   }
-  //elseif (!empty($element['#parent_chart_of_account']) && !empty($row->parent)) {
+  elseif (!empty($element['#parent_chart_of_account']) && in_array($row->id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+    form_error($element, t('Cannot accept this type as @field_title.', array('@field_title' => $element['#title'])));
+  }
+  ////elseif (!empty($element['#parent_chart_of_account']) && !empty($row->parent)) {
   //  form_error($element, t('Cannot select a sub-account as @field_title.', array('@field_title' => $element['#title'])));
   //}
-  elseif (!empty($element['#parent_chart_of_account']) && $this_account_type != $row->account_type) {
-    form_error($element, t('@field_title account type must be the same as this account\'s type.', array('@field_title' => $element['#title'])));
-  }
-  else if (!empty($element['#exclude_types']) && in_array($row->account_type, $element['#exclude_types'])) {
+  //elseif (!empty($element['#parent_chart_of_account']) && $this_account_type != $row->account_type) {
+  //  form_error($element, t('@field_title account type must be the same as this account\'s type.', array('@field_title' => $element['#title'])));
+  //}
+  elseif (!empty($element['#exclude_types']) && in_array($row->account_type, $element['#exclude_types'])) {
     form_error($element, t('Cannot accept this type of account.'));
   }
   else {
+    if (!empty($element['#parent_chart_of_account'])) {
+      $query = "SELECT t2.id, t2.title, t2.parent
+      FROM (
+          SELECT
+              @r AS _id,
+              (SELECT @r := parent FROM {avtbl_account_chart} t2 WHERE id = _id) AS parent,
+              @l := @l + 1 AS lvl
+          FROM
+              (SELECT @r := :id, @l := 0) vars,
+              {avtbl_account_chart} h
+          WHERE @r <> 0) t1
+      JOIN {avtbl_account_chart} t2
+      ON t1._id = t2.id";
+      $p_rs = db_query($query, array(':id' => $row->id));
+      $parent_ids = array();
+      foreach ($p_rs as $p_row) {
+        if (!empty($p_row->parent)) {
+          $parent_ids[] = $p_row->parent;
+        }
+      }
 
+      if (in_array($this_row_id, $parent_ids)) {
+        form_error($element, t('Infinite loop on selected @field_title.', array('@field_title' => $element['#title'])));
+        return;
+      }
+    }
+
+    dpm('s');
     // Set extra form state value for this element.
     avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
 
@@ -353,4 +384,29 @@ function avtxns_account_chart_change_status($id, $status) {
     return TRUE;
   }
   return FALSE;
+}
+
+function avtxns_account_chart_get_tree($parent_row, &$rows = array(), &$depth = 0) {
+  // Increase our $depth value by one.
+  $depth++;
+  // Set the current tree 'depth' for this item, used to calculate indentation.
+  $parent_row->depth = $depth;
+  // Add the parent item to the tree.
+  $rows[$parent_row->id] = $parent_row;
+  // Retrieve each of the children belonging to this parent.
+  $children = db_query('SELECT *
+                      FROM {avtbl_account_chart}
+                      WHERE (parent = :pid)
+                      ORDER BY weight ASC',
+    array(':pid' => $parent_row->id));
+  foreach ($children as $child) {
+    // Make sure this child does not already exist in the tree, to avoid loops.
+    if (!in_array($child->id, array_keys($rows))) {
+      // Add this child's tree to the $rows array.
+      avtxns_account_chart_get_tree($child, $rows, $depth);
+    }
+  }
+  // Finished processing this tree branch.  Decrease our $depth value by one
+  // to represent moving to the next branch.
+  $depth--;
 }

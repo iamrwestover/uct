@@ -312,7 +312,7 @@ function avtxns_schema() {
       'weight' => array(
         'description' => 'Weght',
         'type' => 'int',
-        'unsigned' => TRUE,
+        //'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'created' => array(
@@ -620,4 +620,17 @@ function avtxns_update_7108() {
     db_query("UPDATE {avtbl_products} SET qty = qty + (CASE id" . $cases . " END) WHERE id IN(:ids)", array(':ids' => $ids));
   }
   return t('Adjustments on on hand quantities finished.');
+}
+
+/**
+ * Change account chart's weight field attributes.
+ */
+function avtxns_update_7109() {
+  $schema = avtxns_schema();
+  $table_name = 'avtbl_account_chart';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'weight';
+  db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
+  return t('Successfully updated field attributes of account chart weight.');
 }

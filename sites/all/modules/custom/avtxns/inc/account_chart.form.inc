@@ -2,67 +2,122 @@
 
 function avtxns_account_chart_home_form($form, &$form_state) {
   $btn_options = array('attributes' => array('class' => AV_STYLE_CLASS_BTN . ' ' . AV_STYLE_CLASS_BTN_PRIMARY));
-  $form['new_button'] = array(
+  $form['buttons']['new_button'] = array(
     '#markup' => l('New account', 'av/chart-of-accounts/new', $btn_options),
     //'#access' => user_access(AVPRODUCTS_PERM_PRODUCT_CREATE),
   );
-
-  $header = array(
-    'title' => array('data' => 'Account Name', 'field' => 'title'),
-    'type' => array('data' => 'Type', 'field' => 'account_type', 'sort' => 'asc'),
-    'balance' => array('data' => 'Balance Total', 'class' => array('uk-text-center')),
-    'actions' => '&nbsp;',
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save sorting changes'),
+    '#attributes' => array(
+      'class' => array('uk-margin-small-left'),
+      'data-ks' => 'CTRL+S',
+    )
   );
 
-  $query = db_select('avtbl_account_chart', 'avachart')
-    ->fields('avachart')
-    //->extend('PagerDefault')
-    ->extend('TableSort')
-    //->limit(20)
-    ->orderByHeader($header);
-  $result = $query->execute();
+  // Identify that the elements in 'tabledrag' are a collection, to
+  // prevent Form API from flattening the array when submitted.
+  $form['tabledrag']['#tree'] = TRUE;
+
+  $query = "SELECT * FROM {avtbl_account_chart} WHERE status AND IFNULL(parent, 0) < 1 ORDER BY weight";
+  $result = db_query($query);
   $rows = array();
+  $depth = -1;
   foreach ($result as $row) {
-    $row->account_balance = 0;
-    $account_balance_where = array();
-    if ($row->account_type == AVTXN_AC_TYPE_AR) {
-      $account_balance_where = array(
-        array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES), 'IN'),
-        array('avtxns.status', array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
-      );
-    }
-    elseif ($row->account_type == AVTXN_AC_TYPE_AP) {
-      $account_balance_where = array(
-        array('avtxns.transaction_type', array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_OTHER_BILLS), 'IN'),
-        array('avtxns.status', array(AVTXNS_TXN_STATUS_LOCKED, AVTXNS_TXN_STATUS_OPEN), 'IN'),
-      );
-    }
-    if (!empty($account_balance_where)) {
-      $abs = avtxns_txn_query_load($account_balance_where);
-      $account_balance = 0;
-      foreach ($abs as $ab) {
-        $account_balance += $ab->balance;
-      }
-      $row->account_balance += $account_balance;
-    }
-    $rows[] = $row;
+    avtxns_account_chart_get_tree($row, $rows, $depth);
   }
 
-  $rows_tree = avbase_rows_build_tree($rows, 0, FALSE, FALSE);
-  avbase_account_chart_sum_parent_balance($rows_tree);
-  $rows = avtxns_account_chart_rows($rows_tree);
+  // Iterate through each database result.
+  foreach ($rows as $row) {
+    $act = avtxns_account_chart_types($row->account_type);
+    // Create a form entry for this item.
+    //
+    // Each entry will be an array using the the unique id for that item as
+    // the array key, and an array of table row data as the value.
+    $form['tabledrag'][$row->id] = array(
 
-  $table_attributes = array('id' => 'account-chart-list-table', 'class' => array('uk-table-condensed'));
-  $form['table'] = array(
-    '#theme' => 'table',
-    '#header' => $header,
-    '#rows' => $rows,
-    '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
-    '#attributes' => $table_attributes,
-    //'#prefix' => '<div id="products-list-table-wrapper">',
-    //'#suffix' => theme('pager', array('tags' => array())),
-  );
+      // We'll use a form element of type '#markup' to display the item name.
+      'title' => array(
+        '#markup' => l($row->title, 'av/chart-of-accounts/' . $row->id . '/view', array('query' => drupal_get_destination())),
+      ),
+      'edit' => array(
+        '#markup' => l('EDIT', 'av/chart-of-accounts/' . $row->id . '/edit', array('query' => drupal_get_destination())),
+      ),
+      'account_type' => array(
+        '#markup' => $act['name'],
+      ),
+
+      // For parent/child relationships, we also need to add form items to
+      // store the current item's unique id and parent item's unique id.
+      //
+      // We would normally use a hidden element for this, but for this example
+      // we'll use a disabled textfield element called 'id' so that we can
+      // display the current item's id in the table.
+      //
+      // Because tabledrag modifies the #value of this element, we use
+      // '#default_value' instead of '#value' when defining a hidden element.
+      // Also, because tabledrag modifies '#value', we cannot use a markup
+      // element, which does not support the '#value' property. (Markup
+      // elements use the '#markup' property instead.)
+      'id' => array(
+         '#type' => 'hidden',
+        // '#default_value' => $row->id,
+        //'#type' => 'textfield',
+        '#size' => 10,
+        '#default_value' => $row->id,
+        '#disabled' => TRUE,
+      ),
+
+      // The same information holds true for the parent id field as for the
+      // item id field, described above.
+      'parent' => array(
+        // '#type' => 'hidden',
+        // '#default_value' => $row->parent,
+        '#type' => 'textfield',
+        '#size' => 10,
+        '#default_value' => empty($row->parent) ? 0 : $row->parent,
+      ),
+
+      // The 'weight' field will be manipulated as we move the items around in
+      // the table using the tabledrag activity.  We use the 'weight' element
+      // defined in Drupal's Form API.
+      'weight' => array(
+        '#type' => 'weight',
+        '#title' => t('Weight'),
+        '#default_value' => empty($row->weight) ? 0 : $row->weight,
+        '#delta' => 10,
+        '#title_display' => 'invisible',
+      ),
+
+      // We'll use a hidden form element to pass the current 'depth' of each
+      // item within our parent/child tree structure to the theme function.
+      // This will be used to calculate the initial amount of indentation to
+      // add before displaying any child item rows.
+      'depth' => array(
+        '#type' => 'hidden',
+        '#value' => $row->depth,
+      ),
+      'fixed' => array(
+        '#type' => 'value',
+        '#value' => empty($row->fixed) ? 0 : $row->fixed,
+      ),
+    );
+  }
+
   return $form;
+}
+
+function avtxns_account_chart_home_form_submit($form, &$form_state) {
+  // Because the form elements were keyed with the item ids from the database,
+  // we can simply iterate through the submitted values.
+  //$ac = avtxns_account_chart_query_load(array('1'));
+  //dpm($ac);
+  foreach ($form_state['values']['tabledrag'] as $id => $item) {
+    db_query(
+      "UPDATE {avtbl_account_chart} SET weight = :weight, parent = :parent WHERE id = :id",
+      array(':weight' => $item['weight'], ':parent' => $item['parent'], ':id' => $id)
+    );
+  }
 }
 
 /**
@@ -96,7 +151,7 @@ function avtxns_account_chart_rows($tree, $depth = 0) {
       'data' => array(
         'title' => $depth_html . $linked_name,
         'type' => check_plain($acd['name']),
-        'balance_text' => array('data' => isset($row->account_balance) ? number_format($row->account_balance, 2) : '-', 'class' => array('uk-text-center')),
+        //'balance_text' => array('data' => isset($row->account_balance) ? number_format($row->account_balance, 2) : '-', 'class' => array('uk-text-center')),
         //'balance' => array(
         //  'data' => empty($row->account_balance) ? 0 : $row->account_balance,
         //  'class' =>
@@ -137,6 +192,7 @@ function avtxns_account_chart_form($form, &$form_state, $row, $view_mode = FALSE
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
+    '#attributes' => array('data-ks' => 'CTRL+S'),
   );
   $cancel_text = $view_mode ? 'Close' : 'Cancel';
   $form['buttons']['cancel'] = array(
@@ -265,11 +321,12 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
     '#empty_option' => '- Select -',
     '#default_value' => isset($row->account_type) ? $row->account_type : '',
     '#required' => TRUE,
-    '#disabled' => !empty($row->id),
+    //'#disabled' => !empty($row->id),
     '#access' => empty($row->fixed),
   );
 
   $account_type_string = empty($row->account_type) ? '' : $row->account_type;
+  $account_type_string = '';
   $form['parent_name'] = array(
     '#type' => 'textfield',
     '#title' => t('Parent account'),
@@ -279,7 +336,7 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
     //'#element_validate_conditions' => array('group_id' => "agent{$ctd['type']}"),
     '#element_save_id' => 'parent',
     '#default_value' => empty($row->parent_name) ? '' : $row->parent_name,
-    '#access' => empty($row->fixed),
+    //'#access' => empty($row->fixed),
     '#parent_chart_of_account' => TRUE,
   );
 
@@ -354,4 +411,85 @@ function avtxns_account_chart_change_status_confirm_form_submit($form, &$form_st
     }
   }
   $form_state['redirect'] = '';
+}
+
+function theme_avtxns_account_chart_home_form($variables) {
+  $form = $variables['form'];
+
+  $output = '';
+  $output .= drupal_render($form['buttons']);
+
+  // Initialize the variable which will store our table rows.
+  $rows = array();
+
+  // Iterate over each element in our $form['tabledrag'] array.
+  foreach (element_children($form['tabledrag']) as $id) {
+    $form['tabledrag'][$id]['weight']['#attributes']['class'] = array('tabledrag-weight');
+
+    $form['tabledrag'][$id]['id']['#attributes']['class'] = array('tabledrag-id');
+    $form['tabledrag'][$id]['parent']['#attributes']['class'] = array('tabledrag-parent');
+
+    $class = array();
+    //if (empty($form['tabledrag'][$id]['fixed']['#value'])) {
+      $class[] = 'draggable';
+    //}
+
+    // We can add the 'tabledrag-root' class to a row in order to indicate
+    // that the row may not be nested under a parent row.  In our sample data
+    // for this example, the description for the item with id '8' flags it as
+    // a 'root' item which should not be nested.
+    //if (!empty($form['tabledrag'][$id]['fixed']['#value']) && empty($form['tabledrag'][$id]['parent']['#default_value'])) {
+    //  $class[] = 'tabledrag-root';
+    //}
+
+    // We can add the 'tabledrag-leaf' class to a row in order to indicate
+    // that the row may not contain child rows.  In our sample data for this
+    // example, the description for the item with id '9' flags it as a 'leaf'
+    // item which can not contain child items.
+    //if ($id == '9') {
+    //  $class[] = 'tabledrag-leaf';
+    //}
+
+    if (in_array($id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+      $class[] = 'tabledrag-leaf';
+    }
+
+    $indent = theme('indentation', array('size' => $form['tabledrag'][$id]['depth']['#value']));
+    unset($form['tabledrag'][$id]['depth']);
+
+    $rows[] = array(
+      'data' => array(
+        // Add our 'name' column, being sure to include our indentation.
+        $indent . drupal_render($form['tabledrag'][$id]['title']) . drupal_render($form['tabledrag'][$id]['id']),
+
+        // Add our 'description' column.
+        drupal_render($form['tabledrag'][$id]['account_type']),
+        // Add our 'weight' column.
+        drupal_render($form['tabledrag'][$id]['weight']),
+        // Add our hidden 'id' column.
+        //drupal_render($form['tabledrag'][$id]['id']),
+        // Add our hidden 'parent id' column.
+        drupal_render($form['tabledrag'][$id]['parent']),
+        drupal_render($form['tabledrag'][$id]['edit']),
+      ),
+      'class' => $class,
+    );
+  }
+  //$header = array(t('Title'), t('Type'), t('Weight'), t('ID'), t('Parent'), '&nbsp;');
+  $header = array(t('Title'), t('Type'), t('Weight'), t('Parent'), '&nbsp;');
+  $table_id = 'tabledrag-table';
+
+  // We can render our tabledrag table for output.
+  $output .= theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => $table_id, 'class' => array('uk-table-hover uk-table-condensed')),
+  ));
+
+  // And then render any remaining form elements (such as our submit button).
+  $output .= drupal_render_children($form);
+  drupal_add_tabledrag($table_id, 'match', 'parent', 'tabledrag-parent', 'tabledrag-parent', 'tabledrag-id', TRUE);
+  drupal_add_tabledrag($table_id, 'order', 'sibling', 'tabledrag-weight', NULL, NULL, TRUE);
+
+  return $output;
 }
