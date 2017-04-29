@@ -3,11 +3,11 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
   $ctd = avclients_client_types(AVCLIENT_TYPE_CUSTOMER);
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
+  $dad_default = empty($dad['this_month']) ? array() : $dad['this_month'];
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
-      '#default_value' => 'this_week',
+      '#default_value' => 'this_month',
     ),
     'date_from' => array(
       '#title' => t('Date from'),
@@ -40,7 +40,15 @@ function avreports_sales_to_trade_form($form, &$form_state) {
         'qty_out' => 'Qty.',
         'uom' => 'UOM',
       ),
-      '#default_value' => array('agent_name'),
+      '#default_value' => array(
+        'agent_name',
+        'principal_name',
+        'client_name',
+        'client_address',
+        'item_name',
+        'qty_out',
+        'uom',
+      ),
     ),
     'table_group_by' => array(
       '#options' => array(
@@ -49,6 +57,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
         'client_name' => 'Customer',
         'principal_name' => 'Principal',
       ),
+      '#default_value' => 'agent_name',
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
@@ -78,7 +87,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       unset($header[$h_k]);
     }
   }
-  $header['total_sales'] = array('data' => 'SALES', 'field' => 'total_sales', 'class' => array('uk-text-right'));
+  $header['net_sales'] = array('data' => 'NET SALES', 'field' => 'net_sales', 'class' => array('uk-text-right'));
 
   // Build query.
   // Add default date from and date to.
@@ -122,7 +131,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   }
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
 
-  $select[] = avtxns_txn_detail_sum_query_discount_applied() . ' AS total_sales';
+  $select[] = avtxns_txn_detail_sum_query_discount_applied() . ' AS net_sales';
   $where[] = "avtxn.transaction_type = :txn_type_invoice";
   $where[] = "avtxn_detail.ref_txn_type = :txn_type_delivery";
   $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
@@ -208,12 +217,12 @@ function avreports_sales_to_trade_form($form, &$form_state) {
           unset($table_row['data'][$d_k]);
         }
       }
-      $table_row['data']['total_sales'] = array('data' => number_format($row->total_sales, 2), 'class' => array('uk-text-right'));
+      $table_row['data']['net_sales'] = array('data' => number_format($row->net_sales, 2), 'class' => array('uk-text-right'));
 
       //$table_row['data']['qty_sold'] = array('data' => number_format($row->qty_sold), 'class' => array('uk-text-right'));
-      //$table_row['data']['total_sales'] = array('data' => number_format($row->total_sales, 2), 'class' => array('uk-text-right'));
-      $total2 += $row->total_sales;
-      $group_total += $row->total_sales;
+      //$table_row['data']['net_sales'] = array('data' => number_format($row->net_sales, 2), 'class' => array('uk-text-right'));
+      $total2 += $row->net_sales;
+      $group_total += $row->net_sales;
 
       $rows[] = $table_row;
       $index++;

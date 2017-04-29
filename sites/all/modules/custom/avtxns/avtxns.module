@@ -1201,7 +1201,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['settings']['table_group_by'] = empty($settings['table_group_by']) ? array() : $settings['table_group_by'];
     $fields['settings']['table_group_by'] += array(
       '#type' => 'radios',
-      '#title' => 'Group by',
+      '#title' => 'Total by',
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
