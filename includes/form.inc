@@ -573,6 +573,10 @@ function form_set_cache($form_build_id, $form, $form_state) {
       $form['#cache_token'] = drupal_get_token();
     }
     unset($form['#build_id_old']);
+    $form_keys_no_cache = empty($form['#form_keys_no_cache']) ? array() : $form['#form_keys_no_cache'];
+    foreach ($form_keys_no_cache as $fk) {
+      unset($form[$fk]);
+    }
     cache_set('form_' . $form_build_id, $form, 'cache_form', REQUEST_TIME + $expire);
   }
 

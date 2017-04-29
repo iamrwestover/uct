@@ -352,5 +352,8 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     '#visible_in_view_mode' => TRUE,
     '#icon_key' => 'print',
   );
+
+  // Hack to minimize caching size.
+  $form['#form_keys_no_cache'] = array('transaction_list_table');
   return $form;
 }
