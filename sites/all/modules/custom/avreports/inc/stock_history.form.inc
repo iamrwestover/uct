@@ -288,49 +288,10 @@ function avreports_stock_history_form($form, &$form_state) {
     '#visible_in_view_mode' => TRUE,
     '#icon_key' => 'print',
   );
+
+  // Hack to minimize caching size.
+  if (empty($transaction_list_table['table']['#type']) || $transaction_list_table['table']['#type'] != 'tableselect') {
+    $form['#form_keys_no_cache'] = array('transaction_list_table');
+  }
   return $form;
-}
-
-function avreports_stock_status_form_validate($form, &$form_state) {
-  $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
-
-  $selected = array();
-  foreach ($ids as $k => $v) {
-    if (empty($v)) {
-      continue;
-    }
-    $selected[] = $v;
-  }
-
-  if (empty($selected)) {
-    form_set_error('', t('Please select at least 1 product.'));
-    return;
-  }
-
-  if (count($selected) > AVTXNS_TXN_ROW_LIMIT) {
-    form_set_error('', t('Maximum number of items allowed per transaction is %max.', array('%max' => AVTXNS_TXN_ROW_LIMIT)));
-    return;
-  }
-}
-
-function avreports_stock_status_form_submit($form, &$form_state) {
-  $ids = empty($form_state['values']['table']) ? array() : $form_state['values']['table'];
-
-
-  $product_rows = avproduct_load_ids($ids);
-  $item_rows = array();
-  $i = 0;
-  foreach ($product_rows as $v) {
-    $item_rows['new_' . $i++] = array(
-      'item_id' => $v->id,
-      'product_title' => $v->title,
-      'uom_title' => $v->uom_title,
-      'qty_per_uom' => 1,
-      'qty' => $v->eoq,
-      'cost' => $v->cost,
-      'total' => $v->eoq * $v->cost,
-    );
-  }
-  $_SESSION['preload']['products'] = $item_rows;
-  $form_state['redirect'] = 'av/po/new';
 }

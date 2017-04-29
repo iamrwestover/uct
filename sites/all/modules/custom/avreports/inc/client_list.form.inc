@@ -217,5 +217,10 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
     '#visible_in_view_mode' => TRUE,
     '#icon_key' => 'print',
   );
+
+  // Hack to minimize caching size.
+  if (empty($transaction_list_table['table']['#type']) || $transaction_list_table['table']['#type'] != 'tableselect') {
+    $form['#form_keys_no_cache'] = array('transaction_list_table');
+  }
   return $form;
 }

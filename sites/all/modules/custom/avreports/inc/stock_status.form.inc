@@ -212,6 +212,7 @@ function avreports_stock_status_form($form, &$form_state) {
   if ($selectable_list) {
     $transaction_list_table['table']['#type'] = 'tableselect';
     $transaction_list_table['table']['#options'] = $table_rows;
+    $transaction_list_table['table']['#attributes']['class'][] = 'av-frs';
   }
   else {
     $transaction_list_table['table']['#theme'] = 'table';
@@ -257,6 +258,11 @@ function avreports_stock_status_form($form, &$form_state) {
     '#visible_in_view_mode' => TRUE,
     '#icon_key' => 'print',
   );
+
+  // Hack to minimize caching size.
+  if (empty($transaction_list_table['table']['#type']) || $transaction_list_table['table']['#type'] != 'tableselect') {
+    $form['#form_keys_no_cache'] = array('transaction_list_table');
+  }
   return $form;
 }
 

@@ -3,11 +3,11 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
   $ctd = avclients_client_types(AVCLIENT_TYPE_CUSTOMER);
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
+  $dad_default = empty($dad['this_month']) ? array() : $dad['this_month'];
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
-      '#default_value' => 'this_week',
+      '#default_value' => 'this_month',
     ),
     'date_from' => array(
       '#title' => t('Date from'),
@@ -43,11 +43,11 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       '#default_value' => array(
         'agent_name',
         'principal_name',
-        //'client_name',
-        //'client_address',
-        //'item_name',
-        //'qty_out',
-        //'uom',
+        'client_name',
+        'client_address',
+        'item_name',
+        'qty_out',
+        'uom',
       ),
     ),
     'table_group_by' => array(
@@ -354,6 +354,8 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   );
 
   // Hack to minimize caching size.
-  $form['#form_keys_no_cache'] = array('transaction_list_table');
+  if (empty($transaction_list_table['table']['#type']) || $transaction_list_table['table']['#type'] != 'tableselect') {
+    $form['#form_keys_no_cache'] = array('transaction_list_table');
+  }
   return $form;
 }
