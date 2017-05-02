@@ -10,6 +10,7 @@
  * @throws Exception
  */
 function avreports_txn_list_form($form, &$form_state, $transaction_type) {
+  ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   global $user;
 
   //$x = avbase_get_categories('agent1');
@@ -262,14 +263,19 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       $list_total += $row->grand_total;
     }
     $row_totals[$row->id] = $row_total;
-    $row_total_html = l(number_format($row_total, 2), $view_path);
+    $row_total_html = '<div class="uk-text-right">' . l(number_format($row_total, 2), $view_path) . '</div>';
     $row_bal_html = '';
     if ($col_paid) {
-      $row_bal_html = number_format(round($row_total - $row->paid_amount, 2), 2);
+      $row_bal = round($row_total - $row->paid_amount, 2);
+      $row_bal_html = empty($row_bal) ? NULL : number_format($row_bal, 2);
     }
 
-    if ($overdue) {
+    if (!empty($row_bal_html) && $overdue) {
       $row_bal_html .= ' <em><i class="uk-icon-exclamation-circle" title="Overdue"></i></em>';
+    }
+
+    if (!empty($row_bal_html)) {
+      $row_bal_html = '<div class="uk-text-right">' . $row_bal_html . '</div>';
     }
 
     if (!isset($table_rows[$row->id])) {
@@ -292,13 +298,13 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
         $data['memo'] = array('data' => check_plain($row->memo));
       }
       if ($col_total) {
-        $data['total'] = array('data' => $row_total_html, 'class' => array('uk-text-right'));
+        $data['total'] = array('data' => $row_total_html);
       }
 
       if ($col_paid) {
-        $paid_amount = empty($row->paid_amount) ? '' : number_format($row->paid_amount, 2);
-        $data['paid'] = array('data' => $paid_amount, 'class' => array('uk-text-right'));
-        $data['balance'] = array('data' => $row_bal_html, 'class' => array('uk-text-right'));
+        $paid_amount = empty($row->paid_amount) ? NULL : number_format($row->paid_amount, 2);
+        $data['paid'] = array('data' => '<div class="uk-text-right">' . $paid_amount . '</div>');
+        $data['balance'] = array('data' => $row_bal_html);
         $paid_total += $row->paid_amount;
       }
       if ($col_agent_show) {
@@ -349,16 +355,16 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $table_rows[] = array('data' => array(array('data' => '', 'colspan' => 10)));
     $colspan = array_search('total', array_keys($header)) + 1;
     $totals_table_row = array();
-    $totals_table_row[] = array('data' => number_format($list_total, 2), 'class' => array('uk-text-right'), 'colspan' => $colspan);
+    $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($list_total, 2) . '</div>', 'colspan' => $colspan);
     if ($col_paid) {
-      $totals_table_row[] = array('data' => number_format($paid_total, 2), 'class' => array('uk-text-right'));
-      $totals_table_row[] = array('data' => number_format($balance_total, 2), 'class' => array('uk-text-right'));
+      $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($paid_total, 2) . '</div>');
+      $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($balance_total, 2) . '</div>');
     }
 
     if ($colspan + (count($totals_table_row) - 1) < count($header)) {
       $totals_table_row[] = array('data' => '', 'colspan' => 10);
     }
-    $table_rows[] = array('data' => $totals_table_row, 'class' => array('suk-text-bold'), 'style' => 'border-top: solid 1px #ddd;');
+    $table_rows[] = array('data' => $totals_table_row, 'style' => 'border-top: solid 1px #ddd;');
   }
 
 

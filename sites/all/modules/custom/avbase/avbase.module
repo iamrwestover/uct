@@ -33,6 +33,10 @@ define('AVBASE_PERM_SYSTEM_SETTINGS', 'avbase system settings');
 define('AVBASE_PERM_SYSTEM_CATEGORIES', 'avbase system categories');
 define('AVBASE_PERM_IMPORT', 'avbase system import');
 
+// Expanded memory limit.
+define('AVBASE_EXPANDED_MEMORY_LIMIT', '512M');
+
+
 /**
  * Implementation of hook_theme().
  *

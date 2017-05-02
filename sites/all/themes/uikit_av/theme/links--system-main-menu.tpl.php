@@ -81,8 +81,8 @@ foreach ($menu_tree as $key => $value) {
     $icon_key = array_key_exists($value['#href'], $icons) ? $icons[$value['#href']] : $icons['default'];
     $menu_tree[$key]['#localized_options']['icon_key'] = $icon_key;
     $menu_tree[$key]['#localized_options']['icon_classes'] = array('uk-icon-small', 'uk-margin-right');
-    //$menu_tree[$key]['#localized_options']['attributes']['data-uk-tooltip'] = "{pos:'top-left', cls: 'tt-ks'}";
-    //$menu_tree[$key]['#localized_options']['attributes']['title'] = check_plain($value['#title']);
+    $menu_tree[$key]['#localized_options']['attributes']['data-uk-tooltip'] = "{pos:'top-left', cls: 'tt-ks', delay:500}";
+    $menu_tree[$key]['#localized_options']['attributes']['title'] = check_plain($value['#title']);
   }
 
   if (isset($value['#below']) && !empty($value['#below']) && $dropdown_support) {

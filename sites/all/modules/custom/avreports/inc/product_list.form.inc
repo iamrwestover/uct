@@ -122,12 +122,12 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
     if ($complete_columns) {
       $data['uom'] = array('data' => check_plain($row->uom_title));
     }
-    $data['onhand'] = array('data' => number_format($row->qty), 'class' => array('uk-text-right'));
+    $data['onhand'] = array('data' => '<div class="uk-text-right">' . number_format($row->qty) . '</div>');
     if ($complete_columns) {
-      $data['cost'] = array('data' => number_format($row->cost, 2), 'class' => array('uk-text-right'));
-      $data['price'] = array('data' => number_format($row->price, 2), 'class' => array('uk-text-right'));
-      $data['rop'] = array('data' => number_format($row->rop), 'class' => array('uk-text-right'));
-      $data['eoq'] = array('data' => number_format($row->eoq), 'class' => array('uk-text-right'));
+      $data['cost'] = array('data' => '<div class="uk-text-right">' . number_format($row->cost, 2) . '</div>');
+      $data['price'] = array('data' => '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>');
+      $data['rop'] = array('data' => '<div class="uk-text-right">' . number_format($row->rop) . '</div>');
+      $data['eoq'] = array('data' => '<div class="uk-text-right">' . number_format($row->eoq) . '</div>');
       if ($col_category_show) {
         $data['category'] = array('data' => check_plain($row->category_name));
       }

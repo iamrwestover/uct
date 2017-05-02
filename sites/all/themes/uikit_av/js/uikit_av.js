@@ -41,26 +41,26 @@ jQuery(document).ready(function ($) {
   //console.log('srd');
 
   // Toggle offcanvas menu.
-  var $panel = $('#menu-toggle');
-  var offcanvasTimeout;
-  $panel.find('.uk-offcanvas-bar').hover(function () {
-    if ($panel.hasClass('offcanvas-expanded')) {
-      return;
-    }
-    offcanvasTimeout = setTimeout (function() {
-      UIkit.offcanvas.show('#menu-toggle', {mode: 'reveal'});
-      $panel.removeClass('offcanvas-collapsed');
-      $panel.addClass('offcanvas-expanded');
-    }, 500);
-  }, function () {
-    clearTimeout(offcanvasTimeout);
-    if ($panel.hasClass('offcanvas-collapsed')) {
-      return;
-    }
-    UIkit.offcanvas.hide();
-    $panel.removeClass('offcanvas-expanded');
-    $panel.addClass('offcanvas-collapsed');
-  });
+  //var $panel = $('#menu-toggle');
+  //var offcanvasTimeout;
+  //$panel.find('.uk-offcanvas-bar').hover(function () {
+  //  if ($panel.hasClass('offcanvas-expanded')) {
+  //    return;
+  //  }
+  //  offcanvasTimeout = setTimeout (function() {
+  //    UIkit.offcanvas.show('#menu-toggle', {mode: 'reveal'});
+  //    $panel.removeClass('offcanvas-collapsed');
+  //    $panel.addClass('offcanvas-expanded');
+  //  }, 5000);
+  //}, function () {
+  //  clearTimeout(offcanvasTimeout);
+  //  if ($panel.hasClass('offcanvas-collapsed')) {
+  //    return;
+  //  }
+  //  UIkit.offcanvas.hide();
+  //  $panel.removeClass('offcanvas-expanded');
+  //  $panel.addClass('offcanvas-collapsed');
+  //});
 
 });
 

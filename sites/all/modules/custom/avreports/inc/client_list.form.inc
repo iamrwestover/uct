@@ -150,7 +150,7 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
       //$data['payment_method'] = array('data' => $row->payment_method_id);
     }
     if ($col_credit_limit) {
-      $data['credit_limit'] = array('data' => number_format($row->credit_limit, 2), 'class' => array('uk-text-right'));
+      $data['credit_limit'] = array('data' => '<div class="uk-text-right">' . number_format($row->credit_limit, 2) . '</div>');
     }
 
     // Careful when adding classes on rows, check if tableselect mode is ON.
