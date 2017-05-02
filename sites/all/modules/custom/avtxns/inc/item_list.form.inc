@@ -193,7 +193,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     }
   }
 
-  if (!empty($ttd['bill'])) {
+  if (!empty($ttd['payable'])) {
     $date_format = 'M. d, Y';
     $form['due_date'] = array(
       '#id' => 'due-date',
