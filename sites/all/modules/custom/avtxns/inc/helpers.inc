@@ -1567,9 +1567,10 @@ function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
   return $data[$date_format];
 }
 
-function avtxns_txn_detail_sum_query_discount_applied() {
+function avtxns_txn_detail_sum_query_discount_applied($increment = '1') {
   return 'SUM(
-    avtxn_detail.qty
+    IF(' . $increment . ', 1, -1)
+    * avtxn_detail.qty
     * avtxn_detail.cost
     * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
     * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
@@ -1578,8 +1579,8 @@ function avtxns_txn_detail_sum_query_discount_applied() {
   )';
 }
 
-function avtxns_txn_detail_sum_query() {
-  return 'SUM(avtxn_detail.qty * avtxn_detail.cost)';
+function avtxns_txn_detail_sum_query($increment = '1') {
+  return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
 }
 
 function avtxns_get_item_row_key($item) {

@@ -150,7 +150,7 @@ function avreports_stock_history_form($form, &$form_state) {
     $prod_init = array();
     foreach ($i_rs as $row) {
       $prod_init[$row->id] = $row;
-      if ($user_filter['avprod.title'] == $row->title) {
+      if (strtoupper($user_filter['avprod.title']) == strtoupper($row->title)) {
         $selected_product_id = $row->id;
       }
     }

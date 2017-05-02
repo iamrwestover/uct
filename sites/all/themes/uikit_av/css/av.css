@@ -349,3 +349,6 @@ table.sticky-header {
   color: #659f13;
 }
 
+.tabledrag-toggle-weight-wrapper {
+  display: none;
+}

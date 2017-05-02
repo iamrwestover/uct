@@ -793,6 +793,19 @@ function avbase_crud_form_validate($form, $form_state) {
   }
 }
 
+function avbase_pagination_and_sort_settings($user_filter) {
+  if (!empty($user_filter['settings']['table_href'])) {
+    $table_ajax_href = $user_filter['settings']['table_href'];
+    $href_parts = parse_url($table_ajax_href);
+    if (!empty($href_parts['query'])) {
+      parse_str($href_parts['query'], $href_query);
+      foreach ($href_query as $k => $v) {
+        $_GET[$k] = $v;
+      }
+    }
+  }
+}
+
 /**
  * Custom order by builder for static drupal queries.
  * @param $header

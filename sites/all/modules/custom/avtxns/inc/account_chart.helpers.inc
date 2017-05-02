@@ -355,7 +355,6 @@ function avtxns_element_validate_account_chart_name($element, &$form_state) {
       }
     }
 
-    dpm('s');
     // Set extra form state value for this element.
     avbase_element_set_form_state_extra_value($form_state, $element, $row->id);
 

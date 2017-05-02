@@ -42,7 +42,7 @@ function avreports_stock_status_form($form, &$form_state) {
 
 
   $header = array();
-  $header['product_title'] = array('data' => 'PRODUCT', 'field' => 'title');
+  $header['product_title'] = array('data' => 'PRODUCT', 'field' => 'product_title');
   $header['vendor'] = array('data' => 'PREFERRED VENDOR', 'field' => 'vendor_name');
   $header['onhand'] = array('data' => 'OHQ', 'field' => 'onhand', 'class' => array('uk-text-right'));
   $header['onhand']['data-uk-tooltip'] = '{cls: "tt-blue"}';

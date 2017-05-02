@@ -180,7 +180,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
   //);
   $info['qty'] = array(
     '#type' => 'textfield',
-    '#title' => 'On-hand qty.',
+    '#title' => 'On-hand QTY',
     '#default_value' => isset($row->qty) ? $row->qty : '',
     '#maxlength' => 10,
     '#access' => !empty($row->id),
@@ -407,7 +407,7 @@ function avproducts_product_form_uom_fields(&$form, &$form_state, $row, $view_mo
     $fields['qty'] = array(
       '#id' => 'uom-qty-' . $uom_index,
       '#type' => 'textfield',
-      '#title' => 'Qty.',
+      '#title' => 'QTY/UOM',
       '#description' => t('@uom1 per @uom2', array('@uom1' => $plural_form, '@uom2' => $current_uom_name)),
       '#default_value' => isset($uom_row['qty']) ? $uom_row['qty'] : '',
       '#maxlength' => 10,

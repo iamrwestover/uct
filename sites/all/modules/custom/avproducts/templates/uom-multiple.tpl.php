@@ -3,7 +3,8 @@ $uom_keys = empty($form['uoms']) ? array() : element_children($form['uoms']);
 $last_uom_key = end($uom_keys);
 $form['add_btn']['#attributes']['class'][] = 'av-ajax-trigger';
 ?>
-
+<hr />
+<h4>Other UOM/s</h4>
 <div class="uk-grid uk-grid-collapse">
   <?php foreach ($uom_keys as $uom_key): ?>
     <?php
