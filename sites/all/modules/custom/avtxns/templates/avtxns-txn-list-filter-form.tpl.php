@@ -172,6 +172,11 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
       <?php print drupal_render($form['product_status']); ?>
     </div>
   <?php endif; ?>
+  <?php if (isset($form['return_type'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['return_type']); ?>
+    </div>
+  <?php endif; ?>
 
   <?php if ($reset_btn_html): ?>
     <div class="uk-width-1-10">

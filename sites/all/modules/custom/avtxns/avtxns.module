@@ -1164,6 +1164,19 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
+  if (!empty($settings['return_type'])) {
+    $fields['return_type'] = empty($settings['return_type']) ? array() : $settings['return_type'];
+    $fields['return_type'] += array(
+      '#type' => 'select',
+      '#options' => avtxns_get_return_types(),
+      '#empty_value' => '',
+      '#empty_option' => 'All',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
+
   if (!empty($settings['simplified_status'])) {
     $fields['simplified_status'] = empty($settings['simplified_status']) ? array() : $settings['simplified_status'];
     $fields['simplified_status'] += array(

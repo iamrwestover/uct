@@ -14,8 +14,11 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- New filters and columns on <em>Sales To Trade</em> report.</li>
+      <li>- New filters and columns on Sales To Trade report.</li>
+      <li>- Added <em>Copy to New Delivery</em> feature for easier encoding of deliveries that are similar to previous ones.</li>
       <li>- Added an easier way to sort and parent chart of accounts.</li>
+      <li>- Fixed sorting bug on Stock Status Report.</li>
+      <li>- New columns on transaction list report: Return Type and Reference ID.</li>
       <li>- Lots of bug fixes and performance improvements.</li>
     </ul>
   </div>

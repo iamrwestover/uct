@@ -37,6 +37,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $col_total = $transaction_type != AVTXNS_TXN_TYPE_JOURNAL;
   //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
   $col_items_ref_txn_id = count($pending_txns_reference_type) == 1;
+  $col_return_type = $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN;
+  $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id());
 
   // Custom date optionsdetails.
   $dad = avtxns_txn_list_filter_date_auto_options();
@@ -96,6 +98,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       '#autocomplete_path' => 'av/categories/agent' . $ttd['ctd']['type'] . '/autocomplete',
     );
   }
+  if ($col_return_type) {
+    $filter_form_settings['return_type'] = array('#title' => 'Return type');
+  }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
@@ -123,6 +128,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $header['id'] = array('data' => strtoupper($transaction_type) . '#', 'field' => 'avtxn.id');
   if ($col_items_ref_txn_id) {
     $header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'avtxn_detail.ref_txn_id');
+  }
+  if ($col_return_type) {
+    $header['return_type'] = array('data' => 'Ret. Type', 'field' => 'avtxn.return_type');
+  }
+  if ($col_reference_id) {
+    $header['reference_id'] = array('data' => 'Ref. ID', 'field' => 'avtxn.reference_id');
   }
   if ($col_terms) {
     $header['term'] = array('data' => 'Terms', 'field' => 'term_name');
@@ -193,6 +204,13 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   if ($col_items_ref_txn_id) {
     $select[] = 'avtxn_detail.ref_txn_id';
   }
+  if ($col_return_type) {
+    $select[] = 'avtxn.return_type';
+    $return_types = avtxns_get_return_types();
+  }
+  if ($col_reference_id) {
+    $select[] = 'avtxn.reference_id';
+  }
   $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
   if ($col_paid) {
     $select[] = "(
@@ -237,6 +255,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   $table_rows = array();
   //$now = time();
   $last_client_name = '';
+
   foreach ($rs as $row) {
     //$overdue = $col_due_date && $row->due_date <= $now && $row->status != AVTXNS_TXN_STATUS_CLOSED;
     //$overdue = $overdue && $row->status != AVTXNS_TXN_STATUS_VOID;
@@ -263,7 +282,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       $list_total += $row->grand_total;
     }
     $row_totals[$row->id] = $row_total;
-    $row_total_html = '<div class="uk-text-right">' . l(number_format($row_total, 2), $view_path) . '</div>';
+    $row_total_html = '<div class="uk-text-right">' . number_format($row_total, 2) . '</div>';
     $row_bal_html = '';
     if ($col_paid) {
       $row_bal = round($row_total - $row->paid_amount, 2);
@@ -282,11 +301,17 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       if ($col_client_show) {
         $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
       }
-      $data['date'] = array('data' => l(format_date($row->transaction_date, 'custom', 'M-d-Y'), $view_path));
+      $data['date'] = array('data' => format_date($row->transaction_date, 'custom', 'M-d-Y'));
       $data['id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path));
       //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
       if ($col_items_ref_txn_id) {
         $data['items_ref_txn_id'] = array();
+      }
+      if ($col_return_type) {
+        $data['return_type'] = array('data' => empty($row->return_type) ? NULL : $return_types[$row->return_type]);
+      }
+      if ($col_reference_id) {
+        $data['reference_id'] = array('data' => empty($row->reference_id) ? NULL : check_plain($row->reference_id));
       }
       if ($col_terms) {
         $data['term'] = array('data' => check_plain($row->term_name));
@@ -376,7 +401,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => array(
       'id' => 'transaction-list-table',
-      'class' => array('uk-table-condensed uk-table-hover'),
+      'class' => array('uk-table-condensed uk-table-hover uk-text-small uk-text-uppercase'),
     ),
   );
 
@@ -422,6 +447,15 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       );
     }
 
+    if (!empty($user_filter['return_type'])) {
+      $transaction_list_table['return_type'] = array(
+        '#type' => 'item',
+        '#title' => 'Return type',
+        '#title_display' => 'inline-before',
+        '#markup' => $return_types[$user_filter['return_type']],
+      );
+    }
+
     avbase_user_extra_details($user);
     $transaction_list_table['prepared_by'] = array(
       '#title' => 'Prepared by',
@@ -443,7 +477,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     '#theme' => 'avreports_txn_list',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
+      'class' => array('printable av-sticky-small')
     ),
   );
   $form['transaction_list_table'] += $transaction_list_table;
