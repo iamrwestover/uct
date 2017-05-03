@@ -14,15 +14,9 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Added feature to easily group and sort chart of accounts.</li>
-      <li>- Fixed bug where "add new row" button won't add new rows when max rows is reached (even after removing some rows to free up slots).</li>
-      <li>- Some transaction list report (like Invoice List) now has an additional "Open and Closed" filter.</li>
-      <li>- Reference ID added on Customer Charge and Other Bills transactions.</li>
-      <li>- Added Batch Update feature to allow easier disabling of multiple products at once.</li>
-      <li class="uk-text-muted">- Fixes on Stock History, Products, Customers, Branches, and Vendors List report.</li>
-      <li class="uk-text-muted">- Minor changes to print based on user feedback.</li>
-      <!--<li>- Bad stocks on Sales Returns are now considered as an increment to on-hand quantity.</li>-->
-      <li class="uk-text-muted">- Various bugs and performance fixes.</li>
+      <li>- New filters and columns on <em>Sales To Trade</em> report.</li>
+      <li>- Added an easier way to sort and parent chart of accounts.</li>
+      <li>- Lots of bug fixes and performance improvements.</li>
     </ul>
   </div>
   <hr />

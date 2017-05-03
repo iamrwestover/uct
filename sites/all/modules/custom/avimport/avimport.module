@@ -66,6 +66,7 @@ function avimport_import_form($form, &$form_state) {
       <br />- contains all the required headers.
       <br />- does not have any formula in any cell.
       <br />- does not have any hidden row or column.
+      <br />- does not have % sign on numeric values like Discounts.
     </div>',
   );
   $form['analyze_data']['import_type'] = array(
@@ -74,11 +75,11 @@ function avimport_import_form($form, &$form_state) {
     //'#description' => t('Type of data to import'),
     //'#title_display' => 'none',
     '#options' => array(
-      'products' => t('NEW products'),
-      'customers' => t('NEW customers'),
       'vendors' => t('NEW vendors'),
+      'customers' => t('NEW customers'),
+      'products' => t('NEW products'),
     ),
-    '#default_value' => 'products',
+    '#default_value' => 'vendors',
     '#attributes' => array(
       'class' => array('uk-button-group'),
     ),
