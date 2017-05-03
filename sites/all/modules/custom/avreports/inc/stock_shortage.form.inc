@@ -69,14 +69,15 @@ function avreports_stock_shortage_form($form, &$form_state) {
   $header['date'] = array('data' => 'Date', 'field' => 'transaction_date');
   $header['id'] = array('data' => 'DR#', 'field' => 'avtxn.id');
   //$header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'avtxn_detail.ref_txn_id');
-  if ($col_product_show) {
-    $header['product'] = array('data' => 'Product', 'field' => 'avprod.title');
-  }
-  $header['uom'] = array('data' => 'UOM', 'field' => 'avcat_uom.title');
   if ($col_client_show) {
     $header['client'] = array('data' => 'Customer', 'field' => 'display_name');
   }
+  if ($col_product_show) {
+    $header['product'] = array('data' => 'Product', 'field' => 'avprod.title');
+  }
+  $header['uom'] = array('data' => 'QTY', 'field' => 'avcat_uom.title');
   //$header['term'] = array('data' => 'Terms', 'field' => 'term_name');
+  $header['onhand'] = array('data' => 'ON HAND', 'field' => 'onhand');
   if ($col_agent_show) {
     $header['agent'] = array('data' => 'Agent', 'field' => 'agent_name');
   }
@@ -95,10 +96,14 @@ function avreports_stock_shortage_form($form, &$form_state) {
 
   // Set default order.
   if (empty($_GET['order'])) {
-    $_GET['order'] = $header['id']['data'];
-    $_GET['sort'] = 'DESC';
+    $_GET['order'] = $header['onhand']['data'];
+    $_GET['sort'] = 'ASC';
   }
   $order_by = avbase_build_header_order_array($header);
+  if (isset($order_by['onhand'])) {
+    //$order_by['avtxn.transaction_date'] = 'transaction_date DESC';
+    $order_by['avtxn.id'] = 'avtxn.id DESC';
+  }
 
   $select = array();
   $joins = array();
@@ -111,12 +116,15 @@ function avreports_stock_shortage_form($form, &$form_state) {
   //$select[] = 'avtxn_detail.ref_txn_id';
   $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   $select[] = 'avprod.title AS product_title';
+  $select[] = 'avprod.qty AS onhand';
   $joins[] = 'INNER JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id AND avtxn_detail.qty < 1';
   $select[] = 'avclients.id AS client_id';
   $select[] = 'avclients.display_name';
   $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   $select[] = 'avcat_uom.title AS uom_title';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avtxn_detail.uom_id';
+  $select[] = 'avcat_buom.title AS base_uom_title';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_buom ON avcat_buom.id = avprod.uom_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
   $select[] = 'avcat_agent.title AS agent_name';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
@@ -140,17 +148,16 @@ function avreports_stock_shortage_form($form, &$form_state) {
     //$irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
     //$data['items_ref_txn_id'] = array('data' => empty($row->ref_txn_id) ? NULL : l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path));
 
+    if ($col_client_show) {
+      $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
+    }
     if ($col_product_show) {
       $data['product'] = array('data' => l($row->product_title, 'av/products/' . $row->item_id . '/view'));
     }
     $data['uom'] = array('data' => empty($row->uom_title) ? NULL : '0 ' . check_plain($row->uom_title));
-    if ($col_client_show) {
-      $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
-    }
-
-
 
     //$data['term'] = array('data' => check_plain($row->term_name));
+    $data['onhand'] = array('data' => number_format($row->onhand) . ' ' . check_plain($row->base_uom_title));
 
     if ($col_agent_show) {
       $data['agent'] = array('data' => check_plain($row->agent_name));
