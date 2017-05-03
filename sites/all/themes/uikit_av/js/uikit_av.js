@@ -44,6 +44,7 @@ jQuery(document).ready(function ($) {
   var $panel = $('#menu-toggle');
   var offcanvasTimeout;
   $panel.find('.uk-offcanvas-bar').hover(function () {
+    clearTimeout(offcanvasTimeout);
     if ($panel.hasClass('offcanvas-expanded')) {
       return;
     }

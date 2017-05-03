@@ -187,6 +187,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#avbase_payment_terms_js' => array('preventChildrenHide' => TRUE),
       //'#access' => $transaction_type == AVTXNS_TXN_TYPE_INVOICE,
     );
+    // Override term with the one selected from a re-deliver form.
+    if (empty($row->id) && empty($form['term_id']['#default_value']) && !empty($_SESSION['preload']['term_id'])) {
+      $form['term_id']['#default_value'] = $_SESSION['preload']['term_id'];
+    }
     // Override term with the one selected from pending transactions.
     if (!empty($form_state['#pending_term_id'])) {
       $form_state['input']['term_id'] = $form_state['#pending_term_id'];
@@ -432,6 +436,10 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
   if (empty($row->id)) {
     $selected_product_rows = empty($_SESSION['preload']['products']) ? array() : $_SESSION['preload']['products'];
     $initial_item_rows = $selected_product_rows;
+    $initial_item_row_count = count($initial_item_rows);
+    if ($initial_item_row_count > 0) {
+      $_storage['new_row_counter'] = $initial_item_row_count;
+    }
   }
   unset($_SESSION['preload']);
 

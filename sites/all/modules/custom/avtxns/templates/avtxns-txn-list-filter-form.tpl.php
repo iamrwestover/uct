@@ -107,7 +107,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
 
 
   <?php if ($area_html): ?>
-    <div class="uk-width-3-10">
+    <div class="uk-width-2-10">
       <?php print $area_html; ?>
     </div>
   <?php endif; ?>
