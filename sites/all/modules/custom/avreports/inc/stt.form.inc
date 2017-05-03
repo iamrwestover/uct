@@ -7,6 +7,8 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
   $filter_form_settings = array(
+    'avtxn.id' => array('#title' => 'INV/SR#'),
+    'avtxn_detail.ref_txn_id' => array('#title' => 'DR#'),
     'date_auto' => array(
       '#title' => t('Dates'),
       '#default_value' => 'this_week',
@@ -62,7 +64,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     ),
     'table_group_by' => array(
       '#options' => array(
-        '' => 'None',
+        '' => 'Overall',
         'agent_name' => 'Agent',
         'client_name' => 'Customer',
         'principal_name' => 'Principal',
@@ -79,6 +81,24 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+
+
+  $hide_cols = array();
+  if (!empty($user_filter['avcat_principal.title'])) {
+    $hide_cols[] = 'principal_name';
+  }
+  if (!empty($user_filter['avcat_agent.title'])) {
+    $hide_cols[] = 'agent_name';
+  }
+  if (!empty($user_filter['avclients.display_name'])) {
+    $hide_cols[] = 'client_name';
+  }
+  if (!empty($user_filter['avtxn.id'])) {
+    $hide_cols[] = 'txn_id';
+  }
+  if (!empty($user_filter['avtxn_detail.ref_txn_id'])) {
+    $hide_cols[] = 'ref_txn_id';
+  }
 
   // Headers.
   $header = array(
@@ -98,6 +118,11 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $table_columns = array_filter($table_columns);
   foreach ($header as $h_k => $h) {
     if (!isset($table_columns[$h_k])) {
+      unset($header[$h_k]);
+    }
+  }
+  foreach ($header as $h_k => $h) {
+    if (in_array($h_k, $hide_cols)) {
       unset($header[$h_k]);
     }
   }
@@ -244,7 +269,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       }
       // Get group index.
       $group_index = array_search($group_id, array_keys($group_totals));
-      $rows[sprintf('%010d', $group_index) . $group_id . '*-' . sprintf('%010d', $row_index++)] = avreports_sales_to_trade_table_row($row, $table_columns, $table_group_by, $group_total, $row_discount);
+      $rows[sprintf('%010d', $group_index) . $group_id . '*-' . sprintf('%010d', $row_index++)] = avreports_sales_to_trade_table_row($row, $table_columns, $table_group_by, $group_total, $row_discount, $hide_cols);
     }
 
 
@@ -294,15 +319,15 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     $group_totals_row =  array(
       'data' => array(
         'group_total' => array(
-          'data' => strtoupper($group_id) . ' NET SALES<span class="uk-margin-left uk-text-bold">' . number_format((empty($group_totals[$group_id]) ? 0 : $group_totals[$group_id]), 2) . '</span>',
-          'colspan' => 20,
+          'data' => strtoupper($group_id) . ' NET SALES <span class="uk-margin-left uk-text-bold">' . number_format((empty($group_totals[$group_id]) ? 0 : $group_totals[$group_id]), 2) . '</span>',
+          'colspan' => count($header),
         ),
       ),
     );
 
     if (isset($table_columns['discount'])) {
       $group_discount = empty($group_discounts[$group_id]) ? 0 : $group_discounts[$group_id];
-      $group_totals_row['data']['group_total']['data'] = 'TOTAL DISCOUNT USED<span class="uk-margin-left uk-text-bold uk-margin-large-right">' . number_format($group_discount, 2) . '</span>' . $group_totals_row['data']['group_total']['data'];
+      $group_totals_row['data']['group_total']['data'] = 'TOTAL DISCOUNT USED <span class="uk-margin-left uk-text-bold uk-margin-large-right">' . number_format($group_discount, 2) . '</span> ' . $group_totals_row['data']['group_total']['data'];
     }
     $group_totals_row['data']['group_total']['data'] = '<div class="uk-text-right">' . $group_totals_row['data']['group_total']['data'] . '</div>';
     $row_wtf_id = sprintf('%010d', $group_index++) . $group_id;
@@ -391,6 +416,22 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       '#markup' => empty($user_filter['avcat_area.title']) ? '' : check_plain($user_filter['avcat_area.title']),
     );
   }
+  if (!empty($user_filter['avtxn.id'])) {
+    $transaction_list_table['avtxn.id'] = array(
+      '#title' => 'INV/SR#',
+      '#title_display' => 'inline-before',
+      '#type' => 'item',
+      '#markup' => empty($user_filter['avtxn.id']) ? '' : check_plain($user_filter['avtxn.id']),
+    );
+  }
+  if (!empty($user_filter['avtxn_detail.ref_txn_id'])) {
+    $transaction_list_table['avtxn_detail.ref_txn_id'] = array(
+      '#title' => 'DR#',
+      '#title_display' => 'inline-before',
+      '#type' => 'item',
+      '#markup' => empty($user_filter['avtxn_detail.ref_txn_id']) ? '' : check_plain($user_filter['avtxn_detail.ref_txn_id']),
+    );
+  }
   //}
   $form['transaction_list_table'] += $transaction_list_table;
 
@@ -410,34 +451,34 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   return $form;
 }
 
-function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_by, $group_total, $row_discount) {
+function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_by, $group_total, $row_discount, $hide_cols) {
 
   $data = array();
   //'placeholder' => array('data' => $index + 1, 'class' => array('suk-hidden')),
-  avreports_sales_to_trade_table_row_col($data, 'agent_name', $row, $table_columns, $table_group_by, $group_total);
-  avreports_sales_to_trade_table_row_col($data, 'client_name', $row, $table_columns, $table_group_by, $group_total);
-  avreports_sales_to_trade_table_row_col($data, 'client_address', $row, $table_columns, $table_group_by, $group_total, avclients_address_string_format($row), 'client_name');
-  avreports_sales_to_trade_table_row_col($data, 'principal_name', $row, $table_columns, $table_group_by, $group_total);
+  avreports_sales_to_trade_table_row_col($data, 'agent_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
+  avreports_sales_to_trade_table_row_col($data, 'client_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
+  avreports_sales_to_trade_table_row_col($data, 'client_address', $row, $table_columns, $table_group_by, $group_total, $hide_cols, avclients_address_string_format($row), 'client_name');
+  avreports_sales_to_trade_table_row_col($data, 'principal_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
   $col_data = isset($table_columns['txn_id']) ? avbase_txn_number_format($row->transaction_type, $row->id) : NULL;
-  avreports_sales_to_trade_table_row_col($data, 'txn_id', $row, $table_columns, $table_group_by, $group_total, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'txn_id', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $col_data = isset($table_columns['ref_txn_id']) && !empty($row->ref_txn_id) ? avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id) : '-';
-  avreports_sales_to_trade_table_row_col($data, 'ref_txn_id', $row, $table_columns, $table_group_by, $group_total, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'ref_txn_id', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $col_data = isset($table_columns['item_name']) ? check_plain($row->title) : NULL;
-  avreports_sales_to_trade_table_row_col($data, 'item_name', $row, $table_columns, $table_group_by, $group_total, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'item_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
-  avreports_sales_to_trade_table_row_col($data, 'qty_out', $row, $table_columns, $table_group_by, $group_total);
+  avreports_sales_to_trade_table_row_col($data, 'qty_out', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
   $col_data = isset($table_columns['uom']) ? check_plain($row->uom_title) : NULL;
-  avreports_sales_to_trade_table_row_col($data, 'uom', $row, $table_columns, $table_group_by, $group_total, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'uom', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $col_data = isset($table_columns['price']) ? '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>' : NULL;
-  avreports_sales_to_trade_table_row_col($data, 'price', $row, $table_columns, $table_group_by, $group_total, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'price', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $col_data = isset($table_columns['discount']) && $row_discount ? '<div class="uk-text-right">' . number_format($row_discount, 2) . '</div>' : NULL;
-  avreports_sales_to_trade_table_row_col($data, 'discount', $row, $table_columns, $table_group_by, $group_total, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'discount', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $table_row = array('data' => $data);
 
@@ -489,9 +530,12 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
   return $table_row;
 }
 
-function avreports_sales_to_trade_table_row_col(&$data, $col_name, $row, $table_columns, $table_group_by, $group_total, $value = NULL, $tgcn = NULL) {
+function avreports_sales_to_trade_table_row_col(&$data, $col_name, $row, $table_columns, $table_group_by, $group_total, $hide_cols, $value = NULL, $tgcn = NULL) {
+  if (in_array($col_name, $hide_cols)) {
+    return;
+  }
   if (isset($table_columns[$col_name])) {
-    if (!empty($group_total) && ($table_group_by == $col_name || $table_group_by == $tgcn)) {
+    if (!empty($group_total) && !empty($table_group_by) && ($table_group_by == $col_name || $table_group_by == $tgcn)) {
       $data[$col_name] = NULL;
     }
     else {

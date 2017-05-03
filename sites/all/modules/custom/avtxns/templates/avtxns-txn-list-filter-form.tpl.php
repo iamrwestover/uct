@@ -22,6 +22,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['avtxn_detail.ref_txn_id'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['avtxn_detail.ref_txn_id']); ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($search_text_html): ?>
     <div class="uk-width-3-10">
       <?php print $search_text_html; ?>
@@ -81,7 +87,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php endif; ?>
 
   <?php if ($agent_html): ?>
-    <div class="uk-width-3-10">
+    <div class="uk-width-2-10">
       <?php print $agent_html; ?>
     </div>
   <?php endif; ?>

@@ -957,6 +957,18 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
+  if (!empty($settings['avtxn_detail.ref_txn_id'])) {
+    $fields['avtxn_detail.ref_txn_id'] = empty($settings['avtxn_detail.ref_txn_id']) ? array() : $settings['avtxn_detail.ref_txn_id'];
+    $fields['avtxn_detail.ref_txn_id'] += array(
+      '#type' => 'textfield',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+        'placeholder' => '#',
+      ),
+      '#icon_key' => 'search',
+    );
+  }
+
   if (!empty($settings['search_text'])) {
     $fields['search_text'] = empty($settings['search_text']) ? array() : $settings['search_text'];
     $fields['search_text'] += array(
