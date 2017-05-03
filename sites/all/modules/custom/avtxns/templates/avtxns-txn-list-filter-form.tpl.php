@@ -40,6 +40,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['avcat_prodcat.id'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['avcat_prodcat.id']); ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($transaction_type_html): ?>
     <div class="uk-width-2-10">
       <?php print $transaction_type_html; ?>
@@ -75,16 +81,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
-  <?php if (isset($form['category_id'])): ?>
+  <?php if (isset($form['avclients.category_id'])): ?>
     <div class="uk-width-1-10">
-      <?php print drupal_render($form['category_id']); ?>
+      <?php print drupal_render($form['avclients.category_id']); ?>
     </div>
   <?php endif; ?>
-  <?php if (isset($form['avcat_prodcat.id'])): ?>
-    <div class="uk-width-1-10">
-      <?php print drupal_render($form['avcat_prodcat.id']); ?>
-    </div>
-  <?php endif; ?>
+
 
   <?php if ($agent_html): ?>
     <div class="uk-width-2-10">
@@ -104,7 +106,11 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
-
+  <?php if (isset($form['settings']['principal_name'])): ?>
+    <div class="uk-width-2-10">
+      <?php print drupal_render($form['settings']['principal_name']); ?>
+    </div>
+  <?php endif; ?>
 
   <?php if ($area_html): ?>
     <div class="uk-width-2-10">
@@ -113,7 +119,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php endif; ?>
 
   <?php if (isset($form['simplified_status'])): ?>
-    <div class="uk-width-2-10">
+    <div class="uk-width-1-10">
       <?php print drupal_render($form['simplified_status']); ?>
     </div>
   <?php endif; ?>
@@ -151,11 +157,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
       <?php print drupal_render($form['settings']['preferred_vendor']); ?>
     </div>
   <?php endif; ?>
-  <?php if (isset($form['settings']['principal_name'])): ?>
-    <div class="uk-width-2-10">
-      <?php print drupal_render($form['settings']['principal_name']); ?>
-    </div>
-  <?php endif; ?>
+
   <?php if (isset($form['settings']['selectable'])): ?>
     <div class="uk-width-1-10">
       <?php print drupal_render($form['settings']['selectable']); ?>

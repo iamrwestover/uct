@@ -1002,13 +1002,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
-  if (!empty($settings['category_id'])) {
-    $fields['category_id'] = empty($settings['category_id']) ? array() : $settings['category_id'];
-    $fields['category_id'] += array(
-      '#title' => 'Category',
+  if (!empty($settings['avclients.category_id'])) {
+    $fields['avclients.category_id'] = empty($settings['avclients.category_id']) ? array() : $settings['avclients.category_id'];
+    $fields['avclients.category_id'] += array(
+      '#title' => 'Channel',
       '#type' => 'select',
       '#empty_value' => '',
-      '#empty_option' => '- Category -',
+      '#empty_option' => '- channel -',
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
@@ -1020,7 +1020,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#title' => 'Category',
       '#type' => 'select',
       '#empty_value' => '',
-      '#empty_option' => '- Category -',
+      '#empty_option' => '- category -',
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),

@@ -101,6 +101,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   if ($col_return_type) {
     $filter_form_settings['return_type'] = array('#title' => 'Return type');
   }
+  if (empty($ttd['ctd']['no_category'])) {
+    $filter_form_settings['category_id'] = array('#title' => $ttd['ctd']['name'] . ' Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
+  }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
@@ -170,7 +173,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   if (empty($_GET['order'])) {
     // Set default order.
     $_GET['order'] = $header['id']['data'];
-    $_GET['sort'] = 'desc';
+    $_GET['sort'] = 'DESC';
     //if (isset($header['client'])) {
     //  $_GET['order'] = $header['client']['data'];
     //  $_GET['sort'] = 'asc';
@@ -227,7 +230,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $select[] = 'avtxn.memo';
   }
   $joins = array();
-  $joins[] = 'LEFT JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   if ($col_client) {
     $select[] = 'avclients.id AS client_id';
     $select[] = 'avclients.display_name';

@@ -206,7 +206,7 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
     );
   }
   if (!empty($user_filter['avcat_prodcat.id'])) {
-    $transaction_list_table['category_id'] = array(
+    $transaction_list_table['avcat_prodcat.id'] = array(
       '#type' => 'item',
       '#title' => 'Category',
       '#title_display' => 'inline-before',

@@ -34,8 +34,11 @@
       <?php print drupal_render($form['simplified_status']); ?>
     <?php endif; ?>
     <?php print drupal_render($form['date_from']); ?>
-    <?php if (isset($form['category_id'])): ?>
-      <?php print drupal_render($form['category_id']); ?>
+    <?php if (isset($form['avclients.category_id'])): ?>
+      <?php print drupal_render($form['avclients.category_id']); ?>
+    <?php endif; ?>
+    <?php if (isset($form['avcat_prodcat.id'])): ?>
+      <?php print drupal_render($form['avcat_prodcat.id']); ?>
     <?php endif; ?>
   </div>
 </div>

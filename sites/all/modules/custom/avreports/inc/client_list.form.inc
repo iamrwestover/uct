@@ -39,7 +39,7 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
     );
   }
   if ($col_category) {
-    $filter_form_settings['category_id'] = array('#options' => avbase_get_category_options_array('category' . $ctd['type']));
+    $filter_form_settings['avclients.category_id'] = array('#options' => avbase_get_category_options_array('category' . $ctd['type']));
   }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
@@ -52,7 +52,7 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
 
 
   // Show hide columns depending on selected filters.
-  $col_category_show = $col_category && empty($user_filter['category_id']);
+  $col_category_show = $col_category && empty($user_filter['avclients.category_id']);
   $col_agent_show = $col_agent && empty($user_filter['avcat_agent.title']);
   $col_area_show = $col_area && empty($user_filter['avcat_area.title']);
 
@@ -190,12 +190,12 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
       '#markup' => check_plain($user_filter['avcat_agent.title']),
     );
   }
-  if (!empty($user_filter['category_id'])) {
-    $transaction_list_table['category_id'] = array(
+  if (!empty($user_filter['avclients.category_id'])) {
+    $transaction_list_table['avclients.category_id'] = array(
       '#type' => 'item',
       '#title' => 'Category',
       '#title_display' => 'inline-before',
-      '#markup' => check_plain($filter_form_settings['category_id']['#options'][$user_filter['category_id']]),
+      '#markup' => check_plain($filter_form_settings['avclients.category_id']['#options'][$user_filter['avclients.category_id']]),
     );
   }
 
