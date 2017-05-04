@@ -747,12 +747,12 @@ function avbase_general_settings_form() {
 
 
   $form['database_update_link'] = array(
-    '#markup' => l('Check for database updates', 'update.php'),
+    '#markup' => l('Flush cache / Check for DB updates', 'update.php'),
   );
-  $form['flush_drupal_cache'] = array(
-    '#markup' => '<br />' . l('Flush all caches', 'admin_menu/flush-cache', array('query' => drupal_get_destination() + array('token' => drupal_get_token('admin_menu/flush-cache')))),
-    '#access' => user_access('flush caches'),
-  );
+  //$form['flush_drupal_cache'] = array(
+  //  '#markup' => '<br />' . l('Flush all caches', 'admin_menu/flush-cache', array('query' => drupal_get_destination() + array('token' => drupal_get_token('admin_menu/flush-cache')))),
+  //  '#access' => user_access('flush caches'),
+  //);
 
   //theme_item_list()
   if (!avbase_user_is_super_admin()) {
