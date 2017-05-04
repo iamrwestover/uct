@@ -34,7 +34,7 @@
         var $inputEls = $transactionDiv.find('input.form-text:not([readonly]):enabled');
         $(document).bind('keydown', 'alt+1', function (e) {
           if ($inputEls.eq(0).is(':visible')) {
-            $inputEls.eq(0).focus();
+            $inputEls.eq(0).focus().select();
             e.preventDefault();
           }
         });
@@ -42,7 +42,7 @@
         $(document).bind('keydown', 'alt+2', function (e) {
           var lt = $inputEls.length - 1;
           if ($inputEls.eq(lt).is(':visible')) {
-            $inputEls.eq(lt).focus();
+            $inputEls.eq(lt).focus().select();
             e.preventDefault();
           }
         });
