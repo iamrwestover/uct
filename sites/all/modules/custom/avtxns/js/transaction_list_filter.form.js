@@ -101,6 +101,11 @@
     //});
 
     self.$resetBtn.click(function(e) {
+      var customReset = avbaseGetUrlParameter('custom_reset');
+      if (customReset) {
+        window.location = window.location.href.split('?')[0];
+      }
+
       self.$searchEls.each(function() {
         if ($(this).prop('readonly')) {
           $(this).val($(this).attr('value'));

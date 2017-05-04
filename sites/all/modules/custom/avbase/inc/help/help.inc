@@ -15,12 +15,13 @@ function avbase_help_home() {
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
       <li>- Added <em>Stock Shortage</em> report.</li>
-      <li>- New filters and columns on Sales To Trade report.</li>
+      <li>- Added <em>Stocks Returned - Sales</em> and <em>Stocks Returned - Purchase</em> reports.</li>
       <li>- Added <em>Copy to New Delivery</em> feature for easier encoding of deliveries that are similar to previous ones.</li>
+      <li>- Added filter by transaction type on Stock History report.</li>
+      <li>- New filters and columns on Sales To Trade report.</li>
       <li>- Added an easier way to sort and parent chart of accounts.</li>
       <li>- Fixed sorting bug on Stock Status Report.</li>
-      <li>- New columns (Return Type and Reference ID) on transaction list reports.</li>
-      <li>- Filter by Customer Category (side street, market store, etc.) on transaction list reports.</li>
+      <li>- New columns and filters (Return Type, Reference ID, Customer Category) on transaction list reports.</li>
       <li>- Lots of bug fixes and performance improvements.</li>
     </ul>
   </div>

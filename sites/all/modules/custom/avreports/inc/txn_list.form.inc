@@ -101,8 +101,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   if ($col_return_type) {
     $filter_form_settings['return_type'] = array('#title' => 'Return type');
   }
+  if ($col_reference_id) {
+    $filter_form_settings['avtxn.reference_id'] = array('#title' => 'Reference ID');
+  }
   if (empty($ttd['ctd']['no_category'])) {
-    $filter_form_settings['category_id'] = array('#title' => $ttd['ctd']['name'] . ' Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
+    $filter_form_settings['avclients.category_id'] = array('#title' => $ttd['ctd']['name'] . ' Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
   }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
@@ -302,48 +305,48 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
     if (!isset($table_rows[$row->id])) {
       if ($col_client_show) {
-        $data['client'] = array('data' => l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view'));
+        $data['client'] = l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
       }
-      $data['date'] = array('data' => format_date($row->transaction_date, 'custom', 'M-d-Y'));
-      $data['id'] = array('data' => l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path));
+      $data['date'] = format_date($row->transaction_date, 'custom', 'M-d-Y');
+      $data['id'] = l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path);
       //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
       if ($col_items_ref_txn_id) {
-        $data['items_ref_txn_id'] = array();
+        $data['items_ref_txn_id'] = NULL;
       }
       if ($col_return_type) {
-        $data['return_type'] = array('data' => empty($row->return_type) ? NULL : $return_types[$row->return_type]);
+        $data['return_type'] = empty($row->return_type) ? NULL : $return_types[$row->return_type];
       }
       if ($col_reference_id) {
-        $data['reference_id'] = array('data' => empty($row->reference_id) ? NULL : check_plain($row->reference_id));
+        $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
       }
       if ($col_terms) {
-        $data['term'] = array('data' => check_plain($row->term_name));
+        $data['term'] = check_plain($row->term_name);
       }
       if ($col_due_date) {
-        $data['due_date'] = array('data' => format_date($row->due_date, 'custom', 'Y-M-d'));
+        $data['due_date'] = format_date($row->due_date, 'custom', 'Y-M-d');
       }
       if ($col_memo) {
-        $data['memo'] = array('data' => check_plain($row->memo));
+        $data['memo'] = check_plain($row->memo);
       }
       if ($col_total) {
-        $data['total'] = array('data' => $row_total_html);
+        $data['total'] = $row_total_html;
       }
 
       if ($col_paid) {
         $paid_amount = empty($row->paid_amount) ? NULL : number_format($row->paid_amount, 2);
-        $data['paid'] = array('data' => '<div class="uk-text-right">' . $paid_amount . '</div>');
-        $data['balance'] = array('data' => $row_bal_html);
+        $data['paid'] = '<div class="uk-text-right">' . $paid_amount . '</div>';
+        $data['balance'] = $row_bal_html;
         $paid_total += $row->paid_amount;
       }
       if ($col_agent_show) {
-        $data['agent'] = array('data' => check_plain($row->agent_name));
+        $data['agent'] = check_plain($row->agent_name);
       }
       $table_rows[$row->id] = array('data' => $data);
 
       if ($overdue) {
         $table_rows[$row->id]['class'] = array('uk-alert-danger');
         if (isset($data['client'])) {
-          $table_rows[$row->id]['data']['due_date']['data'] = '<em><i class="uk-icon-exclamation-circle" title="Overdue"></i></em> ' . $table_rows[$row->id]['data']['due_date']['data'];
+          $table_rows[$row->id]['data']['due_date'] = '<em><i class="uk-icon-exclamation-circle" title="Overdue"></i></em> ' . $table_rows[$row->id]['data']['due_date'];
         }
       }
       elseif ($row->status == AVTXNS_TXN_STATUS_VOID) {
@@ -363,14 +366,14 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
     }
     else {
-      $table_rows[$row->id]['data']['total']['data'] =  $row_total_html;
-      $table_rows[$row->id]['data']['balance']['data'] =  $row_bal_html;
+      $table_rows[$row->id]['data']['total'] =  $row_total_html;
+      $table_rows[$row->id]['data']['balance'] =  $row_bal_html;
     }
 
     if ($col_items_ref_txn_id && !empty($row->ref_txn_id) && empty($table_rows[$row->id]['data']['items_ref_txn_id']) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
       $irtd = avtxns_txn_types($row->ref_txn_type);
       $irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
-      $table_rows[$row->id]['data']['items_ref_txn_id'] = array('data' => l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path));
+      $table_rows[$row->id]['data']['items_ref_txn_id'] = l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path);
     }
   }
 
@@ -380,19 +383,21 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     //  $list_total += $rt;
     //}
     // Add summary rows at the bottom of the table.
-    $table_rows[] = array('data' => array(array('data' => '', 'colspan' => 10)));
-    $colspan = array_search('total', array_keys($header)) + 1;
+    $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
+    $colspan = array_search('total', array_keys($header));
     $totals_table_row = array();
-    $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($list_total, 2) . '</div>', 'colspan' => $colspan);
+    $totals_table_row[] = array('data' => '<div class="uk-text-right">TOTAL</div>', 'colspan' => $colspan);
+    $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($list_total, 2) . '</div>');
     if ($col_paid) {
       $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($paid_total, 2) . '</div>');
       $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($balance_total, 2) . '</div>');
     }
 
-    if ($colspan + (count($totals_table_row) - 1) < count($header)) {
-      $totals_table_row[] = array('data' => '', 'colspan' => 10);
+    $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
+    if ($remaining_cols) {
+      $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
     }
-    $table_rows[] = array('data' => $totals_table_row, 'style' => 'border-top: solid 1px #ddd;');
+    $table_rows[] = $totals_table_row;
   }
 
 
@@ -401,7 +406,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $table_rows,
-    '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
+    '#empty' => '<div class="uk-text-muted">' . t('No match found') . '</div>',
     '#attributes' => array(
       'id' => 'transaction-list-table',
       'class' => array('uk-table-condensed uk-table-hover uk-text-small uk-text-uppercase'),
@@ -456,6 +461,23 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
         '#title' => 'Return type',
         '#title_display' => 'inline-before',
         '#markup' => $return_types[$user_filter['return_type']],
+      );
+    }
+    if (!empty($user_filter['avclients.category_id'])) {
+      $transaction_list_table['avclients.category_id'] = array(
+        '#type' => 'item',
+        '#title' => 'Channel',
+        '#title_display' => 'inline-before',
+        '#markup' => check_plain($filter_form_settings['avclients.category_id']['#options'][$user_filter['avclients.category_id']]),
+      );
+    }
+
+    if (!empty($user_filter['avtxn.reference_id'])) {
+      $transaction_list_table['avtxn.reference_id'] = array(
+        '#type' => 'item',
+        '#title' => 'Reference ID',
+        '#title_display' => 'inline-before',
+        '#markup' => check_plain($user_filter['avtxn.reference_id']),
       );
     }
 

@@ -118,20 +118,20 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
     $data = array();
-    $data['title'] = array('data' => l($row->title, "av/products/{$row->id}/view"));
+    $data['title'] = l($row->title, "av/products/{$row->id}/view");
     if ($complete_columns) {
-      $data['uom'] = array('data' => check_plain($row->uom_title));
+      $data['uom'] = check_plain($row->uom_title);
     }
-    $data['onhand'] = array('data' => '<div class="uk-text-right">' . number_format($row->qty) . '</div>');
+    $data['onhand'] = '<div class="uk-text-right">' . number_format($row->qty) . '</div>';
     if ($complete_columns) {
-      $data['cost'] = array('data' => '<div class="uk-text-right">' . number_format($row->cost, 2) . '</div>');
-      $data['price'] = array('data' => '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>');
-      $data['rop'] = array('data' => '<div class="uk-text-right">' . number_format($row->rop) . '</div>');
-      $data['eoq'] = array('data' => '<div class="uk-text-right">' . number_format($row->eoq) . '</div>');
+      $data['cost'] = '<div class="uk-text-right">' . number_format($row->cost, 2) . '</div>';
+      $data['price'] = '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>';
+      $data['rop'] = '<div class="uk-text-right">' . number_format($row->rop) . '</div>';
+      $data['eoq'] = '<div class="uk-text-right">' . number_format($row->eoq) . '</div>';
       if ($col_category_show) {
-        $data['category'] = array('data' => check_plain($row->category_name));
+        $data['category'] = check_plain($row->category_name);
       }
-      $data['shelf'] = array('data' => check_plain($row->shelf_name));
+      $data['shelf'] = check_plain($row->shelf_name);
 
       $discount = array();
       for ($x = 1; $x <= 4; $x++) {
@@ -141,16 +141,16 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
         }
       }
       $discount = array_filter($discount);
-      $data['discount'] = array('data' => implode('/', $discount), 'class' => array('uk-text-center'));
+      $data['discount'] = '<div class="uk-text-center">' . implode('/', $discount) . '</div>';
     }
 
     if ($col_vendor_show) {
-      $data['preferred_vendor'] = array('data' => l($row->vendor_name, 'av/vendors/' . $row->vendor_id . '/view'));
+      $data['preferred_vendor'] = l($row->vendor_name, 'av/vendors/' . $row->vendor_id . '/view');
     }
 
     if ($complete_columns) {
       if ($col_principal_show) {
-        $data['principal'] = array('data' => check_plain($row->principal_name));
+        $data['principal'] = check_plain($row->principal_name);
       }
     }
 

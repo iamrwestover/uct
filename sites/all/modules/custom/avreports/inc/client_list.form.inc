@@ -124,33 +124,33 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
     $data = array();
-    $data['display_name'] = array('data' => l($row->display_name, $ctd['base_path'] . "/{$row->id}/view"));
+    $data['display_name'] = l($row->display_name, $ctd['base_path'] . "/{$row->id}/view");
     if ($col_company) {
-      //$data['company'] = array('data' => $row->company);
+      //$data['company'] = $row->company;
     }
-    //$data['first_name'] = array('data' => $row->first_name);
-    //$data['last_name'] = array('data' => $row->last_name);
+    //$data['first_name'] = $row->first_name;
+    //$data['last_name'] = $row->last_name;
     if ($col_agent_show) {
-      $data['agent'] = array('data' => $row->agent_name);
+      $data['agent'] = $row->agent_name;
     }
-    //$data['email'] = array('data' => $row->email);
-    $data['contact_number'] = array('data' => $row->contact_number);
+    //$data['email'] = $row->email;
+    $data['contact_number'] = $row->contact_number;
     if ($col_category_show) {
-      $data['category'] = array('data' => $row->category_name);
+      $data['category'] = $row->category_name;
     }
     if ($col_area_show) {
-      $data['area'] = array('data' => $row->area_name);
+      $data['area'] = $row->area_name;
     }
-    $data['address'] = array('data' => $row->address);
-    $data['city'] = array('data' => $row->city);
-    $data['province'] = array('data' => $row->province);
-    $data['zip_code'] = array('data' => $row->zip_code);
+    $data['address'] = $row->address;
+    $data['city'] = $row->city;
+    $data['province'] = $row->province;
+    $data['zip_code'] = $row->zip_code;
     if ($col_payment) {
-      $data['term'] = array('data' => $row->term_name);
-      //$data['payment_method'] = array('data' => $row->payment_method_id);
+      $data['term'] = $row->term_name;
+      //$data['payment_method'] = $row->payment_method_id;
     }
     if ($col_credit_limit) {
-      $data['credit_limit'] = array('data' => '<div class="uk-text-right">' . number_format($row->credit_limit, 2) . '</div>');
+      $data['credit_limit'] = '<div class="uk-text-right">' . number_format($row->credit_limit, 2) . '</div>';
     }
 
     // Careful when adding classes on rows, check if tableselect mode is ON.

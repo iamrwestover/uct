@@ -786,6 +786,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
       'avtxn.transaction_date' => array('#access' => TRUE),
       'avtxn.transaction_type' => array('#access' => TRUE),
       'avtxn.status' => array('#access' => TRUE),
+      'reset_button' => array('#attributes' => array('style' => 'margin-left: 13px;')),
     );
     $filter_form_settings['avcat_agent.title'] = array(
       '#autocomplete_path' => 'av/categories/agent' . AVCLIENT_TYPE_CUSTOMER . '-agent' . AVCLIENT_TYPE_VENDOR . '/autocomplete',
@@ -989,6 +990,17 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#icon_key' => 'search',
     );
   }
+  $fld_name = 'avtxn.reference_id';
+  if (!empty($settings[$fld_name])) {
+    $fields[$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields[$fld_name] += array(
+      '#type' => 'textfield',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search trigger-search-on-keyup'),
+        'placeholder' => 'reference id',
+      ),
+    );
+  }
 
   if (!empty($settings['avcat_agent.title'])) {
     $fields['avcat_agent.title'] = empty($settings['avcat_agent.title']) ? array() : $settings['avcat_agent.title'];
@@ -1065,9 +1077,12 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
-  if (!empty($settings['avprod.title'])) {
-    $fields['avprod.title'] = empty($settings['avprod.title']) ? array() : $settings['avprod.title'];
-    $fields['avprod.title'] += array(
+  $fld_name = 'avprod.title';
+  $get_fld_name = 'product_title';
+  if (!empty($settings[$fld_name])) {
+    $fields[$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields[$fld_name]['#default_value'] = isset($_GET[$get_fld_name]) ? $_GET[$get_fld_name] : (isset($fields[$fld_name]['#default_value']) ? $fields[$fld_name]['#default_value'] : NULL);
+    $fields[$fld_name] += array(
       '#type' => 'textfield',
       '#autocomplete_path' => 'av/products/autocomplete',
       '#maxlength' => 255,
@@ -1090,16 +1105,19 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       //'#av_date_format' => $date_format,
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'data-uk-datepicker' => "{format:'YYYY-MM-DD'}",
         'class' => array('trigger-ajax-search'),
         'readonly' => 'readonly',
       ),
     );
   }
 
-  if (!empty($settings['date_auto']) && !empty($settings['date_from']) && !empty($settings['date_to'])) {
-    $fields['settings']['date_auto'] = empty($settings['date_auto']) ? array() : $settings['date_auto'];
-    $fields['settings']['date_auto'] += array(
+  $fld_name = 'date_auto';
+  $get_fld_name = $fld_name;
+  if (!empty($settings[$fld_name]) && !empty($settings['date_from']) && !empty($settings['date_to'])) {
+    $fields['settings'][$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields['settings'][$fld_name]['#default_value'] = isset($_GET[$get_fld_name]) ? $_GET[$get_fld_name] : (isset($fields['settings'][$fld_name]['#default_value']) ? $fields['settings'][$fld_name]['#default_value'] : NULL);
+    $fields['settings'][$fld_name] += array(
       '#id' => 'date-auto',
       '#type' => 'select',
       '#options' => avtxns_txn_list_filter_date_auto_options_array(),
@@ -1111,9 +1129,11 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $js_settings['avbase']['date_auto'] = avtxns_txn_list_filter_date_auto_options();
     drupal_add_js($js_settings, 'setting');
   }
-  if (!empty($settings['date_to'])) {
-    $fields['date_to'] = empty($settings['date_to']) ? array() : $settings['date_to'];
-    $fields['date_to'] += array(
+  $fld_name = 'date_to';
+  if (!empty($settings[$fld_name])) {
+    $fields[$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields[$fld_name]['#default_value'] = isset($_GET[$fld_name]) ? $_GET[$fld_name] : (isset($fields[$fld_name]['#default_value']) ? $fields[$fld_name]['#default_value'] : NULL);
+    $fields[$fld_name] += array(
       '#id' => 'date-to',
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
@@ -1124,9 +1144,11 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       ),
     );
   }
-  if (!empty($settings['date_from'])) {
-    $fields['date_from'] = empty($settings['date_from']) ? array() : $settings['date_from'];
-    $fields['date_from'] += array(
+  $fld_name = 'date_from';
+  if (!empty($settings[$fld_name])) {
+    $fields[$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields[$fld_name]['#default_value'] = isset($_GET[$fld_name]) ? $_GET[$fld_name] : (isset($fields[$fld_name]['#default_value']) ? $fields[$fld_name]['#default_value'] : NULL);
+    $fields[$fld_name] += array(
       '#id' => 'date-from',
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
@@ -1144,7 +1166,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'select',
       '#options' => avtxns_txn_types_options_array(),
       '#empty_value' => '',
-      '#empty_option' => '- transaction type -',
+      '#empty_option' => '- all types -',
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
@@ -1405,6 +1427,11 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
       $or[] = "avcat_agent.title LIKE :$arg_name";
       $or[] = "avclients.display_name LIKE :$arg_name";
       $where[] = '(' . implode(' OR ', $or) . ')';
+      $args[":$arg_name"] = '%' . db_like($v) . '%';
+      continue;
+    }
+    elseif ($k == 'avtxn.reference_id' && $v != '') {
+      $where[] = "avtxn.reference_id LIKE :$arg_name";
       $args[":$arg_name"] = '%' . db_like($v) . '%';
       continue;
     }

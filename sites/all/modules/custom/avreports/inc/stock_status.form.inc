@@ -181,20 +181,20 @@ function avreports_stock_status_form($form, &$form_state) {
   $table_rows = array();
   foreach ($rs as $row) {
     $data = array();
-    $data['product_title'] = array('data' => l($row->product_title, 'av/products/' . $row->product_id . '/view'));
-    //$data['principal'] = array('data' => check_plain($row->principal_title));
-    $data['vendor'] = array('data' => check_plain($row->vendor_name));
-    $data['onhand'] = array('data' => '<div class="uk-text-right">' . number_format($row->onhand) . '</div>');
-    $data['uom'] = array('data' => check_plain($row->uom_title));
-    $data['day_ave'] = array('data' => '<div class="uk-text-right">' . number_format($row->day_ave) . '</div>');
-    $data['dr_total'] = array('data' => '<div class="uk-text-right">' . number_format($row->dr_total) . '</div>');
-    $data['stou_total'] = array('data' => '<div class="uk-text-right">' . number_format($row->stou_total) . '</div>');
-    $data['on_so'] = array('data' => '<div class="uk-text-right">' . number_format($row->so_total) . '</div>');
-    $data['on_po'] = array('data' => '<div class="uk-text-right">' . number_format($row->po_total) . '</div>');
-    $data['rop'] = array('data' => '<div class="uk-text-right">' . number_format($row->rop) . '</div>');
-    $data['eoq'] = array('data' => '<div class="uk-text-right">' . number_format($row->eoq) . '</div>');
-    $data['cost'] = array('data' => '<div class="uk-text-right">' . number_format($row->cost, 2) . '</div>');
-    $data['price'] = array('data' => '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>');
+    $data['product_title'] = l($row->product_title, 'av/products/' . $row->product_id . '/view');
+    //$data['principal'] = check_plain($row->principal_title);
+    $data['vendor'] = check_plain($row->vendor_name);
+    $data['onhand'] = '<div class="uk-text-right">' . number_format($row->onhand) . '</div>';
+    $data['uom'] = check_plain($row->uom_title);
+    $data['day_ave'] = '<div class="uk-text-right">' . number_format($row->day_ave) . '</div>';
+    $data['dr_total'] = '<div class="uk-text-right">' . number_format($row->dr_total) . '</div>';
+    $data['stou_total'] = '<div class="uk-text-right">' . number_format($row->stou_total) . '</div>';
+    $data['on_so'] = '<div class="uk-text-right">' . number_format($row->so_total) . '</div>';
+    $data['on_po'] = '<div class="uk-text-right">' . number_format($row->po_total) . '</div>';
+    $data['rop'] = '<div class="uk-text-right">' . number_format($row->rop) . '</div>';
+    $data['eoq'] = '<div class="uk-text-right">' . number_format($row->eoq) . '</div>';
+    $data['cost'] = '<div class="uk-text-right">' . number_format($row->cost, 2) . '</div>';
+    $data['price'] = '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>';
 
     // Careful when adding classes on rows, check if tableselect mode is ON.
     $table_rows[$row->product_id] = $data;

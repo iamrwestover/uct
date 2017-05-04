@@ -1,10 +1,17 @@
 <?php
 
-function avreports_stock_shortage_form($form, &$form_state) {
+function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
   // Transaction type details.
-  $ttd = avtxns_txn_types(AVTXNS_TXN_TYPE_DELIVERY);
+  $ttd = avtxns_txn_types($transaction_type);
+
+  // Special flag for sales return.
+  $is_sr = $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN;
+
+  // Extra columns
+  $col_return_type = $is_sr;
+  $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id());
 
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default_key = 'this_week';
@@ -23,11 +30,11 @@ function avreports_stock_shortage_form($form, &$form_state) {
       '#default_value' => $dad_default['date_to'],
     ),
     'simplified_status' => array(
-      '#title' => 'Deliveries',
+      '#title' => $ttd['plural_name'],
       '#options' => array(
         AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN => 'Open',
       ),
-      '#default_value' => AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED. '-' . AVTXNS_TXN_STATUS_PENDING,
+      '#default_value' => AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED,
     ),
     'avprod.title' => array(
       '#title' => t('Product'),
@@ -36,23 +43,30 @@ function avreports_stock_shortage_form($form, &$form_state) {
       '#title' => t('Principal'),
       '#autocomplete_path' => 'av/categories/principal/autocomplete',
     ),
+    'avtxn.reference_id' => array(
+      '#title' => t('Reference ID'),
+    ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
-  $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_PENDING] = 'Pending';
-  $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED . '-' . AVTXNS_TXN_STATUS_PENDING] = 'All';
+  $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED] = 'All';
   //$filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_VOID] = 'Void';
   $filter_form_settings['avclients.display_name'] = array(
     '#title' => 'Customer',
-    '#autocomplete_path' => 'av/clients/autocomplete/' . AVCLIENT_TYPE_CUSTOMER . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
+    '#autocomplete_path' => 'av/clients/autocomplete/' . $ttd['ctd']['type'] . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
   );
-  $filter_form_settings['avcat_area.title'] = array('#title' => 'Area');
+  if ($ttd['ctd']['type'] == AVCLIENT_TYPE_CUSTOMER) {
+    $filter_form_settings['avcat_area.title'] = array('#title' => 'Area');
+  }
   $filter_form_settings['avcat_agent.title'] = array(
     '#title' => 'Agent',
-    '#autocomplete_path' => 'av/categories/agent' .AVCLIENT_TYPE_CUSTOMER . '/autocomplete',
+    '#autocomplete_path' => 'av/categories/agent' .$ttd['ctd']['type'] . '/autocomplete',
   );
   $filter_form_settings['avclients.category_id'] = array('#title' => 'Channel', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
   $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
+  if ($col_return_type) {
+    $filter_form_settings['return_type'] = array('#title' => 'Return type');
+  }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   // User filters.
@@ -68,21 +82,35 @@ function avreports_stock_shortage_form($form, &$form_state) {
 
   // Headers.
   $header = array();
-  $header['date'] = array('data' => 'Date', 'field' => 'transaction_date');
+  $header['date'] = array('data' => 'DATE', 'field' => 'transaction_date');
   $header['id'] = array('data' => 'DR#', 'field' => 'avtxn.id');
-  //$header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'avtxn_detail.ref_txn_id');
+  if ($col_return_type) {
+    $header['return_type'] = array('data' => 'RET. TYPE', 'field' => 'avtxn.return_type');
+  }
+  if ($col_reference_id) {
+    $header['reference_id'] = array('data' => 'REF. ID', 'field' => 'avtxn.reference_id');
+  }
   if ($col_client_show) {
-    $header['client'] = array('data' => 'Customer', 'field' => 'display_name');
+    $header['client'] = array('data' => strtoupper($ttd['ctd']['name']), 'field' => 'display_name');
   }
   if ($col_product_show) {
-    $header['product'] = array('data' => 'Product', 'field' => 'avprod.title');
+    $header['product'] = array('data' => 'PRODUCT', 'field' => 'avprod.title');
+    if ($is_sr) {
+      $header['actions'] = NULL;
+    }
   }
-  $header['uom'] = array('data' => 'QTY', 'field' => 'avcat_uom.title');
+  $header['row_qty'] = array('data' => 'QTY', 'field' => 'row_qty');
+  if ($is_sr) {
+    $header['row_qty_good'] = array('data' => 'GOOD', 'field' => 'row_qty_good');
+    $header['row_qty_bad'] = array('data' => 'BAD', 'field' => 'row_qty_bad');
+    //$header['row_qty_prd'] = array('data' => 'PR QTY', 'field' => 'row_qty_prd');
+  }
+  $header['uom'] = array('data' => 'UOM', 'field' => 'base_uom_title');
   //$header['term'] = array('data' => 'Terms', 'field' => 'term_name');
-  $header['onhand'] = array('data' => 'ON HAND', 'field' => 'onhand');
-  if ($col_agent_show) {
-    $header['agent'] = array('data' => 'Agent', 'field' => 'agent_name');
-  }
+  //$header['onhand'] = array('data' => 'ON HAND', 'field' => 'onhand');
+  //if ($col_agent_show) {
+  //  $header['agent'] = array('data' => 'AGENT', 'field' => 'agent_name');
+  //}
 
   // Set table pagination and sort settings.
   if (!empty($user_filter['settings']['table_href'])) {
@@ -98,14 +126,10 @@ function avreports_stock_shortage_form($form, &$form_state) {
 
   // Set default order.
   if (empty($_GET['order'])) {
-    $_GET['order'] = $header['onhand']['data'];
-    $_GET['sort'] = 'ASC';
+    $_GET['order'] = $header['id']['data'];
+    $_GET['sort'] = 'DESC';
   }
   $order_by = avbase_build_header_order_array($header);
-  if (isset($order_by['onhand'])) {
-    //$order_by['avtxn.transaction_date'] = 'transaction_date DESC';
-    $order_by['avtxn.id'] = 'avtxn.id DESC';
-  }
 
   $select = array();
   $joins = array();
@@ -113,18 +137,41 @@ function avreports_stock_shortage_form($form, &$form_state) {
   $select[] = 'avtxn.id';
   $select[] = 'avtxn.status';
   $select[] = 'avtxn.transaction_date';
+  if ($col_return_type) {
+    $select[] = 'avtxn.return_type';
+    $return_types = avtxns_get_return_types();
+  }
+  if ($col_reference_id) {
+    $select[] = 'avtxn.reference_id';
+  }
   $select[] = 'avtxn_detail.item_id';
   //$select[] = 'avtxn_detail.ref_txn_type';
   //$select[] = 'avtxn_detail.ref_txn_id';
+  $select[] = 'SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) AS row_qty';
+  if ($is_sr) {
+    $select[] = 'SUM(IF(avtxn_detail.good_stock = 1, avtxn_detail.qty * avtxn_detail.qty_per_uom, NULL)) AS row_qty_good';
+    $select[] = 'SUM(IF(avtxn_detail.good_stock = 0, avtxn_detail.qty * avtxn_detail.qty_per_uom, NULL)) AS row_qty_bad';
+    //$select[] = "(
+    //  IF (
+    //  avtxn.status = " . AVTXNS_TXN_STATUS_VOID . ",
+    //  0,
+    //  (SELECT SUM(pr_detail.qty * pr_detail.qty_per_uom) FROM {avtbl_transaction_details} pr_detail
+    //  INNER JOIN {avtbl_transactions} pr ON pr.id = pr_detail.transaction_id
+    //  WHERE pr.transaction_type = '" . AVTXNS_TXN_TYPE_PURCHASE_RETURN . "'
+    //    AND pr_detail.item_id = avtxn_detail.item_id
+    //    AND pr.status <> " . AVTXNS_TXN_STATUS_VOID . ")
+    //  )
+    //) AS row_qty_prd";
+  }
   $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   $select[] = 'avprod.title AS product_title';
-  $select[] = 'avprod.qty AS onhand';
-  $joins[] = 'INNER JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id AND avtxn_detail.qty < 1';
+  //$select[] = 'avprod.qty AS onhand';
+  $joins[] = 'INNER JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id';
   $select[] = 'avclients.id AS client_id';
   $select[] = 'avclients.display_name';
   $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
-  $select[] = 'avcat_uom.title AS uom_title';
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avtxn_detail.uom_id';
+  //$select[] = 'avcat_uom.title AS uom_title';
+  //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avtxn_detail.uom_id';
   $select[] = 'avcat_buom.title AS base_uom_title';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_buom ON avcat_buom.id = avprod.uom_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
@@ -136,37 +183,72 @@ function avreports_stock_shortage_form($form, &$form_state) {
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
 
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
-  $where[] = 'avtxn.transaction_type = :delivery_type';
-  $args[':delivery_type'] = AVTXNS_TXN_TYPE_DELIVERY;
+  $where[] = 'avtxn.transaction_type = :ttype';
+  $args[':ttype'] = $transaction_type;
 
+  $group_by[] = 'avtxn.id';
+  $group_by[] = 'avtxn_detail.item_id';
   avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
   $rs = db_query($query, $args);
   $table_rows = array();
   //$irtd = avtxns_txn_types(AVTXNS_TXN_TYPE_SALES_ORDER);
+  $row_qty_total = $row_qty_good_total = $row_qty_bad_total = 0;
   foreach ($rs as $row) {
     $data = array();
     $data['date'] = format_date($row->transaction_date, 'custom', 'M-d-Y');
-    $data['id'] = l(avbase_txn_number_format(AVTXNS_TXN_TYPE_DELIVERY, $row->id), "{$ttd['base_path']}/$row->id/view");
-    //$irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
-    //$data['items_ref_txn_id'] = empty($row->ref_txn_id) ? NULL : l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path);
+    $data['id'] = l(avbase_txn_number_format($transaction_type, $row->id), "{$ttd['base_path']}/$row->id/view");
+    if ($col_return_type) {
+      $data['return_type'] = empty($row->return_type) ? NULL : $return_types[$row->return_type];
+    }
+    if ($col_reference_id) {
+      $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
+    }
 
     if ($col_client_show) {
       $data['client'] = l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
     }
     if ($col_product_show) {
-      //$data['product'] = l($row->product_title, 'av/products/' . $row->item_id . '/view');
-      $data['product'] = avtxns_txn_list_table_phl_link($row->product_title, $user_filter);
+      $data['product'] = l($row->product_title, 'av/products/' . $row->item_id . '/view');
+      if ($is_sr) {
+        $data['actions'] = avtxns_txn_list_table_pr_link($row->product_title, $user_filter, AVTXNS_TXN_TYPE_PURCHASE_RETURN);
+        $data['actions'] .= ' &nbsp; ' . avtxns_txn_list_table_phl_link($row->product_title, $user_filter, 'hist.');
+        $data['actions'] = '<div class="not-printable">' . $data['actions'] . '</div>';
+      }
     }
-    $data['uom'] = empty($row->uom_title) ? NULL : '0 ' . check_plain($row->uom_title);
+    $data['row_qty'] = number_format($row->row_qty);
+    $row_qty_total += $row->row_qty;
+    if ($is_sr) {
+      $data['row_qty_good'] = number_format($row->row_qty_good);
+      $data['row_qty_bad'] = number_format($row->row_qty_bad);
+      $row_qty_good_total += $row->row_qty_good;
+      $row_qty_bad_total += $row->row_qty_bad;
+      //$data['row_qty_prd'] = number_format($row->row_qty_prd);
+    }
+    $data['uom'] = check_plain($row->base_uom_title);
 
     //$data['term'] = check_plain($row->term_name);
-    $data['onhand'] = number_format($row->onhand) . ' ' . check_plain($row->base_uom_title);
+    //$data['onhand'] = number_format($row->onhand) . ' ' . check_plain($row->base_uom_title);
 
-    if ($col_agent_show) {
-      $data['agent'] = check_plain($row->agent_name);
-    }
+    //if ($col_agent_show) {
+    //  $data['agent'] = check_plain($row->agent_name);
+    //}
     $table_rows[] = $data;
   }
+
+  $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
+  $label_colspan = $colspan = array_search('row_qty', array_keys($header));
+  $totals_table_row = array();
+  $totals_table_row[] = array('data' => '<div class="uk-text-right">Total</div>', 'colspan' => $label_colspan);
+  $totals_table_row[] = number_format($row_qty_total);
+  if ($is_sr) {
+    $totals_table_row[] = number_format($row_qty_good_total);
+    $totals_table_row[] = number_format($row_qty_bad_total);
+  }
+  $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
+  if ($remaining_cols) {
+    $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
+  }
+  $table_rows[] = $totals_table_row;
 
   // Build table.
   $transaction_list_table['table'] = array(
@@ -176,7 +258,7 @@ function avreports_stock_shortage_form($form, &$form_state) {
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => array(
       'id' => 'transaction-list-table',
-      'class' => array('uk-table-condensed uk-table-hover uk-text-small uk-text-uppercase'),
+      'class' => array('uk-table-condensed uk-table-hover uk-text-small'),
     ),
   );
 
@@ -192,6 +274,8 @@ function avreports_stock_shortage_form($form, &$form_state) {
     $transaction_list_table['simplified_status']['#markup'] = strtoupper($transaction_list_table['simplified_status']['#markup']);
   }
   avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
+  avtxns_txn_list_table_add_product_title($transaction_list_table, $user_filter, $transaction_type);
+
   if (!empty($user_filter['avclients.display_name'])) {
     $client = avclient_query_load(array('avclients.display_name = :name'), array(':name' => $user_filter['avclients.display_name']));
     $client = array_shift($client);
@@ -237,8 +321,14 @@ function avreports_stock_shortage_form($form, &$form_state) {
       '#markup' => check_plain($filter_form_settings['avcat_prodcat.id']['#options'][$user_filter['avcat_prodcat.id']]),
     );
   }
-
-  avtxns_txn_list_table_add_product_title($transaction_list_table, $user_filter);
+  if (!empty($user_filter['avtxn.reference_id'])) {
+    $transaction_list_table['avtxn.reference_id'] = array(
+      '#type' => 'item',
+      '#title' => 'Reference ID',
+      '#title_display' => 'inline-before',
+      '#markup' => check_plain($user_filter['avtxn.reference_id']),
+    );
+  }
 
 
   // Add table to form.

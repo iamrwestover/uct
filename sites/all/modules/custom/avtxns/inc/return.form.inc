@@ -142,5 +142,6 @@ function avtxns_return_form_submit($form, &$form_state) {
   $_SESSION['preload']['client_name'] = $transaction->client_name;
   $_SESSION['preload']['agent_name'] = $transaction->agent_name;
   $_SESSION['preload']['term_id'] = empty($transaction->term_id) ? NULL : $transaction->term_id;
+  $_SESSION['preload']['reference_id'] = avbase_txn_number_format($transaction->transaction_type, $transaction->id);
   $form_state['redirect'] = 'av/' . $goto_txn_type . '/new';
 }

@@ -117,6 +117,9 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#required' => empty($ttd['payment']),
       //'#access' => in_array($transaction_type, array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_SALES_RETURN)) || !empty($ttd['payment']),
     );
+    if (empty($row->id) && empty($form['reference_id']['#default_value']) && !empty($_SESSION['preload']['reference_id'])) {
+      $form['reference_id']['#default_value'] = $_SESSION['preload']['reference_id'];
+    }
   }
   if (!empty($ttd['payment'])) {
     $form['pmt_method_id'] = array(

@@ -1257,11 +1257,14 @@ function avtxns_txn_reconsider_status($ids = array()) {
 /**
  * Return transaction type list as options array.
  */
-function avtxns_txn_types_options_array($flat = FALSE) {
+function avtxns_txn_types_options_array($flat = FALSE, $only_these_types = array()) {
   $options = array();
   $types = avtxns_txn_types();
   foreach ($types as $t_k => $t) {
     if (user_access(constant('AVTXNS_PERM_VIEW_' . strtoupper($t_k)))) {
+      if (!empty($only_these_types) && !in_array($t_k, $only_these_types)) {
+        continue;
+      }
       if ($flat) {
         $options[$t_k] = $t['name'];
       }
@@ -1721,11 +1724,58 @@ function avtxns_txn_list_table_add_date_from(&$transaction_list_table, $user_fil
     if (!empty($date_to) && $user_filter['date_from'] != $date_to) {
       $date_text .= ' - ' . $user_filter['date_to'];
     }
+    $past_date = empty($date_to) || strtotime($date_to) < strtotime(format_date(time(), 'custom', 'F d, Y'));
+    if ($past_date) {
+      $date_text = '<span class="uk-color-orange">' . $date_text . '</span>';
+    }
     $transaction_list_table['date_from'] = array(
       '#type' => 'item',
       '#markup' => $date_text,
     );
   }
+}
+
+function avtxns_txn_list_table_add_product_title(&$transaction_list_table, $user_filter, $transaction_type = NULL) {
+  $product_title = empty($user_filter['avprod.title']) ? NULL : $user_filter['avprod.title'];
+  if (!empty($product_title)) {
+    $transaction_list_table['product_name'] = array(
+      '#type' => 'item',
+      '#title_display' => 'inline-before',
+      '#markup' => '<span class="uk-text-bold">' . check_plain($product_title) . '</span>',
+    );
+    if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+      $transaction_list_table['product_name']['#markup'] .= '<br />' . avtxns_txn_list_table_pr_link($product_title, $user_filter, 'Purchase returns');
+    }
+    $transaction_list_table['product_name']['#markup'] .=  '<br />' . avtxns_txn_list_table_phl_link($product_title, $user_filter, 'Stock history');
+  }
+}
+
+function avtxns_txn_list_table_phl_link($product_title, $user_filter, $link_title = NULL) {
+  $link_title = is_null($link_title) ? $product_title : $link_title;
+  $link_options = array('html' => TRUE);
+  $link_options['query']['custom_reset'] = 1; // Important.
+  $link_options['query']['product_title'] = $product_title;
+  $link_options['query']['date_auto'] = 'custom';
+  $link_options['query']['date_from'] = $user_filter['date_from'];
+  //$link_options['query']['date_to'] = $user_filter['date_to'];
+  $link_options['attributes']['title'] = 'View stock history';
+
+
+  return l('<i class="uk-icon-history uk-margin-small-right"></i>' . check_plain($link_title), 'av/reports/stock-history', $link_options);
+}
+
+function avtxns_txn_list_table_pr_link($product_title, $user_filter, $link_title = NULL) {
+  $link_title = is_null($link_title) ? $product_title : $link_title;
+  $link_options = array('html' => TRUE);
+  $link_options['query']['custom_reset'] = 1; // Important.
+  $link_options['query']['product_title'] = $product_title;
+  $link_options['query']['date_auto'] = 'custom';
+  $link_options['query']['date_from'] = $user_filter['date_from'];
+  //$link_options['query']['date_to'] = $user_filter['date_to'];
+  $link_options['attributes']['title'] = 'View purchase returns';
+
+
+  return l('<i class="uk-icon-reply uk-margin-small-right"></i>' . check_plain($link_title), 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN, $link_options);
 }
 
 function avtxns_get_types_with_reference_id() {

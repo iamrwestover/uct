@@ -46,11 +46,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
-  <?php if ($transaction_type_html): ?>
-    <div class="uk-width-2-10">
-      <?php print $transaction_type_html; ?>
-    </div>
-  <?php endif; ?>
+
 
   <?php if ($status_html): ?>
     <div class="uk-width-1-10">
@@ -71,6 +67,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php if ($date_to): ?>
     <div class="uk-width-2-10">
       <?php print $date_to; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($transaction_type_html): ?>
+    <div class="uk-width-1-10">
+      <?php print $transaction_type_html; ?>
     </div>
   <?php endif; ?>
 
@@ -101,7 +103,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php endif; ?>
 
   <?php if ($transaction_date): ?>
-    <div class="uk-width-2-10">
+    <div class="uk-width-1-10">
       <?php print $transaction_date; ?>
     </div>
   <?php endif; ?>
@@ -177,6 +179,13 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php if (isset($form['return_type'])): ?>
     <div class="uk-width-1-10">
       <?php print drupal_render($form['return_type']); ?>
+    </div>
+  <?php endif; ?>
+
+
+  <?php if (isset($form['avtxn.reference_id'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['avtxn.reference_id']); ?>
     </div>
   <?php endif; ?>
 
