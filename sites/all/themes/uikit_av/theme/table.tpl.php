@@ -186,6 +186,10 @@ if (count($rows)) {
   $flip = array('even' => 'odd', 'odd' => 'even');
   $class = 'even';
   foreach ($rows as $number => $row) {
+    // Custom row class implementation for imrpoved memory usage.
+    $custom_row_class = empty($row['#avclass']) ? NULL : $row['#avclass'];
+    unset($row['#avclass']);
+
     // Check if we're dealing with a simple or complex row.
     if (isset($row['data'])) {
       $cells = $row['data'];
@@ -203,14 +207,16 @@ if (count($rows)) {
     }
     if (count($cells)) {
       // Add odd/even class.
-      if (!$no_striping) {
-        $class = $flip[$class];
-        $attributes['class'][] = $class;
-      }
-      $attributes['class'][] = 'uk-text-left';
+      //if (!$no_striping) {
+      //  $class = $flip[$class];
+      //  $attributes['class'][] = $class;
+      //}
+      //$attributes['class'][] = 'uk-text-left';
 
       // Build row.
-      $output .= ' <tr' . drupal_attributes($attributes) . '>';
+      $attr_str = empty($attributes) ? NULL : drupal_attributes($attributes);
+      $custom_row_class_str = empty($custom_row_class) && empty($attributes['class']) ? NULL : ' class="' . $custom_row_class . '"';
+      $output .= ' <tr' . drupal_attributes($attributes) . $custom_row_class_str . '>';
       $i = 0;
       foreach ($cells as $cell) {
         $cell = tablesort_cell($cell, $header, $ts, $i++);

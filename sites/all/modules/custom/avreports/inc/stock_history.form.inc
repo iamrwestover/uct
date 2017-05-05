@@ -3,11 +3,11 @@ function avreports_stock_history_form($form, &$form_state) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
+  $dad_default = empty($dad['this_month']) ? array() : $dad['this_month'];
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
-      '#default_value' => 'this_week',
+      '#default_value' => 'this_month',
     ),
     'date_from' => array(
       '#title' => t('Date from'),

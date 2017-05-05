@@ -60,3 +60,11 @@ input[type='checkbox']:focus,
 .uk-button:focus {
   text-decoration: underline !important;
 }
+
+em a {
+  color: #D05;
+}
+
+.uk-text-muted a {
+  color: #999 !important;
+}

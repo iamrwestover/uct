@@ -147,7 +147,7 @@ function avbase_entity_overview_search_form(&$form_state, $entity_type = NULL) {
     '#ajax' => array(
       'callback' => 'avbase_entity_overview_search_form_ajax',
       'wrapper' => 'entity-info-wrapper',
-      'effect' => 'none',
+      'effect' => 'fade',
       'event' => 'click',
       'progress' => array(),
     ),

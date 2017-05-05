@@ -30,7 +30,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
       '#default_value' => $dad_default['date_to'],
     ),
     'simplified_status' => array(
-      '#title' => $ttd['plural_name'],
+      '#title' => 'Status',
       '#options' => array(
         AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN => 'Open',
       ),
@@ -235,20 +235,25 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
     $table_rows[] = $data;
   }
 
-  $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
-  $label_colspan = $colspan = array_search('row_qty', array_keys($header));
-  $totals_table_row = array();
-  $totals_table_row[] = array('data' => '<div class="uk-text-right">Total</div>', 'colspan' => $label_colspan);
-  $totals_table_row[] = number_format($row_qty_total);
-  if ($is_sr) {
-    $totals_table_row[] = number_format($row_qty_good_total);
-    $totals_table_row[] = number_format($row_qty_bad_total);
+  if (!empty($table_rows)) {
+    $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
+    $label_colspan = $colspan = array_search('row_qty', array_keys($header));
+    $totals_table_row = array();
+    $totals_table_row[] = array(
+      'data' => '<div class="uk-text-right">Total</div>',
+      'colspan' => $label_colspan
+    );
+    $totals_table_row[] = number_format($row_qty_total);
+    if ($is_sr) {
+      $totals_table_row[] = number_format($row_qty_good_total);
+      $totals_table_row[] = number_format($row_qty_bad_total);
+    }
+    $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
+    if ($remaining_cols) {
+      $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
+    }
+    $table_rows[] = $totals_table_row;
   }
-  $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
-  if ($remaining_cols) {
-    $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
-  }
-  $table_rows[] = $totals_table_row;
 
   // Build table.
   $transaction_list_table['table'] = array(

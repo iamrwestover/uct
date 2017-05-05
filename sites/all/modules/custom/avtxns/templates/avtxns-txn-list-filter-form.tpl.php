@@ -96,6 +96,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if ($area_html): ?>
+    <div class="uk-width-2-10">
+      <?php print $area_html; ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($principal_html): ?>
     <div class="uk-width-2-10">
       <?php print $principal_html; ?>
@@ -108,20 +114,18 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+
+
   <?php if (isset($form['settings']['principal_name'])): ?>
     <div class="uk-width-2-10">
       <?php print drupal_render($form['settings']['principal_name']); ?>
     </div>
   <?php endif; ?>
 
-  <?php if ($area_html): ?>
-    <div class="uk-width-2-10">
-      <?php print $area_html; ?>
-    </div>
-  <?php endif; ?>
+
 
   <?php if (isset($form['simplified_status'])): ?>
-    <div class="uk-width-1-10">
+    <div class="uk-width-2-10">
       <?php print drupal_render($form['simplified_status']); ?>
     </div>
   <?php endif; ?>

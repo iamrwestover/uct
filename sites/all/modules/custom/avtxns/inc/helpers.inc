@@ -352,7 +352,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       $total_paid_for_invoice = db_query($query, array(':invoice_id' => $row->id))->fetchField();
       $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
       $row->total_paid = $total_paid_for_invoice;
-      $row->balance = $row->grand_total - $total_paid_for_invoice;
+      $row->balance = round($row->grand_total - $total_paid_for_invoice, 2);
       //if ($row->status && (round($total_paid_for_invoice, 2) == round($row->grand_total, 2))) {
       //  // Close invoice.
       //  if (db_query("UPDATE {avtbl_transactions} SET status = 0 WHERE id = :invoice_id", array(':invoice_id' => $row->id))) {
@@ -1676,6 +1676,18 @@ function avtxns_get_refable_txn_types() {
     foreach ($ptrt as $ctt) {
       $types[$ctt] = $ctt;
     }
+  }
+  return $types;
+}
+
+function avtxns_get_payable_txn_types() {
+  $types = array();
+  $txn_types = avtxns_txn_types();
+  foreach ($txn_types as $ttd) {
+    if (empty($ttd['payable'])) {
+      continue;
+    }
+    $types[$ttd['type']] = $ttd['type'];
   }
   return $types;
 }

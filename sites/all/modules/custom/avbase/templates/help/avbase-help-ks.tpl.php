@@ -4,11 +4,11 @@
 </p>
 <table class="uk-table uk-table-condensed uk-table-striped">
   <tr>
-    <td class="uk-width-2-10">ALT+`</td>
+    <td class="uk-width-2-10">ALT+Q</td>
     <td class="uk-width-8-10">Opens the Transactions List page.</td>
   </tr>
   <tr>
-    <td>ALT+Q</td>
+    <td>ALT+`</td>
     <td>Creates a new tab and then opens the Transactions List page.</td>
   </tr>
   <tr>

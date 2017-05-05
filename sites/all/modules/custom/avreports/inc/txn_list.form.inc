@@ -1,16 +1,29 @@
 <?php
 
+function avreports_client_balances_form($form, &$form_state, $client_type) {
+  if ($client_type == AVCLIENT_TYPE_CUSTOMER) {
+    $form = avreports_txn_list_form($form, $form_state, AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES);
+  }
+  elseif ($client_type == AVCLIENT_TYPE_VENDOR) {
+    $form = avreports_txn_list_form($form, $form_state, AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_OTHER_BILLS);
+  }
+  return $form;
+}
+
 /**
  * Transaction List report.
  * @param $form
  * @param $form_state
  * @param $transaction_type
+ * @param $secondary_transaction_type
  *
  * @return array
  * @throws Exception
  */
-function avreports_txn_list_form($form, &$form_state, $transaction_type) {
+function avreports_txn_list_form($form, &$form_state, $transaction_type, $secondary_transaction_type = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
+
+
   global $user;
 
   //$x = avbase_get_categories('agent1');
@@ -28,7 +41,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   // Extra columns
   $col_client = !empty($ttd['ctd']);
   $col_area = $col_client && empty($ttd['ctd']['no_area']);
-  $col_due_date = !empty($ttd['bill']);
+  $col_due_date = !empty($ttd['payable']);
   $col_paid = !empty($ttd['payable']);
   $col_terms = empty($ttd['no_terms']);
   $col_agent = $col_client && empty($ttd['no_agent']);
@@ -38,7 +51,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
   $col_items_ref_txn_id = count($pending_txns_reference_type) == 1;
   $col_return_type = $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN;
-  $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id());
+  $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id()) || in_array($secondary_transaction_type, avtxns_get_types_with_reference_id());
+  $col_bal_age = !empty($secondary_transaction_type);
 
   // Custom date optionsdetails.
   $dad = avtxns_txn_list_filter_date_auto_options();
@@ -58,7 +72,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       '#default_value' => $dad_default['date_to'],
     ),
     'simplified_status' => array(
-      '#title' => $ttd['name'],
+      '#title' => 'Status',
       '#options' => array(
         AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN => 'Open',
       ),
@@ -105,7 +119,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $filter_form_settings['avtxn.reference_id'] = array('#title' => 'Reference ID');
   }
   if (empty($ttd['ctd']['no_category'])) {
-    $filter_form_settings['avclients.category_id'] = array('#title' => $ttd['ctd']['name'] . ' Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
+    $filter_form_settings['avclients.category_id'] = array('#title' => 'Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
   }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
@@ -118,7 +132,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
   // Show hide columns depending on selected filters.
   $col_client_show = $col_client && empty($user_filter['avclients.display_name']);
-  $col_agent_show = $col_agent && empty($user_filter['avcat_agent.title']);
+  $col_agent_show = $col_agent && empty($user_filter['avcat_agent.title']) && empty($secondary_transaction_type);
   //if (!empty($agent_name)) {
   //  unset($header['agent']);
   //}
@@ -131,7 +145,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $header['client'] = array('data' => $ttd['ctd']['name'], 'field' => 'display_name');
   }
   $header['date'] = array('data' => 'Date', 'field' => 'transaction_date');
-  $header['id'] = array('data' => strtoupper($transaction_type) . '#', 'field' => 'avtxn.id');
+  $header['id'] = array('data' => 'TXN#', 'field' => 'avtxn.id');
   if ($col_items_ref_txn_id) {
     $header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'avtxn_detail.ref_txn_id');
   }
@@ -159,6 +173,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   }
   if ($col_agent_show) {
     $header['agent'] = array('data' => 'Agent', 'field' => 'agent_name');
+  }
+  if ($col_bal_age) {
+    $header['bal_age'] = array('data' => 'Age', 'field' => 'bal_age', 'class' => array('uk-text-right'));
+    $header['bal_age']['data-uk-tooltip'] = '{cls: "tt-blue"}';
+    $header['bal_age']['title'] = 'Age in Days';
   }
 
   // Set table pagination and sort settings.
@@ -190,7 +209,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   }
 
 
-  $where[] = "avtxn.transaction_type = '" . $transaction_type . "'";
+  if (empty($secondary_transaction_type)) {
+    $where[] = "avtxn.transaction_type = '" . $transaction_type . "'";
+  }
+  else {
+    $where[] = "avtxn.transaction_type IN ('$transaction_type', '$secondary_transaction_type')";
+  }
   //dpm($where);
   //$where[] = "avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_VOID . ", " . AVTXNS_TXN_STATUS_PENDING . ")";
 
@@ -205,6 +229,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
   if ($col_due_date) {
     $select[] = 'avtxn.due_date';
     $select[] = avtxns_txn_overdue_query() . ' AS overdue';
+  }
+  if ($col_bal_age) {
+    $select[] = '(UNIX_TIMESTAMP() - avtxn.transaction_date) / 86400 AS bal_age';
   }
   $select[] = 'avtxn_detail.ref_txn_type';
   if ($col_items_ref_txn_id) {
@@ -289,7 +316,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     }
     $row_totals[$row->id] = $row_total;
     $row_total_html = '<div class="uk-text-right">' . number_format($row_total, 2) . '</div>';
-    $row_bal_html = '';
+    $row_bal_html = NULL;
     if ($col_paid) {
       $row_bal = round($row_total - $row->paid_amount, 2);
       $row_bal_html = empty($row_bal) ? NULL : number_format($row_bal, 2);
@@ -307,7 +334,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
       if ($col_client_show) {
         $data['client'] = l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
       }
-      $data['date'] = format_date($row->transaction_date, 'custom', 'M-d-Y');
+      $data['date'] = format_date($row->transaction_date, 'custom', 'Y-M-d');
       $data['id'] = l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path);
       //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
       if ($col_items_ref_txn_id) {
@@ -320,38 +347,53 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
         $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
       }
       if ($col_terms) {
-        $data['term'] = check_plain($row->term_name);
+        $data['term'] = empty($row->term_name) ? NULL : check_plain($row->term_name);
       }
       if ($col_due_date) {
         $data['due_date'] = format_date($row->due_date, 'custom', 'Y-M-d');
       }
       if ($col_memo) {
-        $data['memo'] = check_plain($row->memo);
+        $data['memo'] = empty($row->memo) ? NULL : check_plain($row->memo);
       }
       if ($col_total) {
         $data['total'] = $row_total_html;
       }
-
       if ($col_paid) {
         $paid_amount = empty($row->paid_amount) ? NULL : number_format($row->paid_amount, 2);
-        $data['paid'] = '<div class="uk-text-right">' . $paid_amount . '</div>';
+        $data['paid'] = empty($paid_amount) ? NULL : '<div class="uk-text-right">' . $paid_amount . '</div>';
         $data['balance'] = $row_bal_html;
         $paid_total += $row->paid_amount;
       }
       if ($col_agent_show) {
         $data['agent'] = check_plain($row->agent_name);
       }
-      $table_rows[$row->id] = array('data' => $data);
+      if ($col_bal_age) {
+        $data['bal_age'] = empty($row->bal_age) ? NULL : '<div class="uk-text-right">' . number_format($row->bal_age) . '</div>';
+      }
+
 
       if ($overdue) {
-        $table_rows[$row->id]['class'] = array('uk-alert-danger');
-        if (isset($data['client'])) {
-          $table_rows[$row->id]['data']['due_date'] = '<em><i class="uk-icon-exclamation-circle" title="Overdue"></i></em> ' . $table_rows[$row->id]['data']['due_date'];
-        }
+        //if (isset($data['due_date'])) {
+        //  $data['due_date'] = '<em><i class="uk-icon-exclamation-circle" title="Overdue"></i></em> ' . $data['due_date'];
+        //}
+        $data['#avclass'] = 'uk-alert-danger';
       }
       elseif ($row->status == AVTXNS_TXN_STATUS_VOID) {
-        $table_rows[$row->id]['class'] = array('uk-row-mute');
+        $data['#avclass'] = 'uk-row-mute';
       }
+
+      //$data['#avclass'] = 'uk-alert-danger';
+      $table_rows[$row->id] = $data;
+
+      //if ($overdue) {
+      //  if (isset($data['client'])) {
+      //    $table_rows[$row->id]['due_date'] = '<em><i class="uk-icon-exclamation-circle" title="Overdue"></i></em> ' . $table_rows[$row->id]['due_date'];
+      //  }
+      //  //$table_rows[$row->id]['class'] = array('uk-alert-danger');
+      //}
+      //elseif ($row->status == AVTXNS_TXN_STATUS_VOID) {
+      //  //$table_rows[$row->id]['class'] = array('uk-row-mute');
+      //}
       //elseif ($row->status == AVTXNS_TXN_STATUS_PENDING) {
       //  $table_rows[$row->id]['class'] = array('uk-alert-warning');
       //}
@@ -366,15 +408,41 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
 
     }
     else {
-      $table_rows[$row->id]['data']['total'] =  $row_total_html;
-      $table_rows[$row->id]['data']['balance'] =  $row_bal_html;
+      //if ($overdue) {
+      //  $row_total_html = empty($row_total_html) ? $row_total_html : '<em>' . $row_total_html . '</em>';
+      //  $row_bal_html = empty($row_bal_html) ? $row_bal_html : '<em>' . $row_bal_html . '</em>';
+      //}
+      //elseif ($row->status == AVTXNS_TXN_STATUS_VOID) {
+      //  $row_total_html = empty($row_total_html) ? $row_total_html : '<span class="uk-text-muted uk-text-italic">' . $row_total_html . '</span>';
+      //  $row_bal_html = empty($row_bal_html) ? $row_bal_html : '<span class="uk-text-muted uk-text-italic">' . $row_bal_html . '</span>';
+      //}
+      $table_rows[$row->id]['total'] = $row_total_html;
+      $table_rows[$row->id]['balance'] =  $row_bal_html;
     }
 
-    if ($col_items_ref_txn_id && !empty($row->ref_txn_id) && empty($table_rows[$row->id]['data']['items_ref_txn_id']) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
+    if ($col_items_ref_txn_id && !empty($row->ref_txn_id) && empty($table_rows[$row->id]['items_ref_txn_id']) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
       $irtd = avtxns_txn_types($row->ref_txn_type);
       $irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
-      $table_rows[$row->id]['data']['items_ref_txn_id'] = l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path);
+      $table_rows[$row->id]['items_ref_txn_id'] = l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path);
     }
+
+    // Color them red and gray.
+    //if ($overdue) {
+    //  foreach ($table_rows[$row->id] as $d_k => $d) {
+    //    if (!empty($table_rows[$row->id][$d_k])) {
+    //      $table_rows[$row->id][$d_k] = '<em>' . $table_rows[$row->id][$d_k] . '</em>';
+    //    }
+    //  }
+    //  //$table_rows[$row->id]['class'] = array('uk-alert-danger');
+    //}
+    //elseif ($row->status == AVTXNS_TXN_STATUS_VOID) {
+    //  //$table_rows[$row->id]['class'] = array('uk-row-mute');
+    //  foreach ($table_rows[$row->id] as $d_k => $d) {
+    //    if (!empty($table_rows[$row->id][$d_k])) {
+    //      $table_rows[$row->id][$d_k] = '<span class="uk-text-muted uk-text-italic">' . $table_rows[$row->id][$d_k] . '</span>';
+    //    }
+    //  }
+    //}
   }
 
 
@@ -387,10 +455,10 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     $colspan = array_search('total', array_keys($header));
     $totals_table_row = array();
     $totals_table_row[] = array('data' => '<div class="uk-text-right">TOTAL</div>', 'colspan' => $colspan);
-    $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($list_total, 2) . '</div>');
+    $totals_table_row[] = '<div class="uk-text-right">' . number_format($list_total, 2) . '</div>';
     if ($col_paid) {
-      $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($paid_total, 2) . '</div>');
-      $totals_table_row[] = array('data' => '<div class="uk-text-right">' . number_format($balance_total, 2) . '</div>');
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($paid_total, 2) . '</div>';
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($balance_total, 2) . '</div>';
     }
 
     $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
@@ -417,7 +485,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type) {
     if (isset($user_filter['simplified_status'])) {
       $transaction_list_table['simplified_status'] = array(
         '#type' => 'item',
-        '#markup' => check_plain($filter_form_settings['simplified_status']['#options'][$user_filter['simplified_status']]) . ' ' . $ttd['plural_name'],
+        '#markup' => check_plain($filter_form_settings['simplified_status']['#options'][$user_filter['simplified_status']]) . ' ' . (empty($secondary_transaction_type) ? $ttd['plural_name'] : 'Balances'),
       );
       if (!empty($user_filter['overdue'])) {
         $transaction_list_table['simplified_status']['#markup'] .= ' (OVERDUE)';

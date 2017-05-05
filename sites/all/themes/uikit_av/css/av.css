@@ -352,3 +352,10 @@ table.sticky-header {
 .tabledrag-toggle-weight-wrapper {
   display: none;
 }
+
+#edit-avtxns-tl-filter-settings-table-columns {
+  /*height: 150px;*/
+  /*overflow: auto;*/
+  /*border: solid 1px #ddd;*/
+  /*border-radius: 3px;*/
+}

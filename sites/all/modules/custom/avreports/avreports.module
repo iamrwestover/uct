@@ -57,11 +57,26 @@ function avreports_menu() {
       'page arguments' => array('avreports_txn_list_form', $k),
       'access arguments' => array(AVREPORTS_PERM_TXN_LIST),
       'type' => MENU_CALLBACK,
-      //'menu_name' => 'av',
-      //'expanded' => TRUE,
       'file' => 'inc/txn_list.form.inc',
     );
   }
+
+  $items['av/reports/customer-balances'] = array(
+    'title' => 'Customer Balances',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_client_balances_form', (string)AVCLIENT_TYPE_CUSTOMER),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/txn_list.form.inc',
+  );
+  $items['av/reports/vendor-balances'] = array(
+    'title' => 'Vendor Balances',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_client_balances_form', (string)AVCLIENT_TYPE_VENDOR),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/txn_list.form.inc',
+  );
 
   $items['av/reports/soa'] = array(
     'title' => 'Statement of Account',
@@ -265,6 +280,8 @@ function avreports_home_form($form, &$form_state) {
 
   // Accounting.
   $buttons = array();
+  $buttons['customer_balances'] = array('#markup' => l('Customer Balances', 'av/reports/customer-balances', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['vendor_balances'] = array('#markup' => l('Vendor Balances', 'av/reports/vendor-balances', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $buttons['soa'] = array('#markup' => l('Statement of Account', 'av/reports/soa', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $buttons['sales_to_trade'] = array('#markup' => l('Sales to Trade', 'av/reports/sales-to-trade', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
   $buttons['profit_loss'] = array('#markup' => l('Profit & Loss', 'av/reports/profit-loss', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));

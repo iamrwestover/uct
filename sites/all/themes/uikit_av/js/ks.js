@@ -52,12 +52,12 @@
   };
 
   // Shortcut to home page.
-  $(document).bind('keydown', 'alt+`', function (e) {
+  $(document).bind('keydown', 'alt+q', function (e) {
     window.location.href = '/';
     e.preventDefault();
   });
   // Shortcut to home page in a new tab.
-  $(document).bind('keydown', 'alt+q', function (e) {
+  $(document).bind('keydown', 'alt+`', function (e) {
     window.open('/', '_blank');
     e.preventDefault();
   });
