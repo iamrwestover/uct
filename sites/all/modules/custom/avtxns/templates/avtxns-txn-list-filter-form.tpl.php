@@ -34,25 +34,7 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
-  <?php if (isset($form['avprod.title'])): ?>
-    <div class="uk-width-3-10">
-      <?php print drupal_render($form['avprod.title']); ?>
-    </div>
-  <?php endif; ?>
 
-  <?php if (isset($form['avcat_prodcat.id'])): ?>
-    <div class="uk-width-1-10">
-      <?php print drupal_render($form['avcat_prodcat.id']); ?>
-    </div>
-  <?php endif; ?>
-
-
-
-  <?php if ($status_html): ?>
-    <div class="uk-width-1-10">
-      <?php print $status_html; ?>
-    </div>
-  <?php endif; ?>
 
   <?php if (isset($form['settings']['date_auto'])): ?>
     <div class="uk-width-2-10">
@@ -67,6 +49,24 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php if ($date_to): ?>
     <div class="uk-width-2-10">
       <?php print $date_to; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if (isset($form['avprod.title'])): ?>
+    <div class="uk-width-3-10">
+      <?php print drupal_render($form['avprod.title']); ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if (isset($form['avcat_prodcat.id'])): ?>
+    <div class="uk-width-1-10">
+      <?php print drupal_render($form['avcat_prodcat.id']); ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($status_html): ?>
+    <div class="uk-width-1-10">
+      <?php print $status_html; ?>
     </div>
   <?php endif; ?>
 

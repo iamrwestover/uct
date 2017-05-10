@@ -14,8 +14,9 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Added <em>Customer Balances</em> report (combination of invoice and customer charges list).</li>
-      <li>- Added <em>Vendor Balances</em> report (combination of bills and other bills list).</li>
+      <li>- Added <em>Customer Balances</em> report (combination of Invoice and Customer Charges list).</li>
+      <li>- Added <em>Vendor Balances</em> report (combination of Bills and Other Bills list).</li>
+      <li>- Bug fixes and performance improvements..</li>
       <li><hr /></li>
 
       <li class="uk-text-muted">- Added <em>Stock Shortage</em> report.</li>

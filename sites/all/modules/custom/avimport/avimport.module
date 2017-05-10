@@ -67,6 +67,9 @@ function avimport_import_form($form, &$form_state) {
       <br />- does not have any formula in any cell.
       <br />- does not have any hidden row or column.
       <br />- does not have % sign on numeric values like Discounts.
+      <br />
+      <br />
+      <span class="uk-text-large"><em>Import Vendors first, Customers, then Products last.</em></span>
     </div>',
   );
   $form['analyze_data']['import_type'] = array(

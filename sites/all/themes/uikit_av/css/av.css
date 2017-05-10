@@ -354,8 +354,8 @@ table.sticky-header {
 }
 
 #edit-avtxns-tl-filter-settings-table-columns {
-  /*height: 150px;*/
-  /*overflow: auto;*/
+  height: 140px;
+  overflow: auto;
   /*border: solid 1px #ddd;*/
   /*border-radius: 3px;*/
 }

@@ -897,3 +897,12 @@ function avbase_preprocess_html(&$vars) {
     $vars['head_title'] = $custom_window_title;
   }
 }
+
+//function avbase_cron() {
+//  $interval = variable_get('avbase_cron_interval', 60 * 60);
+//  if (time() >= variable_get('avbase_cron_next_execution', 0)) {
+//    // Do stuff.
+//    dpm('did stuff');
+//    variable_set('avbase_cron_next_execution', time() + $interval);
+//  }
+//}
