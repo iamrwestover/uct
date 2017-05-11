@@ -119,6 +119,13 @@ function avtxns_account_chart_query_load($param_where, $param_args = array(), $l
   return $rows;
 }
 
+function avtxns_account_chart_rs_load($where = array(), $args = array()) {
+  $query = "SELECT avachart.* FROM {avtbl_account_chart} avachart";
+  avbase_query_supplements($query, $where);
+  $rs = db_query($query, $args);
+  return $rs;
+}
+
 /**
  * Return list of account chart types.
  * @param string $type

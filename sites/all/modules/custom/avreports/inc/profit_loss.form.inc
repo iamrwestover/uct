@@ -82,7 +82,13 @@ function avreports_profit_loss_form($form, &$form_state) {
   $accounts_where = $accounts_args = array();
   $accounts_where[] = 'avachart.account_type IN (:account_types)';
   $accounts_args[':account_types'] = $profit_loss_account_types;
-  $profit_loss_accounts = avtxns_account_chart_query_load($accounts_where, $accounts_args);
+  //$profit_loss_accounts = avtxns_account_chart_query_load($accounts_where, $accounts_args);
+  $rs = avtxns_account_chart_rs_load($accounts_where, $accounts_args);
+  //dpm($rs->fetchAllKeyed(0,2));
+  $profit_loss_accounts = $rs->fetchAllAssoc('id');
+  //foreach ($rs as $ar) {
+  //  $profit_loss_accounts[$ar->id] = $ar;
+  //}
 
   // Build query.
   $pl_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
