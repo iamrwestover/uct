@@ -41,7 +41,10 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       '#options' => array(
         'agent_name' => 'Agent',
         'client_name' => 'Customer',
-        'client_address' => 'Address <em>slower</em>',
+        'address' => 'Address <em>slower</em>',
+        'city' => 'City <em>slower</em>',
+        'province' => 'Province <em>slower</em>',
+        'zip_code' => 'Zip Code <em>slower</em>',
         'principal_name' => 'Principal',
         'transaction_date' => 'Date  <em>slower</em>',
         'txn_id' => 'INV/SR#  <em>slower</em>',
@@ -111,7 +114,10 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $header = array(
     'agent_name' => array('data' => 'AGENT', 'field' => 'agent_name'),
     'client_name' => array('data' => 'CUSTOMER', 'field' => 'client_name'),
-    'client_address' => array('data' => 'ADDRESS'),
+    'address' => array('data' => 'ADDRESS'),
+    'city' => array('data' => 'CITY', 'field' => 'city'),
+    'province' => array('data' => 'PROVINCE', 'field' => 'province'),
+    'zip_code' => array('data' => 'ZIP CODE', 'field' => 'zip_code'),
     'principal_name' => array('data' => 'PRINCIPAL', 'field' => 'principal_name'),
     'transaction_date' => array('data' => 'DATE', 'field' => 'avtxn.transaction_date'),
     'txn_id' => array('data' => 'TXN. #', 'field' => 'avtxn.id'),
@@ -154,10 +160,28 @@ function avreports_sales_to_trade_form($form, &$form_state) {
     $select[] = 'avclients.display_name AS client_name';
     $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   }
-  if (isset($table_columns['client_address'])) {
+  if (isset($table_columns['address'])) {
     $select[] = 'avclients.address';
+    $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+    if (!isset($table_columns['client_name'])) {
+      $group_by['address'] = 'avclients.address';
+    }
+  }
+  if (isset($table_columns['province'])) {
     $select[] = 'avclients.province';
+    $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+    if (!isset($table_columns['client_name'])) {
+      $group_by['province'] = 'avclients.province';
+    }
+  }
+  if (isset($table_columns['city'])) {
     $select[] = 'avclients.city';
+    $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+    if (!isset($table_columns['client_name'])) {
+      $group_by['city'] = 'avclients.city';
+    }
+  }
+  if (isset($table_columns['code'])) {
     $select[] = 'avclients.zip_code';
     $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
   }
@@ -461,7 +485,10 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
   //'placeholder' => array('data' => $index + 1, 'class' => array('suk-hidden')),
   avreports_sales_to_trade_table_row_col($data, 'agent_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
   avreports_sales_to_trade_table_row_col($data, 'client_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
-  avreports_sales_to_trade_table_row_col($data, 'client_address', $row, $table_columns, $table_group_by, $group_total, $hide_cols, avclients_address_string_format($row), 'client_name');
+  avreports_sales_to_trade_table_row_col($data, 'address', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
+  avreports_sales_to_trade_table_row_col($data, 'city', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
+  avreports_sales_to_trade_table_row_col($data, 'province', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
+  avreports_sales_to_trade_table_row_col($data, 'zip_code', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
   avreports_sales_to_trade_table_row_col($data, 'principal_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
   $col_data = isset($table_columns['transaction_date']) ? format_date($row->transaction_date, 'custom', 'Y-M-d') : NULL;
