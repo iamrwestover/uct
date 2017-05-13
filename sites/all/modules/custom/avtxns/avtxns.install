@@ -634,3 +634,69 @@ function avtxns_update_7109() {
   db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
   return t('Successfully updated field attributes of account chart weight.');
 }
+
+/**
+ * Auto-fill Customer Charges Transactions with default Customer Agents and Terms.
+ */
+function avtxns_update_7110(&$sandbox) {
+  $ret = array();
+  $ttypes = array(AVTXNS_TXN_TYPE_CUSTOMER_CHARGES, AVTXNS_TXN_TYPE_OTHER_BILLS);
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $query = 'SELECT COUNT(avtxn.id) FROM {avtbl_transactions} avtxn
+      INNER JOIN {avtbl_clients} avclients ON avclients.id = avtxn.client_id
+      WHERE avtxn.transaction_type IN (:ttypes)';
+    $sandbox['max'] = db_query($query, array(':ttypes' => $ttypes))->fetchField();
+    $sandbox['messages'] = array();
+    $sandbox['current_txn_id'] = -1;
+  }
+
+  // Limit.
+  $limit = 100;
+
+  // Retrieve the next group of ids.
+  $query = db_select('avtbl_transactions', 'avtxn')->extend('PagerDefault')->limit($limit);
+  $query->fields('avtxn', array('id'));
+  $query->innerJoin('avtbl_clients', 'avclients', 'avclients.id = avtxn.client_id');
+  $query->addField('avclients', 'agent_id');
+  $query->addField('avclients', 'term_id');
+  $query->orderBy('avtxn.id', 'ASC');
+  $query->condition('avtxn.id', $sandbox['current_txn_id'], '>');
+  $query->condition('avtxn.transaction_type', $ttypes, 'IN');
+  $rs = $query->execute();
+  foreach ($rs as $row) {
+    db_update('avtbl_transactions')
+      ->fields(array(
+        'agent_id' => $row->agent_id,
+        'term_id' => $row->term_id,
+      ))
+      ->condition('id', $row->id)
+      ->execute();
+
+    // Update our progress information.
+    $sandbox['current_txn_id'] = $row->id;
+  }
+
+  $sandbox['progress'] += $limit;
+
+  // Set the "finished" status, to tell batch engine whether this function
+  // needs to run again. If you set a float, this will indicate the progress
+  // of the batch so the progress bar will update.
+  $sandbox['#finished'] = ($sandbox['progress'] >= $sandbox['max']) ? TRUE : floor($sandbox['progress'] / $sandbox['max']);
+
+  // Set up a per-run message; Make a copy of $sandbox so we can change it.
+  // This is simply a debugging stanza to illustrate how to capture status
+  // from each pass through hook_update_N().
+  $sandbox_status = $sandbox;
+  // Don't want them in the output.
+  unset($sandbox_status['messages']);
+  $sandbox['messages'][] = t('$sandbox=') . print_r($sandbox_status, TRUE);
+
+  if ($sandbox['#finished']) {
+    // hook_update_N() may optionally return a string which will be displayed
+    // to the user.
+    //$final_message = '<ul><li>' . implode('</li><li>', $sandbox['messages']) . "</li></ul>";
+    //return t('Finished updating customer charges with customer default agent and terms: @message', array('@message' => $final_message));
+    return t('Finished updating customer charges with customer default agent and terms.');
+  }
+}

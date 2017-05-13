@@ -1802,5 +1802,6 @@ function avtxns_get_types_with_reference_id() {
     AVTXNS_TXN_TYPE_PURCHASE_RETURN,
     AVTXNS_TXN_TYPE_SALES_RETURN,
     AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN,
+    AVTXNS_TXN_TYPE_JOURNAL,
   );
 }

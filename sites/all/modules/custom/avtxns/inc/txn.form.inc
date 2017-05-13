@@ -15,7 +15,6 @@ module_load_include('inc', 'avtxns', 'inc/txn_pending_orders.form');
  * @return array
  */
 function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mode = FALSE) {
-
   if (!empty($row->id) && $row->transaction_type != $transaction_type) {
     drupal_not_found();
     drupal_exit();
@@ -26,12 +25,15 @@ function avtxns_txn_form($form, &$form_state, $transaction_type, $row, $view_mod
     $view_mode = TRUE;
   }
 
-  //$schema_version = db_query("SELECT schema_version FROM {system} WHERE name = 'avtxns'")->fetchField();
-  //if (empty($schema_version) || $schema_version < 7108) {
-  //  drupal_set_message(t('Your database design seem to be outdated. Please !link first before proceeding with any transaction.', array('!link' => l('Check For Database Changes', 'update.php'))), 'warning');
-  //  drupal_access_denied();
-  //  drupal_exit();
-  //}
+
+  if (in_array($transaction_type, array(AVTXNS_TXN_TYPE_CUSTOMER_CHARGES, AVTXNS_TXN_TYPE_OTHER_BILLS))) {
+    $schema_version = db_query("SELECT schema_version FROM {system} WHERE name = 'avtxns'")->fetchField();
+    if (empty($schema_version) || $schema_version < 7110) {
+      drupal_set_message(t('Your database design seem to be outdated. Please !link first before proceeding with any transaction.', array('!link' => l('Check For Database Changes', 'update.php'))), 'warning');
+      drupal_access_denied();
+      drupal_exit();
+    }
+  }
 
   // Get transaction type details.
   $ttd = avtxns_txn_types($transaction_type);
