@@ -163,6 +163,9 @@ function avtxns_item_list_fields_validate(&$form, &$form_state) {
         $debit_total += (float) $debit_value;
         $credit_total += (float) $credit_value;
       }
+
+      $debit_total = round($debit_total, 6);
+      $credit_total = round($credit_total, 6);
       if ($debit_total != $credit_total) {
         form_set_error('', t('Transaction is not balanced. Please make sure that debit and credit totals are equal.'));
         return;
