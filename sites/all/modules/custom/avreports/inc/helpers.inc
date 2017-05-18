@@ -32,12 +32,15 @@ function avreports_client_balance_aging_form($client_id) {
     }
   }
 
-  if (isset($client->opening_balance)) {
-    $opening_balance = isset($client->opening_balance) ? (float) $client->opening_balance : 0;
-    if (!empty($opening_balance)) {
-      $invoices['opening_balance'] = (object) array('balance' => $opening_balance, 'transaction_date' => $client->created);
-    }
-  }
+  //if (isset($client->opening_balance)) {
+  //  $opening_balance = isset($client->opening_balance) ? (float) $client->opening_balance : 0;
+  //  if (!empty($opening_balance)) {
+  //    $invoices['opening_balance'] = (object) array('balance' => $opening_balance, 'transaction_date' => $client->created);
+  //  }
+  //}
+
+  end($balance_ages);
+  $last_balance_days = key($balance_ages);
   foreach ($invoices as $invoice) {
     $balance_age = ($now - $invoice->transaction_date) / 86400;
     if ($balance_age < 1 && !empty($invoice->term_id)) {
@@ -55,6 +58,9 @@ function avreports_client_balance_aging_form($client_id) {
     }
     elseif (isset($balance_ages[$days])) {
       $balance_ages[$days] += $invoice->balance;
+    }
+    elseif ($days >= $last_balance_days) {
+      $balance_ages[$last_balance_days] += $invoice->balance;
     }
   }
 
