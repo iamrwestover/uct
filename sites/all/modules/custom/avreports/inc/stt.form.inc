@@ -79,6 +79,7 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       '#default_value' => 'agent_name',
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array('#title' => 'Export'),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
@@ -232,9 +233,13 @@ function avreports_sales_to_trade_form($form, &$form_state) {
   $select[] = avtxns_txn_detail_sum_query_discount_applied('avtxn.transaction_type = :txn_type_invoice') . ' AS net_sales';
   $where[] = "avtxn.transaction_type IN(:txn_types)";
   $where[] = "IF(avtxn.transaction_type = :txn_type_invoice, avtxn_detail.ref_txn_type = :txn_type_delivery, 1)";
+  // Only RUDs from sales returns, RPDs shouldn't be included in stt.
+  $where[] = "IF(avtxn.transaction_type = :txn_type_sr, avtxn.return_type = :rud, 1)";
   $args[':txn_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_SALES_RETURN);
   $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
   $args[':txn_type_delivery'] = AVTXNS_TXN_TYPE_DELIVERY;
+  $args[':txn_type_sr'] = AVTXNS_TXN_TYPE_SALES_RETURN;
+  $args[':rud'] = AVTXNS_RETURN_TYPE_RUD;
 
 
 

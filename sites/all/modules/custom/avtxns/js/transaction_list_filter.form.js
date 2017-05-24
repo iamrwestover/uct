@@ -144,6 +144,10 @@
    */
   Drupal.avtxnsTransactionListForm.prototype.pagerLinkEvents = function () {
     var self = this;
+    if (self.$searchBtn.length < 1) {
+      return;
+    }
+
     var ajax = Drupal.ajax[self.$searchBtn.attr('id')] || {};
     self.$targetWrapper = $(ajax.wrapper);
     self.$targetWrapper.once('avtxnsTransactionListForm', function() {

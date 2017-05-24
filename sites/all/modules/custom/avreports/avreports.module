@@ -7,9 +7,11 @@
 
 // Constants.
 define('AVREPORTS_MODULE_PATH', drupal_get_path('module', 'avreports'));
+define('AVREPORTS_EXPORT_FILE_PREFIX', 'uct-report-');
 
 // Includes.
 module_load_include('inc', 'avreports', 'inc/helpers');
+module_load_include('inc', 'avreports', 'inc/export');
 
 // Permissions
 define('AVREPORTS_PERM_SOA', 'avbase reports soa');
@@ -175,6 +177,14 @@ function avreports_menu() {
     'access arguments' => array(AVREPORTS_PERM_TXN_LIST),
     'type' => MENU_CALLBACK,
     'file' => 'inc/product_list.form.inc',
+  );
+
+  $items['av/reports/export'] = array(
+    'title' => 'Export',
+    'page callback' => 'avreports_export',
+    //'page arguments' => array('avreports_export'),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -837,3 +847,4 @@ function avreports_list() {
     'inventory' => 'Inventory',
   );
 }
+

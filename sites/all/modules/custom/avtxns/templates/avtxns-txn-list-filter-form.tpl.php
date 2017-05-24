@@ -198,6 +198,14 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
       <?php print $reset_btn_html; ?>
     </div>
   <?php endif; ?>
+  <?php if (isset($form['buttons']['search_button'])): ?>
+    <div class="uk-width-2-10" style="margin-top: 25px;">
+      <?php print drupal_render($form['buttons']['search_button']); ?>
+      <?php if (isset($form['buttons']['export_button'])): ?>
+        <?php print drupal_render($form['buttons']['export_button']); ?>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
 </div>
 <?php print drupal_render($form['search_button']); ?>
 <?php
