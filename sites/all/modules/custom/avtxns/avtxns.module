@@ -1364,7 +1364,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   $fields['buttons']['reset_button'] += array(
     '#id' => 'transaction-reset-btn',
     '#type' => 'submit',
-    '#value' => t('Reset Filters'),
+    '#value' => t('Reset filters'),
     //'#button_label' => '<i class="uk-icon-remove"></i>',
   );
   $fields['buttons']['reset_button']['#attributes']['data-ks'] = 'CTRL+DEL';
@@ -1373,7 +1373,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
   $fields['buttons']['search_button'] += array(
     '#id' => 'transaction-search-btn',
     '#type' => 'submit',
-    '#value' => t('Apply Filters'),
+    '#value' => t('Apply filters'),
     '#submit' => array('avtxns_txn_list_filter_form_submit'),
     '#limit_validation_errors' => array(array('avtxns_tl_filter')),
     '#attributes' => array(
@@ -1386,24 +1386,32 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       //'event' => 'click',
       'progress' => array(),
     ),
-    '#access' => isset($_GET['auto-update']) ? $_GET['auto-update'] : 1,
+    '#access' => isset($_GET['preview']) ? $_GET['preview'] : 1,
   );
 
 
   if (!empty($settings['export_button'])) {
-    $auto_update = isset($_GET['auto-update']) ? $_GET['auto-update'] : 1;
+    $auto_update = isset($_GET['preview']) ? $_GET['preview'] : 1;
+    $auto_update_link_options = array(
+      'query' => array('preview' => $auto_update ? 0 : 1),
+      'attributes' => array(
+        'class' => array('uk-button uk-margin-small-right')
+      ),
+      'html' => TRUE,
+    );
     $fields['buttons']['export_button'] = empty($settings['export_button']) ? array() : $settings['export_button'];
-    $fields['buttons']['export_button'] = array(
+    $fields['buttons']['export_button'] += array(
       '#id' => 'transaction-export-btn',
       '#type' => 'submit',
-      '#value' => t('Export ...'),
+      '#value' => t('Export ..'),
       '#submit' => array('avreports_export_submit'),
       '#limit_validation_errors' => array(array('avtxns_tl_filter')),
       '#attributes' => array(
         'onclick' => 'this.form.classList.remove("form-submitted");this.form.target="_blank";return true;',
         'class' => array('uk-button-success'),
       ),
-      '#suffix' => l(($auto_update ? 'Disable' : 'Enable') . ' auto-update', current_path(), array('query' => array('auto-update' => $auto_update ? 0 : 1))),
+      '#icon_key' => 'file-text',
+      '#prefix' => l(($auto_update ? '<i class="uk-icon-check-square"></i>' : '<i class="uk-icon-square-o"></i>') . ' Show preview', current_path(), $auto_update_link_options),
     );
   }
 

@@ -328,3 +328,11 @@ function avreports_get_transaction_ave_cost(&$transaction_ids) {
     $transaction_ids[$txn_id]['cog'] = $cog_total;
   }
 }
+
+function avreports_report_live_preview(&$form) {
+  $live_preview = isset($_GET['preview']) ? $_GET['preview'] : 1;
+  if ($live_preview != 1) {
+    unset($form['transaction_list_table']);
+    unset($form['buttons']['print']);
+  }
+}

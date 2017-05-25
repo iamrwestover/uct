@@ -102,7 +102,7 @@ function avreports_menu() {
     'page arguments' => array('avreports_sales_to_trade_form'),
     'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
     'type' => MENU_CALLBACK,
-    'file' => 'inc/stt.form.inc',
+    'file' => 'inc/sales_to_trade.form.inc',
   );
 
   $items['av/reports/profit-loss'] = array(
@@ -848,3 +848,11 @@ function avreports_list() {
   );
 }
 
+function avreports_file_download($uri) {
+  if (preg_match('/' . AVREPORTS_EXPORT_FILE_PREFIX . '(.+?)\.xls$/', $uri)) {
+    return array(
+      'Content-type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition' => 'attachment; filename="export.xls"',
+    );
+  }
+}

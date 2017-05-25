@@ -207,6 +207,6 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 </div>
-<?php print drupal_render($form['search_button']); ?>
+
 <?php
 print drupal_render_children($form);
