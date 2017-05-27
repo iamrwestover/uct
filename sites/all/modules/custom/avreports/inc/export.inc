@@ -85,117 +85,71 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
   $_header = empty($table['#header']) ? array() : $table['#header'];
   $header = array();
   foreach ($_header as $k => $v) {
-    $header[] = is_array($v) ? $v['data'] : $v;
+    $data = is_array($v) ? $v['data'] : $v;
+    $header[] = htmlspecialchars_decode(strip_tags($data), ENT_QUOTES);
   }
 
   if (!isset($context['sandbox']['progress'])) {
+    $context['results'] = NULL;
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = empty($table['#rows_max']) ? 1 : $table['#rows_max'];
 
     // Store the file in the temporary directory.
     $wrapper = file_stream_wrapper_get_instance_by_uri('temporary://');
-    $context['sandbox']['filename'] = AVREPORTS_EXPORT_FILE_PREFIX . uniqid() . '.xls';
+    $context['sandbox']['filename'] = AVREPORTS_EXPORT_FILE_PREFIX . uniqid() . '.csv';
     $context['sandbox']['file'] = $wrapper->realpath() . '/' . $context['sandbox']['filename'];
 
-    // Prepare the Excel file.
-    $result = phpexcel_export($header, array(
-      // Provide some empty data. We will append data later on.
-      array(),
-    ), $context['sandbox']['file']);
+    $fp = fopen($context['sandbox']['file'], 'a');
+    if ($fp) {
+      fputcsv($fp, $header);
+      fclose($fp);
 
-    if ($result !== PHPEXCEL_SUCCESS) {
-      drupal_set_message('Something went wrong with the export library.', 'error');
-      $context['sandbox']['finished'] = 1;
-      $context['success'] = FALSE;
-      return;
+      // Exported successfully. Let's register the file with Drupal. We simply
+      // tell Drupal to copy the file over the existing one, by passing in
+      // temporary://$filename.
+      $file = file_save_data(
+        file_get_contents($context['sandbox']['file']),
+        'temporary://' . $context['sandbox']['filename'],
+        FILE_EXISTS_REPLACE
+      );
+
+      // By default, the file is stored as a permanent file. Let's make it
+      // temporary, so Drupal will remove it (in 6 hours, if your cron is set up
+      // correctly).
+      $file->status = 0;
+      file_save($file);
+
+      // Trick to pass the filepath to the finished callback.
+      $context['results'] = "temporary://{$context['sandbox']['filename']}";
     }
-
-    // Exported successfully. Let's register the file with Drupal. We simply
-    // tell Drupal to copy the file over the existing one, by passing in
-    // temporary://$filename.
-    $file = file_save_data(
-      file_get_contents($context['sandbox']['file']),
-      'temporary://' . $context['sandbox']['filename'],
-      FILE_EXISTS_REPLACE
-    );
-
-    // By default, the file is stored as a permanent file. Let's make it
-    // temporary, so Drupal will remove it (in 6 hours, if your cron is set up
-    // correctly).
-    $file->status = 0;
-    file_save($file);
-
-
-    // Trick to pass the filepath to the finished callback.
-    $context['results'] = "temporary://{$context['sandbox']['filename']}";
-
-
   }
 
+  $fp = fopen($context['sandbox']['file'], 'a');
+
   $_rows = empty($table['#rows']) ? $table['#rows'] : $table['#rows'];
-  $rows = array();
   if (empty($_rows)) {
     $context['finished'] = 1;
     return;
   }
   else {
-    $row_index = 0;
     foreach ($_rows as $v) {
+      $rows = array();
       foreach ($v as $v2) {
-        $rows[$row_index][] = is_array($v2) ? strip_tags($v2['data']) : strip_tags($v2);
+        $data = is_array($v2) ? $v2['data'] : $v2;
+        $rows[] = htmlspecialchars_decode(strip_tags($data), ENT_QUOTES);
       }
-      $row_index++;
+      if ($fp) {
+        fputcsv($fp, $rows);
+      }
     }
   }
+  fclose($fp);
 
 
-  $result = phpexcel_export($header, $rows, $context['sandbox']['file'], array(
-    // Use our previously prepared file as a "template", which means we
-    // will append data to it, instead of starting from scratch again.
-    'template' => $context['sandbox']['file'],
-  ));
-
-  if ($result !== PHPEXCEL_SUCCESS) {
-    drupal_set_message(t("Something went wrong on pass !pass", array(
-      '!pass' => $context['sandbox']['progress'],
-    )), 'error');
-    $context['sandbox']['finished'] = 1;
-    $context['success'] = FALSE;
-    return;
-  }
 
   $context['sandbox']['progress'] += $limit;
   $context['message'] = t('Exported %progress of %max rows.', array('%progress' => number_format($context['sandbox']['progress']), '%max' => number_format($context['sandbox']['max'])));
 
-  //while($limit) {number_format($context['sandbox']['max'])
-  //  $result = phpexcel_export($header, array(
-  //    // Append some data to the file.
-  //    array('Some value', 'Some other value'),
-  //  ), $context['sandbox']['file'], array(
-  //    // Use our previously prepared file as a "template", which means we
-  //    // will append data to it, instead of starting from scratch again.
-  //    'template' => $context['sandbox']['file'],
-  //  ));
-  //
-  //  if ($result !== PHPEXCEL_SUCCESS) {
-  //    drupal_set_message(t("Something went wrong on pass !pass", array(
-  //      '!pass' => $context['sandbox']['progress'],
-  //    )), 'error');
-  //    $context['sandbox']['finished'] = 1;
-  //    $context['success'] = FALSE;
-  //    return;
-  //  }
-  //
-  //  $context['sandbox']['progress']++;
-  //  $limit--;
-  //}
-
-
-$memory_usage = memory_get_peak_usage() / 1024 / 1024;
-$memory_limit = (int) ini_get('memory_limit');
-  $memory_usage_percentage = $memory_usage / $memory_limit * 100;
-
-  dpm($memory_usage_percentage);
   if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
@@ -217,11 +171,13 @@ function avreports_export_batch_finished($success, $results, $operations) {
     //)), 'status', FALSE);
     //drupal_goto('av/reports/export');
 
-    $suggested_filename = 'uct-report.xls';
+    $suggested_filename = 'uct-report.csv';
     $headers = array(
-      'Content-type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-type' => 'text/csv',
       'Content-Disposition' => 'attachment; filename="' . $suggested_filename . '"',
     );
     file_transfer($results, $headers);
+    drupal_set_message($results);
+    //fopen()
   }
 }
