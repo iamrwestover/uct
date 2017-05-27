@@ -79,6 +79,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       '#default_value' => AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN,
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array('#report_name' => 'txn_list', '#report_args' => array($transaction_type, $secondary_transaction_type)),
   );
   if (in_array($transaction_type, avtxns_get_refable_txn_types()) || in_array($transaction_type, avtxns_get_creditable_txn_types())) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';

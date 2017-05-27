@@ -60,7 +60,7 @@ function avreports_export_submit($form, &$form_state) {
       array('avreports_export_batch_process', array($report_name, $report_args)),
     ),
     'finished' => 'avreports_export_batch_finished',
-    'title' => t('Exporting'),
+    'title' => t('Exporting report: ' . ucwords(str_replace('_', ' ', $report_name))),
     'error_message' => t('The export process encountered an error.'),
     'file' => drupal_get_path('module', 'phpexcel') . '/phpexcel.inc',
   );
@@ -90,7 +90,10 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
   }
 
   if (!isset($context['sandbox']['progress'])) {
-    $context['results'] = NULL;
+    $context['results'] = array(
+      'report_name' => $report_name,
+      'filepath' => NULL,
+    );
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = empty($table['#rows_max']) ? 1 : $table['#rows_max'];
 
@@ -120,7 +123,7 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
       file_save($file);
 
       // Trick to pass the filepath to the finished callback.
-      $context['results'] = "temporary://{$context['sandbox']['filename']}";
+      $context['results']['filepath'] = "temporary://{$context['sandbox']['filename']}";
     }
   }
 
@@ -156,28 +159,17 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
 }
 
 function avreports_export_batch_finished($success, $results, $operations) {
-  if ($success) {
-    //$wrapper = file_stream_wrapper_get_instance_by_uri($results);
-    //drupal_set_message(t("Download it here: !link", array(
-    //  '!link' => l(
-    //    $results, $wrapper->getExternalUrl(),
-    //    array(
-    //      'attributes' => array(
-    //        'target' => '_blank',
-    //        'onclick' => 'window.close()',
-    //      )
-    //    )
-    //  ),
-    //)), 'status', FALSE);
-    //drupal_goto('av/reports/export');
-
-    $suggested_filename = 'uct-report.csv';
+  if ($success && !empty($results['filepath'])) {
+    $filepath = $results['filepath'];
+    $report_name = empty($results['report_name']) ? '' : $results['report_name'];
+    $suggested_filename = 'uct-' . str_replace('_', '-', $report_name) . '-report.csv';
     $headers = array(
       'Content-type' => 'text/csv',
       'Content-Disposition' => 'attachment; filename="' . $suggested_filename . '"',
     );
-    file_transfer($results, $headers);
-    drupal_set_message($results);
-    //fopen()
+    file_transfer($filepath, $headers);
+  }
+  else {
+    drupal_set_message('Export failed.', 'error');
   }
 }
