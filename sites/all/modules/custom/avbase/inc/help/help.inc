@@ -14,6 +14,7 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Reports: Export Data</li>
       <li>- RPDs now excluded from STT report.</li>
       <li>- Bug fixes and performance improvements..</li>
       <li><hr /></li>
