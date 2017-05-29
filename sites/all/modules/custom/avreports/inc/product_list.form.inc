@@ -1,6 +1,6 @@
 <?php
 
-function avreports_product_list_form($form, &$form_state, $complete_columns = TRUE, $selectable_list = FALSE, $default_order_key = 'title') {
+function avreports_product_list_form($form, &$form_state, $complete_columns = TRUE, $selectable_list = FALSE, $default_order_key = 'title', $limit = NULL, $offset = NULL) {
 
     // Filter form.
   $filter_form_settings = array(
@@ -14,6 +14,13 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
     ),
     'stock_status' => array('#default_value' => ($complete_columns ? 'all' : 'os')),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array($complete_columns, $selectable_list, $default_order_key),
+      '#report_name' => 'Product List',
+      '#report_inc' => 'product_list.form',
+      '#access' => $complete_columns,
+    ),
   );
   $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
   $filter_form_settings['product_status'] = array(
@@ -113,8 +120,10 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
 
   //$where[] = 'avclients.client_type = :ctype';
   //$args[':ctype'] = $client_type;
-  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
-  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
+  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
     $data = array();
@@ -166,7 +175,8 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
       $table_rows[$row->id] = $data;
     }
     else {
-      $table_rows[] = array('data' => $data, 'class' => $row_class);
+      $data['#avclass'] = implode(' ', $row_class);
+      $table_rows[] = $data;
     }
   }
 

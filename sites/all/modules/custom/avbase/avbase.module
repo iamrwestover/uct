@@ -681,6 +681,30 @@ function avbase_general_settings_form() {
     ),
   );
 
+  // System settings.
+  $form['system_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('System settings'),
+    '#collapsible' => TRUE,
+    //'#collapsed' => TRUE,
+  );
+  $export_limit_min = 100;
+  $export_limit_max = 5000;
+  $form['system_settings']['av_export_row_limit'] = array(
+    '#type' => 'textfield',
+    '#maxlength' => 4,
+    '#title' => 'Export batch limit',
+    '#description' => t('Number of rows per batch when exporting reports to csv. Set to a lower value for improved cpu performance (when server cpu is weak). Min: @min, Max: @max', array('@min' => $export_limit_min, '@max' => $export_limit_max)),
+    '#required' => TRUE,
+    '#default_value' => (int) variable_get('av_export_row_limit', '5000'),
+    '#element_validate' => array('element_validate_integer_positive'),
+    '#special_element_type' => 'number',
+    '#attributes' => array(
+      'min' => $export_limit_min,
+      'max' => $export_limit_max,
+    ),
+  );
+
   // File system.
   $form['file_system'] = array(
     '#type' => 'fieldset',

@@ -20,7 +20,7 @@ function avreports_client_balances_form($form, &$form_state, $client_type) {
  * @return array
  * @throws Exception
  */
-function avreports_txn_list_form($form, &$form_state, $transaction_type, $secondary_transaction_type = NULL) {
+function avreports_txn_list_form($form, &$form_state, $transaction_type, $secondary_transaction_type = NULL, $limit = NULL, $offset = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
 
@@ -79,7 +79,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       '#default_value' => AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN,
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
-    'export_button' => array('#report_name' => 'txn_list', '#report_args' => array($transaction_type, $secondary_transaction_type)),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array($transaction_type, $secondary_transaction_type),
+      '#report_name' => $ttd['name'] . ' List',
+      '#report_inc' => 'txn_list.form',
+    ),
   );
   if (in_array($transaction_type, avtxns_get_refable_txn_types()) || in_array($transaction_type, avtxns_get_creditable_txn_types())) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
@@ -280,8 +285,10 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   }
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
 
-  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
-  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  $query = "SELECT _expression_ FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
+  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
   //$transactions = avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
   $list_total = $paid_total = $balance_total = 0;
@@ -447,7 +454,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   }
 
 
-  if (!empty($table_rows) && $col_total) {
+  if (!empty($table_rows) && $col_total && $limit === NULL) {
     //foreach ($row_totals as $rt) {
     //  $list_total += $rt;
     //}

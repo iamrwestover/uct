@@ -1,6 +1,6 @@
 <?php
 
-function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
+function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limit = NULL, $offset = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
   // Transaction type details.
@@ -47,6 +47,12 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
       '#title' => t('Reference ID'),
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array($transaction_type),
+      '#report_name' => 'Stocks Returned - ' . $ttd['transaction'],
+      '#report_inc' => 'txn_detail.form',
+    ),
   );
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED] = 'All';
@@ -182,12 +188,14 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_prodcat ON avcat_prodcat.id = avprod.category_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
 
-  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
+  $query = "SELECT _expression_ FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
   $where[] = 'avtxn.transaction_type = :ttype';
   $args[':ttype'] = $transaction_type;
 
   $group_by[] = 'avtxn.id';
   $group_by[] = 'avtxn_detail.item_id';
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
   $rs = db_query($query, $args);
   $table_rows = array();
@@ -235,7 +243,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type) {
     $table_rows[] = $data;
   }
 
-  if (!empty($table_rows)) {
+  if (!empty($table_rows) && $limit === NULL) {
     $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
     $label_colspan = $colspan = array_search('row_qty', array_keys($header));
     $totals_table_row = array();

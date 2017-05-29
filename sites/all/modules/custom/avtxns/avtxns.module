@@ -1411,7 +1411,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
         'class' => array('uk-button-success'),
       ),
       '#icon_key' => 'file-text',
-      '#prefix' => l(($auto_update ? '<i class="uk-icon-check-square"></i>' : '<i class="uk-icon-square-o"></i>') . ' Show preview', current_path(), $auto_update_link_options),
+      '#prefix' => l(($auto_update ? '<i class="uk-icon-check-square"></i>' : '<i class="uk-icon-square-o"></i>') . ' Preview', current_path(), $auto_update_link_options),
     );
   }
 

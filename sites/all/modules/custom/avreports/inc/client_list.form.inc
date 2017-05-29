@@ -1,6 +1,6 @@
 <?php
 
-function avreports_client_list_form($form, &$form_state, $client_type) {
+function avreports_client_list_form($form, &$form_state, $client_type, $limit = NULL, $offset = NULL) {
   $ctd = avclients_client_types($client_type);
   if (empty($ctd['type'])) {
     drupal_not_found();
@@ -17,6 +17,12 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
     // Filter form.
   $filter_form_settings = array(
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array($client_type),
+      '#report_name' => $ctd['name'] . ' List',
+      '#report_inc' => 'client_list.form',
+    ),
   );
   $filter_form_settings['client_status'] = array(
     '#options' => array(
@@ -119,7 +125,9 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
 
   $where[] = 'avclients.client_type = :ctype';
   $args[':ctype'] = $client_type;
-  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_clients} AS avclients " . implode(' ', $joins);
+  $query = "SELECT _expression_ FROM {avtbl_clients} AS avclients " . implode(' ', $joins);
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
@@ -154,12 +162,12 @@ function avreports_client_list_form($form, &$form_state, $client_type) {
     }
 
     // Careful when adding classes on rows, check if tableselect mode is ON.
-    $row_class = array();
     $csd = avclients_client_status_details($row->status);
     if (!empty($csd['color_class'])) {
-      $row_class[] = $csd['color_class'];
+      $data['#avclass'] = $csd['color_class'];
     }
-    $table_rows[] = array('data' => $data, 'class' => $row_class);
+
+    $table_rows[] = $data;
   }
 
   $transaction_list_table['table'] = array(

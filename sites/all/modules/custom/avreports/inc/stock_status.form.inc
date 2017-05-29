@@ -1,5 +1,5 @@
 <?php
-function avreports_stock_status_form($form, &$form_state) {
+function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset = NULL) {
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
   $filter_form_settings = array(
@@ -27,6 +27,12 @@ function avreports_stock_status_form($form, &$form_state) {
     'stock_status' => array('#default_value' => 'all'),
     'selectable' => array('#default_value' => 0),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array(),
+      '#report_name' => 'Stock Status',
+      '#report_inc' => 'stock_status.form',
+    ),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
   // Prepare query variables.
@@ -145,11 +151,11 @@ function avreports_stock_status_form($form, &$form_state) {
   $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendor ON avvendor.id = avprod.vendor_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
 
-  $args[':po_type'] = AVTXNS_TXN_TYPE_PURCHASE_ORDER;
-  $args[':so_type'] = AVTXNS_TXN_TYPE_SALES_ORDER;
-  $args[':dr_type'] = AVTXNS_TXN_TYPE_DELIVERY;
-  $args[':stou_type'] = AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT;
-  $args[':open_status'] = AVTXNS_TXN_STATUS_OPEN;
+  $select_args[':po_type'] = AVTXNS_TXN_TYPE_PURCHASE_ORDER;
+  $select_args[':so_type'] = AVTXNS_TXN_TYPE_SALES_ORDER;
+  $select_args[':dr_type'] = AVTXNS_TXN_TYPE_DELIVERY;
+  $select_args[':stou_type'] = AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT;
+  $select_args[':open_status'] = AVTXNS_TXN_STATUS_OPEN;
   $args[':void_type'] = AVTXNS_TXN_STATUS_VOID;
   $args[':ttypes'] = array(AVTXNS_TXN_TYPE_PURCHASE_ORDER, AVTXNS_TXN_TYPE_SALES_ORDER, AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
   $group_by = array();
@@ -173,9 +179,11 @@ function avreports_stock_status_form($form, &$form_state) {
   }
   $where[] = 'avprod.status = :active_prod';
   $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
-  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
-
-  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
+  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
+  $args = array_merge($args, $select_args);
   $rs = db_query($query, $args);
 
   $table_rows = array();

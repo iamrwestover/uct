@@ -52,15 +52,16 @@ function avreports_export_submit($form, &$form_state) {
 
   $triggering_element = $form_state['triggering_element'];
   $report_name = $triggering_element['#report_name'];
-  $report_args = empty($triggering_element['#report_args']) ? array() : $triggering_element['#report_args'];
-  array_unshift($report_args, $form_state);
+  $report_inc = $triggering_element['#report_inc'];
+  $func_name = $triggering_element['#func_name'];
+  $func_args = empty($triggering_element['#func_args']) ? array() : $triggering_element['#func_args'];
 
   $batch = array(
     'operations' => array(
-      array('avreports_export_batch_process', array($report_name, $report_args)),
+      array('avreports_export_batch_process', array($func_name, $func_args, $report_name, $report_inc, $form_state)),
     ),
     'finished' => 'avreports_export_batch_finished',
-    'title' => t('Exporting report: ' . ucwords(str_replace('_', ' ', $report_name))),
+    'title' => t('Exporting data: ' . ucwords(str_replace('_', ' ', $report_name))),
     'error_message' => t('The export process encountered an error.'),
     'file' => drupal_get_path('module', 'phpexcel') . '/phpexcel.inc',
   );
@@ -68,18 +69,20 @@ function avreports_export_submit($form, &$form_state) {
   batch_set($batch);
 }
 
-function avreports_export_batch_process($report_name, $report_args, &$context) {
+function avreports_export_batch_process($func_name, $func_args, $report_name, $report_inc, $form_state, &$context) {
   module_load_include('inc', 'phpexcel');
 
-  $limit = 5000;
+  $limit = variable_get('av_export_row_limit', '5000');
   $offset = empty($context['sandbox']['progress']) ? 0 : $context['sandbox']['progress'];
-  $report_args[] = $limit;
-  $report_args[] = $offset;
+  $func_args[] = $limit;
+  $func_args[] = $offset;
 
   // Include report inc file.
-  module_load_include('inc', 'avreports', "inc/{$report_name}.form");
-  $table_func_name = "avreports_{$report_name}_table";
-  $table = call_user_func_array($table_func_name, $report_args);
+  module_load_include('inc', 'avreports', "inc/{$report_inc}");
+  $form = array();
+  $func_args = array_merge(array($form, &$form_state), $func_args);
+  $report = call_user_func_array($func_name, $func_args);
+  $table = $report['transaction_list_table']['table'];
 
 
   $_header = empty($table['#header']) ? array() : $table['#header'];
@@ -95,7 +98,7 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
       'filepath' => NULL,
     );
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['max'] = empty($table['#rows_max']) ? 1 : $table['#rows_max'];
+    $context['sandbox']['max'] = empty($report['#report_rows_max']) ? 1 : $report['#report_rows_max'];
 
     // Store the file in the temporary directory.
     $wrapper = file_stream_wrapper_get_instance_by_uri('temporary://');
@@ -129,7 +132,7 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
 
   $fp = fopen($context['sandbox']['file'], 'a');
 
-  $_rows = empty($table['#rows']) ? $table['#rows'] : $table['#rows'];
+  $_rows = empty($table['#rows']) ? array() : $table['#rows'];
   if (empty($_rows)) {
     $context['finished'] = 1;
     return;
@@ -151,9 +154,9 @@ function avreports_export_batch_process($report_name, $report_args, &$context) {
 
 
   $context['sandbox']['progress'] += $limit;
-  $context['message'] = t('Exported %progress of %max rows.', array('%progress' => number_format($context['sandbox']['progress']), '%max' => number_format($context['sandbox']['max'])));
 
   if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['message'] = t('Exported %progress of %max rows.', array('%progress' => number_format($context['sandbox']['progress']), '%max' => number_format($context['sandbox']['max'])));
     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
 }
@@ -162,10 +165,10 @@ function avreports_export_batch_finished($success, $results, $operations) {
   if ($success && !empty($results['filepath'])) {
     $filepath = $results['filepath'];
     $report_name = empty($results['report_name']) ? '' : $results['report_name'];
-    $suggested_filename = 'uct-' . str_replace('_', '-', $report_name) . '-report.csv';
+    $suggested_filename = 'uct ' . $report_name . ' data.csv';
     $headers = array(
       'Content-type' => 'text/csv',
-      'Content-Disposition' => 'attachment; filename="' . $suggested_filename . '"',
+      'Content-Disposition' => 'attachment; filename="' . strtolower($suggested_filename) . '"',
     );
     file_transfer($filepath, $headers);
   }

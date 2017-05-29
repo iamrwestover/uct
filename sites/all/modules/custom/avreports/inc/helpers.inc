@@ -336,3 +336,16 @@ function avreports_report_live_preview(&$form) {
     unset($form['buttons']['print']);
   }
 }
+
+function avreports_count_max_rows(&$form, &$query, $select, $where, $group_by, $args, $offset) {
+  $rows_max = 1;
+  $count_query = str_replace('_expression_', '1 AS expression', $query);
+  $query = str_replace('_expression_', implode(', ', $select), $query);
+  if ($offset === 0) {
+    // Compute total record count.
+    avbase_query_supplements($count_query, $where, NULL, NULL, NULL, $group_by);
+    $count_query = "SELECT COUNT(*) AS expression FROM ($count_query) subquery";
+    $rows_max = db_query($count_query, $args)->fetchField();
+  }
+  $form['#report_rows_max'] = $rows_max;
+}

@@ -1,5 +1,5 @@
 <?php
-function avreports_sales_to_trade_form($form, &$form_state) {
+function avreports_sales_to_trade_form($form, &$form_state, $limit = NULL, $offset = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
   $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
@@ -79,12 +79,17 @@ function avreports_sales_to_trade_form($form, &$form_state) {
       '#default_value' => 'agent_name',
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
-    'export_button' => array('#report_name' => 'sales_to_trade', '#report_args' => array()),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array(),
+      '#report_name' => 'Sales to Trade',
+      '#report_inc' => 'sales_to_trade.form',
+    ),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
-  $table = avreports_sales_to_trade_table($form_state);
+  $table = avreports_sales_to_trade_table($form, $form_state, $limit, $offset);
 
   $form['transaction_list_table'] = array(
     '#type' => 'container',
@@ -279,7 +284,7 @@ function avreports_sales_to_trade_table_row_col(&$data, $col_name, $row, $table_
   }
 }
 
-function avreports_sales_to_trade_table($form_state, $limit = NULL, $offset = NULL) {
+function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $offset = NULL) {
   // Prepare query variables.
   $select = $joins = $where = $args = $group_by = array();
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
@@ -470,20 +475,14 @@ function avreports_sales_to_trade_table($form_state, $limit = NULL, $offset = NU
   //dpm($col_group_by);
   //$group_by[transaction_type] = 'avtxn.transaction_type';
   $group_by += $col_group_by;
-  $count_query = "SELECT 1 AS expression FROM {avtbl_products} AS avprod " . implode(' ', $joins);
-  $query = str_replace('1 AS expression', implode(', ', $select), $count_query);
-  //$query = "SELECT " . implode(', ', $select) . " FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+  //$count_query = "SELECT 1 AS expression FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+  //$query = str_replace('1 AS expression', implode(', ', $select), $count_query);
+  $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
 
-  $rows_max = 1;
-  if ($offset === 0) {
-
-    // Compute total record count.
-    avbase_query_supplements($count_query, $where, NULL, NULL, NULL, $group_by);
-    $count_query = "SELECT COUNT(*) AS expression FROM ($count_query) subquery";
-    $rows_max = db_query($count_query, $args)->fetchField();
-  }
   //$records = avtxns_product_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
   //$records = avtxns_product_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
 
@@ -605,7 +604,6 @@ function avreports_sales_to_trade_table($form_state, $limit = NULL, $offset = NU
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-    '#rows_max' => $rows_max,
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => $table_attributes,
   );

@@ -1,6 +1,6 @@
 <?php
 
-function avreports_stock_shortage_form($form, &$form_state) {
+function avreports_stock_shortage_form($form, &$form_state, $limit = NULL, $offset = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
   // Transaction type details.
@@ -37,6 +37,12 @@ function avreports_stock_shortage_form($form, &$form_state) {
       '#autocomplete_path' => 'av/categories/principal/autocomplete',
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'export_button' => array(
+      '#func_name' => __FUNCTION__ ,
+      '#func_args' => array(),
+      '#report_name' => 'Stock Shortage',
+      '#report_inc' => 'stock_shortage.form',
+    ),
   );
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_PENDING] = 'Pending';
@@ -135,10 +141,12 @@ function avreports_stock_shortage_form($form, &$form_state) {
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_prodcat ON avcat_prodcat.id = avprod.category_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
 
-  $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
+  $query = "SELECT _expression_ FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
   $where[] = 'avtxn.transaction_type = :delivery_type';
   $args[':delivery_type'] = AVTXNS_TXN_TYPE_DELIVERY;
 
+  // Count max rows before applying supplements to $query.
+  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
   $rs = db_query($query, $args);
   $table_rows = array();
