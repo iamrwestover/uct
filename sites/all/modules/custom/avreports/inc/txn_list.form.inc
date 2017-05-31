@@ -358,7 +358,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
         $data['term'] = empty($row->term_name) ? NULL : check_plain($row->term_name);
       }
       if ($col_due_date) {
-        $data['due_date'] = format_date($row->due_date, 'custom', 'Y-M-d');
+        $data['due_date'] = empty($row->due_date) ? NULL : format_date($row->due_date, 'custom', 'Y-M-d');
       }
       if ($col_memo) {
         $data['memo'] = empty($row->memo) ? NULL : check_plain($row->memo);

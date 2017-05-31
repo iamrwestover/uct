@@ -20,7 +20,7 @@ $form['misc']['#access'] = FALSE;
 
 
 // Remove resize handle from textareas.
-//$form['misc']['notes']['#resizable'] = FALSE;
+$form['info']['notes']['#resizable'] = FALSE;
 $form['address']['address']['#resizable'] = FALSE;
 $form['address']['address']['#attributes']['rows'] = 3;
 
@@ -78,6 +78,7 @@ if (isset($form['payment'])) {
       <?php if ($website_html): ?>
         <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print $website_html; ?></div>
       <?php endif; ?>
+      <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['info']['notes']); ?></div>
       <!--<div class="uk-width-1-3 --><?php //print $vertical_margin_class; ?><!--">--><?php //print drupal_render($form['contact']['phone2']); ?><!--</div>-->
       <!--<div class="uk-width-1-3 --><?php //print $vertical_margin_class; ?><!--">--><?php //print drupal_render($form['contact']['phone3']); ?><!--</div>-->
 

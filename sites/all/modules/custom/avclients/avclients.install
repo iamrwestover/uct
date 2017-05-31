@@ -211,6 +211,11 @@ function avclients_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'notes' => array(
+        'description' => 'Notes',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
@@ -230,4 +235,18 @@ function avclients_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Add "notes" field.
+ */
+function avclients_update_7101() {
+  $schema = avclients_schema();
+  $table_name = 'avtbl_clients';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'notes';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+
+  return t('Notes field added.');
 }

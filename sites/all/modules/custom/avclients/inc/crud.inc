@@ -47,12 +47,7 @@ function avclients_client_form($form, &$form_state, $client_type, $row, $view_mo
     '#title' => 'Miscellaneous',
   );
   //$form['last_changed'] = array('#title' => 'fff', '#type' => 'textfield', '#default_value' => 'rr');
-  //$form['misc']['notes'] = array(
-  //  '#type' => 'textarea',
-  //  '#title' => 'Miscellaneous',
-  //  '#default_value' => isset($row->data['notes']) ? check_plain($row->data['notes']) : '',
-  //  '#maxlength' => 255,
-  //);
+
 
   $form['buttons']['#theme'] = 'avbase_crud_button_group';
   $form['buttons']['submit'] = array(
@@ -300,6 +295,13 @@ function avclients_client_form_info_fields(&$form, $ctd, $row, $view_mode = FALS
     //  ),
     //);
   }
+
+  $info['notes'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Notes',
+    '#default_value' => empty($row->notes) ? NULL : $row->notes,
+    '#maxlength' => 255,
+  );
   $form['info'] += $info;
 }
 

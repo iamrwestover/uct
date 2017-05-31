@@ -401,6 +401,7 @@ function avbase_allow_form_view_mode(&$form, $view_mode = FALSE) {
         case 'textarea':
           $element['#type'] = 'item';
           $default_value = isset($element['#default_value']) ? $element['#default_value'] : '';
+          $default_value = empty($element['#avhtml']) ? check_plain($default_value) : $default_value;
           $element['#markup'] = trim($default_value) == '' ? '' : nl2br($default_value);
           break;
         case 'select':
@@ -482,7 +483,8 @@ function avbase_custom_watchdog($type, $message, $variables = array(), $severity
   $log_entry = array(
     'type' => drupal_substr($type, 0, 64),
     'message' => $message,
-    'variables' => serialize($variables),
+    //'variables' => serialize($variables),
+    'variables' => '',
     'severity' => $severity,
     'link' => drupal_substr($link, 0, 255),
 

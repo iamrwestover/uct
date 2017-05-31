@@ -327,6 +327,7 @@ function avclients_table_fields_to_save($db_op = 'insert') {
     'contact_number',
     'website',
     'uid',
+    'notes',
   );
 
   if ($db_op == 'update') {
