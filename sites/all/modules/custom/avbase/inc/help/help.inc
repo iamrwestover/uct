@@ -14,6 +14,7 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Stock Adjustment transactions can now be edited.</li>
       <li>- Stock Adjustment transaction date can now be changed.</li>
       <li>- Fixed report preview still showing preview on first page load.</li>
       <li><hr /></li>

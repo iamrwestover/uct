@@ -504,7 +504,7 @@ function avreports_soa_form($form, &$form_state) {
     '#theme' => 'avreports_soa',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
+      'class' => array('printable uk-text-small uk-text-uppercase')
     ),
   );
   $transaction_list_table['table']['#markup'] = '<!--Do not remove me-->' . $table_markup;
@@ -575,7 +575,7 @@ function avreports_soa_form($form, &$form_state) {
     '#type' => 'button',
     '#value' => t('Print...'),
     '#visible_in_view_mode' => TRUE,
-    '#attributes' => array('class' => array('')),
+    //'#attributes' => array('class' => array('')),
     '#icon_key' => 'print',
   );
 
