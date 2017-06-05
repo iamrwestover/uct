@@ -369,5 +369,8 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   if (empty($transaction_list_table['table']['#type']) || $transaction_list_table['table']['#type'] != 'tableselect') {
     $form['#form_keys_no_cache'] = array('transaction_list_table');
   }
+
+  // Show / hide preview?
+  avreports_report_live_preview($form);
   return $form;
 }

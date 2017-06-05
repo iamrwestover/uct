@@ -14,10 +14,12 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Database optimizations.</li>
-      <li>- Added "Notes" on client edit.</li>
-      <li>- Bug fixes and performance improvements..</li>
+      <li>- Stock Adjustment transaction date can now be changed.</li>
+      <li>- Fixed report preview still showing preview on first page load.</li>
       <li><hr /></li>
+      <li class="uk-text-muted">- Database optimizations.</li>
+      <li class="uk-text-muted">- Added "Notes" on client edit.</li>
+      <li class="uk-text-muted">- Bug fixes and performance improvements..</li>
       <li class="uk-text-muted">- Reports: Export Data</li>
       <li class="uk-text-muted">- RPDs now excluded from STT report.</li>
       <li class="uk-text-muted">- Added Customer Balances report (combination of Invoice and Customer Charges list).</li>

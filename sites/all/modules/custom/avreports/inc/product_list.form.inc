@@ -248,5 +248,8 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
   if (empty($transaction_list_table['table']['#type']) || $transaction_list_table['table']['#type'] != 'tableselect') {
     $form['#form_keys_no_cache'] = array('transaction_list_table');
   }
+
+  // Show / hide preview?
+  avreports_report_live_preview($form);
   return $form;
 }
