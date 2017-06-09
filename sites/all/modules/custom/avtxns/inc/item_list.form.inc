@@ -74,6 +74,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       ),
       '#resizable' => FALSE,
       '#access' => $view_mode,
+      '#avhtml' => TRUE,
     );
     if (!empty($row->contact_number)) {
       $form['client_address_string']['#default_value'] .= "\n" . check_plain($row->contact_number);
