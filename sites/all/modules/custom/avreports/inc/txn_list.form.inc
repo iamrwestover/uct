@@ -150,38 +150,38 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_client_show) {
     $header['client'] = array('data' => $ttd['ctd']['name'], 'field' => 'display_name');
   }
-  $header['date'] = array('data' => 'Date', 'field' => 'transaction_date');
+  $header['date'] = array('data' => 'DATE', 'field' => 'transaction_date');
   $header['id'] = array('data' => 'TXN#', 'field' => 'avtxn.id');
   if ($col_items_ref_txn_id) {
-    $header['items_ref_txn_id'] = array('data' => 'Ref. Txn.#', 'field' => 'avtxn_detail.ref_txn_id');
+    $header['items_ref_txn_id'] = array('data' => 'REF. TXN.#', 'field' => 'avtxn_detail.ref_txn_id');
   }
   if ($col_return_type) {
-    $header['return_type'] = array('data' => 'Ret. Type', 'field' => 'avtxn.return_type');
+    $header['return_type'] = array('data' => 'RER. TYPE', 'field' => 'avtxn.return_type');
   }
   if ($col_reference_id) {
-    $header['reference_id'] = array('data' => 'Ref. ID', 'field' => 'avtxn.reference_id');
+    $header['reference_id'] = array('data' => 'REF. ID', 'field' => 'avtxn.reference_id');
   }
   if ($col_terms) {
-    $header['term'] = array('data' => 'Terms', 'field' => 'term_name');
+    $header['term'] = array('data' => 'TERMS', 'field' => 'term_name');
   }
   if ($col_due_date) {
-    $header['due_date'] = array('data' => 'Due Date', 'field' => 'due_date');
+    $header['due_date'] = array('data' => 'DUE DATE', 'field' => 'due_date');
   }
   if ($col_memo) {
-    $header['memo'] = array('data' => 'Note');
+    $header['memo'] = array('data' => 'NOTE');
   }
   if ($col_total) {
-    $header['total'] = array('data' => 'Total', 'class' => array('uk-text-right'));
+    $header['total'] = array('data' => 'TOTAL', 'class' => array('uk-text-right'));
   }
   if ($col_paid) {
-    $header['paid'] = array('data' => 'Paid', 'class' => array('uk-text-right'));
-    $header['balance'] = array('data' => 'Balance', 'class' => array('uk-text-right'));
+    $header['paid'] = array('data' => 'PAID', 'class' => array('uk-text-right'));
+    $header['balance'] = array('data' => 'BALANCE', 'class' => array('uk-text-right'));
   }
   if ($col_agent_show) {
-    $header['agent'] = array('data' => 'Agent', 'field' => 'agent_name');
+    $header['agent'] = array('data' => 'AGENT', 'field' => 'agent_name');
   }
   if ($col_bal_age) {
-    $header['bal_age'] = array('data' => 'Age', 'field' => 'bal_age', 'class' => array('uk-text-right'));
+    $header['bal_age'] = array('data' => 'AGE', 'field' => 'bal_age', 'class' => array('uk-text-right'));
     $header['bal_age']['data-uk-tooltip'] = '{cls: "tt-blue"}';
     $header['bal_age']['title'] = 'Age in Days';
   }
