@@ -1,5 +1,5 @@
 <?php
-function avreports_sales_to_trade_form($form, &$form_state, $limit = NULL, $offset = NULL) {
+function avreports_sales_to_trade_form($form, &$form_state, $dr_register = FALSE, $limit = NULL, $offset = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
   $client_statuses = array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED);
@@ -7,7 +7,7 @@ function avreports_sales_to_trade_form($form, &$form_state, $limit = NULL, $offs
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
   $filter_form_settings = array(
-    'avtxn.id' => array('#title' => 'INV/SR#'),
+    'avtxn.id' => array('#title' => $dr_register ? 'DR#' : 'INV/SR#'),
     'avtxn_detail.ref_txn_id' => array('#title' => 'DR#'),
     'date_auto' => array(
       '#title' => t('Dates'),
@@ -49,7 +49,7 @@ function avreports_sales_to_trade_form($form, &$form_state, $limit = NULL, $offs
         'zip_code' => '<em title="May cause slower response time">Zip Code</em>',
         'principal_name' => 'Principal',
         'transaction_date' => '<em title="May cause slower response time">Date</em>',
-        'txn_id' => '<em title="May cause slower response time">INV/SR#</em>',
+        'txn_id' => '<em title="May cause slower response time">' . ($dr_register ? 'DR#' : 'INV/SR#') . '</em>',
         'ref_txn_id' => '<em title="May cause slower response time">DR#</em>',
         'item_name' => 'Product',
         'qty_out' => 'Qty.',
@@ -83,15 +83,21 @@ function avreports_sales_to_trade_form($form, &$form_state, $limit = NULL, $offs
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
     'export_button' => array(
       '#func_name' => __FUNCTION__ ,
-      '#func_args' => array(),
-      '#report_name' => 'Sales to Trade',
+      '#func_args' => array($dr_register),
+      '#report_name' => $dr_register ? 'Delivery Receipt Register' : 'Sales to Trade',
       '#report_inc' => 'sales_to_trade.form',
     ),
   );
+  if ($dr_register) {
+    unset($filter_form_settings['avtxn_detail.ref_txn_id']);
+    unset($filter_form_settings['table_columns']['#options']['ref_txn_id']);
+    $filter_form_settings['table_group_by']['#default_value'] = '';
+    $filter_form_settings['table_columns']['#default_value'] = array('principal_name');
+  }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
-  $table = avreports_sales_to_trade_table($form, $form_state, $limit, $offset);
+  $table = avreports_sales_to_trade_table($form, $form_state, $dr_register, $limit, $offset);
 
   $form['transaction_list_table'] = array(
     '#type' => 'container',
@@ -287,7 +293,7 @@ function avreports_sales_to_trade_table_row_col(&$data, $col_name, $row, $table_
   }
 }
 
-function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $offset = NULL) {
+function avreports_sales_to_trade_table(&$form, $form_state, $dr_register = FALSE, $limit = NULL, $offset = NULL) {
   // Prepare query variables.
   $select = $joins = $where = $args = $group_by = array();
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
@@ -426,16 +432,32 @@ function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $off
     }
   }
   if (isset($table_columns['qty_out'])) {
-    $select[] = 'SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom * (IF(avtxn.transaction_type = :txn_type_invoice, 1, -1))) AS qty_out';
+    if ($dr_register) {
+      $select[] = 'SUM(avtxn_detail.qty) AS qty_out';
+    }
+    else {
+      $select[] = 'SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom * (IF(avtxn.transaction_type = :txn_type_invoice, 1, -1))) AS qty_out';
+    }
   }
   if (isset($table_columns['uom'])) {
-    $select[] = 'avcat_uom.title AS uom_title';
-    $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
+    if ($dr_register) {
+      $select[] = 'avcat_uom.title AS uom_title';
+      $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avtxn_detail.uom_id';
+      $group_by['uom'] = 'avcat_uom.title';
+    }
+    else {
+      $select[] = 'avcat_uom.title AS uom_title';
+      $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
+    }
   }
   if (isset($table_columns['price'])) {
-    $select[] = 'avtxn_detail.cost / avtxn_detail.qty_per_uom AS price';
-    if (!isset($group_by['txn_id'])) {
-      $group_by['price'] = 'price';
+    if ($dr_register) {
+      $select[] = 'avtxn_detail.cost AS price';
+      $group_by['price'] = 'avtxn_detail.cost';
+    }
+    else {
+      $select[] = 'avtxn_detail.cost / avtxn_detail.qty_per_uom AS price';
+      $group_by['price'] = 'avtxn_detail.cost / avtxn_detail.qty_per_uom';
     }
   }
   if (!empty($user_filter['avcat_area.title'])) {
@@ -443,15 +465,16 @@ function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $off
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
   }
 
+  $sum_query_increment_string = $dr_register ? '1' : 'avtxn.transaction_type = :txn_type_invoice';
   if (isset($table_columns['discount'])) {
-    $select[] = avtxns_txn_detail_sum_query('avtxn.transaction_type = :txn_type_invoice') . ' AS total_sales';
+    $select[] = avtxns_txn_detail_sum_query($sum_query_increment_string) . ' AS total_sales';
   }
-  $select[] = avtxns_txn_detail_sum_query_discount_applied('avtxn.transaction_type = :txn_type_invoice') . ' AS net_sales';
+  $select[] = avtxns_txn_detail_sum_query_discount_applied($sum_query_increment_string) . ' AS net_sales';
   $where[] = "avtxn.transaction_type IN(:txn_types)";
   $where[] = "IF(avtxn.transaction_type = :txn_type_invoice, avtxn_detail.ref_txn_type = :txn_type_delivery, 1)";
   // Only RUDs from sales returns, RPDs shouldn't be included in stt.
   $where[] = "IF(avtxn.transaction_type = :txn_type_sr, avtxn.return_type = :rud, 1)";
-  $args[':txn_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_SALES_RETURN);
+  $args[':txn_types'] = $dr_register ? array(AVTXNS_TXN_TYPE_DELIVERY) : array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_SALES_RETURN);
   $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
   $args[':txn_type_delivery'] = AVTXNS_TXN_TYPE_DELIVERY;
   $args[':txn_type_sr'] = AVTXNS_TXN_TYPE_SALES_RETURN;

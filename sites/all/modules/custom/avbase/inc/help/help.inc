@@ -18,6 +18,7 @@ function avbase_help_home() {
       <li>- Added customer channel column and filter on STT Report.</li>
       <li>- Critical fix on export data involving rows that are more than the set batch limit.</li>
       <li>- Experimental change on backup module.</li>
+      <li>- Bug fixes and performance improvements.</li>
       <li><hr /></li>
       <li class="uk-text-muted">- Stock Adjustment transactions can now be edited.</li>
       <li class="uk-text-muted">- Stock Adjustment transaction date can now be changed.</li>
@@ -29,7 +30,6 @@ function avbase_help_home() {
       <li class="uk-text-muted">- RPDs now excluded from STT report.</li>
       <li class="uk-text-muted">- Added Customer Balances report (combination of Invoice and Customer Charges list).</li>
       <li class="uk-text-muted">- Added Vendor Balances report (combination of Bills and Other Bills list).</li>
-      <li class="uk-text-muted">- Bug fixes and performance improvements..</li>
     </ul>
   </div>
   <hr />
