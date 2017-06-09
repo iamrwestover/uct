@@ -157,6 +157,14 @@ function avreports_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'inc/txn_detail.form.inc',
   );
+  $items['av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_DELIVERY] = array(
+    'title' => 'Delivery Receipt Register',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_txn_detail_form', AVTXNS_TXN_TYPE_DELIVERY),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/txn_detail.form.inc',
+  );
 
   $client_types = avclients_client_types();
   foreach ($client_types as $ct) {
@@ -259,13 +267,14 @@ function avreports_home_form($form, &$form_state) {
 
   // Inventory.
   $buttons = array();
-  $buttons['stock_status'] = array('#markup' => l('Stock Status', 'av/reports/stock-status', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $buttons['stock_history'] = array('#markup' => l('Stock History', 'av/reports/stock-history', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $buttons['stock_shortage'] = array('#markup' => l('Stock Shortage', 'av/reports/stock-shortage', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $buttons[AVTXNS_TXN_TYPE_SALES_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Sales', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_SALES_RETURN, array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $buttons[AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Purchase', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN, array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $buttons['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
-  $buttons['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['stock_status'] = array('#markup' => l('Stock Status', 'av/reports/stock-status', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['stock_history'] = array('#markup' => l('Stock History', 'av/reports/stock-history', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['stock_shortage'] = array('#markup' => l('Stock Shortage', 'av/reports/stock-shortage', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons[AVTXNS_TXN_TYPE_SALES_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Sales', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_SALES_RETURN, array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons[AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Purchase', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN, array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons[AVTXNS_TXN_TYPE_DELIVERY . '_detail'] = array('#markup' => l('Delivery Receipt Register', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_DELIVERY, array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $form['inventory_reports'] = array(
     '#type' => 'fieldset',
     '#title' => t('Inventory'),

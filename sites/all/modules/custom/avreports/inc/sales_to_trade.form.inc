@@ -37,10 +37,12 @@ function avreports_sales_to_trade_form($form, &$form_state, $limit = NULL, $offs
       '#title' => t('Product'),
     ),
     'avcat_area.title' => array('#title' => 'Area'),
+    'avclients.category_id' => array('#title' => 'Channel', '#options' => avbase_get_category_options_array('category' . AVCLIENT_TYPE_CUSTOMER)),
     'table_columns' => array(
       '#options' => array(
         'agent_name' => 'Agent',
         'client_name' => 'Customer',
+        'category_name' => 'Channel',
         'address' => '<em title="May cause slower response time">Address</em>',
         'city' => '<em title="May cause slower response time">City</em>',
         'province' => '<em title="May cause slower response time">Province</em>',
@@ -191,6 +193,7 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
   //'placeholder' => array('data' => $index + 1, 'class' => array('suk-hidden')),
   avreports_sales_to_trade_table_row_col($data, 'agent_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
   avreports_sales_to_trade_table_row_col($data, 'client_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
+  avreports_sales_to_trade_table_row_col($data, 'category_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
   avreports_sales_to_trade_table_row_col($data, 'address', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
   avreports_sales_to_trade_table_row_col($data, 'city', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
   avreports_sales_to_trade_table_row_col($data, 'province', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
@@ -311,11 +314,15 @@ function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $off
   if (!empty($user_filter['avprod.title'])) {
     $hide_cols[] = 'item_name';
   }
+  if (!empty($user_filter['avclients.category_id'])) {
+    $hide_cols[] = 'category_name';
+  }
 
   // Headers.
   $header = array(
     'agent_name' => array('data' => 'AGENT', 'field' => 'agent_name'),
     'client_name' => array('data' => 'CUSTOMER', 'field' => 'client_name'),
+    'category_name' => array('data' => 'CHANNEL', 'field' => 'avcat_cat.title'),
     'address' => array('data' => 'ADDRESS'),
     'city' => array('data' => 'CITY', 'field' => 'city'),
     'province' => array('data' => 'PROVINCE', 'field' => 'province'),
@@ -361,6 +368,14 @@ function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $off
   if (isset($table_columns['client_name']) || !empty($user_filter['avclients.display_name'])) {
     $select[] = 'avclients.display_name AS client_name';
     $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  }
+  if (isset($table_columns['category_name']) || !empty($user_filter['avclients.category_id'])) {
+    $select[] = 'avcat_cat.title AS category_name';
+    $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+    $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_cat ON avcat_cat.id = avclients.category_id';
+    if (!isset($table_columns['client_name'])) {
+      $group_by['category_id'] = 'category_name';
+    }
   }
   if (isset($table_columns['address'])) {
     $select[] = 'avclients.address';
@@ -420,7 +435,7 @@ function avreports_sales_to_trade_table(&$form, $form_state, $limit = NULL, $off
   if (isset($table_columns['price'])) {
     $select[] = 'avtxn_detail.cost / avtxn_detail.qty_per_uom AS price';
     if (!isset($group_by['txn_id'])) {
-      $group_by['price'] = 'avtxn_detail.cost';
+      $group_by['price'] = 'price';
     }
   }
   if (!empty($user_filter['avcat_area.title'])) {

@@ -1436,6 +1436,7 @@ function backup_migrate_get_saved_backups($refresh = FALSE) {
  * Perform a backup with the given settings.
  */
 function backup_migrate_perform_backup(&$settings) {
+  //ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   backup_migrate_include('destinations', 'files', 'filters');
   timer_start('backup_migrate_backup');
 

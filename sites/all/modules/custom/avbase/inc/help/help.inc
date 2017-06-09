@@ -14,10 +14,14 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Stock Adjustment transactions can now be edited.</li>
-      <li>- Stock Adjustment transaction date can now be changed.</li>
-      <li>- Fixed report preview still showing preview on first page load.</li>
+      <li>- Added report: Delivery Receipt Register</li>
+      <li>- Added customer channel column and filter on STT Report.</li>
+      <li>- Critical fix on export data involving rows that are more than the set batch limit.</li>
+      <li>- Experimental change on backup module.</li>
       <li><hr /></li>
+      <li class="uk-text-muted">- Stock Adjustment transactions can now be edited.</li>
+      <li class="uk-text-muted">- Stock Adjustment transaction date can now be changed.</li>
+      <li class="uk-text-muted">- Fixed report preview still showing preview on first page load.</li>
       <li class="uk-text-muted">- Database optimizations.</li>
       <li class="uk-text-muted">- Added "Notes" on client edit.</li>
       <li class="uk-text-muted">- Bug fixes and performance improvements..</li>

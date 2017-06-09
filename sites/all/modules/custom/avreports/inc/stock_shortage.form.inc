@@ -147,7 +147,7 @@ function avreports_stock_shortage_form($form, &$form_state, $limit = NULL, $offs
 
   // Count max rows before applying supplements to $query.
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
-  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
   $table_rows = array();
   //$irtd = avtxns_txn_types(AVTXNS_TXN_TYPE_SALES_ORDER);

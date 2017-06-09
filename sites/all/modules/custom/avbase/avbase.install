@@ -233,3 +233,18 @@ function avbase_update_7101() {
   }
   return t('Database optimization processes finished.');
 }
+
+/**
+ * Configure backup profiles to always use command line tools.
+ */
+function avbase_update_7102() {
+  $query = "SELECT profile_id, filters FROM {backup_migrate_profiles}";
+  $rs = db_query($query);
+  foreach ($rs as $row) {
+    $filters = unserialize($row->filters);
+    $filters['use_cli'] = 1;
+    $filters = serialize($filters);
+    db_query("UPDATE {backup_migrate_profiles} SET filters = :filters WHERE profile_id = " . $row->profile_id, array(':filters' => $filters));
+  }
+  return t('Backup profiles updated.');
+}

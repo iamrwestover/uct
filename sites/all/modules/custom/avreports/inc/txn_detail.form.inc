@@ -196,14 +196,14 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $group_by[] = 'avtxn_detail.item_id';
   // Count max rows before applying supplements to $query.
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
-  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
   $table_rows = array();
   //$irtd = avtxns_txn_types(AVTXNS_TXN_TYPE_SALES_ORDER);
   $row_qty_total = $row_qty_good_total = $row_qty_bad_total = 0;
   foreach ($rs as $row) {
     $data = array();
-    $data['date'] = format_date($row->transaction_date, 'custom', 'M-d-Y');
+    $data['date'] = format_date($row->transaction_date, 'custom', 'Y-M-d');
     $data['id'] = l(avbase_txn_number_format($transaction_type, $row->id), "{$ttd['base_path']}/$row->id/view");
     if ($col_return_type) {
       $data['return_type'] = empty($row->return_type) ? NULL : $return_types[$row->return_type];

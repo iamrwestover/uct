@@ -156,7 +156,7 @@ class backup_migrate_source_db_mysql extends backup_migrate_source_db {
     );
 
     // Ignore the excluded and no-data tables.
-    if (!empty($settings->filters['exclude_tables'])) {
+    if (!empty($settings->filters['exclude_tables']) || !empty($settings->filters['nodata_tables'])) {
       $db = $this->dest_url['path'];
       foreach ((array)$settings->filters['exclude_tables'] as $table) {
         if (isset($alltables[$table])) {

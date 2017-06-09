@@ -128,7 +128,7 @@ function avreports_client_list_form($form, &$form_state, $client_type, $limit = 
   $query = "SELECT _expression_ FROM {avtbl_clients} AS avclients " . implode(' ', $joins);
   // Count max rows before applying supplements to $query.
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
-  avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
+  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
     $data = array();

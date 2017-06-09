@@ -256,7 +256,7 @@ function avreports_stock_history_form($form, &$form_state) {
           $data['transaction_date'] = l(format_date($row->transaction_date, 'custom', 'M-d-Y'), $txn_view_path);
           $data['transaction_id'] = l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $txn_view_path);
           $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
-          $data['client_name'] = l($row->client_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
+          $data['client_name'] = empty($ttd['ctd']) ? NULL : l($row->client_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
           $data['row_qty'] = '<div class="uk-text-right">' . number_format($row->row_qty) . '</div>';
           $data['amount'] = is_null($row->row_cost) ? NULL : '<div class="uk-text-right">' . number_format($row->row_cost, 2) . '</div>';
           $data['onhand'] = '<div class="uk-text-right">' . number_format($init->onhand) . '</div>';
