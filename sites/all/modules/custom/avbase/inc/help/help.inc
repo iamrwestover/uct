@@ -48,6 +48,9 @@ HTML;
     //'data' => l('Printing with dot matrix printers', '#av/help', array('attributes' => array('data-uk-smooth-scroll' => ''), 'fragment' => 'help-print')),
     'data' => '<a href="#help-print" data-uk-smooth-scroll>Printing with dot matrix printers</a>',
   );
+  $help_items[] = array(
+    'data' => '<a href="#system-requirements" data-uk-smooth-scroll>System Requirements</a>',
+  );
 
   $item_list = array('items' => $help_items);
   $output .= theme('item_list', $item_list);
@@ -55,5 +58,6 @@ HTML;
   $output .= theme('avbase_help_txn_status', array('help_title' => 'Transaction statuses'));
   $output .= theme('avbase_help_ks', array('help_title' => 'Keyboard shortcuts'));
   $output .= theme('avbase_help_print', array('help_title' => 'Printing with dot matrix printers'));
+  $output .= theme('avbase_help_sys_req', array('help_title' => 'System Requirements'));
   return '<div class="printable">' . $output . '</div>';
 }
