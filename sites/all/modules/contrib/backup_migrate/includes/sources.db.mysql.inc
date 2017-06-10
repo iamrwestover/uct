@@ -99,7 +99,7 @@ class backup_migrate_source_db_mysql extends backup_migrate_source_db {
       return TRUE;
     }
     else {
-      watchdog('avwatchdog', 'Mysqldump backup did not work.', array(), WATCHDOG_WARNING);
+      watchdog('avwatchdog', 'Mysqldump backup FAILED.', array(), WATCHDOG_WARNING);
     }
 
     $lines = 0;
@@ -174,6 +174,18 @@ class backup_migrate_source_db_mysql extends backup_migrate_source_db {
         }
       }
     }
+
+    // Temporarily change working directory to make sure mysqldump works.
+    $mysql_dir = "c:\\wamp\\bin\\mysql\\mysql5.6.17\\bin";
+    $mysql_dir_exists = file_exists ($mysql_dir);
+    if (!$mysql_dir_exists) {
+      $mysql_dir = "d:\\wamp\\bin\\mysql\\mysql5.6.17\\bin";
+      $mysql_dir_exists = file_exists ($mysql_dir);
+    }
+    if ($mysql_dir_exists) {
+      $orig_cwd = getcwd();
+      chdir($mysql_dir);
+    }
     $success = backup_migrate_exec($command, $args);
 
     // Get the nodata tables.
@@ -182,6 +194,11 @@ class backup_migrate_source_db_mysql extends backup_migrate_source_db {
       $command = "mysqldump --no-data --opt -Q --host=%host --port=%port --user=%user --password=%pass %db $tables >> %file";
       $success = backup_migrate_exec($command, $args);
     }
+
+    if ($mysql_dir_exists) {
+      chdir($orig_cwd);
+    }
+
     return $success;
   }
 
