@@ -818,7 +818,8 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     }
   }
 
-  $hide_cols['row_total'] = empty($options['#hide_filter_form']);
+  //$hide_cols['row_total'] = empty($options['#hide_filter_form']);
+  $hide_cols['row_total'] = FALSE;
   if ($hide_cols['row_total']) {
     unset($header['row_total']);
   }
