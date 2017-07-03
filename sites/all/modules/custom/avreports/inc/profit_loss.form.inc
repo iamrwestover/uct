@@ -200,41 +200,41 @@ function avreports_profit_loss_form($form, &$form_state) {
 
 
   // Get product ids from cogs transactions.
-  $cogs_query = "SELECT avtxn.id, avtxn.transaction_type, avtxn.transaction_date, avtxn_detail.item_id
-    FROM {avtbl_transaction_details} AS avtxn_detail
-    INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
-    WHERE avtxn_detail.item_id AND avtxn.transaction_type IN (:ttypes) AND avtxn.status NOT IN (:txn_statuses)";
-  $cogs_args = array();
-  $cogs_args[':ttypes'] = array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_DELIVERY);
-  $cogs_args[':txn_statuses'] = $pl_transaction_statuses;
-  $cogs_rs = db_query($cogs_query, $cogs_args);
-  $cogs_transaction_ids = array();
-  foreach ($cogs_rs as $r_k => $row) {
-    $cogs_transaction_ids[$row->id]['product_ids'][$row->item_id] = $row->item_id;
-    $cogs_transaction_ids[$row->id]['row'] = $row;
-  }
-  avreports_get_transaction_ave_cost($cogs_transaction_ids);
-  foreach ($cogs_transaction_ids as $cti) {
-    $row = $cti['row'];
-    $ttd = avtxns_txn_types($row->transaction_type);
-    $ref_txn_type = empty($row->ref_txn_type) ? 'default' : $row->ref_txn_type;
-    $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
-    foreach ($account_ids as $a_id => $a_type) {
-      $this_account_type = isset($profit_loss_accounts[$a_id]->account_type) ? $profit_loss_accounts[$a_id]->account_type : '';
-      if (!in_array($this_account_type, $profit_loss_account_types)) {
-        continue;
-      }
-      //$profit_loss_account_types
-      $account_rows[$a_id][] = array(
-        'transaction_id' => $row->id,
-        'transaction_date' => $row->transaction_date,
-        'transaction_type' => $row->transaction_type,
-        'account_id' => $a_id,
-        'account_type' => $this_account_type,
-        $a_type => $cti['cog'],
-      );
-    }
-  }
+  //$cogs_query = "SELECT avtxn.id, avtxn.transaction_type, avtxn.transaction_date, avtxn_detail.item_id
+  //  FROM {avtbl_transaction_details} AS avtxn_detail
+  //  INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
+  //  WHERE avtxn_detail.item_id AND avtxn.transaction_type IN (:ttypes) AND avtxn.status NOT IN (:txn_statuses)";
+  //$cogs_args = array();
+  //$cogs_args[':ttypes'] = array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_DELIVERY);
+  //$cogs_args[':txn_statuses'] = $pl_transaction_statuses;
+  //$cogs_rs = db_query($cogs_query, $cogs_args);
+  //$cogs_transaction_ids = array();
+  //foreach ($cogs_rs as $r_k => $row) {
+  //  $cogs_transaction_ids[$row->id]['product_ids'][$row->item_id] = $row->item_id;
+  //  $cogs_transaction_ids[$row->id]['row'] = $row;
+  //}
+  //avreports_get_transaction_ave_cost($cogs_transaction_ids);
+  //foreach ($cogs_transaction_ids as $cti) {
+  //  $row = $cti['row'];
+  //  $ttd = avtxns_txn_types($row->transaction_type);
+  //  $ref_txn_type = empty($row->ref_txn_type) ? 'default' : $row->ref_txn_type;
+  //  $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
+  //  foreach ($account_ids as $a_id => $a_type) {
+  //    $this_account_type = isset($profit_loss_accounts[$a_id]->account_type) ? $profit_loss_accounts[$a_id]->account_type : '';
+  //    if (!in_array($this_account_type, $profit_loss_account_types)) {
+  //      continue;
+  //    }
+  //    //$profit_loss_account_types
+  //    $account_rows[$a_id][] = array(
+  //      'transaction_id' => $row->id,
+  //      'transaction_date' => $row->transaction_date,
+  //      'transaction_type' => $row->transaction_type,
+  //      'account_id' => $a_id,
+  //      'account_type' => $this_account_type,
+  //      $a_type => $cti['cog'],
+  //    );
+  //  }
+  //}
 
 
   // Group by period.
