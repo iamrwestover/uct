@@ -786,7 +786,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
       'avtxn.transaction_date' => array('#access' => TRUE),
       'avtxn.transaction_type' => array('#access' => TRUE),
       'avtxn.status' => array('#access' => TRUE),
-      'reset_button' => array('#attributes' => array('style' => 'margin-left: 13px;')),
+      'reset_button' => array('#attributes' => array('style' => 'margin-left: 13px;', 'class' => array('uk-text-small'))),
     );
     $filter_form_settings['avcat_agent.title'] = array(
       '#autocomplete_path' => 'av/categories/agent' . AVCLIENT_TYPE_CUSTOMER . '-agent' . AVCLIENT_TYPE_VENDOR . '/autocomplete',
