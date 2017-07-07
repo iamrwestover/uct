@@ -19,6 +19,7 @@
     self.$discountValEl = $('#discount-value');
     self.$dueDateEl = $('#due-date');
     self.$clientEl = $('#client-id');
+    self.$transactionDateEl = $('input[name=transaction_date]');
     self.client = {a:'a'};
 
     if (self.$termEl.val() === 0) {
@@ -45,7 +46,7 @@
       var term = paymentTerms[termID] || {};
       if (term.id) {
         var term_data = term['data'] || {};
-        var transactionDate = $('#edit-transaction-date').val();
+        var transactionDate = self.$transactionDateEl.val();
         var dateObj = new Date(transactionDate);
         var days = term_data.days || -1;
 
@@ -54,6 +55,13 @@
           dateObj.setDate(dateObj.getDate() + parseInt(days));
           var dateString = dateObj.toDateString();
           dateString = dateString.substr(dateString.indexOf(' ') + 1);
+          // Insert period after month text.
+          var insertPos = dateString.indexOf(' ');
+          dateString = [dateString.slice(0, insertPos), '.', dateString.slice(insertPos)].join('');
+          // Insert comma after day text.
+          insertPos = dateString.indexOf(' ', dateString.indexOf(' ') + 1);
+          dateString = [dateString.slice(0, insertPos), ',', dateString.slice(insertPos)].join('');
+          console.log(dateString);
           self.$dueDateEl.val(dateString);
         }
         else {
