@@ -42,7 +42,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
       '#options' => array(
         AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN => 'Open',
       ),
-      '#default_value' => AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED,
+      '#default_value' => AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED . '-' . AVTXNS_TXN_STATUS_PENDING,
     ),
     //'avprod.title' => array(
     //  '#title' => t('Product'),
@@ -66,7 +66,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     $filter_form_settings['avprod.title'] = array('#title' => t('Product'));
   }
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
-  $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED] = 'All';
+  $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED . '-' . AVTXNS_TXN_STATUS_PENDING] = 'All';
   //$filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_VOID] = 'Void';
   $filter_form_settings['avclients.display_name'] = array(
     '#title' => 'Customer',
