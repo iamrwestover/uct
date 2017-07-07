@@ -45,11 +45,27 @@
       var term = paymentTerms[termID] || {};
       if (term.id) {
         var term_data = term['data'] || {};
+        var transactionDate = $('#edit-transaction-date').val();
+        var dateObj = new Date(transactionDate);
+        var days = term_data.days || -1;
+
         // Set due date.
-        var dueDate = term_data.due_date || '';
-        if (self.$dueDateEl.length) {
-          self.$dueDateEl.val(dueDate);
+        if (days >= 0) {
+          dateObj.setDate(dateObj.getDate() + parseInt(days));
+          var dateString = dateObj.toDateString();
+          dateString = dateString.substr(dateString.indexOf(' ') + 1);
+          self.$dueDateEl.val(dateString);
         }
+        else {
+          self.$dueDateEl.val('');
+        }
+
+
+        // Set due date.
+        //var dueDate = term_data.due_date || '';
+        //if (self.$dueDateEl.length) {
+        //  self.$dueDateEl.val(dueDate);
+        //}
 
         var type;
         var val;
