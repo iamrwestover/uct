@@ -38,6 +38,9 @@
       <?php print drupal_render($form['simplified_status']); ?>
     <?php endif; ?>
     <?php print drupal_render($form['date_from']); ?>
+    <?php if (isset($form['payment_date_to'])): ?>
+      <?php print drupal_render($form['payment_date_to']); ?>
+    <?php endif; ?>
     <?php if (isset($form['avclients.category_id'])): ?>
       <?php print drupal_render($form['avclients.category_id']); ?>
     <?php endif; ?>

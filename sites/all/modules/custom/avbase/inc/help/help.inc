@@ -15,8 +15,10 @@ function avbase_help_home() {
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
       <li class="uk-text-muted">- Added report: Received Payment Details</li>
+      <li class="uk-text-muted">- Added report: Bills Payment Details</li>
       <li class="uk-text-muted">- Auto filling of invoice/charge due date is now based on transaction date instead of current date.</li>
       <li class="uk-text-muted">- Reports now use mm/dd/yyyy as date format.</li>
+      <li class="uk-text-muted">- Added new filter "Payments made until" on related reports (e.g. Customer Balances, Invoice List, etc.).</li>
       <li><hr /></li>
       <li class="uk-text-muted">- Added report: Delivery Receipt Register</li>
       <li class="uk-text-muted">- Added customer channel column and filter on STT Report.</li>

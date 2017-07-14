@@ -54,7 +54,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id()) || in_array($secondary_transaction_type, avtxns_get_types_with_reference_id());
   $col_bal_age = !empty($secondary_transaction_type);
 
-  // Custom date optionsdetails.
+  // Custom date options details.
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default_key = empty($ttd['payable']) ? 'today' : 'this_week';
   $dad_default = empty($dad[$dad_default_key]) ? array() : $dad[$dad_default_key];
@@ -126,6 +126,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   }
   if (!empty($ttd['ctd']) && empty($ttd['ctd']['no_category'])) {
     $filter_form_settings['avclients.category_id'] = array('#title' => 'Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
+  }
+  if ($col_paid) {
+    $filter_form_settings['payment_date_to'] = array('#title' => 'Payments until', '#default_value' => $dad['today']['date_to']);
   }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
@@ -252,15 +255,24 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   }
   $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
   if ($col_paid) {
+    $payment_date_to_where = '';
+    if (!empty($where['payment_date_to']) && !empty($args[':payment_date_to_stamp'])) {
+      $payment_date_to_where = ' AND pmt.transaction_date < :payment_date_to_stamp';
+      unset($where['payment_date_to']);
+    }
     $select[] = "(
       IF (
       avtxn.status = " . AVTXNS_TXN_STATUS_VOID . ",
       0,
-      (SELECT SUM(pmt_details.cost) FROM {avtbl_transaction_details} pmt_details
-      INNER JOIN {avtbl_transactions} pmt ON pmt.id = pmt_details.transaction_id
-      WHERE pmt_details.ref_txn_id = avtxn.id AND pmt.status <> " . AVTXNS_TXN_STATUS_VOID . ")
+        (
+        SELECT SUM(pmt_details.cost) FROM {avtbl_transaction_details} pmt_details
+        INNER JOIN {avtbl_transactions} pmt ON pmt.id = pmt_details.transaction_id
+        WHERE pmt_details.ref_txn_id = avtxn.id AND pmt.status <> " . AVTXNS_TXN_STATUS_VOID . $payment_date_to_where . "
+        )
       )
     ) AS paid_amount";
+
+    //unset($args[':payment_date_to_stamp']);
   }
   if ($col_memo) {
     $select[] = 'avtxn.memo';
@@ -501,6 +513,14 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       $transaction_list_table['simplified_status']['#markup'] = strtoupper($transaction_list_table['simplified_status']['#markup']);
     }
     avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
+    if (!empty($user_filter['payment_date_to'])) {
+      $transaction_list_table['payment_date_to'] = array(
+        '#type' => 'item',
+        //'#title' => 'Payments made until',
+        //'#title_display' => 'inline-before',
+        '#markup' => 'Showing payments made until ' . check_plain($user_filter['payment_date_to']),
+      );
+    }
     if (!empty($user_filter['avclients.display_name'])) {
       $client = avclient_query_load(array('avclients.display_name = :name'), array(':name' => $user_filter['avclients.display_name']));
       $client = array_shift($client);

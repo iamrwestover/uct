@@ -18,7 +18,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $col_product = empty($ttd['non_product']);
   $col_uom = $col_product;
   $col_ref_txn_id = !empty($pending_txns_reference_type);
-  $col_total = $transaction_type == AVTXNS_TXN_TYPE_PAYMENT;
+  $col_total = !empty($ttd['payment']);
 
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default_key = 'this_week';

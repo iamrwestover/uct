@@ -176,6 +176,14 @@ function avreports_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'inc/txn_detail.form.inc',
   );
+  $items['av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PAY_BILL] = array(
+    'title' => 'Bills Payment Details',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_txn_detail_form', AVTXNS_TXN_TYPE_PAY_BILL),
+    'access arguments' => array(AVREPORTS_PERM_TXN_LIST),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/txn_detail.form.inc',
+  );
 
   $client_types = avclients_client_types();
   foreach ($client_types as $ct) {
@@ -279,6 +287,16 @@ function avreports_home_form($form, &$form_state) {
       )
     )),
     '#prefix' => '<br /><hr />',
+  );
+  $buttons[AVTXNS_TXN_TYPE_PAY_BILL . '_detail'] = array(
+    '#markup' => l('Bills Payment Details', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PAY_BILL, array(
+      'attributes' => array(
+        'class' => array(
+          'uk-button',
+          'uk-button-primary uk-margin-small-right uk-margin-small-bottom'
+        )
+      )
+    )),
   );
   $form['txn_reports'] = array(
     '#type' => 'fieldset',

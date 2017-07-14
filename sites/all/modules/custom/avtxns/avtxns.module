@@ -1202,6 +1202,21 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       ),
     );
   }
+  $fld_name = 'payment_date_to';
+  if (!empty($settings[$fld_name])) {
+    $fields[$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields[$fld_name]['#default_value'] = isset($_GET[$fld_name]) ? $_GET[$fld_name] : (isset($fields[$fld_name]['#default_value']) ? $fields[$fld_name]['#default_value'] : NULL);
+    $fields[$fld_name] += array(
+      '#id' => 'payment-date-to',
+      '#type' => 'textfield',
+      '#icon_key' => 'calendar',
+      '#attributes' => array(
+        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'class' => array('trigger-ajax-search'),
+        'readonly' => 'readonly',
+      ),
+    );
+  }
 
   if (!empty($settings['avtxn.transaction_type'])) {
     $fields['avtxn.transaction_type'] = empty($settings['avtxn.transaction_type']) ? array() : $settings['avtxn.transaction_type'];
@@ -1517,11 +1532,15 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
       continue;
     }
     elseif ($k == 'date_to' && $v != '') {
-      avtxns_txn_filter_apply_date($where, $args, $v, 'date_to');
+      avtxns_txn_filter_apply_date($where, $args, $v, $k);
       continue;
     }
     elseif ($k == 'date_from' && $v != '') {
       avtxns_txn_filter_apply_date($where, $args, $v);
+      continue;
+    }
+    elseif ($k == 'payment_date_to' && $v != '') {
+      avtxns_txn_filter_apply_date($where, $args, $v, $k);
       continue;
     }
     elseif ($k == 'simplified_status') {
