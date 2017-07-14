@@ -257,8 +257,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_paid) {
     $payment_date_to_where = '';
     if (!empty($where['payment_date_to']) && !empty($args[':payment_date_to_stamp'])) {
-      $payment_date_to_where = ' AND pmt.transaction_date < :payment_date_to_stamp';
+      $payment_date_to_where = ' AND pmt.transaction_date < ' . $args[':payment_date_to_stamp'];
       unset($where['payment_date_to']);
+      unset($args[':payment_date_to_stamp']);
     }
     $select[] = "(
       IF (
