@@ -20,6 +20,8 @@ define('AVREPORTS_PERM_ACCOUNTING', 'avbase reports accounting');
 define('AVREPORTS_PERM_TXN_LIST', 'avbase reports txn_list');
 define('AVREPORTS_PERM_INVENTORY', 'avbase reports inventory');
 
+define('AVREPORTS_LIST_DATE_FORMAT', 'm/d/Y');
+
 /**
  * Implementation of hook_permission().
  */

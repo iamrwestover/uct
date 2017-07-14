@@ -251,7 +251,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $row_qty_total = $row_qty_good_total = $row_qty_bad_total = 0;
   foreach ($rs as $row) {
     $data = array();
-    $data['date'] = format_date($row->transaction_date, 'custom', 'Y-M-d');
+    $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
     $data['id'] = l(avbase_txn_number_format($transaction_type, $row->id), "{$ttd['base_path']}/$row->id/view");
     if ($col_ref_txn_id && !empty($row->ref_txn_id) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
       $irtd = avtxns_txn_types($row->ref_txn_type);

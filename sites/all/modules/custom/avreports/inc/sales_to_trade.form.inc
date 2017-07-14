@@ -206,7 +206,7 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
   avreports_sales_to_trade_table_row_col($data, 'zip_code', $row, $table_columns, $table_group_by, $group_total, $hide_cols, NULL, 'client_name');
   avreports_sales_to_trade_table_row_col($data, 'principal_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
-  $col_data = isset($table_columns['transaction_date']) ? format_date($row->transaction_date, 'custom', 'Y-M-d') : NULL;
+  $col_data = isset($table_columns['transaction_date']) ? format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT) : NULL;
   avreports_sales_to_trade_table_row_col($data, 'transaction_date', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $col_data = isset($table_columns['txn_id']) ? avbase_txn_number_format($row->transaction_type, $row->id) : NULL;

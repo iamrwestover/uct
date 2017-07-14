@@ -209,7 +209,7 @@ function avreports_stock_history_form($form, &$form_state) {
         if ($date_from <= $init->initial_qty_date) {
           $data = array();
           $data['transaction_type'] = '<span class="">Added Product</span>';
-          $data['transaction_date'] = format_date($init->initial_qty_date, 'custom', 'M-d-Y');
+          $data['transaction_date'] = format_date($init->initial_qty_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
           $data['transaction_id'] = NULL;
           $data['reference_id'] = NULL;
           $data['client_name'] = NULL;
@@ -253,7 +253,7 @@ function avreports_stock_history_form($form, &$form_state) {
           $data = array();
           $txn_view_path = $ttd['base_path'] . "/{$row->transaction_id}/view";
           $data['transaction_type'] = l($ttd['name'], $txn_view_path);
-          $data['transaction_date'] = l(format_date($row->transaction_date, 'custom', 'M-d-Y'), $txn_view_path);
+          $data['transaction_date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
           $data['transaction_id'] = l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $txn_view_path);
           $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
           $data['client_name'] = empty($ttd['ctd']) ? NULL : l($row->client_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');

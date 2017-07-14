@@ -124,7 +124,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_reference_id) {
     $filter_form_settings['avtxn.reference_id'] = array('#title' => 'Reference ID');
   }
-  if (empty($ttd['ctd']['no_category'])) {
+  if (!empty($ttd['ctd']) && empty($ttd['ctd']['no_category'])) {
     $filter_form_settings['avclients.category_id'] = array('#title' => 'Category', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
   }
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
@@ -342,7 +342,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       if ($col_client_show) {
         $data['client'] = l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
       }
-      $data['date'] = format_date($row->transaction_date, 'custom', 'Y-M-d');
+      $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
       $data['id'] = l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path);
       //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
       if ($col_items_ref_txn_id) {
@@ -358,7 +358,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
         $data['term'] = empty($row->term_name) ? NULL : check_plain($row->term_name);
       }
       if ($col_due_date) {
-        $data['due_date'] = empty($row->due_date) ? NULL : format_date($row->due_date, 'custom', 'Y-M-d');
+        $data['due_date'] = empty($row->due_date) ? NULL : format_date($row->due_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
       }
       if ($col_memo) {
         $data['memo'] = empty($row->memo) ? NULL : check_plain($row->memo);

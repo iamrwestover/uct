@@ -153,7 +153,7 @@ function avreports_stock_shortage_form($form, &$form_state, $limit = NULL, $offs
   //$irtd = avtxns_txn_types(AVTXNS_TXN_TYPE_SALES_ORDER);
   foreach ($rs as $row) {
     $data = array();
-    $data['date'] = format_date($row->transaction_date, 'custom', 'M-d-Y');
+    $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
     $data['id'] = l(avbase_txn_number_format(AVTXNS_TXN_TYPE_DELIVERY, $row->id), "{$ttd['base_path']}/$row->id/view");
     //$irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
     //$data['items_ref_txn_id'] = empty($row->ref_txn_id) ? NULL : l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), $irti_view_path);

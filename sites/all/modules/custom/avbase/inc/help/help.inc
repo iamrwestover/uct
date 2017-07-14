@@ -16,6 +16,7 @@ function avbase_help_home() {
     <ul class="uk-list">
       <li class="uk-text-muted">- Added report: Received Payment Details</li>
       <li class="uk-text-muted">- Auto filling of invoice/charge due date is now based on transaction date instead of current date.</li>
+      <li class="uk-text-muted">- Reports now use mm/dd/yyyy as date format.</li>
       <li><hr /></li>
       <li class="uk-text-muted">- Added report: Delivery Receipt Register</li>
       <li class="uk-text-muted">- Added customer channel column and filter on STT Report.</li>
