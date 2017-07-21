@@ -934,37 +934,49 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
       }
       $data['created_by'] = $row->uid ? theme('username', $created_by_user) : NULL;
       $data['#avclass'] = $row_class;
-      $rows[] = $data;
-      //$rows[] = array(
-      //  'data' => array(
-      //    //'status' => $badge_html,
-      //    'transaction_id' => l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path),
-      //    'date' => l(format_date($row->transaction_date, 'custom', 'M d, Y'), $view_path),
-      //    'transaction_type' => $badge_html . l(strtoupper($transaction_type['name']), $view_path),
-      //    'client_name' => check_plain($row->display_name),
-      //    'agent_name' => check_plain($row->agent_name),
-      //    'row_total' => empty($row->row_total) ? NULL : '<div class="uk-text-right">' . number_format($row->row_total, 2) . '</div>',
-      //    'created_by' => $row->uid ? theme('username', $created_by_user) : NULL,
-      //  ),
-      //  'class' => array($row_class),
-      //);
+      $rows[$row->id] = $data;
     }
   }
 
   $table_attributes = array(
     'id' => 'transaction-list-table',
-    'class' => array('uk-table-condensed uk-table-hover uk-text-small'),
+    'class' => array('uk-table-condensed uk-table-hover uk-text-small av-frs'),
   );
 
   $pager_html = empty($options['#hide_filter_form']) ? theme('pager', array('tags' => array())) : '';
+
   $form['transaction_list_table'] = array(
-    '#theme' => 'table',
+    //'#theme' => 'table',
+    //'#rows' => $rows,
+    '#type' => 'tableselect',
+    '#options' => $rows,
     '#header' => $header,
-    '#rows' => $rows,
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => $table_attributes,
     '#prefix' => '<div id="transaction-list-table-wrapper">',
     '#suffix' => $pager_html . '<!--Do not remove me.--></div>',
+  );
+
+  $form['approve_btn'] = array(
+    '#id' => 'transaction-approve-btn',
+    '#type' => 'submit',
+    '#value' => 'Approve selected transactions',
+    '#icon_key' => 'thumbs-o-up',
+    '#attributes' => array(
+      'data-ks' => 'CTRL+O',
+      'class' => array('uk-button-success'),
+    ),
+    '#prefix' => '<div class="uk-text-center">',
+    '#suffix' => '</div>',
+    '#submit' => array('avtxns_transaction_list_table_submit'),
+    '#limit_validation_errors' => array(array('transaction_list_table')),
+    '#ajax' => array(
+      'callback' => 'avtxns_txn_form_ajax_search',
+      'wrapper' => 'transaction-list-table-wrapper',
+      'effect' => 'none',
+      //'event' => 'click',
+      'progress' => array(),
+    ),
   );
 
   //if (empty($rows)) {
@@ -975,6 +987,12 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
   //}
   //$form['transaction_list_table']['#markup'] = '<div id="transaction-list-table-wrapper">' . $table_markup . '<!--Do not remove me--></div>';
   return $form;
+}
+
+function avtxns_transaction_list_table_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+  dpm('sx');
+  dpm($form_state);
 }
 
 /**
@@ -1592,8 +1610,11 @@ function avtxns_txn_list_filter_form_submit($form, &$form_state, $from_default =
 function avtxns_txn_form_ajax_search($form, $form_state) {
   $trigger = $form_state['triggering_element'];
 
-
   switch ($trigger['#id']) {
+    case 'transaction-approve-btn':
+      $transaction_list_form = empty($form['txns_list']['transaction_list_table']) ? NULL : $form['txns_list']['transaction_list_table'];
+      return $transaction_list_form;
+      break;
     case 'transaction-search-btn':
       $target_table_parents = $trigger['#array_parents'];
       $depth = count($target_table_parents) - 4;
@@ -1605,10 +1626,6 @@ function avtxns_txn_form_ajax_search($form, $form_state) {
       }
       $target_table_parents[] = 'transaction_list_table';
       $transaction_list_form = drupal_array_get_nested_value($form, $target_table_parents);
-      //dpm($form);
-      //dpm($target_table_parents);
-      //dpm($transaction_list_form);
-      //return $form;
       return $transaction_list_form;
       break;
   }

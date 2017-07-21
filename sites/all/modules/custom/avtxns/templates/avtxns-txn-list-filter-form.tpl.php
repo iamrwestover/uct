@@ -204,11 +204,11 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
   <?php if (isset($form['buttons']['search_button'])): ?>
+    <?php print drupal_render($form['buttons']['search_button']); ?>
+  <?php endif; ?>
+  <?php if (isset($form['buttons']['export_button'])): ?>
     <div class="uk-width-2-10" style="margin-top: 25px;">
-      <?php print drupal_render($form['buttons']['search_button']); ?>
-      <?php if (isset($form['buttons']['export_button'])): ?>
-        <?php print drupal_render($form['buttons']['export_button']); ?>
-      <?php endif; ?>
+      <?php print drupal_render($form['buttons']['export_button']); ?>
     </div>
   <?php endif; ?>
 </div>
