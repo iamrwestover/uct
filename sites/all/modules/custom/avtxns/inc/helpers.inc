@@ -1066,9 +1066,10 @@ function avtxns_txn_change_status($id, $status) {
   }
 
   switch ($row->status) {
+    case AVTXNS_TXN_STATUS_CLOSED:
     case AVTXNS_TXN_STATUS_LOCKED:
     case AVTXNS_TXN_STATUS_VOID:
-      drupal_set_message('Status of Locked and Void transactions cannot be changed.', 'error');
+      drupal_set_message('Status of Closed, Locked and Void transactions cannot be changed.', 'error');
       return FALSE;
       break;
     case AVTXNS_TXN_STATUS_OPEN:
