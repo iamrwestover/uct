@@ -366,7 +366,7 @@ function avproducts_product_status_details($status = NULL) {
 
 /**
  * Change product status.
- * @param $id
+ * @param $ids
  * @param $status
  *
  * @return bool

@@ -961,21 +961,21 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
     '#id' => 'transaction-approve-btn',
     '#type' => 'submit',
     '#value' => 'Approve selected transactions',
-    '#icon_key' => 'thumbs-o-up',
+    //'#icon_key' => 'thumbs-o-up',
     '#attributes' => array(
       'data-ks' => 'CTRL+O',
-      'class' => array('uk-button-success'),
+      'class' => array('uk-button-success av-ajax-trigger'),
     ),
     '#prefix' => '<div class="uk-text-center">',
     '#suffix' => '</div>',
     '#submit' => array('avtxns_transaction_list_table_submit'),
-    '#limit_validation_errors' => array(array('transaction_list_table')),
+    //'#limit_validation_errors' => array(array('transaction_list_table')),
     '#ajax' => array(
       'callback' => 'avtxns_txn_form_ajax_search',
       'wrapper' => 'transaction-list-table-wrapper',
       'effect' => 'none',
-      //'event' => 'click',
-      'progress' => array(),
+      'event' => 'click',
+      //'progress' => array(),
     ),
   );
 
@@ -991,8 +991,30 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
 
 function avtxns_transaction_list_table_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
-  dpm('sx');
-  dpm($form_state);
+
+  // Apply filters.
+  avtxns_txn_list_filter_form_submit($form, $form_state);
+
+  $transaction_ids = empty($form_state['values']['transaction_list_table']) ? array() : $form_state['values']['transaction_list_table'];
+  $transaction_ids = array_filter($transaction_ids);
+
+
+  if (empty($transaction_ids)) {
+    drupal_set_message('Please select at least one transaction to approve.', 'error');
+    return;
+  }
+
+  $fails = array();
+  foreach ($transaction_ids as $id) {
+    if (!avtxns_txn_change_status($id, AVTXNS_TXN_STATUS_OPEN)) {
+      $fails[] = $id;
+    }
+  }
+
+  drupal_set_message('Status changed for selected transactions.');
+  if (!empty($fails)) {
+    drupal_set_message('Cannot change status of the following transaction ids: ' . implode(', ', $fails), 'error');
+  }
 }
 
 /**
