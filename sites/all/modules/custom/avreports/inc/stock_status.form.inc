@@ -34,6 +34,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
       '#report_inc' => 'stock_status.form',
     ),
   );
+  $filter_form_settings['product_status'] = array('#default_value' => AVPRODUCTS_STATUS_ACTIVE);
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
   // Prepare query variables.
   $select = $joins = $where = $args = array();
@@ -134,6 +135,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $select[] = 'avprod.eoq';
   $select[] = 'avprod.cost';
   $select[] = 'avprod.price';
+  $select[] = 'avprod.status';
   $select[] = 'SUM(IF(avtxn.transaction_type = :po_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS po_total';
   $select[] = 'SUM(IF(avtxn.transaction_type = :so_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS so_total';
   $select[] = $dr_total_query . ' AS dr_total';
@@ -177,12 +179,14 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
     $where[] = 'avvendor.display_name = :preferred_vendor';
     $args[':preferred_vendor'] = $user_filter['settings']['preferred_vendor'];
   }
-  $where[] = 'avprod.status = :active_prod';
-  $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
+  // $where[] = 'avprod.status = :active_prod';
+  // $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
   $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
   // Count max rows before applying supplements to $query.
+
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
+
   $args = array_merge($args, $select_args);
   $rs = db_query($query, $args);
 
@@ -205,6 +209,20 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
     $data['price'] = '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>';
 
     // Careful when adding classes on rows, check if tableselect mode is ON.
+    $row_class = array();
+    $psd = avproducts_product_status_details($row->status);
+    if (!empty($psd['color_class'])) {
+      $row_class[] = $psd['color_class'];
+    }
+    if ($selectable_list) {
+      $data['#attributes']['class'] = $row_class;
+      $table_rows[$row->id] = $data;
+    }
+    else {
+      $data['#avclass'] = implode(' ', $row_class);
+      $table_rows[] = $data;
+    }
+
     $table_rows[$row->product_id] = $data;
   }
 

@@ -23,14 +23,7 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
     ),
   );
   $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
-  $filter_form_settings['product_status'] = array(
-    '#options' => array(
-      AVPRODUCTS_STATUS_ACTIVE  => 'Enabled only',
-      AVPRODUCTS_STATUS_DISABLED  => 'Disabled only',
-      AVPRODUCTS_STATUS_ACTIVE . '-' . AVPRODUCTS_STATUS_DISABLED => 'All',
-    ),
-    '#default_value' => AVPRODUCTS_STATUS_ACTIVE,
-  );
+  $filter_form_settings['product_status'] = array('#default_value' => AVPRODUCTS_STATUS_ACTIVE);
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   // Prepare query variables.

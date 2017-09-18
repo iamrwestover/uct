@@ -1335,6 +1335,11 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
+      '#options' => array(
+        AVPRODUCTS_STATUS_ACTIVE  => 'Enabled only',
+        AVPRODUCTS_STATUS_DISABLED  => 'Disabled only',
+        AVPRODUCTS_STATUS_ACTIVE . '-' . AVPRODUCTS_STATUS_DISABLED => 'All',
+      ),
     );
     if (isset($fields['product_status']['#default_value'])) {
       $fields['product_status']['#attributes']['data-default-value'] = $fields['product_status']['#default_value'];
@@ -1382,7 +1387,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['settings']['all_products'] += array(
       '#type' => 'select',
       '#title' => 'Products',
-      '#options' => array('In a DR, SO, PO or transferred on selected dates', 'All products'),
+      '#options' => array('In a DR, SO, PO or transferred on selected dates', 'All products (including disabled ones)'),
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
