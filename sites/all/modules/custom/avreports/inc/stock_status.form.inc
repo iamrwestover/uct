@@ -216,11 +216,11 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
     }
     if ($selectable_list) {
       $data['#attributes']['class'] = $row_class;
-      $table_rows[$row->id] = $data;
+      // $table_rows[$row->id] = $data;
     }
     else {
       $data['#avclass'] = implode(' ', $row_class);
-      $table_rows[] = $data;
+      // $table_rows[] = $data;
     }
 
     $table_rows[$row->product_id] = $data;
