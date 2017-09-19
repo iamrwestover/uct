@@ -13,6 +13,9 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $pending_txns_reference_type = empty($ttd['pending_txns_reference_type']) ? array() : (array) $ttd['pending_txns_reference_type'];
 
   // Extra columns
+  $col_client = !empty($ttd['ctd']);
+  $col_accounts = $ttd['transaction'] == 'accounts';
+  //$col_accounts = FALSE;
   $col_return_type = $is_sr;
   $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id());
   $col_product = empty($ttd['non_product']);
@@ -68,18 +71,21 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED . '-' . AVTXNS_TXN_STATUS_PENDING] = 'All';
   //$filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_VOID] = 'Void';
-  $filter_form_settings['avclients.display_name'] = array(
-    '#title' => 'Customer',
-    '#autocomplete_path' => 'av/clients/autocomplete/' . $ttd['ctd']['type'] . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
-  );
-  if ($ttd['ctd']['type'] == AVCLIENT_TYPE_CUSTOMER) {
+
+  if ($col_client) {
+    $filter_form_settings['avclients.display_name'] = array(
+      '#title' => 'Customer',
+      '#autocomplete_path' => 'av/clients/autocomplete/' . $ttd['ctd']['type'] . '/' . implode('-', array(AVCLIENT_STATUS_ACTIVE, AVCLIENT_STATUS_SUSPENDED)),
+    );
+    $filter_form_settings['avcat_agent.title'] = array(
+      '#title' => 'Agent',
+      '#autocomplete_path' => 'av/categories/agent' .$ttd['ctd']['type'] . '/autocomplete',
+    );
+    $filter_form_settings['avclients.category_id'] = array('#title' => 'Channel', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
+  }
+  if ($col_client && $ttd['ctd']['type'] == AVCLIENT_TYPE_CUSTOMER) {
     $filter_form_settings['avcat_area.title'] = array('#title' => 'Area');
   }
-  $filter_form_settings['avcat_agent.title'] = array(
-    '#title' => 'Agent',
-    '#autocomplete_path' => 'av/categories/agent' .$ttd['ctd']['type'] . '/autocomplete',
-  );
-  $filter_form_settings['avclients.category_id'] = array('#title' => 'Channel', '#options' => avbase_get_category_options_array('category' . $ttd['ctd']['type']));
   if ($col_product) {
     $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
     $filter_form_settings['avcat_principal.title'] = array('#title' => t('Principal'), '#autocomplete_path' => 'av/categories/principal/autocomplete');
@@ -99,14 +105,20 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
 
   // Show hide columns depending on selected filters.
-  $col_client_show = empty($user_filter['avclients.display_name']);
-  $col_agent_show = empty($user_filter['avcat_agent.title']);
+  $col_client_show = $col_client && empty($user_filter['avclients.display_name']);
+  $col_agent_show = $col_client && empty($user_filter['avcat_agent.title']);
   $col_product_show = $col_product && empty($user_filter['avprod.title']);
 
   // Headers.
   $header = array();
   $header['date'] = array('data' => 'DATE', 'field' => 'transaction_date');
   $header['id'] = array('data' => 'TXN.#', 'field' => 'avtxn.id');
+  if ($col_accounts) {
+    $header['account_title'] = array('data' => 'ACCOUNT TITLE', 'field' => 'avachart.title');
+    $header['description'] = array('data' => 'DESCRIPTION');
+    $header['debit'] = array('data' => 'DEBIT', 'field' => 'avtxn_detail.debit', 'class' => array('uk-text-right'));
+    $header['credit'] = array('data' => 'CREDIT', 'field' => 'avtxn_detail.credit', 'class' => array('uk-text-right'));
+  }
   if ($col_ref_txn_id) {
     $header['items_ref_txn_id'] = array('data' => 'REF. TXN.#', 'field' => 'avtxn_detail.ref_txn_id');
   }
@@ -212,18 +224,32 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     $select[] = 'avprod.title AS product_title';
     $joins[] = 'INNER JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id';
   }
-  $select[] = 'avclients.id AS client_id';
-  $select[] = 'avclients.display_name';
-  $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  if ($col_client) {
+    $select[] = 'avclients.id AS client_id';
+    $select[] = 'avclients.display_name';
+    $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  }
+  if ($col_accounts) {
+    $select[] = 'avtxn_detail.description';
+    $select[] = 'avtxn_detail.debit';
+    $select[] = 'avtxn_detail.credit';
+    $select[] = 'avachart.title AS account_title';
+    $joins[] = 'LEFT JOIN {avtbl_account_chart} AS avachart ON avachart.id = avtxn_detail.account_id';
+  }
+
   //$select[] = 'avcat_uom.title AS uom_title';
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avtxn_detail.uom_id';
   if ($col_uom) {
     $select[] = 'avcat_buom.title AS base_uom_title';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_buom ON avcat_buom.id = avprod.uom_id';
   }
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
-  $select[] = 'avcat_agent.title AS agent_name';
-  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
+  if ($col_client) {
+    $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
+    $select[] = 'avcat_agent.title AS agent_name';
+    $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
+  }
+
+
   //$select[] = 'avcat_term.title AS term_name';
   //$joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
   if ($col_product) {
@@ -242,6 +268,10 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   if ($col_ref_txn_id) {
     $group_by[] = 'avtxn_detail.ref_txn_id';
   }
+  if ($col_accounts) {
+    $group_by[] = 'avtxn_detail.id';
+    $order_by['avtxn_detail.id'] = 'avtxn_detail.id ASC';
+  }
   // Count max rows before applying supplements to $query.
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
@@ -249,10 +279,19 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $table_rows = array();
   //$irtd = avtxns_txn_types(AVTXNS_TXN_TYPE_SALES_ORDER);
   $row_qty_total = $row_qty_good_total = $row_qty_bad_total = 0;
+  $debit_total = $credit_total = 0;
   foreach ($rs as $row) {
     $data = array();
     $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
     $data['id'] = l(avbase_txn_number_format($transaction_type, $row->id), "{$ttd['base_path']}/$row->id/view");
+    if ($col_accounts) {
+      $data['account_title'] = check_plain($row->account_title);
+      $data['description'] = check_plain($row->description);
+      $data['debit'] = '<div class="uk-text-right">' . (empty((float) $row->debit) ? NULL : number_format($row->debit, 2)) . '</div>';
+      $data['credit'] = '<div class="uk-text-right">' . (empty((float) $row->credit) ? NULL : number_format($row->credit, 2)) . '</div>';
+      $debit_total += $row->debit;
+      $credit_total += $row->credit;
+    }
     if ($col_ref_txn_id && !empty($row->ref_txn_id) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
       $irtd = avtxns_txn_types($row->ref_txn_type);
       $irti_view_path = "{$irtd['base_path']}/{$row->ref_txn_id}/view";
@@ -304,24 +343,39 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     $table_rows[] = $data;
   }
 
-  if ($col_product && !empty($table_rows) && $limit === NULL) {
-    $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
-    $label_colspan = $colspan = array_search('row_qty', array_keys($header));
+  if (!empty($table_rows) && $limit === NULL) {
     $totals_table_row = array();
-    $totals_table_row[] = array(
-      'data' => '<div class="uk-text-right">Total</div>',
-      'colspan' => $label_colspan
-    );
-    $totals_table_row[] = number_format($row_qty_total);
-    if ($is_sr) {
-      $totals_table_row[] = number_format($row_qty_good_total);
-      $totals_table_row[] = number_format($row_qty_bad_total);
+    if ($col_product) {
+      $label_colspan = $colspan = array_search('row_qty', array_keys($header));
+      $totals_table_row[] = array(
+        'data' => '<div class="uk-text-right">Total</div>',
+        'colspan' => $label_colspan
+      );
+      $totals_table_row[] = number_format($row_qty_total);
+      if ($is_sr) {
+        $totals_table_row[] = number_format($row_qty_good_total);
+        $totals_table_row[] = number_format($row_qty_bad_total);
+      }
     }
+    elseif ($col_accounts) {
+      $label_colspan = $colspan = array_search('debit', array_keys($header));
+      $totals_table_row[] = array(
+        'data' => NULL,
+        'colspan' => $label_colspan
+      );
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($debit_total) . '</div>';
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($credit_total) . '</div>';
+    }
+
     $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
     if ($remaining_cols) {
       $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
     }
-    $table_rows[] = $totals_table_row;
+
+    if (!empty($totals_table_row)) {
+      $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
+      $table_rows[] = $totals_table_row;
+    }
   }
 
   // Build table.
