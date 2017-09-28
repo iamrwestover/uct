@@ -162,7 +162,10 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $header['return_type'] = array('data' => 'RER. TYPE', 'field' => 'avtxn.return_type');
   }
   if ($col_reference_id) {
-    $header['reference_id'] = array('data' => 'REF. ID', 'field' => 'avtxn.reference_id');
+    $header['reference_id'] = array('data' => 'REF. ID');
+    if (empty($secondary_transaction_type)) {
+      $header['reference_id']['field'] = 'avtxn.reference_id';
+    }
   }
   if ($col_terms) {
     $header['term'] = array('data' => 'TERMS', 'field' => 'term_name');
@@ -251,7 +254,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $return_types = avtxns_get_return_types();
   }
   if ($col_reference_id) {
-    $select[] = 'avtxn.reference_id';
+    $select['reference_id'] = 'avtxn.reference_id';
   }
   $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
   if ($col_paid) {
@@ -295,6 +298,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_terms) {
     $select[] = 'avcat_term.title AS term_name';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_term ON avcat_term.id = avtxn.term_id';
+  }
+  if ($col_reference_id && !empty($secondary_transaction_type) && $transaction_type == AVTXNS_TXN_TYPE_BILL) {
+    $select['reference_id'] = 'IF(avtxn.transaction_type = :bill_type, avtxn2.reference_id, avtxn.reference_id) AS reference_id';
+    $args[':bill_type'] = AVTXNS_TXN_TYPE_BILL;
+    $joins[] = 'LEFT JOIN {avtbl_transactions} AS avtxn2 ON avtxn2.id = avtxn_detail.ref_txn_id';
   }
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
 

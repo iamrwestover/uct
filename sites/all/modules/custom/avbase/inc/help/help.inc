@@ -15,6 +15,7 @@ function avbase_help_home() {
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
       <li>- Disabled products can now be included on Stock Status Report.</li>
+      <li>- Vendor Balances Report now shows Received Item reference id.</li>
       <li><hr /></li>
       <li class="uk-text-muted">- Added batch approval of pending transactions on Transactions Home page.</li>
       <li class="uk-text-muted">- Added report: Received Payment Details</li>
