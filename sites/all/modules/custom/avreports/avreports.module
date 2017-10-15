@@ -68,7 +68,7 @@ function avreports_menu() {
   $items['av/reports/customer-balances'] = array(
     'title' => 'Customer Balances',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('avreports_client_balances_form', (string)AVCLIENT_TYPE_CUSTOMER),
+    'page arguments' => array('avreports_client_balances_form', (string) AVCLIENT_TYPE_CUSTOMER),
     'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
     'type' => MENU_CALLBACK,
     'file' => 'inc/txn_list.form.inc',

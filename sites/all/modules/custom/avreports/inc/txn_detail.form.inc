@@ -139,6 +139,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     if ($is_sr) {
       $header['actions'] = NULL;
     }
+    $header['vendor_name'] = array('data' => 'PREFERRED VENDOR', 'field' => 'avprod.title');
   }
   if ($col_product) {
     $header['row_qty'] = array('data' => 'QTY', 'field' => 'row_qty');
@@ -191,7 +192,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     $select[] = 'avtxn_detail.ref_txn_type';
   }
   if ($col_total) {
-    $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
+    $select[] = avtxns_txn_detail_sum_query_discount_applied() . " + IFNULL(avtxn.amount_to_credit, 0) AS grand_total";
   }
   if ($col_reference_id) {
     $select[] = 'avtxn.reference_id';
@@ -223,6 +224,8 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   if ($col_product) {
     $select[] = 'avprod.title AS product_title';
     $joins[] = 'INNER JOIN {avtbl_products} AS avprod ON avprod.id = avtxn_detail.item_id';
+    $select[] = 'avvendors.display_name AS vendor_name';
+    $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendors ON avvendors.id = avprod.vendor_id';
   }
   if ($col_client) {
     $select[] = 'avclients.id AS client_id';
@@ -317,6 +320,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
         $data['actions'] .= ' &nbsp; ' . avtxns_txn_list_table_phl_link($row->product_title, $user_filter, 'hist.');
         $data['actions'] = '<div class="not-printable">' . $data['actions'] . '</div>';
       }
+      $data['vendor_name'] = check_plain($row->vendor_name);
     }
     if ($col_product) {
       $data['row_qty'] = number_format($row->row_qty);
@@ -344,6 +348,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   }
 
   if (!empty($table_rows) && $limit === NULL) {
+    $colspan = 0;
     $totals_table_row = array();
     if ($col_product) {
       $label_colspan = $colspan = array_search('row_qty', array_keys($header));
@@ -363,18 +368,20 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
         'data' => NULL,
         'colspan' => $label_colspan
       );
-      $totals_table_row[] = '<div class="uk-text-right">' . number_format($debit_total) . '</div>';
-      $totals_table_row[] = '<div class="uk-text-right">' . number_format($credit_total) . '</div>';
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($debit_total, 2) . '</div>';
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($credit_total, 2) . '</div>';
     }
 
-    $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
-    if ($remaining_cols) {
-      $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
-    }
+    if (!empty($colspan)) {
+      $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
+      if ($remaining_cols) {
+        $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
+      }
 
-    if (!empty($totals_table_row)) {
-      $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
-      $table_rows[] = $totals_table_row;
+      if (!empty($totals_table_row)) {
+        $table_rows[] = array(array('data' => NULL, 'colspan' => count($header)));
+        $table_rows[] = $totals_table_row;
+      }
     }
   }
 

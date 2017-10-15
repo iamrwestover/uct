@@ -14,16 +14,14 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Added <em>Accounts History Report</em></li>
-      <li>- Disabled Products can now be included on Stock Status Report.</li>
-      <li>- Vendor Balances Report now shows Received Item reference id.</li>
+      <li>- Added Preferred Vendor column on relevant reports.</em></li>
+      <li>- Fixed bug where Payment Reports do not show the exact amount given/received.</em></li>
+      <li>- Added Reference ID column on popup dialog when creating relevant transactions.</em></li>
+      <li>- Various bug fixes and performance improvements.</em></li>
       <li><hr /></li>
-      <li class="uk-text-muted">- Added batch approval of pending transactions on Transactions Home page.</li>
-      <li class="uk-text-muted">- Added report: Received Payment Details</li>
-      <li class="uk-text-muted">- Added report: Bills Payment Details</li>
-      <li class="uk-text-muted">- Auto filling of invoice/charge due date is now based on transaction date instead of current date.</li>
-      <li class="uk-text-muted">- Reports now use "mm/dd/yyyy" as date format.</li>
-      <li class="uk-text-muted">- Added new filter "Payments made until" on related reports (e.g. Customer Balances, Invoice List, etc.).</li>
+      <li class="uk-text-muted">- Added <em>Accounts History Report</em></li>
+      <li class="uk-text-muted">- Disabled Products can now be included on Stock Status Report.</li>
+      <li class="uk-text-muted">- Vendor Balances Report now shows Received Item reference id.</li>
     </ul>
   </div>
   <hr />

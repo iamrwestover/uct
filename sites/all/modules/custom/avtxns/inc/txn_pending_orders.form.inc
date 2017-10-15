@@ -31,11 +31,31 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
     '#tree' => TRUE,
   );
 
+  $pending_txns_reference_type = empty($ttd['pending_txns_reference_type']) ? array() : (array) $ttd['pending_txns_reference_type'];
   $col_ref_txn_id = !empty($ttd['bill']) || !empty($ttd['payment']);
+  $col_ref_id = array_intersect($pending_txns_reference_type, avtxns_get_types_with_reference_id());
+  $col_ref_id = !empty($col_ref_id);
+  $col_ref_txn_ref_id = FALSE;
+  foreach ($pending_txns_reference_type as $ptrt) {
+    $ptd = avtxns_txn_types($ptrt);
+    $pptype = empty($ptd['pending_txns_reference_type']) ? array() : (array) $ptd['pending_txns_reference_type'];
+    $col_ref_txn_ref_id = array_intersect($pptype, avtxns_get_types_with_reference_id());
+    $col_ref_txn_ref_id = !empty($col_ref_txn_ref_id);
+    if ($col_ref_txn_ref_id) {
+      break;
+    }
+  }
+
   $header = array();
   $header['transaction_id'] = array('data' => 'Txn#');
+  if ($col_ref_id) {
+    $header['ref_id'] = array('data' => 'Ref. ID');
+  }
   if ($col_ref_txn_id) {
     $header['items_ref_txn_id'] = array('data' => 'Ref. Txn#');
+  }
+  if ($col_ref_txn_ref_id) {
+    $header['ref_txn_ref_id'] = array('data' => 'Ref. Txn Ref. ID');
   }
 
   $header['agent_name'] = array('data' => t('Agent'), 'class' => '');
@@ -49,9 +69,15 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
     //$transaction_details[$v->id] = $v;
     $table_rows[$v->id] = array();
     $table_rows[$v->id]['transaction_id'] = array('data' => t('@txn_num', array('@txn_num' => avbase_txn_number_format($v->transaction_type, $v->id))), 'class' => array('suk-text-right'));
+    if ($col_ref_id) {
+      $table_rows[$v->id]['ref_id'] = isset($v->reference_id) ? check_plain($v->reference_id) : NULL;
+    }
     if ($col_ref_txn_id) {
       $items_ref_txn_num = empty($v->items_ref_txn_id) ? '' : avbase_txn_number_format($v->items_ref_txn_type, $v->items_ref_txn_id);
       $table_rows[$v->id]['items_ref_txn_id'] = array('data' => t('@txn_num', array('@txn_num' => $items_ref_txn_num)), 'class' => array('suk-text-right'));
+    }
+    if ($col_ref_txn_ref_id) {
+      $table_rows[$v->id]['ref_txn_ref_id'] = isset($v->items_ref_txn_ref_id) ? check_plain($v->items_ref_txn_ref_id) : NULL;
     }
     $table_rows[$v->id]['agent_name'] = check_plain($v->agent_name);
     $table_rows[$v->id]['transaction_date'] = format_date($v->transaction_date, 'custom', 'Y M d');
@@ -65,10 +91,8 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       '#header' => $header,
       '#options' => $table_rows,
       //'#sticky' => FALSE,
-      //'#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
-      '#attributes' => array('class' => array('uk-table-hover av-frs')),
-      //'#prefix' => '<div id="avtxns-pending-orders-form-wrapper">',
-      //'#suffix' => '</div>',
+      // The class "tableheader-processed" is a hack / equivalent #sticky=FALSE for tableselect.
+      '#attributes' => array('class' => array('uk-table-hover av-frs tableheader-processed uk-text-small uk-text-uppercase')),
       '#multiple' => (count($reference_type) > 1 || in_array($reference_type[0], array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN))),
     );
   }
@@ -88,7 +112,7 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
       'effect' => 'none',
       //'event' => 'click',
     ),
-    '#reference_type' => $ttd['pending_txns_reference_type'],
+    '#reference_type' => $pending_txns_reference_type,
   );
   $fields['buttons']['submit'] = array(
     '#id' => 'pos-selected-submit-btn',
@@ -218,9 +242,16 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
         $trimmed_po->agent_name = $po_v->agent_name;
         $trimmed_po->transaction_date = $po_v->transaction_date;
         $trimmed_po->grand_total = $po_v->grand_total;
+        if (!empty($po_v->reference_id)) {
+          $trimmed_po->reference_id = $po_v->reference_id;
+        }
+
         if (!empty($po_v->items_ref_txn_id) || !empty($po_v->items_ref_txn_type)) {
           $trimmed_po->items_ref_txn_id = $po_v->items_ref_txn_id;
           $trimmed_po->items_ref_txn_type = $po_v->items_ref_txn_type;
+          if (!empty($po_v->items_ref_txn_ref_id)) {
+            $trimmed_po->items_ref_txn_ref_id = $po_v->items_ref_txn_ref_id;
+          }
         }
         $floating_pos[] = $trimmed_po;
       }

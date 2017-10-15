@@ -95,7 +95,7 @@ class backup_migrate_source_db_mysql extends backup_migrate_source_db {
    */
   function _backup_db_to_file($file, $settings) {
     if (!empty($settings->filters['use_cli']) && $this->_backup_db_to_file_mysqldump($file, $settings)) {
-      watchdog('avwatchdog', 'Mysqldump backup worked.');
+      // watchdog('avwatchdog', 'Mysqldump backup worked.');
       return TRUE;
     }
     else {

@@ -256,7 +256,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_reference_id) {
     $select['reference_id'] = 'avtxn.reference_id';
   }
-  $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
+  $select[] = avtxns_txn_detail_sum_query_discount_applied() . " + IFNULL(avtxn.amount_to_credit, 0) AS grand_total";
   if ($col_paid) {
     $payment_date_to_where = '';
     if (!empty($where['payment_date_to']) && !empty($args[':payment_date_to_stamp'])) {

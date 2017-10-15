@@ -52,6 +52,7 @@ function avreports_sales_to_trade_form($form, &$form_state, $dr_register = FALSE
         'txn_id' => '<em title="May cause slower response time">' . ($dr_register ? 'DR#' : 'INV/SR#') . '</em>',
         'ref_txn_id' => '<em title="May cause slower response time">DR#</em>',
         'item_name' => 'Product',
+        'vendor_name' => '<em title="May cause slower response time">Pref. Vendor</em>',
         'qty_out' => 'Qty.',
         'uom' => 'UOM',
         'price' => '<em title="May cause slower response time">Price</em>',
@@ -217,6 +218,7 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
 
   $col_data = isset($table_columns['item_name']) ? check_plain($row->title) : NULL;
   avreports_sales_to_trade_table_row_col($data, 'item_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'vendor_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
   avreports_sales_to_trade_table_row_col($data, 'qty_out', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
@@ -338,6 +340,7 @@ function avreports_sales_to_trade_table(&$form, $form_state, $dr_register = FALS
     'txn_id' => array('data' => 'TXN. #', 'field' => 'avtxn.id'),
     'ref_txn_id' => array('data' => 'DR #', 'field' => 'avtxn.id'),
     'item_name' => array('data' => 'PRODUCT', 'field' => 'avprod.title'),
+    'vendor_name' => array('data' => 'PREFERRED VENDOR', 'field' => 'vendor_name'),
     'qty_out' => array('data' => 'QTY.', 'field' => 'qty_out'),
     'uom' => array('data' => 'UOM', 'field' => 'avcat_uom.title'),
     'price' => array('data' => 'PRICE', 'class' => array('uk-text-right'), 'field' => 'price'),
@@ -414,6 +417,8 @@ function avreports_sales_to_trade_table(&$form, $form_state, $dr_register = FALS
   }
   if (isset($table_columns['item_name'])) {
     $select[] = 'avprod.title';
+    $select[] = 'avvendors.display_name AS vendor_name';
+    $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendors ON avvendors.id = avprod.vendor_id';
   }
   if (isset($table_columns['transaction_date'])) {
     $select[] = 'avtxn.transaction_date';

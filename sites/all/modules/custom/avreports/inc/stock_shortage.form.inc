@@ -82,6 +82,7 @@ function avreports_stock_shortage_form($form, &$form_state, $limit = NULL, $offs
   }
   if ($col_product_show) {
     $header['product'] = array('data' => 'Product', 'field' => 'avprod.title');
+    $header['vendor_name'] = array('data' => 'PREFERRED VENDOR', 'field' => 'vendor_name');
   }
   $header['uom'] = array('data' => 'QTY', 'field' => 'avcat_uom.title');
   //$header['term'] = array('data' => 'Terms', 'field' => 'term_name');
@@ -129,6 +130,8 @@ function avreports_stock_shortage_form($form, &$form_state, $limit = NULL, $offs
   $select[] = 'avclients.id AS client_id';
   $select[] = 'avclients.display_name';
   $joins[] = 'INNER JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
+  $select[] = 'avvendors.display_name AS vendor_name';
+  $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendors ON avvendors.id = avprod.vendor_id';
   $select[] = 'avcat_uom.title AS uom_title';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avtxn_detail.uom_id';
   $select[] = 'avcat_buom.title AS base_uom_title';
@@ -164,6 +167,7 @@ function avreports_stock_shortage_form($form, &$form_state, $limit = NULL, $offs
     if ($col_product_show) {
       //$data['product'] = l($row->product_title, 'av/products/' . $row->item_id . '/view');
       $data['product'] = avtxns_txn_list_table_phl_link($row->product_title, $user_filter);
+      $data['vendor_name'] = check_plain($row->vendor_name);
     }
     $data['uom'] = empty($row->uom_title) ? NULL : '0 ' . check_plain($row->uom_title);
 

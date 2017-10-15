@@ -191,6 +191,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
       }
       $query->leftJoin('avtbl_transactions', 'avtxn', 'avtxn.id = avtxn_details.ref_txn_id');
       $query->addField('avtxn', 'changed', 'ref_txn_changed');
+      $query->addField('avtxn', 'reference_id', 'ref_txn_ref_id');
 
 
       $query->condition('avtxn_details.transaction_id', $row->id)->execute();
@@ -199,6 +200,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
         if (!isset($row->items_ref_txn_id) && !empty($item->ref_txn_id) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
           $row->items_ref_txn_id = $item->ref_txn_id;
           $row->items_ref_txn_type = $item->ref_txn_type;
+          $row->items_ref_txn_ref_id = $item->ref_txn_ref_id;
         }
 
         // Capitalize item title.

@@ -145,8 +145,13 @@ function avreports_stock_history_form($form, &$form_state) {
 //ORDER BY avtxn_detail.item_id ASC, avtxn.transaction_date ASC, avtxn.id ASC;");
 
     $i_query = "SELECT avprod.id, avprod.title, initial_qty AS onhand,
-      initial_value AS asset_value, initial_value/initial_qty AS ave_cost, initial_qty_date, avcat_uom.title AS uom_title
+      initial_value AS asset_value,
+      initial_value/initial_qty AS ave_cost,
+      initial_qty_date,
+      avclients.display_name AS vendor_name,
+      avcat_uom.title AS uom_title
       FROM avtbl_products AS avprod
+      LEFT JOIN avtbl_clients AS avclients ON avclients.id = avprod.vendor_id
       LEFT JOIN avtbl_categories AS avcat_uom ON avcat_uom.id = avprod.uom_id
       WHERE avprod.title = (:prod_title)";
     $i_rs = db_query($i_query, array(':prod_title' => $user_filter['avprod.title']));
@@ -303,6 +308,7 @@ function avreports_stock_history_form($form, &$form_state) {
       '#markup' => '<span class="uk-text-bold">' . l($user_filter['avprod.title'], "av/products/{$selected_product_id}/view") . '</span>',
     );
     if (!empty($init)) {
+      $transaction_list_table['product_name']['#markup'] .= '<br />Preferred Vendor: ' . check_plain($init->vendor_name);
       $transaction_list_table['product_name']['#markup'] .= '<br />On Hand: ' . number_format($init->onhand);
       $transaction_list_table['product_name']['#markup'] .= empty($init->uom_title) ? '' : (' (' . check_plain($init->uom_title) . ')');
       $transaction_list_table['product_name']['#markup'] .= '<br />Asset Value: ' . number_format($init->asset_value, 2);
