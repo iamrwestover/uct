@@ -57,10 +57,13 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
   if ($col_ref_txn_ref_id) {
     $header['ref_txn_ref_id'] = array('data' => 'Ref. Txn Ref. ID');
   }
-
   $header['agent_name'] = array('data' => t('Agent'), 'class' => '');
   $header['transaction_date'] = array('data' => t('Date'));
   $header['total'] = array('data' => t('Total'), 'class' => 'uk-text-right');
+  if (!empty($ttd['payment'])) {
+    $header['balance'] = array('data' => t('Balance'), 'class' => 'uk-text-right');
+  }
+
 
   $client_pending_pos = empty($form_state['values']['client_pending_pos']) ? array() : $form_state['values']['client_pending_pos'];
   $table_rows = array();
@@ -81,7 +84,11 @@ function avtxns_pending_orders_form_fields(&$form, &$form_state, $transaction_ty
     }
     $table_rows[$v->id]['agent_name'] = check_plain($v->agent_name);
     $table_rows[$v->id]['transaction_date'] = format_date($v->transaction_date, 'custom', 'Y M d');
-    $table_rows[$v->id]['total'] = array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right'));
+    // $table_rows[$v->id]['total'] = array('data' => number_format($v->grand_total, 2), 'class' => array('uk-text-right'));
+    $table_rows[$v->id]['total'] = '<div class="uk-text-right">' . number_format($v->grand_total, 2) . '</div>';
+    if (!empty($ttd['payment'])) {
+      $table_rows[$v->id]['balance'] = '<div class="uk-text-right">' . number_format($v->balance, 2) . '</div>';
+    }
   }
 
   if (!empty($table_rows)) {
@@ -252,6 +259,10 @@ function avtxns_pending_orders_form_submit($form, &$form_state) {
           if (!empty($po_v->items_ref_txn_ref_id)) {
             $trimmed_po->items_ref_txn_ref_id = $po_v->items_ref_txn_ref_id;
           }
+        }
+
+        if (!empty($ttd['payment']) && isset($po_v->balance)) {
+          $trimmed_po->balance = $po_v->balance;
         }
         $floating_pos[] = $trimmed_po;
       }
