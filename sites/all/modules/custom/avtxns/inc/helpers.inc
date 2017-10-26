@@ -1808,3 +1808,15 @@ function avtxns_get_types_with_reference_id() {
     AVTXNS_TXN_TYPE_JOURNAL,
   );
 }
+
+function avtxns_get_accounts_txn_types() {
+  $types = array();
+  $txn_types = avtxns_txn_types();
+  foreach ($txn_types as $ttd) {
+    if ($ttd['transaction'] != 'accounts') {
+      continue;
+    }
+    $types[$ttd['type']] = $ttd['type'];
+  }
+  return $types;
+}

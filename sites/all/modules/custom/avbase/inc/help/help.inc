@@ -14,17 +14,12 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>-  Added <em>Received Items Register Report</em></li>
-      <li>- Fixed bug where Vendor Credit and Credit Memo List Reports show double amounts.</li>
-      <li>- On payment transactions, load-out window now shows remaining balance instead of grand total.</li>
-      <li>- Various bug fixes and performance improvements.</li>
+      <li>- Fixed Accounts History report to also include non-journal account transactions.</li>
+      <!--<li>- Various bug fixes and performance improvements.</li>-->
       <li><hr /></li>
-      <li class="uk-text-muted">- Added Preferred Vendor column on relevant reports.</li>
-      <li class="uk-text-muted">- Fixed bug where Payment Reports do not show the exact amount given/received.</li>
-      <li class="uk-text-muted">- Added Reference ID column on popup dialog when creating relevant transactions.</li>
-      <li class="uk-text-muted">- Added <em>Accounts History Report</em></li>
-      <li class="uk-text-muted">- Disabled Products can now be included on Stock Status Report.</li>
-      <li class="uk-text-muted">- Vendor Balances Report now shows Received Item reference id.</li>
+      <li class="uk-text-muted">-  Added <em>Received Items Register Report</em></li>
+      <li class="uk-text-muted">- Fixed bug where Vendor Credit and Credit Memo List Reports show double amounts.</li>
+      <li class="uk-text-muted">- On payment transactions, load-out window now shows remaining balance instead of grand total.</li>
     </ul>
   </div>
   <hr />

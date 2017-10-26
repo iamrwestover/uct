@@ -7,11 +7,11 @@
  */
 function avreports_profit_loss_form($form, &$form_state) {
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
+  $dad_default = empty($dad['last_month']) ? array() : $dad['last_month'];
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
-      '#default_value' => 'last_month_to_date',
+      '#default_value' => 'last_month',
     ),
     'date_from' => array(
       '#title' => t('Date from'),

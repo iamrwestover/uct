@@ -260,9 +260,29 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
   }
 
+  $ttypes = (array) $transaction_type;
+  $default_account_ids = array();
+  if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
+    $ttypes = avtxns_get_accounts_txn_types();
+    $select[] = 'avtxn.transaction_type';
+    $select[] = 'avtxn_detail.cost';
+    $where[] = 'avtxn_detail.ref_txn_id IS NULL';
+
+    // Load details of txn default accounts.
+    foreach ($ttypes as $tt) {
+      if ($tt == AVTXNS_TXN_TYPE_JOURNAL) {
+        continue;
+      }
+      $this_ttd = avtxns_txn_types($tt);
+      $account_id = key($this_ttd['default_account_id']);
+      $default_account_ids[$account_id] = $account_id;
+    }
+    $default_account_details = avtxns_account_chart_load_ids($default_account_ids);
+  }
+
   $query = "SELECT _expression_ FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
-  $where[] = 'avtxn.transaction_type = :ttype';
-  $args[':ttype'] = $transaction_type;
+  $where[] = 'avtxn.transaction_type IN (:ttypes)';
+  $args[':ttypes'] = $ttypes;
 
   $group_by[] = 'avtxn.id';
   if ($col_product) {
@@ -286,10 +306,21 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   foreach ($rs as $row) {
     $data = array();
     $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
-    $data['id'] = l(avbase_txn_number_format($transaction_type, $row->id), "{$ttd['base_path']}/$row->id/view");
+    $this_ttype = $transaction_type;
+    $this_ttd = $ttd;
+    if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
+      $this_ttype = $row->transaction_type;
+      $this_ttd = avtxns_txn_types($this_ttype);
+    }
+    $data['id'] = l(avbase_txn_number_format($this_ttype, $row->id), "{$this_ttd['base_path']}/$row->id/view");
     if ($col_accounts) {
       $data['account_title'] = check_plain($row->account_title);
       $data['description'] = check_plain($row->description);
+      if ($this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
+        $default_account = $this_ttd['default_account_id'];
+        $amt_type = array_shift($default_account);
+        $row->$amt_type = $row->cost;
+      }
       $data['debit'] = '<div class="uk-text-right">' . (empty((float) $row->debit) ? NULL : number_format($row->debit, 2)) . '</div>';
       $data['credit'] = '<div class="uk-text-right">' . (empty((float) $row->credit) ? NULL : number_format($row->credit, 2)) . '</div>';
       $debit_total += $row->debit;
@@ -311,7 +342,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     }
 
     if ($col_client_show) {
-      $data['client'] = l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
+      $data['client'] = l($row->display_name, $this_ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
     }
     if ($col_product_show) {
       $data['product'] = l($row->product_title, 'av/products/' . $row->item_id . '/view');
@@ -345,6 +376,26 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     //  $data['agent'] = check_plain($row->agent_name);
     //}
     $table_rows[] = $data;
+
+    if ($this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
+      // Repeat data to balance the debit/credit amounts for non-journal transactions.
+      $default_account = $this_ttd['default_account_id'];
+      $account_id = key($default_account);
+      $data['account_title'] = check_plain($default_account_details[$account_id]->title);
+
+      // Switch debit/credit amounts.
+      $amt_type = $default_account[$account_id];
+      $amt_type2 = $amt_type == 'credit' ? 'debit' : 'credit';
+      $data[$amt_type2] =  $data[$amt_type];
+      $data[$amt_type] = NULL;
+
+      // Update debit/credit total.
+      $amt_type2_total = "{$amt_type2}_total";
+      $$amt_type2_total += $row->$amt_type;
+
+      // Do duplicate row.
+      $table_rows[] = $data;
+    }
   }
 
   if (!empty($table_rows) && $limit === NULL) {
@@ -399,9 +450,10 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
 
   // Show filters used.
   if (isset($user_filter['simplified_status'])) {
+    $transaction_type_name = $transaction_type == AVTXNS_TXN_TYPE_JOURNAL ? 'ACCOUNT ENTRIES' : $ttd['plural_name'];
     $transaction_list_table['simplified_status'] = array(
       '#type' => 'item',
-      '#markup' => check_plain($filter_form_settings['simplified_status']['#options'][$user_filter['simplified_status']]) . ' ' . $ttd['plural_name'],
+      '#markup' => check_plain($filter_form_settings['simplified_status']['#options'][$user_filter['simplified_status']]) . ' ' . $transaction_type_name,
     );
     if (!empty($user_filter['overdue'])) {
       $transaction_list_table['simplified_status']['#markup'] .= ' (OVERDUE)';
