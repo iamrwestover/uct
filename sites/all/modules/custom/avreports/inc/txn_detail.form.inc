@@ -57,6 +57,9 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     'avtxn.reference_id' => array(
       '#title' => t('Reference ID'),
     ),
+    'avachart.title' => array(
+      '#title' => t('Account Name'),
+    ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
     'export_button' => array(
       '#func_name' => __FUNCTION__ ,
@@ -114,7 +117,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
   $header['date'] = array('data' => 'DATE', 'field' => 'transaction_date');
   $header['id'] = array('data' => 'TXN.#', 'field' => 'avtxn.id');
   if ($col_accounts) {
-    $header['account_title'] = array('data' => 'ACCOUNT TITLE', 'field' => 'avachart.title');
+    $header['account_title'] = array('data' => 'ACCOUNT NAME', 'field' => 'avachart.title');
     $header['description'] = array('data' => 'DESCRIPTION');
     $header['debit'] = array('data' => 'DEBIT', 'field' => 'avtxn_detail.debit', 'class' => array('uk-text-right'));
     $header['credit'] = array('data' => 'CREDIT', 'field' => 'avtxn_detail.credit', 'class' => array('uk-text-right'));
@@ -262,6 +265,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
 
   $ttypes = (array) $transaction_type;
   $default_account_ids = array();
+  $default_account_details = array();
   if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
     $ttypes = avtxns_get_accounts_txn_types();
     $select[] = 'avtxn.transaction_type';
@@ -316,7 +320,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     if ($col_accounts) {
       $data['account_title'] = check_plain($row->account_title);
       $data['description'] = check_plain($row->description);
-      if ($this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
+      if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL && $this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
         $default_account = $this_ttd['default_account_id'];
         $amt_type = array_shift($default_account);
         $row->$amt_type = $row->cost;
@@ -377,11 +381,15 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     //}
     $table_rows[] = $data;
 
-    if ($this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
+    if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL && $this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
       // Repeat data to balance the debit/credit amounts for non-journal transactions.
       $default_account = $this_ttd['default_account_id'];
       $account_id = key($default_account);
       $data['account_title'] = check_plain($default_account_details[$account_id]->title);
+
+      if (!empty($user_filter['avachart.title']) && $user_filter['avachart.title'] != $data['account_title']) {
+        continue;
+      }
 
       // Switch debit/credit amounts.
       $amt_type = $default_account[$account_id];
@@ -475,6 +483,14 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
         $transaction_list_table['client_name']['#markup'] .= '<br />Contact #: ' . check_plain($client->contact_number);
       }
     }
+  }
+  if (!empty($user_filter['avachart.title'])) {
+    $transaction_list_table['principal_name'] = array(
+      '#title' => 'Account name',
+      '#title_display' => 'inline-before',
+      '#type' => 'item',
+      '#markup' => empty($user_filter['avachart.title']) ? '' : check_plain($user_filter['avachart.title']),
+    );
   }
   if (!empty($user_filter['avcat_area.title'])) {
     $transaction_list_table['area_name'] = array(

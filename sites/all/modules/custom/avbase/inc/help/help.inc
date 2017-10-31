@@ -14,6 +14,10 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Added "add rows" button when editing stock adjustment reports.</li>
+      <li>- Added principal column on stock status report.</li>
+      <li>- Account names on Profit and Loss report now links to account history.</li>
+      <li>- Added filter by account name on Accounts History report.</li>
       <li>- Fixed Accounts History report to also include non-journal account transactions.</li>
       <!--<li>- Various bug fixes and performance improvements.</li>-->
       <li><hr /></li>

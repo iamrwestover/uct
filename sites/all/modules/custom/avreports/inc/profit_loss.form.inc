@@ -6,6 +6,7 @@
  * @param $form_state
  */
 function avreports_profit_loss_form($form, &$form_state) {
+  ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['last_month']) ? array() : $dad['last_month'];
   $filter_form_settings = array(
@@ -374,7 +375,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   avreports_account_type_difference_row($table_rows, 'GROSS PROFIT / (LOSS)', $at_totals, AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_COGS, $date_group);
 
   // EXPENSES.
-  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_EXPENSE, $account_rows_no_parenting, $date_group, $at_totals);
+  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_EXPENSE, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
 
   // Operating Income Row.
   $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS;

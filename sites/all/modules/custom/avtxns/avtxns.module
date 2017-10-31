@@ -1152,6 +1152,22 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     );
   }
 
+  $fld_name = 'avachart.title';
+  $get_fld_name = 'account_name';
+  if (!empty($settings[$fld_name])) {
+    $fields[$fld_name] = empty($settings[$fld_name]) ? array() : $settings[$fld_name];
+    $fields[$fld_name]['#default_value'] = isset($_GET[$get_fld_name]) ? $_GET[$get_fld_name] : (isset($fields[$fld_name]['#default_value']) ? $fields[$fld_name]['#default_value'] : NULL);
+    $fields[$fld_name] += array(
+      '#type' => 'textfield',
+      '#autocomplete_path' => 'av/chart-of-accounts/autocomplete/',
+      '#maxlength' => 255,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+        'placeholder' => 'account name'
+      ),
+    );
+  }
+
   if (!empty($settings['avclients.display_name'])) {
     $fields['avclients.display_name'] = empty($settings['avclients.display_name']) ? array() : $settings['avclients.display_name'];
     $fields['avclients.display_name'] += array(

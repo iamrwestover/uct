@@ -1117,9 +1117,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
       '#attributes' => array('class' => array('av-ajax-trigger'), 'data-ks' => 'CTRL+INSERT', 'data-ks-trigger' => 'mousedown'),
     );
   }
-  if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT && !empty($row->id)) {
-    unset($form['prod_add_btn']);
-  }
+  // if ($transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT && !empty($row->id)) {
+  //   unset($form['prod_add_btn']);
+  // }
 
   $js_settings['avbase']['uoms'] = avbase_get_categories('uom');
   if (!empty($row->id)) {

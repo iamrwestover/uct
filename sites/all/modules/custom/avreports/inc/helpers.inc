@@ -100,44 +100,44 @@ function avreports_client_balance_aging_form($client_id) {
   return $data[$client_id];
 }
 
-function avreports_account_type_balance_rows(&$table_rows, $pl_accounts_by_type, $account_type, $arnp, $date_group, &$at_totals, $spacer_at_bottom = TRUE) {
+function avreports_account_type_balance_rows(&$table_rows, $pl_accounts_by_type, $account_type, $arnp, $date_group, &$at_totals, $spacer_at_bottom = TRUE, $user_filter = array()) {
   // Account Type info.
   $actd = avtxns_account_chart_types($account_type);
 
   // Header.
   $data = array();
-  $data['account'] = array('data' => $actd['name'], 'colspan' => 1000, 'class' => array('uk-text-uppercase uk-text-bold'));
+  $data['account'] = array('data' => '<div class="uk-text-uppercase uk-text-bold">' . $actd['name'] . '</div>', 'colspan' => 1000);
   $table_rows[] = array('data' => $data);
 
   // Details.
   $pl_account_rows = empty($pl_accounts_by_type[$account_type]) ? array() : $pl_accounts_by_type[$account_type];
   $at_totals[$account_type] = array();
-  $account_type_table_rows = avreports_account_type_balance_row_children($pl_account_rows, $arnp, $date_group, $at_totals[$account_type]);
+  $account_type_table_rows = avreports_account_type_balance_row_children($pl_account_rows, $arnp, $date_group, $at_totals[$account_type], 0, $user_filter);
   //avbase_account_chart_sum_parent_balance($pl_account_rows);
   $table_rows = array_merge($table_rows, $account_type_table_rows);
 
   // Total.
   $data = array();
-  $data['account'] = array('data' => 'Net ' . $actd['name'], 'class' => array('uk-text-bold'));
+  $data['account'] = '<div class="uk-text-bold">Net ' . $actd['name'] . '</div>';
   foreach ($date_group as $tk => $tc) {
     $period_total = isset($at_totals[$account_type][$tk]) ? $at_totals[$account_type][$tk] : 0;
     $this_total_text = avbase_accounting_number_format($period_total);
-    $data[$tk] = array('data' => $this_total_text, 'class' => array('uk-text-bold uk-text-right'));
+    $data[$tk] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
   }
   $at_total = isset($at_totals[$account_type]['at_total']) ? $at_totals[$account_type]['at_total'] : 0;
   $at_total_text = avbase_accounting_number_format($at_total);
-  $data['total'] = array('data' => $at_total_text, 'class' => array('uk-text-right uk-text-bold'));
-  $table_rows[] = array('data' => $data);
+  $data['total'] = '<div class="uk-text-bold uk-text-right">' . $at_total_text . '</div>';
+  $table_rows[] = $data;
 
   // Spacer.
   if ($spacer_at_bottom) {
     $data = array();
     $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
-    $table_rows[] = array('data' => $data);
+    $table_rows[] = $data;
   }
 }
 
-function avreports_account_type_balance_row_children(&$account_rows, $arnp, $date_group, &$account_totals, $depth = 0) {
+function avreports_account_type_balance_row_children(&$account_rows, $arnp, $date_group, &$account_totals, $depth = 0, $user_filter = array()) {
   $table_rows = array();
 
   foreach ($account_rows as $r_k => $account_row) {
@@ -147,24 +147,24 @@ function avreports_account_type_balance_row_children(&$account_rows, $arnp, $dat
     }
 
     $data = array();
-    $data['account'] = array('data' => $depth_html . check_plain($account_row['title']), 'class' => array(''));
+    $data['account'] = $depth_html . avreports_account_history_link($account_row['title'], $user_filter);
     $this_account_balance = 0;
     foreach ($date_group as $tk => $tc) {
       $this_period_balance = isset($arnp[$tk][$r_k]['account_balance']) ? $arnp[$tk][$r_k]['account_balance'] : 0;
       $this_account_balance += $this_period_balance;
       $account_totals[$tk] = isset($account_totals[$tk]) ? $account_totals[$tk] + $this_period_balance : $this_period_balance;
-      $data[$tk] = array('data' => avbase_accounting_number_format($this_period_balance), 'class' => array('uk-text-right'));
+      $data[$tk] = '<div class="uk-text-right">' . avbase_accounting_number_format($this_period_balance) . '</div>';
     }
     $this_account_balance_text = avbase_accounting_number_format($this_account_balance);
     $account_rows[$r_k]['account_balance'] = $this_account_balance;
     $account_totals['at_total'] = isset($account_totals['at_total']) ? $account_totals['at_total'] + $this_account_balance : $this_account_balance;
 
-    $data['total'] = array('data' => $this_account_balance_text, 'class' => array('uk-text-right'));
-    $table_rows[] = array('data' => $data);
+    $data['total'] = '<div class="uk-text-right">' . $this_account_balance_text . '</div>';
+    $table_rows[] = $data;
     //$account_type_total += $account_row['account_balance'];
 
     if (!empty($account_row['children'])) {
-      $table_rows = array_merge($table_rows, avreports_account_type_balance_row_children($account_rows[$r_k]['children'], $arnp, $date_group, $account_totals, $depth + 1));
+      $table_rows = array_merge($table_rows, avreports_account_type_balance_row_children($account_rows[$r_k]['children'], $arnp, $date_group, $account_totals, $depth + 1, $user_filter));
     }
   }
 
@@ -185,7 +185,7 @@ function avreports_account_type_difference_row(&$table_rows, $account_label, &$a
 
 
   $data = array();
-  $data['account'] = array('data' => $account_label, 'class' => array('uk-text-bold'));
+  $data['account'] = '<div class="uk-text-bold">' . $account_label . '</div>';
   foreach ($date_group as $tk => $tc) {
     $period_total1 = isset($at_totals[$type1][$tk]) ? $at_totals[$type1][$tk] : 0;
     $period_total2 = isset($at_totals[$type2][$tk]) ? $at_totals[$type2][$tk] : 0;
@@ -196,17 +196,17 @@ function avreports_account_type_difference_row(&$table_rows, $account_label, &$a
       $period_total = $period_total1 + $period_total2;
     }
     $period_total_text = avbase_accounting_number_format($period_total);
-    $data[$tk] = array('data' => $period_total_text, 'class' => array('uk-text-bold uk-text-right'));
+    $data[$tk] = '<div class="uk-text-bold uk-text-right">' . $period_total_text . '</div>';
 
     $at_totals[$totals_id][$tk] = $period_total;
   }
   $this_total_text = avbase_accounting_number_format($this_total);
-  $data['total'] = array('data' => $this_total_text, 'class' => array('uk-text-right uk-text-bold'));
-  $table_rows[] = array('data' => $data);
+  $data['total'] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
+  $table_rows[] = $data;
   // Spacer.
   $data = array();
   $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
-  $table_rows[] = array('data' => $data);
+  $table_rows[] = $data;
 
   $at_totals[$totals_id]['at_total'] = $this_total;
 }
@@ -348,4 +348,21 @@ function avreports_count_max_rows(&$form, &$query, $select, $where, $group_by, $
     $rows_max = db_query($count_query, $args)->fetchField();
   }
   $form['#report_rows_max'] = $rows_max;
+}
+
+function avreports_account_history_link($title, $user_filter = array(), $link_title = NULL) {
+  if (empty($user_filter)) {
+    return $title;
+  }
+  $link_title = is_null($link_title) ? $title : $link_title;
+  $link_options = array('attributes' => array('target' => '_blank'));
+  $link_options['query']['custom_reset'] = 1; // Important.
+  $link_options['query']['account_name'] = $title;
+  $link_options['query']['date_auto'] = 'custom';
+  $link_options['query']['date_from'] = $user_filter['date_from'];
+  $link_options['query']['date_to'] = $user_filter['date_to'];
+  $link_options['attributes']['title'] = 'View account history';
+
+
+  return l($link_title, 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_JOURNAL, $link_options);
 }

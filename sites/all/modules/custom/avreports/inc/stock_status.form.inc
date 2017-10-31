@@ -51,6 +51,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $header = array();
   $header['product_title'] = array('data' => 'PRODUCT', 'field' => 'product_title');
   $header['vendor'] = array('data' => 'PREFERRED VENDOR', 'field' => 'vendor_name');
+  $header['principal'] = array('data' => 'PRINCIPAL', 'field' => 'principal_name');
   $header['onhand'] = array('data' => 'OHQ', 'field' => 'onhand', 'class' => array('uk-text-right'));
   $header['onhand']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['onhand']['title'] = 'On Hand Quantity';
@@ -143,7 +144,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $select[] = "($dr_total_query / $day_diff) AS day_ave";
   $select[] = 'avvendor.display_name AS vendor_name';
   $select[] = 'avcat_uom.title AS uom_title';
-  //$select[] = 'avcat_principal.title AS principal_title';
+  $select[] = 'avcat_principal.title AS principal_name';
   $joins[] = $products_join . ' {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
   $joins['avtxn'] = $products_join . ' {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status <> :void_type AND avtxn.transaction_type IN (:ttypes)';
   if (!empty($where)) {
@@ -152,6 +153,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   }
   $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendor ON avvendor.id = avprod.vendor_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
+  $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
 
   $select_args[':po_type'] = AVTXNS_TXN_TYPE_PURCHASE_ORDER;
   $select_args[':so_type'] = AVTXNS_TXN_TYPE_SALES_ORDER;
@@ -194,8 +196,8 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   foreach ($rs as $row) {
     $data = array();
     $data['product_title'] = l($row->product_title, 'av/products/' . $row->product_id . '/view');
-    //$data['principal'] = check_plain($row->principal_title);
     $data['vendor'] = check_plain($row->vendor_name);
+    $data['principal'] = check_plain($row->principal_name);
     $data['onhand'] = '<div class="uk-text-right">' . number_format($row->onhand) . '</div>';
     $data['uom'] = check_plain($row->uom_title);
     $data['day_ave'] = '<div class="uk-text-right">' . number_format($row->day_ave) . '</div>';

@@ -198,6 +198,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['avachart.title'])): ?>
+    <div class="uk-width-2-10">
+      <?php print drupal_render($form['avachart.title']); ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($reset_btn_html): ?>
     <div class="uk-width-1-10">
       <?php print $reset_btn_html; ?>
