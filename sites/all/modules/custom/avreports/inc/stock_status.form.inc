@@ -174,7 +174,8 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
       break;
   }
   if (!empty($user_filter['settings']['principal_name'])) {
-    $joins[] = 'INNER JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id AND avcat_principal.title = :principal_name';
+    // $joins[] = 'INNER JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id AND avcat_principal.title = :principal_name';
+    $where[] = 'avcat_principal.title = :principal_name';
     $args[':principal_name'] = $user_filter['settings']['principal_name'];
   }
   if (!empty($user_filter['settings']['preferred_vendor'])) {
