@@ -620,7 +620,7 @@ function avtxns_txn_types($type = NULL) {
       'total_is_amount_to_credit' => TRUE,
       'ref_ar_type' => 'credit',
       'default_account_id' => array(
-        AVTXN_AC_SPECIFIC_AR_ID => 'credit',
+        AVTXN_AC_SPECIFIC_AR_ID => 'debit',
       ),
     );
     $ret[AVTXNS_TXN_TYPE_VENDOR_CREDIT] = array(
@@ -639,7 +639,7 @@ function avtxns_txn_types($type = NULL) {
       'tpl_suffix' => AVTXNS_TXN_TYPE_CREDIT_MEMO,
       'total_is_amount_to_credit' => TRUE,
       'default_account_id' => array(
-        AVTXN_AC_SPECIFIC_AP_ID => 'debit',
+        AVTXN_AC_SPECIFIC_AP_ID => 'credit',
       ),
     );
     $ret[AVTXNS_TXN_TYPE_CUSTOMER_CHARGES] = array(
@@ -661,7 +661,7 @@ function avtxns_txn_types($type = NULL) {
       'credit_txn_types' => array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_CREDIT_MEMO, AVTXNS_TXN_TYPE_PAYMENT),
       'ref_ar_type' => 'credit',
       'default_account_id' => array(
-        AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+        AVTXN_AC_SPECIFIC_AR_ID => 'credit',
       ),
     );
     $ret[AVTXNS_TXN_TYPE_OTHER_BILLS] = array(
@@ -682,7 +682,7 @@ function avtxns_txn_types($type = NULL) {
       'payable' => TRUE,
       'credit_txn_types' => array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_VENDOR_CREDIT, AVTXNS_TXN_TYPE_PAY_BILL),
       'default_account_id' => array(
-        AVTXN_AC_SPECIFIC_AP_ID => 'credit',
+        AVTXN_AC_SPECIFIC_AP_ID => 'debit',
       ),
     );
 
