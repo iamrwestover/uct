@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Profit and Loss Report Form.
+ * Build an fs form.
  * @param $form
  * @param $form_state
+ * @param $type
  *
- * @return array
+ * @return mixed
  */
-function avreports_profit_loss_form($form, &$form_state) {
+function avreports_fs_form($form, &$form_state, $type) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['last_month']) ? array() : $dad['last_month'];
@@ -81,17 +82,20 @@ function avreports_profit_loss_form($form, &$form_state) {
   $header['total'] = array('data' => 'Total', 'class' => array('uk-text-right'));
 
   // Get account charts.
-  $profit_loss_account_types = array(AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_OTHER_INCOME, AVTXN_AC_TYPE_COGS, AVTXN_AC_TYPE_EXPENSE);
+  $account_types = array();
+  switch ($type) {
+    case 'profit-loss':
+      $account_types = array(AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_OTHER_INCOME, AVTXN_AC_TYPE_COGS, AVTXN_AC_TYPE_EXPENSE);
+      break;
+    case 'balance-sheet':
+      $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL);
+      break;
+  }
   $accounts_where = $accounts_args = array();
   $accounts_where[] = 'avachart.account_type IN (:account_types)';
-  $accounts_args[':account_types'] = $profit_loss_account_types;
-  //$profit_loss_accounts = avtxns_account_chart_query_load($accounts_where, $accounts_args);
+  $accounts_args[':account_types'] = $account_types;
   $rs = avtxns_account_chart_rs_load($accounts_where, $accounts_args);
-  //dpm($rs->fetchAllKeyed(0,2));
   $profit_loss_accounts = $rs->fetchAllAssoc('id');
-  //foreach ($rs as $ar) {
-  //  $profit_loss_accounts[$ar->id] = $ar;
-  //}
 
   // Build query.
   $pl_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
@@ -99,7 +103,6 @@ function avreports_profit_loss_form($form, &$form_state) {
   $select[] = 'avtxn_detail.*';
   $select[] = 'avtxn.transaction_type';
   $select[] = 'avtxn.transaction_date';
-  //$select[] = "(DATE_FORMAT(FROM_UNIXTIME(avtxn.transaction_date) ,'%M 01 %Y')) AS period";
   $select['grand_total'] = avtxns_txn_detail_sum_query() . ' AS grand_total';
   $select['grand_total_discounted'] = avtxns_txn_detail_sum_query_discount_applied() . ' AS grand_total_discounted';
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
@@ -108,7 +111,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   $args[':txn_types'] = $pl_transaction_types;
   $args[':txn_statuses'] = $pl_transaction_statuses;
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
-  $query = avreports_profit_loss_query($where, $select, $joins, $group_by);
+  $query = avreports_fs_query($where, $select, $joins, $group_by);
   $rs = db_query($query, $args);
   $account_rows = array();
 
@@ -118,10 +121,10 @@ function avreports_profit_loss_form($form, &$form_state) {
     $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
     foreach ($account_ids as $a_id => $a_type) {
       $this_account_type = isset($profit_loss_accounts[$a_id]->account_type) ? $profit_loss_accounts[$a_id]->account_type : '';
-      if (!in_array($this_account_type, $profit_loss_account_types)) {
+      if (!in_array($this_account_type, $account_types)) {
         continue;
       }
-      //$profit_loss_account_types
+
       $account_rows[$a_id][] = array(
         'transaction_id' => $row->transaction_id,
         'transaction_date' => $row->transaction_date,
@@ -133,7 +136,7 @@ function avreports_profit_loss_form($form, &$form_state) {
     }
 
     // Add sales discount if available and if necessary.
-    if (in_array(AVTXN_AC_TYPE_INCOME, $profit_loss_account_types) && !empty($row->grand_total_discounted)) {
+    if (in_array(AVTXN_AC_TYPE_INCOME, $account_types) && !empty($row->grand_total_discounted)) {
       $discounted_amount = $row->grand_total - $row->grand_total_discounted;
       $discounted_amount = round((float)$discounted_amount, 2);
       if (!empty($discounted_amount)) {
@@ -163,7 +166,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   $where[] = 'avtxn_detail.account_id IN (:account_ids)';
   $args[':txn_types'] = $ttypes;
   $args[':account_ids'] = array_keys($profit_loss_accounts);
-  $query = avreports_profit_loss_query($where, $select, $joins);
+  $query = avreports_fs_query($where, $select, $joins);
   $rs = db_query($query, $args);
   foreach ($rs as $row) {
     $account_row = array(
@@ -255,23 +258,36 @@ function avreports_profit_loss_form($form, &$form_state) {
   // Create table.
   $table_rows = array();
   $at_totals = array();
-  // INCOME.
-  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_INCOME, $account_rows_no_parenting, $date_group, $at_totals);
+  if ($type == 'profit-loss') {
+    // INCOME.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_INCOME, $account_rows_no_parenting, $date_group, $at_totals);
+    // COGS.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_COGS, $account_rows_no_parenting, $date_group, $at_totals);
+    // Gross Profit Row.
+    avreports_account_type_difference_row($table_rows, 'GROSS PROFIT / (LOSS)', $at_totals, AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_COGS, $date_group);
+    // EXPENSES.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_EXPENSE, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+    // Operating Income Row.
+    $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS;
+    avreports_account_type_difference_row($table_rows, 'OPERATING INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_EXPENSE, $date_group);
+    // Other Income.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+  }
+  elseif ($type == 'balance-sheet') {
+    // Current Assets.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_CURRENT, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+    // Fixed Assets.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_FIXED, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+    // Total Assets.
+    avreports_account_type_difference_row($table_rows, 'TOTAL ASSETS', $at_totals, AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, $date_group, FALSE);
+    // Liabilities.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_LIABILITY, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+    // Capital.
+    avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_CAPITAL, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+    // Total Assets.
+    avreports_account_type_difference_row($table_rows, 'TOTAL LIABILITIES AND CAPITAL', $at_totals, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, $date_group, FALSE);
+  }
 
-  // COGS.
-  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_COGS, $account_rows_no_parenting, $date_group, $at_totals);
-  // Gross Profit Row.
-  avreports_account_type_difference_row($table_rows, 'GROSS PROFIT / (LOSS)', $at_totals, AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_COGS, $date_group);
-
-  // EXPENSES.
-  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_EXPENSE, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
-
-  // Operating Income Row.
-  $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS;
-  avreports_account_type_difference_row($table_rows, 'OPERATING INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_EXPENSE, $date_group);
-
-  // Other Income.
-  avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $account_rows_no_parenting, $date_group, $at_totals);
   // Spacer.
   $data = array();
   $data['account'] = array('data' => '', 'colspan' => 1000);
@@ -316,7 +332,7 @@ function avreports_profit_loss_form($form, &$form_state) {
   return $form;
 }
 
-function avreports_profit_loss_query($where, $select, $joins, $group_by = NULL) {
+function avreports_fs_query($where, $select, $joins, $group_by = NULL) {
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transaction_details} AS avtxn_detail " . implode(' ', $joins);
   if (!empty($where)) {
     $query .= " WHERE " . implode(' AND ', $where);

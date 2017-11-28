@@ -118,7 +118,7 @@ function avreports_account_type_balance_rows(&$table_rows, $pl_accounts_by_type,
 
   // Total.
   $data = array();
-  $data['account'] = '<div class="uk-text-bold">Net ' . $actd['name'] . '</div>';
+  $data['account'] = '<div class="uk-text-bold">Total ' . $actd['name'] . '</div>';
   foreach ($date_group as $tk => $tc) {
     $period_total = isset($at_totals[$account_type][$tk]) ? $at_totals[$account_type][$tk] : 0;
     $this_total_text = avbase_accounting_number_format($period_total);

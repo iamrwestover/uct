@@ -14,16 +14,15 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Added "add rows" button when editing stock adjustment reports.</li>
-      <li>- Added principal column on stock status report.</li>
-      <li>- Account names on Profit and Loss report now links to account history.</li>
-      <li>- Added filter by account name on Accounts History report.</li>
-      <li>- Fixed Accounts History report to also include non-journal account transactions.</li>
-      <!--<li>- Various bug fixes and performance improvements.</li>-->
-      <li><hr /></li>
-      <li class="uk-text-muted">-  Added <em>Received Items Register Report</em></li>
-      <li class="uk-text-muted">- Fixed bug where Vendor Credit and Credit Memo List Reports show double amounts.</li>
-      <li class="uk-text-muted">- On payment transactions, load-out window now shows remaining balance instead of grand total.</li>
+      <li>- Fixed bug where filter by principal name doesnt work properly on Stock Status report.</li>
+      <li>- Swapped credit/debit setting for accounting reports.</li>
+      <li>- Various bug fixes and performance improvements.</li>
+      <li><hr class="uk-margin-bottom" /></li>
+      <li class="uk-text-muted">- Added "add rows" button when editing stock adjustment reports.</li>
+      <li class="uk-text-muted">- Added principal column on stock status report.</li>
+      <li class="uk-text-muted">- Account names on Profit and Loss report now links to account history.</li>
+      <li class="uk-text-muted">- Added filter by account name on Accounts History report.</li>
+      <li class="uk-text-muted">- Fixed Accounts History report to also include non-journal account transactions.</li>
     </ul>
   </div>
   <hr />

@@ -128,10 +128,19 @@ function avreports_menu() {
   $items['av/reports/profit-loss'] = array(
     'title' => 'Profit & Loss',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('avreports_profit_loss_form'),
+    'page arguments' => array('avreports_fs_form', 2),
     'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
     'type' => MENU_CALLBACK,
-    'file' => 'inc/profit_loss.form.inc',
+    'file' => 'inc/fs.form.inc',
+  );
+
+  $items['av/reports/balance-sheet'] = array(
+    'title' => 'Balance Sheet',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_fs_form', 2),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/fs.form.inc',
   );
 
   $items['av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_JOURNAL] = array(
