@@ -4,6 +4,8 @@
  * Profit and Loss Report Form.
  * @param $form
  * @param $form_state
+ *
+ * @return array
  */
 function avreports_profit_loss_form($form, &$form_state) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
@@ -147,7 +149,6 @@ function avreports_profit_loss_form($form, &$form_state) {
     }
   }
 
-
   // Do the same but for Journals.
   unset($select['grand_total']);
   unset($select['grand_total_discounted']);
@@ -199,45 +200,6 @@ function avreports_profit_loss_form($form, &$form_state) {
     }
   }
 
-
-  // Get product ids from cogs transactions.
-  //$cogs_query = "SELECT avtxn.id, avtxn.transaction_type, avtxn.transaction_date, avtxn_detail.item_id
-  //  FROM {avtbl_transaction_details} AS avtxn_detail
-  //  INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id
-  //  WHERE avtxn_detail.item_id AND avtxn.transaction_type IN (:ttypes) AND avtxn.status NOT IN (:txn_statuses)";
-  //$cogs_args = array();
-  //$cogs_args[':ttypes'] = array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_DELIVERY);
-  //$cogs_args[':txn_statuses'] = $pl_transaction_statuses;
-  //$cogs_rs = db_query($cogs_query, $cogs_args);
-  //$cogs_transaction_ids = array();
-  //foreach ($cogs_rs as $r_k => $row) {
-  //  $cogs_transaction_ids[$row->id]['product_ids'][$row->item_id] = $row->item_id;
-  //  $cogs_transaction_ids[$row->id]['row'] = $row;
-  //}
-  //avreports_get_transaction_ave_cost($cogs_transaction_ids);
-  //foreach ($cogs_transaction_ids as $cti) {
-  //  $row = $cti['row'];
-  //  $ttd = avtxns_txn_types($row->transaction_type);
-  //  $ref_txn_type = empty($row->ref_txn_type) ? 'default' : $row->ref_txn_type;
-  //  $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
-  //  foreach ($account_ids as $a_id => $a_type) {
-  //    $this_account_type = isset($profit_loss_accounts[$a_id]->account_type) ? $profit_loss_accounts[$a_id]->account_type : '';
-  //    if (!in_array($this_account_type, $profit_loss_account_types)) {
-  //      continue;
-  //    }
-  //    //$profit_loss_account_types
-  //    $account_rows[$a_id][] = array(
-  //      'transaction_id' => $row->id,
-  //      'transaction_date' => $row->transaction_date,
-  //      'transaction_type' => $row->transaction_type,
-  //      'account_id' => $a_id,
-  //      'account_type' => $this_account_type,
-  //      $a_type => $cti['cog'],
-  //    );
-  //  }
-  //}
-
-
   // Group by period.
   $account_rows_by_period = array();
   foreach ($date_group as $dg) {
@@ -253,23 +215,6 @@ function avreports_profit_loss_form($form, &$form_state) {
     }
     $account_rows_by_period[$dg['date_from']] = $period_accounts;
   }
-
-  //dpm($account_rows_by_period);
-  //return $form;
-  //foreach ($account_rows as $r_k => $row) {
-  //  foreach($row['txn_details'] as $txn_detail) {
-  //    foreach ($date_group as $dg) {
-  //      if (!isset($account_rows_by_period[$dg['date_from']]['accounts'])) {
-  //        $account_rows_by_period[$dg['date_from']]['accounts'] = array();
-  //      }
-  //      if ($txn_detail['transaction_date'] <= $dg['date_to']) {
-  //        $account_rows_by_period[$dg['date_from']]['accounts'][$r_k]['txn_details'][] = $txn_detail;
-  //        break;
-  //      }
-  //    }
-  //  }
-  //}
-
 
   // Compute total balance per account.
   foreach ($account_rows_by_period as $p_k => $period) {
@@ -298,62 +243,6 @@ function avreports_profit_loss_form($form, &$form_state) {
   }
 
   $account_rows_no_parenting = $account_rows_by_period;
-
-  //// Build parent-child relationship.
-  //foreach ($account_rows_by_period as $p_k => $period) {
-  //  $account_rows_by_period[$p_k] = avbase_rows_build_tree($period, 0, FALSE, FALSE);
-  //  // Get total children balance.
-  //  avbase_account_chart_sum_parent_balance($account_rows_by_period[$p_k]);
-  //}
-  //
-  //// Group by account type.
-  ////$account_rows_by_type = array();
-  ////foreach ($account_rows_by_period as $p_k => $period) {
-  ////  foreach ($period as $r_k => $row) {
-  ////    $account_rows_by_type[$row['account_type']][$p_k][$r_k] = $row;
-  ////  }
-  ////}
-  //
-  //$account_rows_by_type = array();
-  //foreach ($account_rows_by_period as $p_k => $period) {
-  //  foreach ($period as $r_k => $row) {
-  //    $account_rows_by_type[$row['account_type']][$r_k][$p_k] = $row;
-  //    $account_rows_by_type[$row['account_type']]['#account_type'] = $row['account_type'];
-  //    $account_rows_by_type[$row['account_type']]['#title'] = $row['title'];
-  //  }
-  //}
-  //
-  //
-  //// Compute total balance per account type.
-  ////foreach ($account_rows_by_type as $at_k => $periods) {
-  ////  $account_type_total = 0;
-  ////  foreach ($periods as $p_k => $rows) {
-  ////    $period_total = 0;
-  ////    foreach ($rows as $row) {
-  ////      $period_total += $row['account_balance'] + $row['children_account_balance'];
-  ////      $account_type_total += $period_total;
-  ////    }
-  ////    $account_rows_by_type[$at_k][$p_k]['#period_total'] = $period_total;
-  ////    $account_rows_by_type[$at_k][$p_k]['#period_total_text'] = avbase_accounting_number_format($period_total);
-  ////  }
-  ////  $account_rows_by_type[$at_k]['#at_total'] = $account_type_total;
-  ////  $account_rows_by_type[$at_k]['#at_total_text'] = avbase_accounting_number_format($account_type_total);
-  ////}
-  //foreach ($account_rows_by_type as $at_k => $rows) {
-  //  $account_type_total = 0;
-  //  foreach (element_children($rows) as $r_k) {
-  //    $period = $rows[$r_k];
-  //    $account_total = 0;
-  //    foreach ($period as $p_k => $p_info) {
-  //      $account_type_total += $p_info['account_balance'] + $p_info['children_account_balance'];
-  //      $account_total += $p_info['account_balance'];
-  //    }
-  //    $account_rows_by_type[$at_k][$r_k]['#account_total'] = $account_total;
-  //    $account_rows_by_type[$at_k][$r_k]['#account_total_text'] = avbase_accounting_number_format($account_total);
-  //  }
-  //  $account_rows_by_type[$at_k]['#at_total'] = $account_type_total;
-  //  $account_rows_by_type[$at_k]['#at_total_text'] = avbase_accounting_number_format($account_type_total);
-  //}
 
   // chart.
   $profit_loss_accounts = avbase_rows_build_tree($profit_loss_accounts, 0, FALSE, FALSE);
