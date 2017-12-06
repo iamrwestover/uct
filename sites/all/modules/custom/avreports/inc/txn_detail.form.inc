@@ -323,6 +323,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
       if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL && $this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
         $default_account = $this_ttd['default_account_id'];
         $amt_type = array_shift($default_account);
+        $amt_type = $amt_type == 'credit' ? 'debit' : 'credit';
         $row->$amt_type = $row->cost;
       }
       $data['debit'] = '<div class="uk-text-right">' . (empty((float) $row->debit) ? NULL : number_format($row->debit, 2)) . '</div>';
@@ -392,14 +393,13 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
       }
 
       // Switch debit/credit amounts.
-      $amt_type = $default_account[$account_id];
-      $amt_type2 = $amt_type == 'credit' ? 'debit' : 'credit';
-      $data[$amt_type2] =  $data[$amt_type];
+      $amt_type_of_default_account = $default_account[$account_id];
+      $data[$amt_type_of_default_account] =  $data[$amt_type];
       $data[$amt_type] = NULL;
 
       // Update debit/credit total.
-      $amt_type2_total = "{$amt_type2}_total";
-      $$amt_type2_total += $row->$amt_type;
+      $amt_type_of_default_account_total = "{$amt_type_of_default_account}_total";
+      $$amt_type_of_default_account_total += $row->$amt_type;
 
       // Do duplicate row.
       $table_rows[] = $data;
