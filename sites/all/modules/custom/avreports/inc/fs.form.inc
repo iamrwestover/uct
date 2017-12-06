@@ -86,9 +86,13 @@ function avreports_fs_form($form, &$form_state, $type) {
   switch ($type) {
     case 'profit-loss':
       $account_types = array(AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_OTHER_INCOME, AVTXN_AC_TYPE_COGS, AVTXN_AC_TYPE_EXPENSE);
+      $fs_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
+      $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
       break;
     case 'balance-sheet':
       $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL);
+      $fs_transaction_types = array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_PAY_BILL);
+      $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_VOID);
       break;
   }
   $accounts_where = $accounts_args = array();
@@ -98,8 +102,6 @@ function avreports_fs_form($form, &$form_state, $type) {
   $profit_loss_accounts = $rs->fetchAllAssoc('id');
 
   // Build query.
-  $pl_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE);
-  $pl_transaction_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
   $select[] = 'avtxn_detail.*';
   $select[] = 'avtxn.transaction_type';
   $select[] = 'avtxn.transaction_date';
@@ -108,8 +110,8 @@ function avreports_fs_form($form, &$form_state, $type) {
   $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id';
   $where[] = 'avtxn.transaction_type IN (:txn_types)';
   $where[] = 'avtxn.status NOT IN (:txn_statuses)';
-  $args[':txn_types'] = $pl_transaction_types;
-  $args[':txn_statuses'] = $pl_transaction_statuses;
+  $args[':txn_types'] = $fs_transaction_types;
+  $args[':txn_statuses'] = $fs_invalid_statuses;
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
   $query = avreports_fs_query($where, $select, $joins, $group_by);
   $rs = db_query($query, $args);
@@ -272,6 +274,13 @@ function avreports_fs_form($form, &$form_state, $type) {
     avreports_account_type_difference_row($table_rows, 'OPERATING INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_EXPENSE, $date_group);
     // Other Income.
     avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
+    // Spacer.
+    $data = array();
+    $data['account'] = array('data' => '', 'colspan' => 1000);
+    $table_rows[] = array('data' => $data);
+    // Net Income Row.
+    $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS . '.' . AVTXN_AC_TYPE_EXPENSE;
+    avreports_account_type_difference_row($table_rows, 'NET INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_OTHER_INCOME, $date_group, FALSE);
   }
   elseif ($type == 'balance-sheet') {
     // Current Assets.
@@ -287,14 +296,6 @@ function avreports_fs_form($form, &$form_state, $type) {
     // Total Assets.
     avreports_account_type_difference_row($table_rows, 'TOTAL LIABILITIES AND CAPITAL', $at_totals, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, $date_group, FALSE);
   }
-
-  // Spacer.
-  $data = array();
-  $data['account'] = array('data' => '', 'colspan' => 1000);
-  $table_rows[] = array('data' => $data);
-  // Net Income Row.
-  $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS . '.' . AVTXN_AC_TYPE_EXPENSE;
-  avreports_account_type_difference_row($table_rows, 'NET INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_OTHER_INCOME, $date_group, FALSE);
 
 
   $transaction_list_table['table'] = array(

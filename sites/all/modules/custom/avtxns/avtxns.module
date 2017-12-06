@@ -489,11 +489,11 @@ function avtxns_txn_types($type = NULL) {
         ),
         AVTXNS_TXN_TYPE_CREDIT_MEMO => array(
           //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
-          AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
+          // AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
         ),
         AVTXNS_TXN_TYPE_PAYMENT => array(
           //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
-          AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
+          // AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
         ),
       ),
     );
@@ -569,6 +569,21 @@ function avtxns_txn_types($type = NULL) {
       'tpl_suffix' => '',
       //'pr_statuses' => array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_LOCKED), // Allowed statuses on when referenced.
       'payable' => TRUE,
+      'account_ids' => array(
+        AVTXNS_TXN_TYPE_RECEIVE => array(
+          AVTXN_AC_SPECIFIC_AP_ID => 'debit',
+          AVTXN_AC_SPECIFIC_SALES_ID => 'credit',
+        ),
+        // AVTXNS_TXN_TYPE_PURCHASE_RETURN => array(
+        //   AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
+        // ),
+        // AVTXNS_TXN_TYPE_VENDOR_CREDIT => array(
+        //   AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
+        // ),
+        // AVTXNS_TXN_TYPE_PAY_BILL => array(
+        //   AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
+        // ),
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_PAY_BILL] = array(
       'button_class' => 'uk-button-primary',
