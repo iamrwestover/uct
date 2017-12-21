@@ -1028,3 +1028,40 @@ function avbase_query_supplements(&$query, $where = array(), $order_by = array()
     }
   }
 }
+
+function avbase_query_supplements_stock_status(&$query, $where = array(), $order_by = array(), $limit = NULL, $offset = NULL, $group_by = array(), $joins, $all_products, $args) {
+  // Limit by product ids instead of limit value.
+  if (!empty($limit)) {
+    if ($all_products) {
+      unset($joins['avtxn']);
+      unset($joins['avtxn_detail']);
+      unset($args[':void_type']);
+      unset($args[':ttypes']);
+      unset($args[':date_to_stamp']);
+      unset($args[':date_from_stamp']);
+    }
+    $product_query = "SELECT avprod.id FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+    avbase_query_supplements($product_query, $where, array('id' => 'id ASC'), $limit, $offset);
+    $product_ids = db_query($product_query, $args)->fetchAllKeyed(0, 0);
+    if ($product_ids) {
+      $where[] = 'avprod.id IN (' . implode(',', $product_ids) . ')';
+      $limit = NULL;
+    }
+  }
+
+  if (!empty($where)) {
+    $query .= " WHERE " . implode(' AND ', $where);
+  }
+  if (!empty($group_by)) {
+    $query .= " GROUP BY " . implode(', ', $group_by);
+  }
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
+  }
+  if (!is_null($limit)) {
+    $query .= " LIMIT $limit";
+    if (!is_null($offset)) {
+      $query .= " OFFSET $offset";
+    }
+  }
+}

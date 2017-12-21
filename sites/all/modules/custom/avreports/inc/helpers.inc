@@ -350,6 +350,29 @@ function avreports_count_max_rows(&$form, &$query, $select, $where, $group_by, $
   $form['#report_rows_max'] = $rows_max;
 }
 
+function avreports_count_max_rows_stock_status(&$form, &$query, $select, $where, $group_by, $args, $offset, $joins, $all_products = FALSE) {
+  $rows_max = 1;
+  // $count_query = str_replace('_expression_', '1 AS expression', $query);
+  $query = str_replace('_expression_', implode(', ', $select), $query);
+  if ($offset === 0) {
+    // Compute total record count.
+    if ($all_products) {
+      unset($joins['avtxn']);
+      unset($joins['avtxn_detail']);
+      unset($args[':void_type']);
+      unset($args[':ttypes']);
+      unset($args[':date_to_stamp']);
+      unset($args[':date_from_stamp']);
+    }
+
+    $count_query = "SELECT 1 AS expression FROM {avtbl_products} AS avprod " . implode(' ', $joins);
+    avbase_query_supplements($count_query, $where);
+    $count_query = "SELECT COUNT(*) AS expression FROM ($count_query) subquery";
+    $rows_max = db_query($count_query, $args)->fetchField();
+  }
+  $form['#report_rows_max'] = $rows_max;
+}
+
 function avreports_account_history_link($title, $user_filter = array(), $link_title = NULL) {
   if (empty($user_filter)) {
     return $title;

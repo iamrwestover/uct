@@ -46,6 +46,10 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $all_products = !empty($user_filter['settings']['all_products']);
   $selectable_list = !empty($user_filter['settings']['selectable']);
 
+  if ($all_products) {
+    unset($where['product_statuses']);
+    unset($args[':product_statuses']);
+  }
 
 
   $header = array();
@@ -145,7 +149,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $select[] = 'avvendor.display_name AS vendor_name';
   $select[] = 'avcat_uom.title AS uom_title';
   $select[] = 'avcat_principal.title AS principal_name';
-  $joins[] = $products_join . ' {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
+  $joins['avtxn_detail'] = $products_join . ' {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
   $joins['avtxn'] = $products_join . ' {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status <> :void_type AND avtxn.transaction_type IN (:ttypes)';
   if (!empty($where)) {
     $joins['avtxn'] .= ' AND ' . implode(' AND ', $where);
@@ -186,9 +190,8 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   // $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
   $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
   // Count max rows before applying supplements to $query.
-
-  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
-  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
+  avreports_count_max_rows_stock_status($form, $query, $select, $where, $group_by, $args, $offset, $joins, $all_products);
+  avbase_query_supplements_stock_status($query, $where, $order_by, $limit, $offset, $group_by, $joins, $all_products, $args);
 
   $args = array_merge($args, $select_args);
   $rs = db_query($query, $args);
