@@ -357,6 +357,7 @@ function avreports_count_max_rows_stock_status(&$form, &$query, $select, $where,
   if ($offset === 0) {
     // Compute total record count.
     if ($all_products) {
+      $group_by = array();
       unset($joins['avtxn']);
       unset($joins['avtxn_detail']);
       unset($args[':void_type']);
@@ -366,7 +367,7 @@ function avreports_count_max_rows_stock_status(&$form, &$query, $select, $where,
     }
 
     $count_query = "SELECT 1 AS expression FROM {avtbl_products} AS avprod " . implode(' ', $joins);
-    avbase_query_supplements($count_query, $where);
+    avbase_query_supplements($count_query, $where, array(), NULL, NULL, $group_by);
     $count_query = "SELECT COUNT(*) AS expression FROM ($count_query) subquery";
     $rows_max = db_query($count_query, $args)->fetchField();
   }

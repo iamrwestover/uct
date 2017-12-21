@@ -16,6 +16,7 @@ function avbase_help_home() {
     <ul class="uk-list">
       <li>- Fixed bug where filter by principal name doesnt work properly on Stock Status report.</li>
       <li>- Swapped credit/debit setting for accounting reports.</li>
+      <li>- Improved performance on stock status report export.</li>
       <li>- Various bug fixes and performance improvements.</li>
       <li><hr class="uk-margin-bottom" /></li>
       <li class="uk-text-muted">- Added "add rows" button when editing stock adjustment reports.</li>

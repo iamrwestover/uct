@@ -1033,6 +1033,7 @@ function avbase_query_supplements_stock_status(&$query, $where = array(), $order
   // Limit by product ids instead of limit value.
   if (!empty($limit)) {
     if ($all_products) {
+      $group_by = array();
       unset($joins['avtxn']);
       unset($joins['avtxn_detail']);
       unset($args[':void_type']);
@@ -1041,7 +1042,7 @@ function avbase_query_supplements_stock_status(&$query, $where = array(), $order
       unset($args[':date_from_stamp']);
     }
     $product_query = "SELECT avprod.id FROM {avtbl_products} AS avprod " . implode(' ', $joins);
-    avbase_query_supplements($product_query, $where, array('id' => 'id ASC'), $limit, $offset);
+    avbase_query_supplements($product_query, $where, array('id' => 'id ASC'), $limit, $offset, $group_by);
     $product_ids = db_query($product_query, $args)->fetchAllKeyed(0, 0);
     if ($product_ids) {
       $where[] = 'avprod.id IN (' . implode(',', $product_ids) . ')';
