@@ -34,7 +34,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
       '#report_inc' => 'stock_status.form',
     ),
   );
-  $filter_form_settings['product_status'] = array('#default_value' => AVPRODUCTS_STATUS_ACTIVE);
+  // $filter_form_settings['product_status'] = array('#default_value' => AVPRODUCTS_STATUS_ACTIVE);
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
   // Prepare query variables.
   $select = $joins = $where = $args = array();
