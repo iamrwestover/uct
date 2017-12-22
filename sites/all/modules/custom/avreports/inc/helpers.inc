@@ -357,6 +357,7 @@ function avreports_count_max_rows_stock_status(&$form, &$query, $select, $where,
   if ($offset === 0) {
     // Compute total record count.
     if ($all_products) {
+
       $group_by = array();
       unset($joins['avtxn']);
       unset($joins['avtxn_detail']);

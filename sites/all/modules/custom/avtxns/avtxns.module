@@ -1418,7 +1418,7 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['settings']['all_products'] += array(
       '#type' => 'select',
       '#title' => 'Products',
-      '#options' => array('In a DR, SO, PO or transferred on selected dates', 'All products (including disabled ones)'),
+      '#options' => array('In a DR, SO, PO or transferred on selected dates', 'All products'),
       '#attributes' => array(
         'class' => array('trigger-ajax-search'),
       ),
