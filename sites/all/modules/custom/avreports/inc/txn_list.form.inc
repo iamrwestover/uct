@@ -86,6 +86,14 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       '#report_inc' => 'txn_list.form',
     ),
   );
+
+  // Override report name.
+  if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE && $secondary_transaction_type == AVTXNS_TXN_TYPE_CUSTOMER_CHARGES) {
+    $filter_form_settings['export_button']['#report_name'] = 'Customer Balances';
+  }
+  elseif ($transaction_type == AVTXNS_TXN_TYPE_BILL && $secondary_transaction_type == AVTXNS_TXN_TYPE_OTHER_BILLS) {
+    $filter_form_settings['export_button']['#report_name'] = 'Vendor Balances';
+  }
   if (in_array($transaction_type, avtxns_get_refable_txn_types()) || in_array($transaction_type, avtxns_get_creditable_txn_types())) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED] = 'Closed';
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN . '-' . AVTXNS_TXN_STATUS_CLOSED] = 'Open and Closed';
