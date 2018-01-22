@@ -53,6 +53,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   $col_return_type = $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN;
   $col_reference_id = in_array($transaction_type, avtxns_get_types_with_reference_id()) || in_array($secondary_transaction_type, avtxns_get_types_with_reference_id());
   $col_bal_age = !empty($secondary_transaction_type);
+  $col_payment_method = !empty($ttd['payment']);
 
   // Custom date options details.
   $dad = avtxns_txn_list_filter_date_auto_options();
@@ -191,6 +192,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $header['bal_age']['data-uk-tooltip'] = '{cls: "tt-blue"}';
     $header['bal_age']['title'] = 'Age in Days';
   }
+  if ($col_payment_method) {
+    $header['payment_method'] = array('data' => 'PMT. METHOD');
+  }
 
   // Set table pagination and sort settings.
   if (!empty($user_filter['settings']['table_href'])) {
@@ -238,6 +242,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   $select[] = 'avtxn.status';
   $select[] = 'avtxn.transaction_type';
   $select[] = 'avtxn.transaction_date';
+  if ($col_payment_method) {
+    $select[] = 'avtxn.pmt_method_id';
+  }
   if ($col_due_date) {
     $select[] = 'avtxn.due_date';
     $select[] = avtxns_txn_overdue_query() . ' AS overdue';
@@ -318,7 +325,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   $row_totals = array();
   $table_rows = array();
   //$now = time();
-  $last_client_name = '';
+  if ($col_payment_method) {
+    $payment_methods = avbase_payment_method_array();
+  }
 
   foreach ($rs as $row) {
     //$overdue = $col_due_date && $row->due_date <= $now && $row->status != AVTXNS_TXN_STATUS_CLOSED;
@@ -328,8 +337,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $data = array();
     $this_ttd = avtxns_txn_types($row->transaction_type);
     $view_path = "{$this_ttd['base_path']}/$row->id/view";
+    $row_total = empty($row_totals[$row->id]) ? 0 : $row_totals[$row->id];
     if (!empty($this_ttd['credit_txn_types'])) {
-      $row_total = empty($row_totals[$row->id]) ? 0 : $row_totals[$row->id];
       if (in_array($row->ref_txn_type, $this_ttd['credit_txn_types'])) {
         $row_total -= $row->grand_total;
         $list_total -= $row->grand_total;
@@ -342,7 +351,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       }
     }
     else {
-      $row_total = $row->grand_total;
+      $row_total += $row->grand_total;
       $list_total += $row->grand_total;
     }
     $row_totals[$row->id] = $row_total;
@@ -401,6 +410,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       if ($col_bal_age) {
         $data['bal_age'] = empty($row->bal_age) ? NULL : '<div class="uk-text-right">' . number_format($row->bal_age) . '</div>';
       }
+      if ($col_payment_method) {
+        $data['payment_method'] = (empty($row->pmt_method_id) && !isset($payment_methods[$row->pmt_method_id])) ? NULL : $payment_methods[$row->pmt_method_id];
+      }
 
 
       if ($overdue) {
@@ -448,7 +460,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       //  $row_bal_html = empty($row_bal_html) ? $row_bal_html : '<span class="uk-text-muted uk-text-italic">' . $row_bal_html . '</span>';
       //}
       $table_rows[$row->id]['total'] = $row_total_html;
-      $table_rows[$row->id]['balance'] =  $row_bal_html;
+      if (isset($header['balance'])) {
+        $table_rows[$row->id]['balance'] =  $row_bal_html;
+      }
     }
 
     if ($col_items_ref_txn_id && !empty($row->ref_txn_id) && empty($table_rows[$row->id]['items_ref_txn_id']) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {

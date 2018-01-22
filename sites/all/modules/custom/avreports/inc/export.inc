@@ -73,7 +73,7 @@ function avreports_export_batch_process($func_name, $func_args, $report_name, $r
   module_load_include('inc', 'phpexcel');
 
   if ($func_name == 'avreports_stock_status_form') {
-    $limit = 50;
+    $limit = 100;
   }
   else {
     $limit = variable_get('av_export_row_limit', '5000');
