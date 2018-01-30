@@ -54,14 +54,16 @@
         if (days >= 0) {
           dateObj.setDate(dateObj.getDate() + parseInt(days));
           var dateString = dateObj.toDateString();
-          dateString = dateString.substr(dateString.indexOf(' ') + 1);
-          // Insert period after month text.
-          var insertPos = dateString.indexOf(' ');
-          dateString = [dateString.slice(0, insertPos), '.', dateString.slice(insertPos)].join('');
-          // Insert comma after day text.
-          insertPos = dateString.indexOf(' ', dateString.indexOf(' ') + 1);
-          dateString = [dateString.slice(0, insertPos), ',', dateString.slice(insertPos)].join('');
-          console.log(dateString);
+          // dateString = dateString.substr(dateString.indexOf(' ') + 1);
+          dateString = (dateObj.getMonth() + 1) + '/' + dateObj.getDate() + '/' +  dateObj.getFullYear();
+
+          // // Insert period after month text.
+          // var insertPos = dateString.indexOf(' ');
+          // dateString = [dateString.slice(0, insertPos), '.', dateString.slice(insertPos)].join('');
+          // // Insert comma after day text.
+          // insertPos = dateString.indexOf(' ', dateString.indexOf(' ') + 1);
+          // dateString = [dateString.slice(0, insertPos), ',', dateString.slice(insertPos)].join('');
+          // console.log(dateString);
           self.$dueDateEl.val(dateString);
         }
         else {

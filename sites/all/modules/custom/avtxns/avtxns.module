@@ -1219,14 +1219,15 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['avtxn.transaction_date'] += array(
       '#type' => 'textfield',
       //'#default_value' => !empty($row->expiry_date) ? format_date($row->expiry_date, 'custom', $date_format) : '',
-      //'#element_validate' => array('avbase_element_validate_date'),
-      //'#av_date_format' => $date_format,
+      '#element_validate' => array('avbase_element_validate_date'),
+      '#av_date_format' => AVBASE_DATE_FORMAT,
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'YYYY-MM-DD'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
         'class' => array('trigger-ajax-search'),
-        'readonly' => 'readonly',
+        // 'readonly' => 'readonly',
       ),
+      '#av_date_inputmask' => TRUE,
     );
   }
 
@@ -1256,10 +1257,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
         'class' => array('trigger-ajax-search'),
-        'readonly' => 'readonly',
+        // 'readonly' => 'readonly',
       ),
+      '#av_date_inputmask' => TRUE,
+      '#element_validate' => array('avbase_element_validate_date'),
+      '#av_date_format' => AVBASE_DATE_FORMAT,
     );
   }
   $fld_name = 'date_from';
@@ -1271,10 +1275,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
         'class' => array('trigger-ajax-search'),
-        'readonly' => 'readonly',
+        // 'readonly' => 'readonly',
       ),
+      '#av_date_inputmask' => TRUE,
+      '#element_validate' => array('avbase_element_validate_date'),
+      '#av_date_format' => AVBASE_DATE_FORMAT,
     );
   }
   $fld_name = 'payment_date_to';
@@ -1286,10 +1293,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
         'class' => array('trigger-ajax-search'),
-        'readonly' => 'readonly',
+        // 'readonly' => 'readonly',
       ),
+      '#av_date_inputmask' => TRUE,
+      '#element_validate' => array('avbase_element_validate_date'),
+      '#av_date_format' => AVBASE_DATE_FORMAT,
     );
   }
 

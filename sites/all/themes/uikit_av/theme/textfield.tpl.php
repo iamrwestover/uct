@@ -15,6 +15,11 @@
  */
 
 $element = $variables['element'];
+if (!empty($element['#av_date_inputmask'])) {
+  drupal_add_library('avbase', 'avbase.dateInputMask');
+  $element['#attributes']['data-inputmask'] = "'alias': 'mm/dd/yyyy', 'placeholder': '', 'positionCaretOnTab': false";
+}
+
 $element['#attributes']['type'] = isset($element['#special_element_type']) ? $element['#special_element_type'] : 'text';
 element_set_attributes($element, array(
   'id',

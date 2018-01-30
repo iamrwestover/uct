@@ -71,46 +71,6 @@ function avreports_stock_history_form($form, &$form_state) {
     $order_by['avtxn.id'] = 'avtxn.id ASC';
   }
 
-//  $xx = 0;
-//  $r = array();
-//  for ($j=0; $j < 10000000; $j++) {
-//    $xx++;
-//    $r['x'] = $xx;
-//    $r['d'] = $xx;
-//    $r['the_quick_brown'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown2'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown3'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$r['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$r['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$r['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$r['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $r['the_quick_brow2n'] = "Uncry these tears I cried so many nights. Unbreak my heaaaaaartttt. heaaart..";
-//  }
-//  $jj = array();
-//  for ($j=0; $j < 10000000; $j++) {
-//    $xx++;
-//    $jj['x'] = $xx;
-//    $jj['d'] = $xx;
-//    $jj['the_quick_brown'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown2'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown3'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brown4'] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$jj['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$jj['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$jj['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    //$jj['xs']['the_quick_brown'][] = "Unbreak my heart.... say you love me again. Undo this hurt, that cause that you wall out of the door. And wallk out of my life.";
-//    $jj['the_quick_brow2n'] = "Uncry these tears I cried so many nights. Unbreak my heaaaaaartttt. heaaart..";
-//  }
-//dpm($xx);
 
   $table_rows = array();
   $selected_product_id = NULL;
@@ -144,7 +104,7 @@ function avreports_stock_history_form($form, &$form_state) {
 //GROUP BY avtxn.id, avtxn_detail.item_id
 //ORDER BY avtxn_detail.item_id ASC, avtxn.transaction_date ASC, avtxn.id ASC;");
 
-    $i_query = "SELECT avprod.id, avprod.title, initial_qty AS onhand,
+    $i_query = "SELECT avprod.id, avprod.title, initial_qty AS onhand, qty AS current_onhand,
       initial_value AS asset_value,
       initial_value/initial_qty AS ave_cost,
       initial_qty_date,
@@ -312,6 +272,11 @@ function avreports_stock_history_form($form, &$form_state) {
       $transaction_list_table['product_name']['#markup'] .= '<br />On Hand: ' . number_format($init->onhand);
       $transaction_list_table['product_name']['#markup'] .= empty($init->uom_title) ? '' : (' (' . check_plain($init->uom_title) . ')');
       $transaction_list_table['product_name']['#markup'] .= '<br />Asset Value: ' . number_format($init->asset_value, 2);
+
+      // Update qty.
+      if ($init->current_onhand != $init->onhand) {
+        db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(':qty' => $init->onhand, ':id' => $init->id));
+      }
     }
   }
   $form['transaction_list_table'] = array(

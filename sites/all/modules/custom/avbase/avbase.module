@@ -11,7 +11,7 @@ define('AVBASE_MODULE_PATH', drupal_get_path('module', 'avbase'));
 define('AVBASE_HELP_PATH', AVBASE_MODULE_PATH . '/inc/help');
 define('AVBASE_LIBRARIES_PATH', 'sites/all/libraries');
 
-define('AVBASE_SYSTEM_VERSION', 'v1.171031');
+define('AVBASE_SYSTEM_VERSION', 'v1.180130');
 
 define('AVBASE_DISCOUNT_PERCENT', 1);
 define('AVBASE_DISCOUNT_FIXED', 2);
@@ -35,6 +35,10 @@ define('AVBASE_PERM_IMPORT', 'avbase system import');
 
 // Expanded memory limit.
 define('AVBASE_EXPANDED_MEMORY_LIMIT', '512M');
+
+// Date formats.
+define('AVBASE_DATE_FORMAT', 'm/d/Y');
+define('AVBASE_DATE_FORMAT_JS', 'MM/DD/YYYY');
 
 
 /**
@@ -817,6 +821,18 @@ function avbase_library() {
         'data' => $terms_js_settings,
         'type' => 'setting',
       ),
+    ),
+  );
+
+  $libraries['avbase.dateInputMask'] = array(
+    'title' => 'Date input mask',
+    'version' => VERSION,
+    'js' => array(
+      AVBASE_MODULE_PATH . '/js/inputmask/dist/min/jquery.inputmask.bundle.min.js' => array('group' => JS_DEFAULT),
+      // AVBASE_MODULE_PATH . '/js/inputmask/dist/inputmask/dependencyLibs/inputmask.dependencyLib.js' => array('group' => JS_DEFAULT),
+      // AVBASE_MODULE_PATH . '/js/inputmask/dist/min/inputmask/inputmask.min.js' => array('group' => JS_DEFAULT),
+      // AVBASE_MODULE_PATH . '/js/inputmask/dist/min/inputmask/inputmask.date.extensions.min.js' => array('group' => JS_DEFAULT),
+      AVBASE_MODULE_PATH . '/js/avbase.inputmask.js' => array('group' => JS_DEFAULT),
     ),
   );
 

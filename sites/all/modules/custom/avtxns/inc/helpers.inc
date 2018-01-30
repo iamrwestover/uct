@@ -1469,7 +1469,7 @@ function avtxns_txn_list_filter_date_auto_options_array($date_format = 'F d, Y')
  *
  * @return array
  */
-function avtxns_txn_list_filter_date_auto_options($date_format = 'F d, Y') {
+function avtxns_txn_list_filter_date_auto_options($date_format = AVBASE_DATE_FORMAT) {
   $data = &drupal_static(__FUNCTION__, array());
   if (isset($data[$date_format])) {
     return $data[$date_format];

@@ -202,7 +202,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
   }
 
   if (!empty($ttd['payable'])) {
-    $date_format = 'M. d, Y';
+    $date_format = AVBASE_DATE_FORMAT;
     $form['due_date'] = array(
       '#id' => 'due-date',
       '#type' => 'textfield',
@@ -213,9 +213,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#av_date_format' => $date_format,
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMM. DD, YYYY'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
       ),
       '#required' => TRUE,
+      '#av_date_inputmask' => TRUE,
       //'#access' => !empty($ttd['bill']),
     );
     // Override term with the one selected from pending transactions.
@@ -273,7 +274,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
 
 
   //$last_txn_date_timestamp = empty($_SESSION['txn_date']) ? NULL : '';
-  $date_format = 'F d, Y';
+  $date_format = empty($view_mode) ? AVBASE_DATE_FORMAT : 'F d, Y';
   $txn_date_timestamp = NULL;
   if (empty($row->id) && isset($_SESSION['txn_date']) && empty($ttd['cant_change_date'])) {
     $txn_date_timestamp = (int) $_SESSION['txn_date'];
@@ -293,11 +294,14 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#av_date_format' => $date_format,
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'MMMM DD, YYYY'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
+        // 'placeholder' => 'MM/DD/YYYY',
+        // 'data-inputmask' => "'alias': 'date'",
       ),
       '#required' => TRUE,
       //'#access' => empty($view_mode),
       '#disabled' => !empty($ttd['cant_change_date']),
+      '#av_date_inputmask' => TRUE,
     );
     $current_txn_date_text = format_date($now, 'custom', $date_format);
     if (empty($row->id) && $transaction_date_text != $current_txn_date_text) {
