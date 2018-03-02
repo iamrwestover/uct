@@ -134,6 +134,15 @@ function avreports_menu() {
     'file' => 'inc/sales_to_trade.form.inc',
   );
 
+  $items['av/reports/register/' . AVTXNS_TXN_TYPE_SALES_RETURN] = array(
+    'title' => 'Sales Return Register',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_sales_to_trade_form', AVTXNS_TXN_TYPE_SALES_RETURN),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/sales_to_trade.form.inc',
+  );
+
   $items['av/reports/profit-loss'] = array(
     'title' => 'Profit & Loss',
     'page callback' => 'drupal_get_form',
@@ -350,6 +359,7 @@ function avreports_home_form($form, &$form_state) {
   $buttons[AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Purchase', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['so_register'] = array('#markup' => l('Sales Order Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_SALES_ORDER, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['dr_register'] = array('#markup' => l('Delivery Receipt Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_DELIVERY, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['dr_register'] = array('#markup' => l('Sales Return Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_SALES_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['rcv_register'] = array('#markup' => l('Received Items Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_RECEIVE, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
@@ -412,12 +422,12 @@ function avreports_soa_form($form, &$form_state) {
 
   // Headers.
   $header = array(
-    'date' => array('data' => 'Date', 'class' => array(''), 'style' => 'width: 13%;'),
-    'reference' => array('data' => 'Reference', 'class' => array(''), 'style' => 'width: 12%;'),
-    'description' => array('data' => 'Description', 'class' => array(''), 'style' => 'width: 15%;'),
-    'debit' => array('data' => 'Debit', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
-    'credit' => array('data' => 'Credit', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
-    'balance' => array('data' => 'Balance', 'class' => array('uk-text-right'), 'style' => 'width: 20%;'),
+    'date' => array('data' => 'Date', 'class' => array('')),
+    'reference' => array('data' => 'Reference', 'class' => array('')),
+    'description' => array('data' => 'Description', 'class' => array('')),
+    'debit' => array('data' => 'Debit', 'class' => array('uk-text-right')),
+    'credit' => array('data' => 'Credit', 'class' => array('uk-text-right')),
+    'balance' => array('data' => 'Balance', 'class' => array('uk-text-right')),
   );
 
   $where[] = 'avtxn.transaction_type IN (:transaction_types)';
@@ -453,6 +463,7 @@ function avreports_soa_form($form, &$form_state) {
 
   //$select[] = 'avtxn.amount_to_credit';
   $select[] = 'avtxn_detail.ref_txn_type';
+  $select[] = 'avtxn_detail.ref_txn_id';
   $select[] = avtxns_txn_detail_sum_query_discount_applied() . " AS grand_total";
   //$select[] = "IF (
   //    (avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_PAYMENT . "' OR avtxn.transaction_type = '" . AVTXNS_TXN_TYPE_CUSTOMER_CHARGES . "'),
@@ -505,7 +516,7 @@ function avreports_soa_form($form, &$form_state) {
       if (!empty($row->ref_txn_type)) {
         $rttd = avtxns_txn_types($row->ref_txn_type);
       }
-
+      $references = array();
       switch ($row->ref_txn_type) {
         case AVTXNS_TXN_TYPE_DELIVERY:
           $description = t('Sales');
@@ -513,6 +524,11 @@ function avreports_soa_form($form, &$form_state) {
         case AVTXNS_TXN_TYPE_SALES_RETURN:
           $description = t('Returns');
           $view_path_suffix = 'apply-credits';
+          $references[] = l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), "{$rttd['base_path']}/$row->ref_txn_id/view");
+          $reference_id = db_query("SELECT reference_id FROM {avtbl_transactions} WHERE id = :ref_txn_id", array(':ref_txn_id' => $row->ref_txn_id))->fetchField();
+          if (!empty($reference_id)) {
+            $references[] = $reference_id;
+          }
           break;
         case AVTXNS_TXN_TYPE_PAYMENT:
           $description = t('Credit from overpayment');
@@ -521,23 +537,29 @@ function avreports_soa_form($form, &$form_state) {
         case AVTXNS_TXN_TYPE_CREDIT_MEMO:
           $description = t('Credit memo');
           $view_path_suffix = 'apply-credits';
+          $references[] = l(avbase_txn_number_format($row->ref_txn_type, $row->ref_txn_id), "{$rttd['base_path']}/$row->ref_txn_id/view");
+          $reference_id = db_query("SELECT reference_id FROM {avtbl_transactions} WHERE id = :ref_txn_id", array(':ref_txn_id' => $row->ref_txn_id))->fetchField();
+          if (!empty($reference_id)) {
+            $references[] = $reference_id;
+          }
           break;
         default:
           $description = $ttd['name'];
           break;
       }
       $view_path .= $view_path_suffix;
-      $reference = l(strtoupper($row->transaction_type) . '# ' . $row->id, $view_path);
+      $main_reference = l(avbase_txn_number_format($row->transaction_type, $row->id), $view_path);
+      array_unshift($references, $main_reference);
       $description = l($description, $view_path);
       $date_string = l($date_string, $view_path);
     }
     else {
-      $reference = empty($row->reference) ? '' : $row->reference;
+      $references[] = empty($row->reference) ? '' : $row->reference;
       $description = empty($row->description) ? '' : $row->description;
     }
     $data = array(
       'date' => array('data' => $date_string, 'class' => array('')),
-      'reference' => $reference,
+      'reference' => implode(', ', $references),
       'description' => array('data' => $description, 'class' => array('')),
       'debit' => array('data' => '', 'class' => array('uk-text-right')),
       'credit' => array('data' => '', 'class' => array('uk-text-right')),
@@ -575,7 +597,7 @@ function avreports_soa_form($form, &$form_state) {
   else {
     $table_attributes = array(
       'id' => 'transaction-list-table',
-      'class' => array('uk-table-condensed uk-table-striped'),
+      'class' => array('uk-table-condensed uk-table-striped uk-table-hover'),
     );
     // Add summary rows at the bottom of the table.
     $rows[] = array('data' => array(array('data' => '&nbsp;', 'colspan' => 10)));

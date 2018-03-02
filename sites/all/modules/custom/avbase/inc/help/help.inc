@@ -14,15 +14,17 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Added Sales Order Register report.</li>
-      <li>- Easier input of dates.</li>
-      <li>- Fixed bug related to inconsistent product quantity.</li>
-      <li>- Added Payment Method column on Bills Payment report.</li>
-      <li>- Fixed bug where filter by principal name doesnt work properly on Stock Status report.</li>
-      <li>- Swapped credit/debit setting for accounting reports.</li>
-      <li>- Improved performance on stock status report export.</li>
-      <li>- Various bug fixes and performance improvements.</li>
+      <li>- Added Sales Return Register report.</li>
+      <li>- Statement of Account now shows for reference numbers.</li>
       <li><hr class="uk-margin-bottom" /></li>
+      <li class="uk-text-muted">- Added Sales Order Register report.</li>
+      <li class="uk-text-muted">- Easier input of dates.</li>
+      <li class="uk-text-muted">- Fixed bug related to inconsistent product quantity.</li>
+      <li class="uk-text-muted">- Added Payment Method column on Bills Payment report.</li>
+      <li class="uk-text-muted">- Fixed bug where filter by principal name doesnt work properly on Stock Status report.</li>
+      <li class="uk-text-muted">- Swapped credit/debit setting for accounting reports.</li>
+      <li class="uk-text-muted">- Improved performance on stock status report export.</li>
+      <li class="uk-text-muted">- Various bug fixes and performance improvements.</li>
       <li class="uk-text-muted">- Added "add rows" button when editing stock adjustment reports.</li>
       <li class="uk-text-muted">- Added principal column on stock status report.</li>
       <li class="uk-text-muted">- Account names on Profit and Loss report now links to account history.</li>
