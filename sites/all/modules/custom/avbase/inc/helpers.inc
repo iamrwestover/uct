@@ -149,7 +149,7 @@ function avbase_element_validate_date($element, &$form_state, $form) {
   $date_info = date_parse_from_format($date_format, $date);
 
   $t_args = array(
-    '%element_title' => $element['#title'],
+    '%element_title' => empty($element['#title']) ? 'Date' : $element['#title'],
     //'@date_format' => $date_format,
     '%sample_date' => format_date(time(), 'custom', $date_format)
   );

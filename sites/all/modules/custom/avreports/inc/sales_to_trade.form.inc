@@ -55,6 +55,7 @@ function avreports_sales_to_trade_form($form, &$form_state, $transaction_type = 
         'txn_id' => '<em title="May cause slower response time">' . ($register ? (strtoupper($transaction_type) . '#') : 'INV/SR#') . '</em>',
         'ref_txn_id' => '<em title="May cause slower response time">DR#</em>',
         'item_name' => 'Product',
+        'prod_cat_name' => '<em title="May cause slower response time">Category</em>',
         'vendor_name' => '<em title="May cause slower response time">Pref. Vendor</em>',
         'qty_out' => 'Qty.',
         'uom' => 'UOM',
@@ -98,6 +99,7 @@ function avreports_sales_to_trade_form($form, &$form_state, $transaction_type = 
     $filter_form_settings['table_group_by']['#default_value'] = '';
     $filter_form_settings['table_columns']['#default_value'] = array('principal_name');
   }
+  $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
 
   $user_filter = empty($form_state['values']['avtxns_tl_filter']) ? array() : $form_state['values']['avtxns_tl_filter'];
@@ -221,6 +223,7 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
 
   $col_data = isset($table_columns['item_name']) ? check_plain($row->title) : NULL;
   avreports_sales_to_trade_table_row_col($data, 'item_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
+  avreports_sales_to_trade_table_row_col($data, 'prod_cat_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
   avreports_sales_to_trade_table_row_col($data, 'vendor_name', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
 
   avreports_sales_to_trade_table_row_col($data, 'qty_out', $row, $table_columns, $table_group_by, $group_total, $hide_cols);
@@ -330,6 +333,9 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
   if (!empty($user_filter['avclients.category_id'])) {
     $hide_cols[] = 'category_name';
   }
+  if (!empty($user_filter['avcat_prodcat.id'])) {
+    $hide_cols[] = 'prod_cat_name';
+  }
 
   // Headers.
   $header = array(
@@ -345,6 +351,7 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
     'txn_id' => array('data' => 'TXN. #', 'field' => 'avtxn.id'),
     'ref_txn_id' => array('data' => 'DR #', 'field' => 'avtxn.id'),
     'item_name' => array('data' => 'PRODUCT', 'field' => 'avprod.title'),
+    'prod_cat_name' => array('data' => 'CATEGORY', 'field' => 'avcat_prodcat.title'),
     'vendor_name' => array('data' => 'PREFERRED VENDOR', 'field' => 'vendor_name'),
     'qty_out' => array('data' => 'QTY.', 'field' => 'qty_out'),
     'uom' => array('data' => 'UOM', 'field' => 'avcat_uom.title'),
@@ -474,6 +481,13 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
     $joins['clients'] = 'LEFT JOIN {avtbl_clients} AS avclients ON avclients.id = avtxn.client_id';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_area ON avcat_area.id = avclients.area_id';
   }
+  if (isset($table_columns['prod_cat_name']) || !empty($user_filter['avcat_prodcat.id'])) {
+    $select[] = 'avcat_prodcat.title AS prod_cat_name';
+    $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_prodcat ON avcat_prodcat.id = avprod.category_id';
+    if (!isset($table_columns['item_name']) && !isset($table_columns['txn_id'])) {
+      $group_by['city'] = 'avprod.category_id';
+    }
+  }
 
   $sum_query_increment_string = $register ? '1' : 'avtxn.transaction_type = :txn_type_invoice';
   if (isset($table_columns['discount'])) {
@@ -489,7 +503,6 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
   $args[':txn_type_delivery'] = AVTXNS_TXN_TYPE_DELIVERY;
   $args[':txn_type_sr'] = AVTXNS_TXN_TYPE_SALES_RETURN;
   $args[':rud'] = AVTXNS_RETURN_TYPE_RUD;
-
 
 
 
