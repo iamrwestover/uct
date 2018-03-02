@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * UCT base features and functions.
+ * UCT base features and functions..
  */
 
 module_load_include('inc', 'avbase', 'inc/helpers');
