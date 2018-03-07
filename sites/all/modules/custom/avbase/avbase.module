@@ -390,6 +390,33 @@ function avbase_form_alter(&$form, $form_state, $form_id) {
         unset($form['cron_settings']['cron_none']['#description']);
       }
       break;
+
+    case 'user_login':
+      $site_name_html = <<<HTML
+<h1 class="uk-article-title uk-text-center">
+  UCMC<i class="uk-icon-truck uk-margin-left"></i>
+</h1>
+<!--<div class="uk-grid uk-grid-width-1-2 uk-margin-bottom">-->
+  <!--<div>-->
+    <!--<h1 class="uk-article-title uk-text-left">-->
+      <!--UCMC-->
+    <!--</h1>-->
+  <!--</div>-->
+  <!--<div>-->
+    <!--<h1 class="uk-article-title uk-text-right">-->
+      <!--<i class="uk-icon-truck"></i>-->
+    <!--</h1>-->
+  <!--</div>-->
+<!--</div>-->
+<!--<hr class="uk-article-divider" />-->
+HTML;
+
+      $form['actions']['submit']['#attributes']['class'][] = 'uk-button-success uk-float-right';
+      $form['site_name'] = array(
+        '#markup' => $site_name_html,
+        '#weight' => 0,
+      );
+      break;
   }
 
 }

@@ -362,3 +362,13 @@ table.sticky-header {
   /*border: solid 1px #ddd;*/
   /*border-radius: 3px;*/
 }
+
+.page-user-login {
+  margin-left: 0;
+}
+.page-user-login #region-content-wrapper {
+  border: none;
+}
+.page-user-login #avstatus-messages {
+  border: none;
+}

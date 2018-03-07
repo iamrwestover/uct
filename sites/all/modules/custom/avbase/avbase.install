@@ -248,3 +248,10 @@ function avbase_update_7102() {
   }
   return t('Backup profiles updated.');
 }
+
+/**
+ * Configuration updates.
+ */
+function avbase_update_7103() {
+  variable_set('site_403', 'user/login');
+}
