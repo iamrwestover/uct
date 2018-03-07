@@ -311,8 +311,11 @@ table.sticky-header {
   color: #fff;
   text-shadow: none;
 }
-.uk-tooltip.tt-blue:after {
+.uk-tooltip-top.tt-blue:after {
   border-top-color: #00a8e6;
+}
+.uk-tooltip-left.tt-blue:after {
+  border-left-color: #00a8e6;
 }
 .uk-tooltip.tt-ks {
   background: #fafafa;

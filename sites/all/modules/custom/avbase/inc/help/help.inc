@@ -14,8 +14,10 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Out of stock items are now organized at the very bottom of Delivery item list.</li>
       <li>- Added Sales Return Register report.</li>
       <li>- Statement of Account now shows for reference numbers.</li>
+      <li>- Usability and performance improvements.</li>
       <li><hr class="uk-margin-bottom" /></li>
       <li class="uk-text-muted">- Added Sales Order Register report.</li>
       <li class="uk-text-muted">- Easier input of dates.</li>

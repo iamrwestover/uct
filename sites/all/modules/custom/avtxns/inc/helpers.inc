@@ -1621,19 +1621,25 @@ function avtxns_item_rows_by_category($form) {
   $meds_cases = array();
   $cases = array();
   $item_rows_by_category = array();
+  $no_stock = array();
   foreach (element_children($form) as $item_key) {
     if (is_object($form[$item_key])) {
-      $category_title = isset($form[$item_key]->category_title) ? check_plain($form[$item_key]->category_title) : NULL;
+      $category_title = isset($form[$item_key]->category_title) ? check_plain($form[$item_key]->category_title) : '';
       $uom_title = isset($form[$item_key]->uom_title) ? check_plain($form[$item_key]->uom_title) : NULL;
+      $qty = empty($form[$item_key]->qty) ? 0 : $form[$item_key]->qty;
     }
     else {
       $category_title = empty($form[$item_key]['#prod_category']) ? t('No Category') : $form[$item_key]['#prod_category'];
       $uom_title = empty($form[$item_key]['uom_title']['#default_value']) ? '' : $form[$item_key]['uom_title']['#default_value'];
+      $qty = empty($form[$item_key]['qty']['#default_value']) ? 0 : $form[$item_key]['qty']['#default_value'];
     }
     $category_title = strtoupper($category_title);
 
 
-    if (in_array($category_title, array('MEDS', 'MEDICINE', 'MEDICINES'))) {
+    if (empty($qty)) {
+      $no_stock['OUT OF STOCK'][$item_key] = $form[$item_key];
+    }
+    elseif (in_array($category_title, array('MEDS', 'MEDICINE', 'MEDICINES'))) {
       if (strtoupper($uom_title) == 'CASE') {
         $meds_cases[$category_title . ' - ' . $uom_title][$item_key] = $form[$item_key];
       }
@@ -1650,7 +1656,7 @@ function avtxns_item_rows_by_category($form) {
       }
     }
   }
-  $item_rows_by_category = $meds  + $meds_cases + $item_rows_by_category + $cases;
+  $item_rows_by_category = $meds  + $meds_cases + $item_rows_by_category + $cases + $no_stock;
   return $item_rows_by_category;
 }
 
