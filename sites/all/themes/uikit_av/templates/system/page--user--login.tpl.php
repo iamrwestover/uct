@@ -80,8 +80,8 @@ drupal_add_js('sites/all/themes/uikit_av/js/uikit_av.backstretch.js');
 ?>
 
 <div class="uk-vertical-align uk-text-center uk-height-1-1">
-  <div class="uk-vertical-align-middle uk-text-left" style="width: 300px; max-width: 90%;">
-    <div style="filter: opacity(95%);">
+  <div class="uk-vertical-align-middle uk-text-left" style="width: 280px; max-width: 90%;">
+    <div style="filter: opacity(96%);">
       <?php if ($messages): ?>
         <div id="messages" class="not-printable uk-width-1-1 uk-panel-">
           <?php print $messages; ?>
