@@ -146,8 +146,14 @@ function avreports_account_type_balance_row_children(&$account_rows, $arnp, $dat
       $depth_html .= '<span class="uk-margin-left"></span>';
     }
 
+    // Do not link to history if account type is a match.
+    $link_to_history = TRUE;
+    if (in_array($account_row['account_type'], array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP)) || in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID))) {
+      $link_to_history = FALSE;
+    }
+
     $data = array();
-    $data['account'] = $depth_html . avreports_account_history_link($account_row['title'], $user_filter);
+    $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
     $this_account_balance = 0;
     foreach ($date_group as $tk => $tc) {
       $this_period_balance = isset($arnp[$tk][$r_k]['account_balance']) ? $arnp[$tk][$r_k]['account_balance'] : 0;

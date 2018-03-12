@@ -90,16 +90,20 @@ function avreports_fs_form($form, &$form_state, $type) {
       $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
       break;
     case 'balance-sheet':
-      $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL);
-      $fs_transaction_types = array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_PAY_BILL);
-      $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_VOID);
+      $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP);
+      // $account_types[] = AVTXN_AC_TYPE_EXPENSE;
+      $fs_transaction_types = array(AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_PAY_BILL);
+      $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
       break;
   }
   $accounts_where = $accounts_args = array();
-  $accounts_where[] = 'avachart.account_type IN (:account_types)';
-  $accounts_args[':account_types'] = $account_types;
+  // We cannot limit account ids for BS because all entries in creditmemo,ccharge,etc., affects AP/AR regardless of entered account.
+  if ($type != 'balance-sheet') {
+    $accounts_where[] = 'avachart.account_type IN (:account_types)';
+    $accounts_args[':account_types'] = $account_types;
+  }
   $rs = avtxns_account_chart_rs_load($accounts_where, $accounts_args);
-  $profit_loss_accounts = $rs->fetchAllAssoc('id');
+  $fs_accounts = $rs->fetchAllAssoc('id');
 
   // Build query.
   $select[] = 'avtxn_detail.*';
@@ -122,7 +126,7 @@ function avreports_fs_form($form, &$form_state, $type) {
     $ref_txn_type = empty($row->ref_txn_type) ? 'default' : $row->ref_txn_type;
     $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
     foreach ($account_ids as $a_id => $a_type) {
-      $this_account_type = isset($profit_loss_accounts[$a_id]->account_type) ? $profit_loss_accounts[$a_id]->account_type : '';
+      $this_account_type = isset($fs_accounts[$a_id]->account_type) ? $fs_accounts[$a_id]->account_type : '';
       if (!in_array($this_account_type, $account_types)) {
         continue;
       }
@@ -167,16 +171,17 @@ function avreports_fs_form($form, &$form_state, $type) {
   $select[] = 'avtxn_detail.cost';
   $where[] = 'avtxn_detail.account_id IN (:account_ids)';
   $args[':txn_types'] = $ttypes;
-  $args[':account_ids'] = array_keys($profit_loss_accounts);
+  $args[':account_ids'] = array_keys($fs_accounts);
   $query = avreports_fs_query($where, $select, $joins);
   $rs = db_query($query, $args);
+  
   foreach ($rs as $row) {
     $account_row = array(
       'transaction_id' => $row->transaction_id,
       'transaction_date' => $row->transaction_date,
       'transaction_type' => $row->transaction_type,
       'account_id' => $row->account_id,
-      'account_type' => isset($profit_loss_accounts[$row->account_id]->account_type) ? $profit_loss_accounts[$row->account_id]->account_type : '',
+      'account_type' => isset($fs_accounts[$row->account_id]->account_type) ? $fs_accounts[$row->account_id]->account_type : '',
     );
     if ($row->transaction_type == AVTXNS_TXN_TYPE_JOURNAL) {
       $account_row['debit'] = $row->debit;
@@ -188,10 +193,20 @@ function avreports_fs_form($form, &$form_state, $type) {
       $ttd = avtxns_txn_types($row->transaction_type);
       if (!empty($ttd['default_account_id'])) {
         foreach ($ttd['default_account_id'] as $a_id => $a_type) {
+          if ($a_id == 10) {
+            // dpm($row->transaction_id . '-' . $row->transaction_type);
+            if ($row->transaction_type == AVTXNS_TXN_TYPE_CUSTOMER_CHARGES) {
+              $x += $row->cost;
+            }
+            elseif ($row->transaction_type == AVTXNS_TXN_TYPE_CREDIT_MEMO) {
+              $y += $row->cost;
+            }
+          }
           // One for the default account. Only if this account id is included in the allowed ones.
-          if (in_array($a_id, array_keys($profit_loss_accounts))) {
+          if (in_array($a_id, array_keys($fs_accounts))) {
             $this_account_row = $account_row;
             $this_account_row['account_id'] = $a_id;
+            $this_account_row['account_type'] = isset($fs_accounts[$a_id]->account_type) ? $fs_accounts[$a_id]->account_type : '';
             $this_account_row[$a_type] = $row->cost;
             $account_rows[$a_id][] = $this_account_row;
           }
@@ -240,9 +255,9 @@ function avreports_fs_form($form, &$form_state, $type) {
   foreach ($account_rows_by_period as $p_k => $period) {
     foreach ($period as $r_k => $row) {
       $row['id'] = $r_k;
-      $row['account_type'] = isset($profit_loss_accounts[$r_k]->account_type) ? $profit_loss_accounts[$r_k]->account_type : '-';
-      $row['title'] = isset($profit_loss_accounts[$r_k]->title) ? $profit_loss_accounts[$r_k]->title : '';
-      $row['parent'] = isset($profit_loss_accounts[$r_k]->parent) ? $profit_loss_accounts[$r_k]->parent : NULL;
+      $row['account_type'] = isset($fs_accounts[$r_k]->account_type) ? $fs_accounts[$r_k]->account_type : '-';
+      $row['title'] = isset($fs_accounts[$r_k]->title) ? $fs_accounts[$r_k]->title : '';
+      $row['parent'] = isset($fs_accounts[$r_k]->parent) ? $fs_accounts[$r_k]->parent : NULL;
       $account_rows_by_period[$p_k][$r_k] = $row;
     }
   }
@@ -250,12 +265,17 @@ function avreports_fs_form($form, &$form_state, $type) {
   $account_rows_no_parenting = $account_rows_by_period;
 
   // chart.
-  $profit_loss_accounts = avbase_rows_build_tree($profit_loss_accounts, 0, FALSE, FALSE);
+  $fs_accounts = avbase_rows_build_tree($fs_accounts, 0, FALSE, FALSE);
   $pl_accounts_by_type = array();
-  foreach ($profit_loss_accounts as $pl) {
+  foreach ($fs_accounts as $pl) {
     $pl_accounts_by_type[$pl['account_type']][$pl['id']] = $pl;
   }
 
+  // Put Accounts Receivable under Current Assets.
+  if (isset($pl_accounts_by_type[AVTXN_AC_TYPE_AR]) && isset($pl_accounts_by_type[AVTXN_AC_TYPE_CURRENT])) {
+    $pl_accounts_by_type[AVTXN_AC_TYPE_CURRENT] = $pl_accounts_by_type[AVTXN_AC_TYPE_AR] + $pl_accounts_by_type[AVTXN_AC_TYPE_CURRENT];
+    unset($pl_accounts_by_type[AVTXN_AC_TYPE_AR]);
+  }
 
   // Create table.
   $table_rows = array();
@@ -283,6 +303,8 @@ function avreports_fs_form($form, &$form_state, $type) {
     avreports_account_type_difference_row($table_rows, 'NET INCOME', $at_totals, $totals_id, AVTXN_AC_TYPE_OTHER_INCOME, $date_group, FALSE);
   }
   elseif ($type == 'balance-sheet') {
+    // Accounts Receivables.
+    // avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_AR, $account_rows_no_parenting, $date_group, $at_totals);
     // Current Assets.
     avreports_account_type_balance_rows($table_rows, $pl_accounts_by_type, AVTXN_AC_TYPE_CURRENT, $account_rows_no_parenting, $date_group, $at_totals, TRUE, $user_filter);
     // Fixed Assets.

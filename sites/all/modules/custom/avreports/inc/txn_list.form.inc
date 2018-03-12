@@ -320,6 +320,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $select['reference_id'] = 'IF(avtxn.transaction_type = \'' . AVTXNS_TXN_TYPE_BILL . '\', avtxn2.reference_id, avtxn.reference_id) AS reference_id';
     $joins[] = 'LEFT JOIN {avtbl_transactions} AS avtxn2 ON avtxn2.id = avtxn_detail.ref_txn_id';
   }
+  if ($transaction_type == AVTXNS_TXN_TYPE_PAYMENT || $secondary_transaction_type == AVTXNS_TXN_TYPE_PAYMENT) {
+    $select[] = 'avtxn.amount_to_credit';
+  }
   $group_by = array('avtxn.id', 'avtxn_detail.ref_txn_type');
 
   $query = "SELECT _expression_ FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins);
@@ -345,6 +348,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $this_ttd = avtxns_txn_types($row->transaction_type);
     $view_path = "{$this_ttd['base_path']}/$row->id/view";
     $row_total = empty($row_totals[$row->id]) ? 0 : $row_totals[$row->id];
+
     if (!empty($this_ttd['credit_txn_types'])) {
       if (in_array($row->ref_txn_type, $this_ttd['credit_txn_types'])) {
         $row_total -= $row->grand_total;
@@ -361,6 +365,14 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       $row_total += $row->grand_total;
       $list_total += $row->grand_total;
     }
+
+    if (!isset($table_rows[$row->id]) && isset($row->amount_to_credit)) {
+      $amount_to_credit = empty($row->amount_to_credit) ? 0 : $row->amount_to_credit;
+      $row_total -= $amount_to_credit;
+      $list_total -= $amount_to_credit;
+      // dpm($row_total);
+    }
+
     $row_totals[$row->id] = $row_total;
     $row_total_html = '<div class="uk-text-right">' . number_format($row_total, 2) . '</div>';
     $row_bal_html = NULL;
