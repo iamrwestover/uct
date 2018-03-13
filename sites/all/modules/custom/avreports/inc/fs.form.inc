@@ -95,7 +95,11 @@ function avreports_fs_form($form, &$form_state, $type) {
       $ar_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_SALES_RETURN);
       // For AP:
       $ap_transaction_types = array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_PAY_BILL, AVTXNS_TXN_TYPE_PURCHASE_RETURN);
-      $fs_transaction_types = array_merge($ar_transaction_types, $ap_transaction_types);
+      // For Inventory:
+      $inv_transaction_types = array(AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
+      $fs_transaction_types = array_merge($ar_transaction_types, $ap_transaction_types, $inv_transaction_types);
+      // $fs_transaction_types = $inv_transaction_types;
+
       // Other AP and AR related transactions like creditmemo and vendor credit will be included in accounts related query.
       $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
       break;
@@ -187,6 +191,7 @@ function avreports_fs_form($form, &$form_state, $type) {
   $rs = db_query($query, $args);
 
   foreach ($rs as $row) {
+    break;
     $account_row = array(
       'transaction_id' => $row->transaction_id,
       'transaction_date' => $row->transaction_date,

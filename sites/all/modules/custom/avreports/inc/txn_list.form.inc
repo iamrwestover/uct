@@ -278,6 +278,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $select['reference_id'] = 'avtxn.reference_id';
   }
   $select['grand_total'] = avtxns_txn_detail_sum_query_discount_applied();
+  // $select['grand_total'] = avtxns_txn_detail_sum_query();
   // $select['grand_total'] .= empty($ttd['payment']) ? '' : " + IFNULL(avtxn.amount_to_credit, 0)";
   $select['grand_total'] .= " AS grand_total";
   if ($col_excess) {
@@ -409,6 +410,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     }
 
     if (!isset($table_rows[$row->id])) {
+      // dpm($row->id . '-' . $row->grand_total);
+      // continue;
       if ($col_client_show) {
         $data['client'] = l($row->display_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
       }

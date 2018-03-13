@@ -434,7 +434,11 @@ function avtxns_txn_types($type = NULL) {
       'check_enough_qty' => TRUE,
       'account_ids' => array(
         'default' => array(
-          // AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+          AVTXN_AC_SPECIFIC_COGS_ID => 'debit',
+        ),
+        AVTXNS_TXN_TYPE_SALES_ORDER => array(
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
           AVTXN_AC_SPECIFIC_COGS_ID => 'debit',
         ),
       ),
@@ -547,6 +551,16 @@ function avtxns_txn_types($type = NULL) {
       'qty_change' => 'increment',
       'cost_change' => TRUE,
       //'product_discount_overwrite' => TRUE,
+      'account_ids' => array(
+        'default' => array(
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
+          // AVTXN_AC_SPECIFIC_COGS_ID => 'credit',
+        ),
+        AVTXNS_TXN_TYPE_PURCHASE_ORDER => array(
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
+          // AVTXN_AC_SPECIFIC_COGS_ID => 'credit',
+        ),
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_PURCHASE_RETURN] = array(
       'button_class' => 'uk-button-primary',
@@ -563,7 +577,7 @@ function avtxns_txn_types($type = NULL) {
       'account_ids' => array(
         'default' => array(
           AVTXN_AC_SPECIFIC_AP_ID => 'debit',
-          // AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
         ),
       ),
     );
@@ -762,13 +776,11 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'no_discount' => TRUE,
       'check_enough_qty' => TRUE,
-      //'account_ids' => array(
-      //  'default' => array(
-      //    //AVTXN_AC_SPECIFIC_AR_ID => 'debit',
-      //    AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
-      //    AVTXN_AC_SPECIFIC_COGS_ID => 'debit',
-      //  ),
-      //),
+      'account_ids' => array(
+         'default' => array(
+           AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+         ),
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN] = array(
       //'button_class' => 'uk-button-primary',
@@ -784,6 +796,11 @@ function avtxns_txn_types($type = NULL) {
       'no_agent' => TRUE,
       'no_discount' => TRUE,
       //'product_discount_overwrite' => TRUE,
+      'account_ids' => array(
+        'default' => array(
+          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
+        ),
+      ),
     );
   }
 
