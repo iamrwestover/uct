@@ -191,7 +191,6 @@ function avreports_fs_form($form, &$form_state, $type) {
   $rs = db_query($query, $args);
 
   foreach ($rs as $row) {
-    break;
     $account_row = array(
       'transaction_id' => $row->transaction_id,
       'transaction_date' => $row->transaction_date,
