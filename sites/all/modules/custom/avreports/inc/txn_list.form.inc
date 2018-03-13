@@ -23,6 +23,13 @@ function avreports_client_balances_form($form, &$form_state, $client_type) {
 function avreports_txn_list_form($form, &$form_state, $transaction_type, $secondary_transaction_type = NULL, $limit = NULL, $offset = NULL) {
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
 
+  if (isset($_GET['full'])) {
+    $_SESSION['testmode'] = $_GET['full'] == 1 ? TRUE : FALSE;
+  }
+  $test_mode = !empty($_SESSION['testmode']);
+  if (!empty($test_mode)) {
+    drupal_set_message('Running in test mode. Turn it off ' . l('here', 'av/reports/transaction-list/' . $transaction_type, array('query' => array('full' => 0))), 'warning');
+  }
 
   global $user;
 
@@ -277,7 +284,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_reference_id) {
     $select['reference_id'] = 'avtxn.reference_id';
   }
-  $select['grand_total'] = avtxns_txn_detail_sum_query_discount_applied();
+  $select['grand_total'] = $test_mode ? avtxns_txn_detail_sum_query() : avtxns_txn_detail_sum_query_discount_applied();
   // $select['grand_total'] = avtxns_txn_detail_sum_query();
   // $select['grand_total'] .= empty($ttd['payment']) ? '' : " + IFNULL(avtxn.amount_to_credit, 0)";
   $select['grand_total'] .= " AS grand_total";
