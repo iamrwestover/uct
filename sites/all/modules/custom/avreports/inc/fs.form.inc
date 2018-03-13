@@ -174,7 +174,7 @@ function avreports_fs_form($form, &$form_state, $type) {
   $args[':account_ids'] = array_keys($fs_accounts);
   $query = avreports_fs_query($where, $select, $joins);
   $rs = db_query($query, $args);
-  
+
   foreach ($rs as $row) {
     $account_row = array(
       'transaction_id' => $row->transaction_id,
@@ -193,15 +193,6 @@ function avreports_fs_form($form, &$form_state, $type) {
       $ttd = avtxns_txn_types($row->transaction_type);
       if (!empty($ttd['default_account_id'])) {
         foreach ($ttd['default_account_id'] as $a_id => $a_type) {
-          if ($a_id == 10) {
-            // dpm($row->transaction_id . '-' . $row->transaction_type);
-            if ($row->transaction_type == AVTXNS_TXN_TYPE_CUSTOMER_CHARGES) {
-              $x += $row->cost;
-            }
-            elseif ($row->transaction_type == AVTXNS_TXN_TYPE_CREDIT_MEMO) {
-              $y += $row->cost;
-            }
-          }
           // One for the default account. Only if this account id is included in the allowed ones.
           if (in_array($a_id, array_keys($fs_accounts))) {
             $this_account_row = $account_row;
