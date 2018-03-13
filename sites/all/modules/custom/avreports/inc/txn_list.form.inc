@@ -48,6 +48,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   $col_memo = $transaction_type == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT || $ttd['transaction'] == 'accounts';
   //$col_account_name = $ttd['transaction'] == 'accounts';
   $col_total = $transaction_type != AVTXNS_TXN_TYPE_JOURNAL;
+  $col_excess = $col_total && !empty($ttd['payment']);
   //if (!isset($row->ref_txn_id) && !empty($item->ref_txn_type) && count($pending_txns_reference_type) == 1 && in_array($item->ref_txn_type, $pending_txns_reference_type)) {
   $col_items_ref_txn_id = count($pending_txns_reference_type) == 1;
   $col_return_type = $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN;
@@ -102,9 +103,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if (!empty($ttd['payment']) || $transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_PENDING] = 'Pending';
   }
-  if (in_array($transaction_type, avtxns_get_creditable_txn_types())) {
+  // if (in_array($transaction_type, avtxns_get_creditable_txn_types())) {
     //$filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN] = 'With available credits';
-  }
+  // }
   //elseif (in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_PURCHASE_RETURN))) {
   //  unset($filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED]);
   //}
@@ -188,7 +189,12 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if ($col_total) {
     $header['total'] = array('data' => 'TOTAL', 'class' => array('uk-text-right'));
   }
+  if ($col_excess) {
+    $header['excess'] = array('data' => 'EXCESS', 'class' => array('uk-text-right'));
+  }
+
   if ($col_paid) {
+    $header['credited'] = array('data' => 'CREDITED', 'class' => array('uk-text-right'));
     $header['paid'] = array('data' => 'PAID', 'class' => array('uk-text-right'));
     $header['balance'] = array('data' => 'BALANCE', 'class' => array('uk-text-right'));
   }
@@ -272,8 +278,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $select['reference_id'] = 'avtxn.reference_id';
   }
   $select['grand_total'] = avtxns_txn_detail_sum_query_discount_applied();
-  $select['grand_total'] .= empty($ttd['payment']) ? '' : " + IFNULL(avtxn.amount_to_credit, 0)";
+  // $select['grand_total'] .= empty($ttd['payment']) ? '' : " + IFNULL(avtxn.amount_to_credit, 0)";
   $select['grand_total'] .= " AS grand_total";
+  if ($col_excess) {
+    $select['excess'] = "IFNULL(avtxn.amount_to_credit, 0) AS excess_payment";
+  }
   if ($col_paid) {
     $payment_date_to_where = '';
     if (!empty($where['payment_date_to']) && !empty($args[':payment_date_to_stamp'])) {
@@ -331,9 +340,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
   //$transactions = avtxns_txns_query_load($where, $args, NULL, NULL, $order_by, $select, $joins, $group_by);
-  $list_total = $paid_total = $balance_total = 0;
+  $list_total = $paid_total = $balance_total = $list_credit_total = 0;
   $row_totals = array();
+  $row_credits = array();
   $table_rows = array();
+  $excess_total = 0;
   //$now = time();
   if ($col_payment_method) {
     $payment_methods = avbase_payment_method_array();
@@ -348,12 +359,15 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $this_ttd = avtxns_txn_types($row->transaction_type);
     $view_path = "{$this_ttd['base_path']}/$row->id/view";
     $row_total = empty($row_totals[$row->id]) ? 0 : $row_totals[$row->id];
-
+    $row_credit = empty($row_credits[$row->id]) ? 0 : $row_credits[$row->id];
     if (!empty($this_ttd['credit_txn_types'])) {
       if (in_array($row->ref_txn_type, $this_ttd['credit_txn_types'])) {
-        $row_total -= $row->grand_total;
-        $list_total -= $row->grand_total;
+        // $row_total -= $row->grand_total;
+        // $list_total -= $row->grand_total;
         $balance_total -= $row->grand_total;
+        $row_credit += $row->grand_total;
+        $list_credit_total += $row->grand_total;
+        $row_credits[$row->id] = $row_credit;
       }
       else {
         $row_total += $row->grand_total;
@@ -366,19 +380,21 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       $list_total += $row->grand_total;
     }
 
-    if (!isset($table_rows[$row->id]) && isset($row->amount_to_credit)) {
-      $amount_to_credit = empty($row->amount_to_credit) ? 0 : $row->amount_to_credit;
-      $row_total -= $amount_to_credit;
-      $list_total -= $amount_to_credit;
-      // dpm($row_total);
-    }
+    // if (!isset($table_rows[$row->id]) && isset($row->amount_to_credit)) {
+    //   $amount_to_credit = empty($row->amount_to_credit) ? 0 : $row->amount_to_credit;
+    //   $row_total -= $amount_to_credit;
+    //   $list_total -= $amount_to_credit;
+    // }
 
+    $row_total = round($row_total, 2);
     $row_totals[$row->id] = $row_total;
     $row_total_html = '<div class="uk-text-right">' . number_format($row_total, 2) . '</div>';
     $row_bal_html = NULL;
+    $row_credit_html = NULL;
     if ($col_paid) {
-      $row_bal = round($row_total - $row->paid_amount, 2);
+      $row_bal = round($row_total - $row->paid_amount - $row_credit, 2);
       $row_bal_html = empty($row_bal) ? NULL : number_format($row_bal, 2);
+      $row_credit_html = empty($row_credit) ? NULL : number_format($row_credit, 2);
     }
 
     if (!empty($row_bal_html) && $overdue) {
@@ -387,6 +403,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
 
     if (!empty($row_bal_html)) {
       $row_bal_html = '<div class="uk-text-right">' . $row_bal_html . '</div>';
+    }
+    if (!empty($row_credit_html)) {
+      $row_credit_html = '<div class="uk-text-right">' . $row_credit_html . '</div>';
     }
 
     if (!isset($table_rows[$row->id])) {
@@ -417,7 +436,13 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       if ($col_total) {
         $data['total'] = $row_total_html;
       }
+      if ($col_excess) {
+        $excess_payment = isset($row->excess_payment) ? (float) $row->excess_payment : 0;
+        $data['excess'] = empty($excess_payment) ? NULL : ('<div class="uk-text-right">' . number_format($excess_payment, 2) . '</div>');
+        $excess_total += $excess_payment;
+      }
       if ($col_paid) {
+        $data['credited'] = $row_credit_html;
         $paid_amount = empty($row->paid_amount) ? NULL : number_format($row->paid_amount, 2);
         $data['paid'] = empty($paid_amount) ? NULL : '<div class="uk-text-right">' . $paid_amount . '</div>';
         $data['balance'] = $row_bal_html;
@@ -482,6 +507,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
       if (isset($header['balance'])) {
         $table_rows[$row->id]['balance'] =  $row_bal_html;
       }
+      if (isset($header['credited'])) {
+        $table_rows[$row->id]['credited'] =  $row_credit_html;
+      }
     }
 
     if ($col_items_ref_txn_id && !empty($row->ref_txn_id) && empty($table_rows[$row->id]['items_ref_txn_id']) && in_array($row->ref_txn_type, $pending_txns_reference_type)) {
@@ -520,7 +548,11 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $totals_table_row = array();
     $totals_table_row[] = array('data' => '<div class="uk-text-right">TOTAL</div>', 'colspan' => $colspan);
     $totals_table_row[] = '<div class="uk-text-right">' . number_format($list_total, 2) . '</div>';
+    if ($col_excess) {
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($excess_total, 2) . '</div>';
+    }
     if ($col_paid) {
+      $totals_table_row[] = '<div class="uk-text-right">' . number_format($list_credit_total, 2) . '</div>';
       $totals_table_row[] = '<div class="uk-text-right">' . number_format($paid_total, 2) . '</div>';
       $totals_table_row[] = '<div class="uk-text-right">' . number_format($balance_total, 2) . '</div>';
     }

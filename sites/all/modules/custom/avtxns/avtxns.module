@@ -434,8 +434,7 @@ function avtxns_txn_types($type = NULL) {
       'check_enough_qty' => TRUE,
       'account_ids' => array(
         'default' => array(
-          //AVTXN_AC_SPECIFIC_AR_ID => 'debit',
-          AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+          // AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
           AVTXN_AC_SPECIFIC_COGS_ID => 'debit',
         ),
       ),
@@ -455,7 +454,7 @@ function avtxns_txn_types($type = NULL) {
       'total_is_amount_to_credit' => TRUE,
       'account_ids' => array(
         'default' => array(
-          //AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+          AVTXN_AC_SPECIFIC_AR_ID => 'credit',
           AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
           AVTXN_AC_SPECIFIC_COGS_ID => 'credit',
         ),
@@ -561,6 +560,12 @@ function avtxns_txn_types($type = NULL) {
       'no_terms' => TRUE,
       'total_is_amount_to_credit' => TRUE,
       'check_enough_qty' => TRUE,
+      'account_ids' => array(
+        'default' => array(
+          AVTXN_AC_SPECIFIC_AP_ID => 'debit',
+          // AVTXN_AC_SPECIFIC_INVENTORY_ID => 'credit',
+        ),
+      ),
     );
     $ret[AVTXNS_TXN_TYPE_BILL] = array(
       'button_class' => 'uk-button-primary',
@@ -581,8 +586,8 @@ function avtxns_txn_types($type = NULL) {
       'payable' => TRUE,
       'account_ids' => array(
         AVTXNS_TXN_TYPE_RECEIVE => array(
-          AVTXN_AC_SPECIFIC_AP_ID => 'debit',
-          AVTXN_AC_SPECIFIC_SALES_ID => 'credit',
+          AVTXN_AC_SPECIFIC_AP_ID => 'credit',
+          // AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
         ),
         // AVTXNS_TXN_TYPE_PURCHASE_RETURN => array(
         //   AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
@@ -655,7 +660,7 @@ function avtxns_txn_types($type = NULL) {
       'total_is_amount_to_credit' => TRUE,
       'ref_ar_type' => 'credit',
       'default_account_id' => array(
-        AVTXN_AC_SPECIFIC_AR_ID => 'debit',
+        AVTXN_AC_SPECIFIC_AR_ID => 'credit',
       ),
     );
     $ret[AVTXNS_TXN_TYPE_VENDOR_CREDIT] = array(
@@ -696,7 +701,7 @@ function avtxns_txn_types($type = NULL) {
       'credit_txn_types' => array(AVTXNS_TXN_TYPE_SALES_RETURN, AVTXNS_TXN_TYPE_CREDIT_MEMO, AVTXNS_TXN_TYPE_PAYMENT),
       'ref_ar_type' => 'credit',
       'default_account_id' => array(
-        AVTXN_AC_SPECIFIC_AR_ID => 'credit',
+        AVTXN_AC_SPECIFIC_AR_ID => 'debit',
       ),
     );
     $ret[AVTXNS_TXN_TYPE_OTHER_BILLS] = array(

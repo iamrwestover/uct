@@ -91,8 +91,12 @@ function avreports_fs_form($form, &$form_state, $type) {
       break;
     case 'balance-sheet':
       $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP);
-      // $account_types[] = AVTXN_AC_TYPE_EXPENSE;
-      $fs_transaction_types = array(AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_PAY_BILL);
+      // For AR:
+      $ar_transaction_types = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_SALES_RETURN);
+      // For AP:
+      $ap_transaction_types = array(AVTXNS_TXN_TYPE_BILL, AVTXNS_TXN_TYPE_PAY_BILL, AVTXNS_TXN_TYPE_PURCHASE_RETURN);
+      $fs_transaction_types = array_merge($ar_transaction_types, $ap_transaction_types);
+      // Other AP and AR related transactions like creditmemo and vendor credit will be included in accounts related query.
       $fs_invalid_statuses = array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID);
       break;
   }
@@ -125,10 +129,17 @@ function avreports_fs_form($form, &$form_state, $type) {
     $ttd = avtxns_txn_types($row->transaction_type);
     $ref_txn_type = empty($row->ref_txn_type) ? 'default' : $row->ref_txn_type;
     $account_ids = empty($ttd['account_ids'][$ref_txn_type]) ? array() : $ttd['account_ids'][$ref_txn_type];
+
     foreach ($account_ids as $a_id => $a_type) {
       $this_account_type = isset($fs_accounts[$a_id]->account_type) ? $fs_accounts[$a_id]->account_type : '';
       if (!in_array($this_account_type, $account_types)) {
         continue;
+      }
+
+      // MAke sure discounted amount is used for AR and AP.
+      $total_amount = $row->grand_total;
+      if (in_array($a_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+        $total_amount = $row->grand_total_discounted;
       }
 
       $account_rows[$a_id][] = array(
@@ -137,7 +148,7 @@ function avreports_fs_form($form, &$form_state, $type) {
         'transaction_type' => $row->transaction_type,
         'account_id' => $a_id,
         'account_type' => $this_account_type,
-        $a_type => $row->grand_total,
+        $a_type => $total_amount,
       );
     }
 
@@ -158,7 +169,7 @@ function avreports_fs_form($form, &$form_state, $type) {
     }
   }
 
-  // Do the same but for Journals.
+  // Do the same but for accounts related transactions.
   unset($select['grand_total']);
   unset($select['grand_total_discounted']);
   $ttypes = array();
