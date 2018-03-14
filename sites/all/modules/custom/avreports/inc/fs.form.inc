@@ -9,6 +9,15 @@
  * @return mixed
  */
 function avreports_fs_form($form, &$form_state, $type) {
+  // $query = "SELECT id, title FROM {avtbl_account_chart}";
+  // $rs = db_query($query);
+  // $x = time();
+  // foreach ($rs as $row) {
+  //   dpm($row->title);
+  //   avtxns_test($row->id);
+  // }
+  // dpm((time() - $x));
+  // return $form;
   ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['last_month']) ? array() : $dad['last_month'];

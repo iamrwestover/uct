@@ -1573,20 +1573,22 @@ function avtxns_txn_list_filter_date_auto_options($date_format = AVBASE_DATE_FOR
   return $data[$date_format];
 }
 
-function avtxns_txn_detail_sum_query_discount_applied($increment = '1') {
-  return 'SUM(
-    IF(' . $increment . ', 1, -1)
-    * avtxn_detail.qty
+function avtxns_txn_detail_sum_query_discount_applied($increment = 1, $sum = TRUE) {
+  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query .= 'avtxn_detail.qty
     * avtxn_detail.cost
     * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
     * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
     * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
-    * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))
-  )';
+    * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))';
+  return $sum ? "SUM($query)" : $query;
 }
 
-function avtxns_txn_detail_sum_query($increment = '1') {
-  return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
+function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE) {
+  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query .= 'avtxn_detail.qty * avtxn_detail.cost';
+  // return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
+  return $sum ? "SUM($query)" : $query;
 }
 
 function avtxns_get_item_row_key($item) {
@@ -1825,4 +1827,124 @@ function avtxns_get_accounts_txn_types() {
     $types[$ttd['type']] = $ttd['type'];
   }
   return $types;
+}
+
+function avtxns_get_types_with_account_id($account_id) {
+  static $data;
+  if (isset($data[$account_id])) {
+    return $data[$account_id];
+  }
+
+  $rows = array();
+  $types = avtxns_txn_types();
+  foreach ($types as $type_k => $type) {
+    if (!empty($type['account_ids'])) {
+      $refs = $type['account_ids'];
+      foreach ($refs as $ref_txn_type => $accounts) {
+        foreach ($accounts as $acc_k => $acc_v) {
+          if ($acc_k == $account_id) {
+            $rows[$type_k][$ref_txn_type] = $acc_v;
+          }
+        }
+      }
+    }
+    elseif (!empty($type['default_account_id'])) {
+      $ref_txn_type = 'default_account_id';
+      $accounts = $type['default_account_id'];
+      foreach ($accounts as $acc_k => $acc_v) {
+        if ($acc_k == $account_id) {
+          $rows[$type_k][$ref_txn_type] = $acc_v;
+        }
+      }
+    }
+  }
+  $data[$account_id] = $rows;
+  return $rows;
+}
+
+function avtxns_get_txn_account_types() {
+  $ttypes = array();
+  $transaction_types = avtxns_txn_types();
+  foreach ($transaction_types as $t_k => $ttd) {
+    if ($ttd['transaction'] == 'accounts') {
+      $ttypes[] = $t_k;
+    }
+  }
+  return $ttypes;
+}
+
+function avtxns_test($current_account_id) {
+  // $current_account_id = AVTXN_AC_SPECIFIC_AR_ID;
+  $types_with_account_id = avtxns_get_types_with_account_id($current_account_id);
+  // if (empty($types_with_account_id)) {
+  //   $types_with_account_id[AVTXNS_TXN_TYPE_JOURNAL] = array(
+  //     'default_account_id'
+  //   );
+  // }
+  // $types_with_account_id = array('inv' => $types_with_account_id['inv']);
+  // $types_with_account_id = array('pmt' => $types_with_account_id['pmt']);
+  // $types_with_account_id = array('crd' => $types_with_account_id['crd']);
+  // $types_with_account_id = array('chg' => $types_with_account_id['chg']);
+  // $types_with_account_id = array('pr' => $types_with_account_id['pr']);
+  // $types_with_account_id = array('bill' => $types_with_account_id['bill']);
+  // $types_with_account_id = array('bpmt' => $types_with_account_id['bpmt']);
+  // $types_with_account_id = array('vcrd' => $types_with_account_id['vcrd']);
+  // $types_with_account_id = array('obll' => $types_with_account_id['obll']);
+  // dpm($types_with_account_id);
+  $aa = "SELECT";
+  $cases = array();
+  $where = array();
+  foreach ($types_with_account_id AS $_txn_type => $_refs) {
+    foreach ($_refs AS $_ref_ttype => $_v) {
+      $case_conditions = array();
+      $case_conditions[] = "avtxn.transaction_type = '$_txn_type'";
+      if (in_array($_ref_ttype, array('default', 'default_account_id'))) {
+        $case_conditions[] = "avtxn_detail.ref_txn_type IS NULL";
+      }
+      else {
+        $case_conditions[] = "avtxn_detail.ref_txn_type = '$_ref_ttype'";
+      }
+      $multiplier = $_v == 'credit' ? -1 : 1;
+      if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+        $sum_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
+      }
+      else {
+        $sum_query = avtxns_txn_detail_sum_query(1, FALSE);
+      }
+
+      $cases[] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * " . $sum_query . ")";
+    }
+  }
+  // dpm($cases);
+  if (empty($cases) || !in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+    $account_txn_types = avtxns_get_txn_account_types();
+    foreach ($account_txn_types as $k) {
+      if (isset($types_with_account_id[$k])) {
+        continue;
+      }
+      $this_account_txn_type = avtxns_txn_types($k);
+      $types_with_account_id[$k] = NULL;
+      $_case = "WHEN (avtxn.transaction_type = '$k' AND avtxn_detail.account_id = $current_account_id) THEN ";
+      if (!empty($this_account_txn_type['default_account_id'])) {
+        $balance_type = array_shift($this_account_txn_type['default_account_id']);
+        $multiplier = $balance_type == 'credit' ? 1 : -1;
+        $_case .= "(avtxn_detail.cost * $multiplier)" ;
+      }
+      else {
+        $_case .= "(avtxn_detail.debit - avtxn_detail.credit)";
+      }
+      $cases[] = $_case;
+    }
+  }
+  $aa .= " SUM(CASE " . implode(' ', $cases) . " END) AS amount";
+  $aa .= " FROM avtbl_transactions avtxn
+INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
+WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date < 1519833600 AND avtxn.transaction_date >= 0 AND avtxn.status NOT IN (2, 3)";
+  // 1517414400
+  if (!empty($where)) {
+    $aa .= " AND " . implode(' AND ', $where);
+  }
+
+  $rs = db_query($aa);
+  dpm($rs->fetchField());
 }
