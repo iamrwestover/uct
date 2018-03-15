@@ -203,6 +203,32 @@ function avbase_schema() {
     ),
   );
 
+  $schema['avtbl_fs'] = array(
+    'description' => 'Cache data for FS reports',
+    'fields' => array(
+      'account_id' => array(
+        'description' => 'Account ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'before_this_day' => array(
+        'description' => 'Day timestamp',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'amount' => array(
+        'description' => 'Total amount',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+    ),
+    'primary key' => array('account_id', 'before_this_day'),
+  );
+
   return $schema;
 }
 
@@ -254,4 +280,14 @@ function avbase_update_7102() {
  */
 function avbase_update_7103() {
   variable_set('site_403', 'user/login');
+}
+
+/**
+ * Add cache table for FS reports.
+ */
+function avbase_update_7104() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_fs';
+  $table = $schema[$table_name];
+  db_create_table($table_name, $table);
 }

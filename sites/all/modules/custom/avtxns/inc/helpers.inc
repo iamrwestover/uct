@@ -1943,7 +1943,8 @@ function avtxns_test($current_account_id, $account_type, $date_start, $date_end)
   $query = "SELECT SUM(CASE " . implode(' ', $cases) . " END) AS amount";
   $query .= " FROM avtbl_transactions avtxn
   INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
-  WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end AND avtxn.status NOT IN (2, 3)";
+  WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end
+  AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")";
   // 1517414400
   if (!empty($where)) {
     $query .= " AND " . implode(' AND ', $where);
@@ -1953,6 +1954,10 @@ function avtxns_test($current_account_id, $account_type, $date_start, $date_end)
   $amount = $rs->fetchField();
   $amount = empty($amount) ? 0 : $amount;
 
+  // dpm('000');
+  // dpm(format_date($date_start, 'long'));
+  // dpm(format_date($date_start, 'long'));
+  // dpm($amount);
   if (!empty($amount)) {
     // Get last amount and add it to current amount.
     $query = "SELECT amount FROM {avtbl_fs} WHERE account_id = :account_id ORDER BY before_this_day DESC LIMIT 1";

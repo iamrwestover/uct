@@ -398,3 +398,129 @@ function avreports_account_history_link($title, $user_filter = array(), $link_ti
 
   return l($link_title, 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_JOURNAL, $link_options);
 }
+
+function avreports_account_type_balance_rows2(&$table_rows, $pl_accounts_by_type, $account_type, $fs_rows, $date_group, &$column_totals, $spacer_at_bottom = TRUE, $user_filter = array()) {
+  $data = array();
+
+  // Account Type info.
+  $actd = avtxns_account_chart_types($account_type);
+
+  // Account Type header.
+  $data['account'] = array('data' => '<div class="uk-text-uppercase uk-text-bold">' . $actd['name'] . '</div>', 'colspan' => 1000);
+  $table_rows[] = array('data' => $data);
+
+  // Get account rows for this account type.
+  $pl_account_rows = empty($pl_accounts_by_type[$account_type]) ? array() : $pl_accounts_by_type[$account_type];
+
+  $column_totals[$account_type] = array();
+  $account_type_table_rows = avreports_account_type_balance_row_children2($pl_account_rows, $fs_rows, $date_group, $column_totals[$account_type], 0, $user_filter);
+
+  //avbase_account_chart_sum_parent_balance($pl_account_rows);
+  $table_rows = array_merge($table_rows, $account_type_table_rows);
+
+  // Total.
+  $data = array();
+  $data['account'] = '<div class="uk-text-bold">Total ' . $actd['name'] . '</div>';
+  foreach ($date_group as $date_from => $dg) {
+    $date_to = $dg['date_to'];
+    $column_total = empty($column_totals[$account_type][$date_to]) ? 0 : $column_totals[$account_type][$date_to];
+    $this_total_text = avbase_accounting_number_format($column_total);
+    $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
+  }
+  // $at_total = isset($column_totals[$account_type]['at_total']) ? $column_totals[$account_type]['at_total'] : 0;
+  // $at_total_text = avbase_accounting_number_format($at_total);
+  // $data['total'] = '<div class="uk-text-bold uk-text-right">' . $at_total_text . '</div>';
+  $table_rows[] = $data;
+
+  // Spacer.
+  if ($spacer_at_bottom) {
+    $data = array();
+    $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
+    $table_rows[] = $data;
+  }
+}
+
+function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, $date_group, &$column_totals, $depth = 0, $user_filter = array()) {
+  $table_rows = array();
+  foreach ($account_rows as $account_id => $account_row) {
+    $depth_html = '';
+    for ($i = 0; $i < $depth; $i++) {
+      $depth_html .= '<span class="uk-margin-left"></span>';
+    }
+
+    // Do not link to history if account type is a match.
+    $link_to_history = !in_array($account_row['account_type'], array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP));
+    $link_to_history = $link_to_history && !in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID));
+
+    $data = array();
+    $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
+    // $data['account'] .= $account_row['id'];
+    $total_column_amount = 0;
+    // $last_cell_amount = 0;
+    foreach ($date_group as $date_from => $dg) {
+      $date_to = $dg['date_to'];
+      $this_cell_amount = empty($fs_rows[$account_id][$date_to]) ? 0 : $fs_rows[$account_id][$date_to];
+
+      $total_column_amount += $this_cell_amount;
+      $column_totals[$date_to] = empty($column_totals[$date_to]) ? $this_cell_amount : ($column_totals[$date_to] + $this_cell_amount);
+      $data[$date_to] = '<div class="uk-text-right">' . avbase_accounting_number_format($this_cell_amount) . '</div>';
+      // $data[$date_to] .= '<div class="uk-text-right uk-text-muted">' . avbase_accounting_number_format($this_cell_amount - $last_cell_amount) . '</div>';
+      // $last_cell_amount = $this_cell_amount;
+    }
+    // $total_column_amount_text = avbase_accounting_number_format($total_column_amount);
+    // $data['total'] = '<div class="uk-text-right">' . $total_column_amount_text . '</div>';
+    // $account_rows[$account_id]['account_balance'] = $total_column_amount;
+    // $column_totals['at_total'] = isset($column_totals['at_total']) ? $column_totals['at_total'] + $total_column_amount : $total_column_amount;
+
+
+    $table_rows[] = $data;
+    //$account_type_total += $account_row['account_balance'];
+
+    if (!empty($account_row['children'])) {
+      $table_rows = array_merge($table_rows, avreports_account_type_balance_row_children2($account_rows[$account_id]['children'], $fs_rows, $date_group, $column_totals, $depth + 1, $user_filter));
+    }
+  }
+
+  return $table_rows;
+}
+
+function avreports_account_type_difference_row2(&$table_rows, $account_label, &$column_totals, $type1, $type2, $date_group, $is_diff = TRUE) {
+  $this_total = 0;
+  $type1_total = isset($column_totals[$type1]['at_total']) ? $column_totals[$type1]['at_total'] : 0;
+  $type2_total = isset($column_totals[$type2]['at_total']) ? $column_totals[$type2]['at_total'] : 0;
+  if ($is_diff) {
+    $this_total = $type1_total - $type2_total;
+  }
+  else {
+    $this_total = $type1_total + $type2_total;
+  }
+  $totals_id = $type1 . '.' . $type2;
+
+
+  $data = array();
+  $data['account'] = '<div class="uk-text-bold">' . $account_label . '</div>';
+  foreach ($date_group as $date_from => $dg) {
+    $date_to = $dg['date_to'];
+    $period_total1 = isset($column_totals[$type1][$date_to]) ? $column_totals[$type1][$date_to] : 0;
+    $period_total2 = isset($column_totals[$type2][$date_to]) ? $column_totals[$type2][$date_to] : 0;
+    if ($is_diff) {
+      $period_total = $period_total1 - $period_total2;
+    }
+    else {
+      $period_total = $period_total1 + $period_total2;
+    }
+    $period_total_text = avbase_accounting_number_format($period_total);
+    $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $period_total_text . '</div>';
+
+    $column_totals[$totals_id][$date_to] = $period_total;
+  }
+  // $this_total_text = avbase_accounting_number_format($this_total);
+  // $data['total'] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
+  $table_rows[] = $data;
+  // Spacer.
+  $data = array();
+  $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);
+  $table_rows[] = $data;
+
+  $column_totals[$totals_id]['at_total'] = $this_total;
+}
