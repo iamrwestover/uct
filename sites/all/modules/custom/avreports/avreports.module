@@ -152,6 +152,22 @@ function avreports_menu() {
     'file' => 'inc/fs.form.inc',
   );
 
+  $items['av/reports/fs2'] = array(
+    'title' => 'Balance Sheet',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_fs_form', 2),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/fs2.form.inc',
+  );
+  $items['av/reports/fs-update-options'] = array(
+    'title' => 'Scan transactions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_fs_update_form', 2),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/fs2.form.inc',
+  );
   $items['av/reports/balance-sheet'] = array(
     'title' => 'Balance Sheet',
     'page callback' => 'drupal_get_form',

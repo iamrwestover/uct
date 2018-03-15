@@ -1873,8 +1873,9 @@ function avtxns_get_txn_account_types() {
   return $ttypes;
 }
 
-function avtxns_test($current_account_id) {
-  // $current_account_id = AVTXN_AC_SPECIFIC_AR_ID;
+function avtxns_test($current_account_id, $account_type, $date_start, $date_end) {
+  $actd = avtxns_account_chart_types($account_type);
+  $account_balance_type = $actd['balance_type'];
   $types_with_account_id = avtxns_get_types_with_account_id($current_account_id);
   // if (empty($types_with_account_id)) {
   //   $types_with_account_id[AVTXNS_TXN_TYPE_JOURNAL] = array(
@@ -1891,7 +1892,6 @@ function avtxns_test($current_account_id) {
   // $types_with_account_id = array('vcrd' => $types_with_account_id['vcrd']);
   // $types_with_account_id = array('obll' => $types_with_account_id['obll']);
   // dpm($types_with_account_id);
-  $aa = "SELECT";
   $cases = array();
   $where = array();
   foreach ($types_with_account_id AS $_txn_type => $_refs) {
@@ -1904,7 +1904,9 @@ function avtxns_test($current_account_id) {
       else {
         $case_conditions[] = "avtxn_detail.ref_txn_type = '$_ref_ttype'";
       }
-      $multiplier = $_v == 'credit' ? -1 : 1;
+
+      $multiplier = $_v == $account_balance_type ? 1 : -1;
+      // $multiplier = $_v == 'debit' ? 1 : -1;
       if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
         $sum_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
       }
@@ -1916,7 +1918,8 @@ function avtxns_test($current_account_id) {
     }
   }
   // dpm($cases);
-  if (empty($cases) || !in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+  // if (empty($cases) || !in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+  if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
     $account_txn_types = avtxns_get_txn_account_types();
     foreach ($account_txn_types as $k) {
       if (isset($types_with_account_id[$k])) {
@@ -1927,7 +1930,7 @@ function avtxns_test($current_account_id) {
       $_case = "WHEN (avtxn.transaction_type = '$k' AND avtxn_detail.account_id = $current_account_id) THEN ";
       if (!empty($this_account_txn_type['default_account_id'])) {
         $balance_type = array_shift($this_account_txn_type['default_account_id']);
-        $multiplier = $balance_type == 'credit' ? 1 : -1;
+        $multiplier = $balance_type == $account_balance_type ? -1 : 1;
         $_case .= "(avtxn_detail.cost * $multiplier)" ;
       }
       else {
@@ -1936,15 +1939,30 @@ function avtxns_test($current_account_id) {
       $cases[] = $_case;
     }
   }
-  $aa .= " SUM(CASE " . implode(' ', $cases) . " END) AS amount";
-  $aa .= " FROM avtbl_transactions avtxn
-INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
-WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date < 1519833600 AND avtxn.transaction_date >= 0 AND avtxn.status NOT IN (2, 3)";
+
+  $query = "SELECT SUM(CASE " . implode(' ', $cases) . " END) AS amount";
+  $query .= " FROM avtbl_transactions avtxn
+  INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
+  WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end AND avtxn.status NOT IN (2, 3)";
   // 1517414400
   if (!empty($where)) {
-    $aa .= " AND " . implode(' AND ', $where);
+    $query .= " AND " . implode(' AND ', $where);
   }
 
-  $rs = db_query($aa);
-  dpm($rs->fetchField());
+  $rs = db_query($query);
+  $amount = $rs->fetchField();
+  $amount = empty($amount) ? 0 : $amount;
+
+  if (!empty($amount)) {
+    // Get last amount and add it to current amount.
+    $query = "SELECT amount FROM {avtbl_fs} WHERE account_id = :account_id ORDER BY before_this_day DESC LIMIT 1";
+    $last_amount = db_query($query, array(':account_id' => $current_account_id))->fetchField();
+    $last_amount = empty($last_amount) ? 0 : $last_amount;
+
+    $history_row = array();
+    $history_row['account_id'] = $current_account_id;
+    $history_row['before_this_day'] = $date_end;
+    $history_row['amount'] = $amount + $last_amount;
+    db_insert('avtbl_fs')->fields($history_row)->execute();
+  }
 }
