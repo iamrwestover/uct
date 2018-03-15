@@ -1934,7 +1934,8 @@ function avtxns_test($current_account_id, $account_type, $date_start, $date_end)
         $_case .= "(avtxn_detail.cost * $multiplier)" ;
       }
       else {
-        $_case .= "(avtxn_detail.debit - avtxn_detail.credit)";
+        $multiplier = $account_balance_type == 'credit' ? -1 : 1;
+        $_case .= "((avtxn_detail.debit - avtxn_detail.credit) * $multiplier)";
       }
       $cases[] = $_case;
     }
