@@ -516,7 +516,7 @@ function avreports_account_type_difference_row2(&$table_rows, $account_label, &$
   }
   // $this_total_text = avbase_accounting_number_format($this_total);
   // $data['total'] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
-  $table_rows[] = $data;
+  $table_rows[] = array('data' => $data, 'class' => array('uk-bg-gray'));
   // Spacer.
   $data = array();
   $data['account'] = array('data' => '&nbsp;', 'colspan' => 1000);

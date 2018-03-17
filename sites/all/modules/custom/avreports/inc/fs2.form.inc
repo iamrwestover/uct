@@ -43,11 +43,11 @@ function avreports_fs_form($form, &$form_state, $type) {
     'attributes' => array('class' => array('uk-button uk-button-mini uk-margin-small-right' . $update_button_class)),
     'query' => drupal_get_destination(),
   ));
-  $update_notif_html = $update_button_html . ' Last scan: ' . (empty($last_update) ? 'Never' : format_date($last_update, 'custom', 'F d, Y'));
+  $update_notif_html = $update_button_html . '<br />Last scan: ' . (empty($last_update) ? 'Never' : format_date($last_update, 'custom', AVREPORTS_LIST_DATE_FORMAT));
 
 
   // $update_notif_html .= $update_button_html;
-  $form['transaction_list_filter']['#prefix'] = '<div class="uk-float-right uk-text-small">' . $update_notif_html. '</div>';
+  $form['transaction_list_filter']['#prefix'] = '<div class="uk-float-right uk-text-small uk-text-center">' . $update_notif_html. '</div>';
   // Show warning message if update has never run.
   // if (empty($last_update)) {
   //   drupal_set_message('Transaction history has never been scanned before. ' . $update_button_html, 'error');
@@ -196,8 +196,11 @@ function avreports_fs_form($form, &$form_state, $type) {
   avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_LIABILITY, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
   // Capital.
   avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_CAPITAL, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
-  // Total Assets.
+  // Total Liabilities and Capital.
   avreports_account_type_difference_row2($table_rows, 'TOTAL LIABILITIES AND CAPITAL', $column_totals, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, $date_group, FALSE);
+  // Equity.
+  $total_assets_id = AVTXN_AC_TYPE_CURRENT . '.' . AVTXN_AC_TYPE_FIXED;
+  avreports_account_type_difference_row2($table_rows, 'EQUITY', $column_totals, $total_assets_id, AVTXN_AC_TYPE_LIABILITY, $date_group, TRUE);
   /////////
   ///
 
