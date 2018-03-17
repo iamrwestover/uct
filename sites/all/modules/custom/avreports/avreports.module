@@ -8,6 +8,8 @@
 // Constants.
 define('AVREPORTS_MODULE_PATH', drupal_get_path('module', 'avreports'));
 define('AVREPORTS_EXPORT_FILE_PREFIX', 'uct-report-');
+define('AVREPORTS_FS_PL', 'fs1'); // Profit / Loss
+define('AVREPORTS_FS_BS', 'fs2'); // Balance Sheet
 
 // Includes.
 module_load_include('inc', 'avreports', 'inc/helpers');
@@ -152,6 +154,14 @@ function avreports_menu() {
     'file' => 'inc/fs.form.inc',
   );
 
+  $items['av/reports/fs1'] = array(
+    'title' => 'Profit & Loss',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_fs_form', 2),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/fs2.form.inc',
+  );
   $items['av/reports/fs2'] = array(
     'title' => 'Balance Sheet',
     'page callback' => 'drupal_get_form',

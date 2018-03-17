@@ -4,11 +4,11 @@
  * Build an fs form.
  * @param $form
  * @param $form_state
- * @param $type
+ * @param $fs_type
  *
  * @return mixed
  */
-function avreports_fs_form($form, &$form_state, $type) {
+function avreports_fs_form($form, &$form_state, $fs_type) {
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
   $filter_form_settings = array(
@@ -61,61 +61,98 @@ function avreports_fs_form($form, &$form_state, $type) {
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
 
   // Add table columns depending on date difference.
+  $date_group = array();
   $date_from_timestamp = strtotime($user_filter['date_from']);
   $date_to_timestamp = strtotime($user_filter['date_to']);
-  $date_group = array();
   $ts = $date_from_timestamp;
+  // Allow "base" date group for computation of first of the group's correct difference.
+  $period_balance_only = $fs_type == AVREPORTS_FS_PL;
+  $ts = $period_balance_only ? strtotime('yesterday', $date_from_timestamp) : $ts;
   while ($ts <= $date_to_timestamp) {
-    $last_day_timestamp = strtotime('last day of this month', $ts);
-    $last_day_timestamp = $last_day_timestamp > $date_to_timestamp ? $date_to_timestamp : $last_day_timestamp;
-    $f_month = format_date($ts, 'custom', 'M');
-    $l_month = format_date($last_day_timestamp, 'custom', 'M');
-    $f_day = format_date($ts, 'custom', 'd');
-    $l_day = format_date($last_day_timestamp, 'custom', 'd');
-    $f_year = format_date($ts, 'custom', 'y');
-    $l_year = format_date($last_day_timestamp, 'custom', 'y');
-    if ($f_year == $l_year) {
-      if ($f_month == $l_month) {
-        if ($f_day == $l_day) {
-          $tc_label = "$f_month.$f_day, $f_year";
-        }
-        else {
-          $tc_label = "$f_month.$f_day-$l_day, $f_year";
-        }
-      } else {
-        $tc_label = "$f_month.$f_day - $l_month.$l_day, $l_year";
-      }
+    if ($period_balance_only && count($date_group) < 1) {
+      $tc_label = 'Base';
+      $date_group_id = 'base';
+      $last_day_timestamp = $ts;
     }
     else {
-      $tc_label = "$f_month.$f_day, $f_year - $l_month.$l_day, $l_year";
+      $last_day_timestamp = strtotime('last day of this month', $ts);
+      $last_day_timestamp = $last_day_timestamp > $date_to_timestamp ? $date_to_timestamp : $last_day_timestamp;
+      $date_group_id = $ts;
+      $f_month = format_date($ts, 'custom', 'M');
+      $l_month = format_date($last_day_timestamp, 'custom', 'M');
+      $f_day = format_date($ts, 'custom', 'd');
+      $l_day = format_date($last_day_timestamp, 'custom', 'd');
+      $f_year = format_date($ts, 'custom', 'y');
+      $l_year = format_date($last_day_timestamp, 'custom', 'y');
+      if ($f_year == $l_year) {
+        if ($f_month == $l_month) {
+          if ($f_day == $l_day) {
+            $tc_label = "$f_month.$f_day, $f_year";
+          }
+          else {
+            $tc_label = "$f_month.$f_day-$l_day, $f_year";
+          }
+        } else {
+          $tc_label = "$f_month.$f_day - $l_month.$l_day, $l_year";
+        }
+      }
+      else {
+        $tc_label = "$f_month.$f_day, $f_year - $l_month.$l_day, $l_year";
+      }
     }
-    $date_group[$ts] = array(
+
+    $date_group[$date_group_id] = array(
       'date_from' => $ts,
       'date_to' => $last_day_timestamp,
       'label' => $tc_label,
     );
     $ts = strtotime('tomorrow', $last_day_timestamp);
   }
+  // Add last group for Total column if necessary.
+  if ($period_balance_only && !empty($date_group)) {
+    $date_group['total'] = array(
+      'date_from' => strtotime('tomorrow', $last_day_timestamp),
+      'date_to' => strtotime('tomorrow', $last_day_timestamp),
+      'label' => 'Total',
+    );
+  }
 
   // Get all date_to's.
   $date_tos = array();
-  foreach ($date_group as $dg) {
-    // $date_tos[] = strtotime('tomorrow midnight', $dg['date_to']);
+  foreach ($date_group as $dg_id => $dg) {
+    if ($dg_id == 'total') {
+      // No need to query for total.
+      continue;
+    }
     $date_tos[] = $dg['date_to'];
   }
 
   // Headers.
   $header = array();
   $header['account'] = '';
-  foreach ($date_group as $tk => $tc) {
-    $header[$tk] = array('data' => $tc['label'], 'class' => array('uk-text-right'));
+  foreach ($date_group as $dg_id => $tc) {
+    if ($dg_id == 'base') {
+      continue;
+    }
+    $header[$dg_id] = array('data' => $tc['label'], 'class' => array('uk-text-right'));
   }
   // $header['total'] = array('data' => 'Total', 'class' => array('uk-text-right'));
 
+  $account_types = array();
+  switch ($fs_type) {
+    case AVREPORTS_FS_PL:
+      $account_types = array(AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_OTHER_INCOME, AVTXN_AC_TYPE_COGS, AVTXN_AC_TYPE_EXPENSE);
+      break;
+    case AVREPORTS_FS_BS:
+      $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP);
+      break;
+  }
+
+
   // Retrieve accounts.
-  $account_types = array(AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP);
   $accounts_where = $accounts_args = array();
   $accounts_where[] = 'avachart.account_type IN (:account_types)';
+  $accounts_where[] = 'avachart.status=1';
   $accounts_args[':account_types'] = $account_types;
   $rs = avtxns_account_chart_rs_load($accounts_where, $accounts_args);
   $fs_accounts = $rs->fetchAllAssoc('id');
@@ -186,25 +223,47 @@ function avreports_fs_form($form, &$form_state, $type) {
   // Create table.
   $table_rows = array();
   $column_totals = array();
-  // Current Assets.
-  avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_CURRENT, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
-  // Fixed Assets.
-  avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_FIXED, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
-  // Total Assets.
-  avreports_account_type_difference_row2($table_rows, 'TOTAL ASSETS', $column_totals, AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, $date_group, FALSE);
-  // Liabilities.
-  avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_LIABILITY, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
-  // Capital.
-  avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_CAPITAL, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
-  // Total Liabilities and Capital.
-  avreports_account_type_difference_row2($table_rows, 'TOTAL LIABILITIES AND CAPITAL', $column_totals, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, $date_group, FALSE);
-  // Equity.
-  $total_assets_id = AVTXN_AC_TYPE_CURRENT . '.' . AVTXN_AC_TYPE_FIXED;
-  avreports_account_type_difference_row2($table_rows, 'EQUITY', $column_totals, $total_assets_id, AVTXN_AC_TYPE_LIABILITY, $date_group, TRUE);
-  /////////
-  ///
+  if ($fs_type == AVREPORTS_FS_PL) {
+    // Income.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_INCOME, $fs_rows, $date_group, $column_totals);
+    // COGS.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_COGS, $fs_rows, $date_group, $column_totals);
+    // Gross Profit Row.
+    avreports_account_type_difference_row2($table_rows, 'GROSS PROFIT / (LOSS)', $column_totals, AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_COGS, $date_group);
+    // Expenses.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_EXPENSE, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
+    // Operating Income Row.
+    $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS;
+    avreports_account_type_difference_row2($table_rows, 'OPERATING INCOME', $column_totals, $totals_id, AVTXN_AC_TYPE_EXPENSE, $date_group);
+    // Other Income.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_OTHER_INCOME, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
+    // Spacer.
+    $data = array();
+    $data['account'] = array('data' => '', 'colspan' => 1000);
+    $table_rows[] = array('data' => $data);
+    // Net Income Row.
+    $totals_id = AVTXN_AC_TYPE_INCOME . '.' . AVTXN_AC_TYPE_COGS . '.' . AVTXN_AC_TYPE_EXPENSE;
+    avreports_account_type_difference_row2($table_rows, 'NET INCOME', $column_totals, $totals_id, AVTXN_AC_TYPE_OTHER_INCOME, $date_group, FALSE);
+  }
+  elseif ($fs_type == AVREPORTS_FS_BS) {
+    // Current Assets.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_CURRENT, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
+    // Fixed Assets.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_FIXED, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
+    // Total Assets.
+    avreports_account_type_difference_row2($table_rows, 'TOTAL ASSETS', $column_totals, AVTXN_AC_TYPE_CURRENT, AVTXN_AC_TYPE_FIXED, $date_group, FALSE);
+    // Liabilities.
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_LIABILITY, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
+    // Capital.]
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_CAPITAL, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
+    // Total Liabilities and Capital.
+    avreports_account_type_difference_row2($table_rows, 'TOTAL LIABILITIES AND CAPITAL', $column_totals, AVTXN_AC_TYPE_LIABILITY, AVTXN_AC_TYPE_CAPITAL, $date_group, FALSE);
+    // Equity.
+    // $total_assets_id = AVTXN_AC_TYPE_CURRENT . '.' . AVTXN_AC_TYPE_FIXED;
+    // avreports_account_type_difference_row2($table_rows, 'EQUITY', $column_totals, $total_assets_id, AVTXN_AC_TYPE_LIABILITY, $date_group, TRUE);
+  }
 
-
+  // Format the table.
   $transaction_list_table['table'] = array(
     '#theme' => 'table',
     '#header' => $header,
@@ -357,7 +416,7 @@ function avreports_fs_update_form_submit($form, &$form_state) {
   // $date_end = strtotime('tomorrow midnight');
 
   // Get all accounts available.
-  $query = "SELECT id, title, account_type FROM {avtbl_account_chart} ORDER BY id DESC";
+  $query = "SELECT id, title, account_type FROM {avtbl_account_chart} WHERE status = 1 ORDER BY id DESC";
   $rs = db_query($query);
   $operations = array();
   foreach ($rs as $account_row) {

@@ -412,6 +412,25 @@ function avreports_account_type_balance_rows2(&$table_rows, $pl_accounts_by_type
   // Get account rows for this account type.
   $pl_account_rows = empty($pl_accounts_by_type[$account_type]) ? array() : $pl_accounts_by_type[$account_type];
 
+  if ($account_type == AVTXN_AC_TYPE_CAPITAL) {
+    // Insert Owners Equity in Capital.
+    $pl_account_rows[AVTXN_AC_SPECIFIC_EQUITY_ID] = array(
+      'id' => AVTXN_AC_SPECIFIC_EQUITY_ID,
+      'title' => "Owner's Equity",
+      'account_type' => AVTXN_AC_TYPE_CAPITAL,
+      'weight' => 999,
+      'status' => 1,
+    );
+    $total_assets_id = AVTXN_AC_TYPE_CURRENT . '.' . AVTXN_AC_TYPE_FIXED;
+    foreach ($date_group as $date_from => $dg) {
+      $date_to = $dg['date_to'];
+      $assets_total = isset($column_totals[$total_assets_id][$date_to]) ? $column_totals[$total_assets_id][$date_to] : 0;
+      $liab_total = isset($column_totals[AVTXN_AC_TYPE_LIABILITY][$date_to]) ? $column_totals[AVTXN_AC_TYPE_LIABILITY][$date_to] : 0;
+      $this_cell_total = $assets_total - $liab_total;
+      $fs_rows[AVTXN_AC_SPECIFIC_EQUITY_ID][$date_to] = $this_cell_total;
+    }
+  }
+
   $column_totals[$account_type] = array();
   $account_type_table_rows = avreports_account_type_balance_row_children2($pl_account_rows, $fs_rows, $date_group, $column_totals[$account_type], 0, $user_filter);
 
@@ -421,11 +440,13 @@ function avreports_account_type_balance_rows2(&$table_rows, $pl_accounts_by_type
   // Total.
   $data = array();
   $data['account'] = '<div class="uk-text-bold">Total ' . $actd['name'] . '</div>';
-  foreach ($date_group as $date_from => $dg) {
+  foreach ($date_group as $dg_id => $dg) {
     $date_to = $dg['date_to'];
     $column_total = empty($column_totals[$account_type][$date_to]) ? 0 : $column_totals[$account_type][$date_to];
     $this_total_text = avbase_accounting_number_format($column_total);
-    $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
+    if ($dg_id != 'base') {
+      $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
+    }
   }
   // $at_total = isset($column_totals[$account_type]['at_total']) ? $column_totals[$account_type]['at_total'] : 0;
   // $at_total_text = avbase_accounting_number_format($at_total);
@@ -450,22 +471,28 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
 
     // Do not link to history if account type is a match.
     $link_to_history = !in_array($account_row['account_type'], array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP));
-    $link_to_history = $link_to_history && !in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID));
+    $link_to_history = $link_to_history && !in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_EQUITY_ID));
 
     $data = array();
     $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
     // $data['account'] .= $account_row['id'];
-    $total_column_amount = 0;
-    // $last_cell_amount = 0;
-    foreach ($date_group as $date_from => $dg) {
+    $this_row_amount = 0;
+    $prev_amount = 0;
+    foreach ($date_group as $dg_id => $dg) {
       $date_to = $dg['date_to'];
-      $this_cell_amount = empty($fs_rows[$account_id][$date_to]) ? 0 : $fs_rows[$account_id][$date_to];
-
-      $total_column_amount += $this_cell_amount;
-      $column_totals[$date_to] = empty($column_totals[$date_to]) ? $this_cell_amount : ($column_totals[$date_to] + $this_cell_amount);
-      $data[$date_to] = '<div class="uk-text-right">' . avbase_accounting_number_format($this_cell_amount) . '</div>';
-      // $data[$date_to] .= '<div class="uk-text-right uk-text-muted">' . avbase_accounting_number_format($this_cell_amount - $last_cell_amount) . '</div>';
-      // $last_cell_amount = $this_cell_amount;
+      $ending_amount = empty($fs_rows[$account_id][$date_to]) ? 0 : $fs_rows[$account_id][$date_to];
+      // If base is set, presume that period amount should be used instead of ending amount.
+      $this_cell_amount = isset($date_group['base']) ? ($ending_amount - $prev_amount) : $ending_amount;
+      // If in total column, show row total.
+      $amount_to_show = $dg_id == 'total' ? $this_row_amount : $this_cell_amount;
+      // Only show if not in base column, we only use base for correct difference computation if needed.
+      // Also, base amount shouldn't be added in total row amount.
+      if ($dg_id != 'base') {
+        $data[$date_to] = '<div class="uk-text-right">' . avbase_accounting_number_format($amount_to_show) . '</div>';
+        $this_row_amount += $this_cell_amount;
+      }
+      $column_totals[$date_to] = empty($column_totals[$date_to]) ? $amount_to_show : ($column_totals[$date_to] + $amount_to_show);
+      $prev_amount = $ending_amount;
     }
     // $total_column_amount_text = avbase_accounting_number_format($total_column_amount);
     // $data['total'] = '<div class="uk-text-right">' . $total_column_amount_text . '</div>';
@@ -499,7 +526,7 @@ function avreports_account_type_difference_row2(&$table_rows, $account_label, &$
 
   $data = array();
   $data['account'] = '<div class="uk-text-bold">' . $account_label . '</div>';
-  foreach ($date_group as $date_from => $dg) {
+  foreach ($date_group as $dg_id => $dg) {
     $date_to = $dg['date_to'];
     $period_total1 = isset($column_totals[$type1][$date_to]) ? $column_totals[$type1][$date_to] : 0;
     $period_total2 = isset($column_totals[$type2][$date_to]) ? $column_totals[$type2][$date_to] : 0;
@@ -510,9 +537,10 @@ function avreports_account_type_difference_row2(&$table_rows, $account_label, &$
       $period_total = $period_total1 + $period_total2;
     }
     $period_total_text = avbase_accounting_number_format($period_total);
-    $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $period_total_text . '</div>';
-
     $column_totals[$totals_id][$date_to] = $period_total;
+    if ($dg_id != 'base') {
+      $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $period_total_text . '</div>';
+    }
   }
   // $this_total_text = avbase_accounting_number_format($this_total);
   // $data['total'] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';

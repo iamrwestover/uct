@@ -1591,6 +1591,17 @@ function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE) {
   return $sum ? "SUM($query)" : $query;
 }
 
+function avtxns_txn_detail_discount_query() {
+  $amount_query = "(avtxn_detail.qty * avtxn_detail.cost)";
+  $query = "$amount_query * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
+    * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
+    * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
+    * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))";
+  $query = "$amount_query - ($query)";
+  return $query;
+}
+
+
 function avtxns_get_item_row_key($item) {
   $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
   return "{$reference_type}_db_item_{$item->transaction_id}_{$item->id}";
@@ -1907,14 +1918,17 @@ function avtxns_test($current_account_id, $account_type, $date_start, $date_end)
 
       $multiplier = $_v == $account_balance_type ? 1 : -1;
       // $multiplier = $_v == 'debit' ? 1 : -1;
-      if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
-        $sum_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
+      if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID, AVTXN_AC_SPECIFIC_SALES_RETURN_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+        $amount_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
+      }
+      elseif ($current_account_id == AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
+        $amount_query = avtxns_txn_detail_discount_query();
       }
       else {
-        $sum_query = avtxns_txn_detail_sum_query(1, FALSE);
+        $amount_query = avtxns_txn_detail_sum_query(1, FALSE);
       }
 
-      $cases[] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * " . $sum_query . ")";
+      $cases[] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * (" . $amount_query . "))";
     }
   }
   // dpm($cases);

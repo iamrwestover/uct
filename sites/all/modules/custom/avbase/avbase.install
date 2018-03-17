@@ -291,3 +291,10 @@ function avbase_update_7104() {
   $table = $schema[$table_name];
   db_create_table($table_name, $table);
 }
+
+/**
+ * Accounting chart table fixes..
+ */
+function avbase_update_7105() {
+  db_query("UPDATE {avtbl_account_chart} SET fixed = NULL, status = 0 WHERE id = 8");
+}

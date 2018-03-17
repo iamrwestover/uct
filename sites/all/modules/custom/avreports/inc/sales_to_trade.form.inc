@@ -381,7 +381,7 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
   //}
 
   $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
-  $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status <> ' . AVTXNS_TXN_STATUS_VOID;
+  $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_VOID . ',' . AVTXNS_TXN_STATUS_PENDING . ')';
   if (isset($table_columns['agent_name']) || !empty($user_filter['avcat_agent.title'])) {
     $select[] = 'avcat_agent.title AS agent_name';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
@@ -497,12 +497,16 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
   $where[] = "avtxn.transaction_type IN(:txn_types)";
   $where[] = "IF(avtxn.transaction_type = :txn_type_invoice, avtxn_detail.ref_txn_type = :txn_type_delivery, 1)";
   // Only RUDs from sales returns, RPDs shouldn't be included in stt.
-  $where[] = "IF(avtxn.transaction_type = :txn_type_sr, avtxn.return_type = :rud, 1)";
+  if ($transaction_type == AVTXNS_TXN_TYPE_INVOICE) {
+    $where[] = "IF(avtxn.transaction_type = :txn_type_sr, avtxn.return_type = :rud, 1)";
+    $args[':txn_type_sr'] = AVTXNS_TXN_TYPE_SALES_RETURN;
+    $args[':rud'] = AVTXNS_RETURN_TYPE_RUD;
+  }
+
   $args[':txn_types'] = $register ? array($transaction_type) : array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_SALES_RETURN);
   $args[':txn_type_invoice'] = AVTXNS_TXN_TYPE_INVOICE;
   $args[':txn_type_delivery'] = AVTXNS_TXN_TYPE_DELIVERY;
-  $args[':txn_type_sr'] = AVTXNS_TXN_TYPE_SALES_RETURN;
-  $args[':rud'] = AVTXNS_RETURN_TYPE_RUD;
+
 
 
 

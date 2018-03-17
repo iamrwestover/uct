@@ -18,6 +18,7 @@ function avbase_help_home() {
       <li>- Added Sales Return Register report.</li>
       <li>- Statement of Account now shows for reference numbers.</li>
       <li>- Updated Balance Sheet Report.</li>
+      <li>- Updated Profit & Loss Report.</li>
       <li>- Received Payment and Bills Payment List Reports now shows Excess payment column data.</li>
       <li>- Invoice and Bills List Reports now shows Credited amount column data.</li>
       <li>- Usability and performance improvements.</li>
