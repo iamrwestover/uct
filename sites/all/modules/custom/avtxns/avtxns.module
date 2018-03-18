@@ -462,7 +462,8 @@ function avtxns_txn_types($type = NULL) {
           AVTXN_AC_SPECIFIC_AR_ID => 'credit',
           AVTXN_AC_SPECIFIC_INVENTORY_ID => 'debit',
           AVTXN_AC_SPECIFIC_COGS_ID => 'credit',
-
+          AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
+          AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID => 'credit',
         ),
       ),
     );
@@ -491,8 +492,7 @@ function avtxns_txn_types($type = NULL) {
         ),
         AVTXNS_TXN_TYPE_SALES_RETURN => array(
           //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
-          AVTXN_AC_SPECIFIC_SALES_RETURN_ID => 'debit',
-          AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID => 'credit',
+
         ),
         AVTXNS_TXN_TYPE_CREDIT_MEMO => array(
           //AVTXN_AC_SPECIFIC_AR_ID => 'credit', BAKA MAGDOBLE SA SALES RETURN
