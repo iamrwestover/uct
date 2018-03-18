@@ -42,17 +42,17 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
   <?php if ($date_from): ?>
-    <div class="uk-width-2-10 uk-margin-small-bottom">
+    <div class="uk-width-1-10 uk-margin-small-bottom">
       <?php print $date_from; ?>
     </div>
   <?php endif; ?>
   <?php if ($date_to): ?>
-    <div class="uk-width-2-10">
+    <div class="uk-width-1-10">
       <?php print $date_to; ?>
     </div>
   <?php endif; ?>
   <?php if (isset($form['payment_date_to'])): ?>
-    <div class="uk-width-2-10">
+    <div class="uk-width-1-10">
       <?php print drupal_render($form['payment_date_to']); ?>
     </div>
   <?php endif; ?>

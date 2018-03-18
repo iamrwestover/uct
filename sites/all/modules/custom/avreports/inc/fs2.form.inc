@@ -39,15 +39,17 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
     $update_button_class = ' uk-button-danger';
   }
 
-  $update_button_html = l('Scan transactions', 'av/reports/fs-update-options', array(
-    'attributes' => array('class' => array('uk-button uk-button-mini uk-margin-small-right' . $update_button_class)),
+  $button_tooltip = 'Last scan: ' . (empty($last_update) ? 'Never' : format_date($last_update, 'custom', 'F d, Y'));
+  $update_button_html = l('<i class="uk-icon-search"></i><br />Scan', 'av/reports/fs-update-options', array(
+    'html' => TRUE,
+    'attributes' => array('class' => array('uk-button uk-button-mini uk-margin-small-right' . $update_button_class), 'data-uk-tooltip' => "{cls: 'tt-blue'}", 'title' => $button_tooltip),
     'query' => drupal_get_destination(),
   ));
-  $update_notif_html = $update_button_html . '<br />Last scan: ' . (empty($last_update) ? 'Never' : format_date($last_update, 'custom', AVREPORTS_LIST_DATE_FORMAT));
+  $update_notif_html = $update_button_html;
 
 
   // $update_notif_html .= $update_button_html;
-  $form['transaction_list_filter']['#prefix'] = '<div class="uk-float-right uk-text-small uk-text-center">' . $update_notif_html. '</div>';
+  $form['transaction_list_filter']['#prefix'] = '<div class="uk-float-right uk-text-small uk-text-right">' . $update_notif_html. '</div>';
   // Show warning message if update has never run.
   // if (empty($last_update)) {
   //   drupal_set_message('Transaction history has never been scanned before. ' . $update_button_html, 'error');
