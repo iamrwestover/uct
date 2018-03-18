@@ -62,19 +62,7 @@ function avreports_sales_to_trade_form($form, &$form_state, $transaction_type = 
         'price' => '<em title="May cause slower response time">Price</em>',
         'discount' => 'Discount',
       ),
-      '#default_value' => array(
-        'agent_name',
-        //'client_name',
-        //'client_address',
-        'principal_name',
-        //'txn_id',
-        //'ref_txn_id',
-        //'item_name',
-        //'qty_out',
-        //'uom',
-        //'price',
-        //'discount',
-      ),
+      '#default_value' => array(),
     ),
     'table_group_by' => array(
       '#options' => array(
@@ -97,7 +85,10 @@ function avreports_sales_to_trade_form($form, &$form_state, $transaction_type = 
     unset($filter_form_settings['avtxn_detail.ref_txn_id']);
     unset($filter_form_settings['table_columns']['#options']['ref_txn_id']);
     $filter_form_settings['table_group_by']['#default_value'] = '';
-    $filter_form_settings['table_columns']['#default_value'] = array('principal_name');
+    // $filter_form_settings['table_columns']['#default_value'] = array('principal_name');
+  }
+  if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+    $filter_form_settings['table_columns']['#options']['return_type'] = 'Return type';
   }
   $filter_form_settings['avcat_prodcat.id'] = array('#options' => avbase_get_category_options_array('product_cat'));
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
@@ -231,12 +222,17 @@ function avreports_sales_to_trade_table_row($row, $table_columns, $table_group_b
   $col_data = isset($table_columns['uom']) ? check_plain($row->uom_title) : NULL;
   avreports_sales_to_trade_table_row_col($data, 'uom', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
+  $return_types = avtxns_get_return_types();
+  $col_data = isset($table_columns['return_type']) && !empty($row->return_type) ? $return_types[$row->return_type] : NULL;
+  avreports_sales_to_trade_table_row_col($data, 'return_type', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
+
   $col_data = isset($table_columns['price']) ? '<div class="uk-text-right">' . number_format($row->price, 2) . '</div>' : NULL;
   avreports_sales_to_trade_table_row_col($data, 'price', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
   $col_data = isset($table_columns['discount']) && $row_discount ? '<div class="uk-text-right">' . number_format($row_discount, 2) . '</div>' : NULL;
   avreports_sales_to_trade_table_row_col($data, 'discount', $row, $table_columns, $table_group_by, $group_total, $hide_cols, $col_data);
 
+  // Add data.
   $table_row = $data;
 
   //$table_row = array(
@@ -355,6 +351,7 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
     'vendor_name' => array('data' => 'PREFERRED VENDOR', 'field' => 'vendor_name'),
     'qty_out' => array('data' => 'QTY.', 'field' => 'qty_out'),
     'uom' => array('data' => 'UOM', 'field' => 'avcat_uom.title'),
+    'return_type' => array('data' => 'RETURN TYPE', 'field' => 'return_type'),
     'price' => array('data' => 'PRICE', 'class' => array('uk-text-right'), 'field' => 'price'),
     'discount' => array('data' => 'DISCOUNT', 'class' => array('uk-text-right'), 'field' => 'total_sales'),
   );
@@ -446,6 +443,12 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
     $select[] = 'avtxn_detail.ref_txn_type';
     if (!isset($group_by['txn_id'])) {
       $group_by['ref_txn_id'] = 'avtxn_detail.ref_txn_id';
+    }
+  }
+  if (isset($table_columns['return_type'])) {
+    $select[] = 'avtxn.return_type';
+    if (!isset($group_by['txn_id'])) {
+      $group_by['return_type'] = 'avtxn.return_type';
     }
   }
   if (isset($table_columns['qty_out'])) {
