@@ -152,15 +152,17 @@ function avreports_stock_history_form($form, &$form_state) {
       $group_by[] = 'avtxn.id';
       $group_by[] = 'avtxn_detail.item_id';
       $order_by = array();
-      $order_by[] = 'avtxn_detail.item_id ASC';
-      $order_by[] = 'avtxn.transaction_date ASC';
-      $order_by[] = 'avtxn.id ASC';
+      // $order_by[] = 'avtxn_detail.item_id ASC';
+      $order_by[] = 'avtxn.transaction_date';
+      $order_by[] = 'avtxn.id';
       $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_transaction_details} AS avtxn_detail " . implode(' ', $joins);
 
       unset($where['date_from']);
       unset($where['avtxn.transaction_type']);
       unset($args[':date_from_stamp']);
       unset($args[':avtxntransaction_type']);
+      // dpm($order_by);
+      // $order_by = array('avtxn.id');
       avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
       $rs = db_query($query, $args);
 
