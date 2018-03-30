@@ -63,6 +63,7 @@ function avreports_client_list_form($form, &$form_state, $client_type, $limit = 
   $col_area_show = $col_area && empty($user_filter['avcat_area.title']);
 
   $header = array();
+  $header['#'] = '';
   $header['display_name'] = array('data' => strtoupper($ctd['name'] . ' name'), 'field' => 'display_name');
   if ($col_company) {
     //$header['company'] = array('data' => 'COMPANY', 'field' => 'company');
@@ -130,8 +131,10 @@ function avreports_client_list_form($form, &$form_state, $client_type, $limit = 
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
+  $index = 0;
   foreach ($rs as $row) {
     $data = array();
+    $data['#'] = ++$index;
     $data['display_name'] = l($row->display_name, $ctd['base_path'] . "/{$row->id}/view");
     if ($col_company) {
       //$data['company'] = $row->company;

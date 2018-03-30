@@ -40,6 +40,7 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
   $col_category_show = empty($user_filter['avcat_prodcat.id']);
 
   $header = array();
+  $header['#'] = '';
   $header['title'] = array('data' => 'TITLE', 'field' => 'title');
   if ($complete_columns) {
     $header['uom'] = array('data' => 'BASE UOM', 'field' => 'uom_title');
@@ -118,8 +119,10 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
   avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
   avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
   $rs = db_query($query, $args);
+  $index = 0;
   foreach ($rs as $row) {
     $data = array();
+    $data['#'] = ++$index;
     $data['title'] = l($row->title, "av/products/{$row->id}/view");
     if ($complete_columns) {
       $data['uom'] = check_plain($row->uom_title);
