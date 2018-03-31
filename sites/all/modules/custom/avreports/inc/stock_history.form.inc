@@ -219,7 +219,8 @@ function avreports_stock_history_form($form, &$form_state) {
           $ttd = avtxns_txn_types($row->transaction_type);
           $data = array();
           $txn_view_path = $ttd['base_path'] . "/{$row->transaction_id}/view";
-          $data['transaction_type'] = l($ttd['name'], $txn_view_path);
+          // $data['transaction_type'] = l($ttd['name'], $txn_view_path);
+          $data['transaction_type'] = $ttd['name'];
           $data['transaction_date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
           $data['transaction_id'] = l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $txn_view_path);
           $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
