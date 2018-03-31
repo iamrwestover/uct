@@ -15,6 +15,7 @@ function avbase_help_home() {
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
       <li>- Improved quantity reservation.</li>
+      <li>- Added validation of negative quantities when editing Received Item or Stock Transfer - In transactions.</li>
       <li>- Out of stock items are now organized at the very bottom of Delivery item list.</li>
       <li>- Added Sales Return Register report.</li>
       <li>- Statement of Account now shows for reference numbers.</li>

@@ -706,6 +706,9 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         $fields['qty']['#attributes']['class'][] = 'js-qty-validate';
         $fields['qty']['#attributes']['data-uk-tooltip'] = "{cls: 'tt-blue', pos:'left'}";
       }
+      if (!empty($ttd['qty_change']) && $ttd['qty_change'] == 'increment' && !empty($prod_row['id'])) {
+        $fields['qty']['#av_prod_element_validate'][] = 'avtxns_element_validate_resulting_qty';
+      }
 
       $fields['cost'] = array(
         '#id' => 'product-cost-' . $prod_key,

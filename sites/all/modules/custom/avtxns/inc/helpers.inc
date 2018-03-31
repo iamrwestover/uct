@@ -723,6 +723,74 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
 }
 
 /**
+ * When editing transactions that increments quantity, make sure
+ * that the edit doesn't result into a negative quantity.
+ * @param $element
+ * @param $form_state
+ */
+function avtxns_element_validate_resulting_qty(&$element, &$form_state) {
+  $element_value = $element['#value'];
+  if (is_numeric($element_value) == '') {
+    return;
+  }
+
+  $item_row_key = isset($element['#item_row_key']) ? $element['#item_row_key'] : '';
+  if (empty($item_row_key)) {
+    return;
+  }
+
+  // Get form storage.
+  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
+
+  // Get item rows.
+  $item_rows = empty($form_state['values']['product_rows']) ? array() : $form_state['values']['product_rows'];
+  $element_item_row = empty($item_rows[$item_row_key]) ? array() : $item_rows[$item_row_key];
+  $item_id = empty($element_item_row['product_id']) ? NULL : (int)$element_item_row['product_id'];
+  if (empty($item_id)) {
+    form_error($element, t('Product not specified.'));
+    return;
+  }
+
+  $element_parents = $element['#parents'];
+  $total_product_qty = 0;
+  foreach ($item_rows as $item_row_key => $item_row) {
+    if (strtolower($item_row['product_title']) != strtolower($element_item_row['product_title'])) {
+      continue;
+    }
+
+    // Get default qty if available.
+    $item_row_default_base_qty = empty($item_row['def_bq']) ? 0 : $item_row['def_bq'];
+
+    $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
+    $qty = empty($item_row['qty']) ? 0 : (int)$item_row['qty'];
+    $inputted_base_qty = $qty_per_uom * $qty;
+    $total_product_qty += $inputted_base_qty - $item_row_default_base_qty;
+  }
+
+  $on_hand_qty = (int) avtxns_item_on_hand_qty($item_id);
+  $resulting_qty = $on_hand_qty + $total_product_qty;
+  if ($resulting_qty < 0) {
+    form_error($element, t('Current on-hand quantity of %product is <strong>@onhand</strong>. Deducting @qty1 from it cannot be accepted.', array(
+      '@onhand' => number_format($on_hand_qty),
+      '@qty1' => number_format(abs($total_product_qty)),
+      '%product' => $element_item_row['product_title'],
+    )));
+  }
+
+  // $qty_details = avtxns_item_qty_details($item_id);
+  // $user_available_qty = (int) $qty_details['user_available'];
+  // // $user_available_qty = $user_available_qty < 0 ? 0 : $user_available_qty;
+  // if ($user_available_qty < $total_product_qty) {
+  //   form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
+  //     '@qty1' => (empty($form_state['values']['id']) ? '' : 'additional ') . number_format($total_product_qty),
+  //     '@qty2' => number_format($user_available_qty),
+  //     '%product' => $element_item_row['product_title'],
+  //     '@verb' => ($transaction_type == AVTXNS_TXN_TYPE_PURCHASE_RETURN ? 'Returning' : 'Requesting'),
+  //   )));
+  // }
+}
+
+/**
  * Return transaction type details.
  * @param $type
  *
