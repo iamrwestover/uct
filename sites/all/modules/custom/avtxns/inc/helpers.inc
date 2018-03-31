@@ -1004,13 +1004,18 @@ function avtxns_reserve_user_qty($item_id, $qty) {
   if (!is_numeric($qty) || empty($user->uid)) {
     return;
   }
+
+  $now = time();
   // Insert/update reserved quantity.
   db_merge('avtbl_reserved_qty')
     ->key(array('uid' => $user->uid, 'item_id' => $item_id))
     ->fields(array(
-      'created' => time(),
+      'created' => $now,
       'qty' => $qty,
     ))->execute();
+
+  // Refresh expiration of all reservations for this user.
+  db_query("UPDATE {avtbl_reserved_qty} SET created = :time WHERE uid = :uid", array(':time' => $now, ':uid' => $user->uid));
 }
 
 /**
