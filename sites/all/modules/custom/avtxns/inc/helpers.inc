@@ -689,7 +689,7 @@ function avtxns_element_validate_enough_qty(&$element, &$form_state) {
   $user_available_qty = (int) $qty_details['user_available'];
   // $user_available_qty = $user_available_qty < 0 ? 0 : $user_available_qty;
   if ($user_available_qty < $total_product_qty) {
-    form_error($element, t('@verb @qty1 %product but available quantity is only @qty2.', array(
+    form_error($element, t('@verb @qty1 %product but remaining quantity is only @qty2.', array(
       '@qty1' => (empty($form_state['values']['id']) ? '' : 'additional ') . number_format($total_product_qty),
       '@qty2' => number_format($user_available_qty),
       '%product' => $element_item_row['product_title'],
