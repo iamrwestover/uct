@@ -40,7 +40,7 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
   $col_category_show = empty($user_filter['avcat_prodcat.id']);
 
   $header = array();
-  $header['#'] = '';
+  $header['#'] = array('data' => '');
   $header['title'] = array('data' => 'TITLE', 'field' => 'title');
   if ($complete_columns) {
     $header['uom'] = array('data' => 'BASE UOM', 'field' => 'uom_title');

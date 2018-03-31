@@ -63,7 +63,7 @@ function avreports_client_list_form($form, &$form_state, $client_type, $limit = 
   $col_area_show = $col_area && empty($user_filter['avcat_area.title']);
 
   $header = array();
-  $header['#'] = '';
+  $header['#'] = array('data' => '');
   $header['display_name'] = array('data' => strtoupper($ctd['name'] . ' name'), 'field' => 'display_name');
   if ($col_company) {
     //$header['company'] = array('data' => 'COMPANY', 'field' => 'company');
