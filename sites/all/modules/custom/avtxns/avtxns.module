@@ -1772,7 +1772,43 @@ function avtxns_txn_can_status_change($transaction, $status) {
   $transaction_type = strtoupper($transaction->transaction_type);
 
   if ($status == AVTXNS_TXN_STATUS_VOID) {
-    return user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type));
+    if (user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type))) {
+      // Validate outgoing quantities to prevent negative resulting quantity.
+      if (!empty($ttd['qty_change']) && $ttd['qty_change'] == 'increment') {
+        $item_rows = empty($transaction->items) ? array() : $transaction->items;
+        $outgoing_base_qty = array();
+        foreach ($item_rows as $item_row) {
+          $item_row = (array) $item_row;
+          $item_id = isset($item_row['item_id']) ? $item_row['item_id'] : NULL;
+          $item_id = empty($item_id) ? (isset($item_row['product_id']) ? $item_row['product_id'] : NULL) : $item_id;
+          if (empty($item_id)) {
+            continue;
+          }
+          $on_hand = empty($item_row['onhand_qty']) ? 0 : $item_row['onhand_qty'];
+          $this_prod_total_outgoing_base_qty = !isset($outgoing_base_qty[$item_id]['resulting_qty']) ? $on_hand : $outgoing_base_qty[$item_id]['resulting_qty'];
+          $outgoing_base_qty[$item_id]['product_title'] = isset($item_row['product_title']) ? $item_row['product_title'] : '';
+          $item_row_qty = isset($item_row['qty']) ? $item_row['qty'] : 0;
+          $item_row_qty_per_uom = isset($item_row['qty_per_uom']) ? $item_row['qty_per_uom'] : 1;
+          $item_row_outgoing_base_qty = ($item_row_qty * $item_row_qty_per_uom);
+          $outgoing_base_qty[$item_id]['resulting_qty'] = $this_prod_total_outgoing_base_qty - $item_row_outgoing_base_qty;
+        }
+        $allow = TRUE;
+        foreach ($outgoing_base_qty as $k => $v) {
+          if ($v['resulting_qty'] < 0) {
+            $allow = FALSE;
+            drupal_set_message(t('Void failed. %product will end up with negative quantity.', array('%product' => $v['product_title'])), 'error');
+          }
+        }
+        return $allow;
+      }
+      else {
+        return TRUE;
+      }
+    }
+    else {
+      drupal_set_message('You do not have permission to void transactions.', 'error');
+      return FALSE;
+    }
   }
   elseif ($status == AVTXNS_TXN_STATUS_OPEN || $status == AVTXNS_TXN_STATUS_PENDING) {
     if (!empty($ttd['payment'])) {

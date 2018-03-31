@@ -297,7 +297,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
 
     // Add status change buttons.
     if (empty($ttd['cant_change_status'])) {
-      if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)) && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_VOID)) {
+      if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING))/* && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_VOID)*/) {
         $buttons['void_btn'] = array(
           '#markup' => l('Void transaction', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_VOID, array(
             'attributes' => array('class' => 'uk-button uk-button-danger uk-margin-small-right', 'data-ks' => 'CTRL+D'),
