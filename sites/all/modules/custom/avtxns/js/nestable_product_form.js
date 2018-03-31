@@ -316,7 +316,7 @@
           // Check if item qty is valid and not greater than user available qty.
           var itemID = $productTitleEl.data('selected-product-id');
           var itemDetails = Drupal.settings.avbase.products[itemID] || {};
-          if (itemDetails.title != $productTitleEl.val()) {
+          if (itemDetails.title !== $productTitleEl.val()) {
             return;
           }
           var request = $.ajax({
@@ -368,7 +368,7 @@
         }
         var itemID = $productTitleEl.data('selected-product-id');
         var itemDetails = Drupal.settings.avbase.products[itemID] || {};
-        if (itemID && itemDetails.title != $productTitleEl.val()) {
+        if (itemID && itemDetails.title !== $productTitleEl.val()) {
           $(this).prop('title', '');
           return;
         }
@@ -378,7 +378,7 @@
         var UOMTitle = $UOMEl.val();
         if ($.isNumeric(qtyPerUOM)) {
           Drupal.settings.avbase.availableQty = Drupal.settings.avbase.availableQty || {};
-          if (typeof(Drupal.settings.avbase.availableQty[itemID]) != 'undefined') {
+          if (typeof(Drupal.settings.avbase.availableQty[itemID]) !== 'undefined') {
             var availableQty = Drupal.settings.avbase.availableQty[itemID];
             availableQty = Math.floor((availableQty - totalEnteredBaseQty) / qtyPerUOM);
             if (availableQty < 0) {

@@ -60,6 +60,8 @@ define('AVTXN_AC_SPECIFIC_COGS_ID', 4);
 define('AVTXN_AC_SPECIFIC_INVENTORY_ID', 2);
 define('AVTXN_AC_SPECIFIC_EQUITY_ID', -1);
 
+define('AVTXN_QTY_RESERVATION_EXPIRE', (60 * 2)); // 2 minutes
+
 // Permissions.
 $ttds = avtxns_txn_types();
 foreach ($ttds as $ttd) {
@@ -1807,4 +1809,15 @@ function avtxns_return_form_access($transaction_type, $row) {
   }
 
   return user_access(constant('AVTXNS_PERM_CREATE_' . strtoupper(AVTXNS_TXN_TYPE_SALES_RETURN)));
+}
+
+/**
+ * Implements hook_cron().
+ */
+function avtxns_cron() {
+  // Delete all expired qty reservations.
+  $expires = REQUEST_TIME - AVTXN_QTY_RESERVATION_EXPIRE;
+  db_delete('avtbl_reserved_qty')
+    ->condition('created', $expires, '<')
+    ->execute();
 }

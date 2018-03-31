@@ -359,6 +359,41 @@ function avtxns_schema() {
     ),
   );
 
+  $schema['avtbl_reserved_qty'] = array(
+    'description' => 'TODO: please describe this table!',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'item_id' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'qty' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'unique keys' => array(
+      'uid_itemid' => array('uid', 'item_id')
+    ),
+    'indexes' => array(
+      'created' => array('created'),
+    ),
+  );
+
   return $schema;
 }
 
@@ -699,4 +734,14 @@ function avtxns_update_7110(&$sandbox) {
     //return t('Finished updating customer charges with customer default agent and terms: @message', array('@message' => $final_message));
     return t('Finished updating customer charges with customer default agent and terms.');
   }
+}
+
+/**
+ * Add table for quantity reservations.
+ */
+function avtxns_update_7111() {
+  $schema = avtxns_schema();
+  $table_name = 'avtbl_reserved_qty';
+  $table = $schema[$table_name];
+  db_create_table($table_name, $table);
 }

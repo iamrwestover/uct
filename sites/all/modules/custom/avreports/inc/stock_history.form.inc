@@ -277,7 +277,7 @@ function avreports_stock_history_form($form, &$form_state) {
 
       // Update qty.
       if ($init->current_onhand != $init->onhand) {
-        db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(':qty' => $init->onhand, ':id' => $init->id));
+        // db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(':qty' => $init->onhand, ':id' => $init->id));
       }
     }
   }
