@@ -199,7 +199,8 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $table_rows = array();
   foreach ($rs as $row) {
     $data = array();
-    $data['product_title'] = l($row->product_title, 'av/products/' . $row->product_id . '/view');
+    // $data['product_title'] = l($row->product_title, 'av/products/' . $row->product_id . '/view');
+    $data['product_title'] = check_plain($row->product_title);
     $data['vendor'] = check_plain($row->vendor_name);
     $data['principal'] = check_plain($row->principal_name);
     $data['onhand'] = '<div class="uk-text-right">' . number_format($row->onhand) . '</div>';
