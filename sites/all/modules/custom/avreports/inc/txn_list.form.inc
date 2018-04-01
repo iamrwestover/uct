@@ -288,6 +288,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   // $select['grand_total'] = avtxns_txn_detail_sum_query();
   // $select['grand_total'] .= empty($ttd['payment']) ? '' : " + IFNULL(avtxn.amount_to_credit, 0)";
   $select['grand_total'] .= " AS grand_total";
+
   if ($col_excess) {
     $select['excess'] = "IFNULL(avtxn.amount_to_credit, 0) AS excess_payment";
   }

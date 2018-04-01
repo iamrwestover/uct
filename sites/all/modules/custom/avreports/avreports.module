@@ -205,6 +205,15 @@ function avreports_menu() {
     'file' => 'inc/stock_status.form.inc',
   );
 
+  $items['av/reports/old-stock-status'] = array(
+    'title' => 'Stock Status',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_stock_status_form'),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/stock_status_old.form.inc',
+  );
+
   $items['av/reports/stock-history'] = array(
     'title' => 'Stock History',
     'page callback' => 'drupal_get_form',

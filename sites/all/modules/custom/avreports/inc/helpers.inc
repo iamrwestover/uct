@@ -353,6 +353,7 @@ function avreports_count_max_rows(&$form, &$query, $select, $where, $group_by, $
     avbase_query_supplements($count_query, $where, NULL, NULL, NULL, $group_by);
     $count_query = "SELECT COUNT(*) AS expression FROM ($count_query) subquery";
     $rows_max = db_query($count_query, $args)->fetchField();
+    // dpm($rows_max);
   }
   $form['#report_rows_max'] = $rows_max;
 }

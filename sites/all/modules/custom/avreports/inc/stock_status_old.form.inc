@@ -23,7 +23,7 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
       '#title' => t('Principal'),
       '#autocomplete_path' => 'av/categories/principal/autocomplete',
     ),
-    // 'all_products' => array('#default_value' => 0),
+    'all_products' => array('#default_value' => 0),
     'stock_status' => array('#default_value' => 'all'),
     'selectable' => array('#default_value' => 0),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
@@ -43,18 +43,14 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
 
-  // $all_products = !empty($user_filter['settings']['all_products']);
+  $all_products = !empty($user_filter['settings']['all_products']);
   $selectable_list = !empty($user_filter['settings']['selectable']);
 
-  // if ($all_products) {
-  //   unset($where['product_statuses']);
-  //   unset($args[':product_statuses']);
-  // }
+  if ($all_products) {
+    unset($where['product_statuses']);
+    unset($args[':product_statuses']);
+  }
 
-  unset($where['date_to']);
-  unset($where['date_from']);
-  unset($args[':date_to_stamp']);
-  unset($args[':date_from_stamp']);
 
   $header = array();
   $header['product_title'] = array('data' => 'PRODUCT', 'field' => 'product_title');
@@ -68,25 +64,25 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $header['uom']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['uom']['title'] = 'Unit of Measure';
 
-  $header['day_ave'] = array('data' => 'ASPD', 'class' => array('uk-text-right'));
+  $header['day_ave'] = array('data' => 'ASPD', 'field' => 'day_ave', 'class' => array('uk-text-right'));
   $header['day_ave']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['day_ave']['title'] = 'Average Sales Per Day';
 
-  $header['dr_total'] = array('data' => 'OUT(D)', 'class' => array('uk-text-right'));
+  $header['dr_total'] = array('data' => 'OUT(D)', 'field' => 'dr_total', 'class' => array('uk-text-right'));
   $header['dr_total']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['dr_total']['title'] = 'Out (Deliveries)';
 
-  $header['stou_total'] = array('data' => 'OUT(T)', 'class' => array('uk-text-right'));
+  $header['stou_total'] = array('data' => 'OUT(T)', 'field' => 'stou_total', 'class' => array('uk-text-right'));
   $header['stou_total']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['stou_total']['title'] = 'Out (Transfers)';
 
-  $header['so_total'] = array('data' => 'SO', 'class' => array('uk-text-right'));
-  $header['so_total']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['so_total']['title'] = 'On Sales Order';
+  $header['on_so'] = array('data' => 'SO', 'field' => 'so_total', 'class' => array('uk-text-right'));
+  $header['on_so']['data-uk-tooltip'] = '{cls: "tt-blue"}';
+  $header['on_so']['title'] = 'On Sales Order';
 
-  $header['po_total'] = array('data' => 'PO', 'class' => array('uk-text-right'));
-  $header['po_total']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['po_total']['title'] = 'On Purchase Order';
+  $header['on_po'] = array('data' => 'PO', 'field' => 'po_total', 'class' => array('uk-text-right'));
+  $header['on_po']['data-uk-tooltip'] = '{cls: "tt-blue"}';
+  $header['on_po']['title'] = 'On Purchase Order';
 
   $header['rop'] = array('data' => 'ROP', 'field' => 'rop', 'class' => array('uk-text-right'));
   $header['rop']['data-uk-tooltip'] = '{cls: "tt-blue"}';
@@ -119,11 +115,11 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $order_by = avbase_build_header_order_array($header);
 
   // Supporting order by if ordered by On Hand.
-  // if (isset($order_by['onhand'])) {
-  //   $order_by['day_ave'] = 'day_ave DESC';
-  //   $order_by['so_total'] = 'so_total DESC';
-  //   $order_by['po_total'] = 'po_total ASC';
-  // }
+  if (isset($order_by['onhand'])) {
+    $order_by['day_ave'] = 'day_ave DESC';
+    $order_by['so_total'] = 'so_total DESC';
+    $order_by['po_total'] = 'po_total ASC';
+  }
 
   //$now = time(); // or your date as well
   //$your_date = strtotime("2010-01-01");
@@ -134,9 +130,9 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $day_diff = floor($date_diff / (60 * 60 * 24));
   $day_diff = $day_diff < 1 ? 1 : $day_diff;
 
-  // $products_join = $all_products ? 'LEFT JOIN' : 'INNER JOIN';
-  $products_join = 'LEFT JOIN';
+  $products_join = $all_products ? 'LEFT JOIN' : 'INNER JOIN';
   $dr_total_query = 'SUM(IF(avtxn.transaction_type = :dr_type, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL))';
+  $select = array();
   $select[] = 'avprod.id AS product_id';
   $select[] = 'avprod.title AS product_title';
   $select[] = 'avprod.qty AS onhand';
@@ -145,25 +141,20 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $select[] = 'avprod.cost';
   $select[] = 'avprod.price';
   $select[] = 'avprod.status';
-  // $select[] = 'SUM(IF(avtxn.transaction_type = :po_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS po_total';
-  $select[] = '11 AS po_total';
-  // $select[] = 'SUM(IF(avtxn.transaction_type = :so_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS so_total';
-  $select[] = '22 AS so_total';
-  // $select[] = $dr_total_query . ' AS dr_total';
-  $select[] = '33 AS dr_total';
-  // $select[] = 'SUM(IF(avtxn.transaction_type = :stou_type, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS stou_total';
-  $select[] = '44 AS stou_total';
-  // $select[] = "($dr_total_query / $day_diff) AS day_ave";
-  $select[] = "55 AS day_ave";
+  $select[] = 'SUM(IF(avtxn.transaction_type = :po_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS po_total';
+  $select[] = 'SUM(IF(avtxn.transaction_type = :so_type && avtxn.status = :open_status, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS so_total';
+  $select[] = $dr_total_query . ' AS dr_total';
+  $select[] = 'SUM(IF(avtxn.transaction_type = :stou_type, (avtxn_detail.qty * avtxn_detail.qty_per_uom), NULL)) AS stou_total';
+  $select[] = "($dr_total_query / $day_diff) AS day_ave";
   $select[] = 'avvendor.display_name AS vendor_name';
   $select[] = 'avcat_uom.title AS uom_title';
   $select[] = 'avcat_principal.title AS principal_name';
-  // $joins['avtxn_detail'] = $products_join . ' {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
-  // $joins['avtxn'] = $products_join . ' {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status <> :void_type AND avtxn.transaction_type IN (:ttypes)';
-  // if (!empty($where)) {
-  //   $joins['avtxn'] .= ' AND ' . implode(' AND ', $where);
-  //   $where = array();
-  // }
+  $joins['avtxn_detail'] = $products_join . ' {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
+  $joins['avtxn'] = $products_join . ' {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status <> :void_type AND avtxn.transaction_type IN (:ttypes)';
+  if (!empty($where)) {
+    $joins['avtxn'] .= ' AND ' . implode(' AND ', $where);
+    $where = array();
+  }
   $joins[] = 'LEFT JOIN {avtbl_clients} AS avvendor ON avvendor.id = avprod.vendor_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_principal ON avcat_principal.id = avprod.principal_id';
@@ -173,11 +164,10 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
   $select_args[':dr_type'] = AVTXNS_TXN_TYPE_DELIVERY;
   $select_args[':stou_type'] = AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT;
   $select_args[':open_status'] = AVTXNS_TXN_STATUS_OPEN;
-  $select_args = array();
-  // $args[':void_type'] = AVTXNS_TXN_STATUS_VOID;
-  // $args[':ttypes'] = array(AVTXNS_TXN_TYPE_PURCHASE_ORDER, AVTXNS_TXN_TYPE_SALES_ORDER, AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
+  $args[':void_type'] = AVTXNS_TXN_STATUS_VOID;
+  $args[':ttypes'] = array(AVTXNS_TXN_TYPE_PURCHASE_ORDER, AVTXNS_TXN_TYPE_SALES_ORDER, AVTXNS_TXN_TYPE_DELIVERY, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
   $group_by = array();
-  // $group_by[] = 'avprod.id';
+  $group_by[] = 'avprod.id';
 
   switch ($user_filter['settings']['stock_status']) {
     case 'low':
@@ -196,14 +186,12 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
     $where[] = 'avvendor.display_name = :preferred_vendor';
     $args[':preferred_vendor'] = $user_filter['settings']['preferred_vendor'];
   }
-  $where[] = 'avprod.status = :active_prod';
-  $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
+  // $where[] = 'avprod.status = :active_prod';
+  // $args[':active_prod'] = AVPRODUCTS_STATUS_ACTIVE;
   $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
   // Count max rows before applying supplements to $query.
-  avreports_count_max_rows($form, $query, $select, $where, $group_by, $args, $offset);
-  avbase_query_supplements($query, $where, $order_by, $limit, $offset, $group_by);
-  // avreports_count_max_rows_stock_status($form, $query, $select, $where, $group_by, $args, $offset, $joins, $all_products);
-  // avbase_query_supplements_stock_status($query, $where, $order_by, $limit, $offset, $group_by, $joins, $all_products, $args);
+  avreports_count_max_rows_stock_status($form, $query, $select, $where, $group_by, $args, $offset, $joins, $all_products);
+  avbase_query_supplements_stock_status($query, $where, $order_by, $limit, $offset, $group_by, $joins, $all_products, $args);
 
   $args = array_merge($args, $select_args);
   $rs = db_query($query, $args);
@@ -217,11 +205,11 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
     $data['principal'] = check_plain($row->principal_name);
     $data['onhand'] = '<div class="uk-text-right">' . number_format($row->onhand) . '</div>';
     $data['uom'] = check_plain($row->uom_title);
-    $data['day_ave'] = '<div class="uk-text-right">0</div>';
-    $data['dr_total'] = '<div class="uk-text-right">0</div>';
-    $data['stou_total'] = '<div class="uk-text-right">0</div>';
-    $data['so_total'] = '<div class="uk-text-right">0</div>';
-    $data['po_total'] = '<div class="uk-text-right">0</div>';
+    $data['day_ave'] = '<div class="uk-text-right">' . number_format($row->day_ave) . '</div>';
+    $data['dr_total'] = '<div class="uk-text-right">' . number_format($row->dr_total) . '</div>';
+    $data['stou_total'] = '<div class="uk-text-right">' . number_format($row->stou_total) . '</div>';
+    $data['on_so'] = '<div class="uk-text-right">' . number_format($row->so_total) . '</div>';
+    $data['on_po'] = '<div class="uk-text-right">' . number_format($row->po_total) . '</div>';
     $data['rop'] = '<div class="uk-text-right">' . number_format($row->rop) . '</div>';
     $data['eoq'] = '<div class="uk-text-right">' . number_format($row->eoq) . '</div>';
     $data['cost'] = '<div class="uk-text-right">' . number_format($row->cost, 2) . '</div>';
@@ -244,11 +232,6 @@ function avreports_stock_status_form($form, &$form_state, $limit = NULL, $offset
 
     $table_rows[$row->product_id] = $data;
   }
-
-  avreports_stock_status_txn_total($table_rows, AVTXNS_TXN_TYPE_DELIVERY, $filter_query);
-  avreports_stock_status_txn_total($table_rows, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT, $filter_query);
-  avreports_stock_status_txn_total($table_rows, AVTXNS_TXN_TYPE_PURCHASE_ORDER, $filter_query);
-  avreports_stock_status_txn_total($table_rows, AVTXNS_TXN_TYPE_SALES_ORDER, $filter_query);
 
 
   $transaction_list_table['table'] = array(
@@ -361,41 +344,4 @@ function avreports_stock_status_form_submit($form, &$form_state) {
   }
   $_SESSION['preload']['products'] = $item_rows;
   $form_state['redirect'] = 'av/po/new';
-}
-
-function avreports_stock_status_txn_total(&$table_rows, $txn_type, $filter_query) {
-  $product_ids = array_keys($table_rows);
-  if (empty($product_ids)) {
-    return;
-  }
-
-  $args = empty($filter_query['args']) ? array() : $filter_query['args'];
-  $query = "SELECT avprod.id, SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom) AS total
-FROM avtbl_transactions AS avtxn
-INNER JOIN avtbl_transaction_details AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
-INNER JOIN avtbl_products AS avprod ON avprod.id = avtxn_detail.item_id
-WHERE avtxn.status <> :void_type AND avtxn.transaction_type = :txn_type AND avtxn.transaction_date < :date_to_stamp AND avtxn.transaction_date >= :date_from_stamp
-AND avprod.id IN (:product_ids)
-GROUP BY avtxn_detail.item_id";
-  $args[':void_type'] = AVTXNS_TXN_STATUS_VOID;
-  $args[':txn_type'] = $txn_type;
-  $args[':product_ids'] = $product_ids;
-  $totals = db_query($query, $args)->fetchAllKeyed();
-  if (!empty($totals)) {
-    foreach ($table_rows as $item_id => $table_row) {
-      if (isset($totals[$item_id])) {
-        $table_rows[$item_id]["{$txn_type}_total"] = '<div class="uk-text-right">' . number_format($totals[$item_id]) . '</div>';
-
-        // Set average dr per day.
-        if ($txn_type == AVTXNS_TXN_TYPE_DELIVERY) {
-          $date_from = $args[':date_from_stamp'];
-          $date_to = $args[':date_to_stamp'];
-          $date_diff = $date_to - $date_from;
-          $day_diff = floor($date_diff / (60 * 60 * 24));
-          $day_diff = $day_diff < 1 ? 1 : $day_diff;
-          $table_rows[$item_id]["day_ave"] = '<div class="uk-text-right">' . number_format($totals[$item_id] / $day_diff) . '</div>';
-        }
-      }
-    }
-  }
 }
