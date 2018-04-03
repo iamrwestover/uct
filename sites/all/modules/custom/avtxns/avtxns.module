@@ -1796,7 +1796,7 @@ function avtxns_txn_can_status_change($transaction, $status) {
         foreach ($outgoing_base_qty as $k => $v) {
           if ($v['resulting_qty'] < 0) {
             $allow = FALSE;
-            drupal_set_message(t('Void failed. %product will end up with negative quantity.', array('%product' => $v['product_title'])), 'error');
+            drupal_set_message(t('Void failed. %product will end up with a negative quantity.', array('%product' => $v['product_title'])), 'error');
           }
         }
         return $allow;
