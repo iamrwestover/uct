@@ -22,7 +22,7 @@ function avreports_stock_history_form($form, &$form_state) {
       //'#default_value' => '3',
     ),
     'avtxn.transaction_type' => array('#title' => 'Type', '#options' => avtxns_txn_types_options_array(FALSE, avtxns_get_qty_change_txn_types())),
-    //'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
+    'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
   // Prepare query variables.
