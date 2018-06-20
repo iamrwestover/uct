@@ -57,6 +57,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['avachart.title'])): ?>
+    <div class="uk-width-2-10">
+      <?php print drupal_render($form['avachart.title']); ?>
+    </div>
+  <?php endif; ?>
+
   <?php if (isset($form['avprod.title'])): ?>
     <div class="uk-width-3-10">
       <?php print drupal_render($form['avprod.title']); ?>
@@ -195,12 +201,6 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
   <?php if (isset($form['avtxn.reference_id'])): ?>
     <div class="uk-width-1-10">
       <?php print drupal_render($form['avtxn.reference_id']); ?>
-    </div>
-  <?php endif; ?>
-
-  <?php if (isset($form['avachart.title'])): ?>
-    <div class="uk-width-2-10">
-      <?php print drupal_render($form['avachart.title']); ?>
     </div>
   <?php endif; ?>
 
