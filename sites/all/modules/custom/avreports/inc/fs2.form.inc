@@ -228,9 +228,9 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $column_totals = array();
   if ($fs_type == AVREPORTS_FS_PL) {
     // Income.
-    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_INCOME, $fs_rows, $date_group, $column_totals);
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_INCOME, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
     // COGS.
-    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_COGS, $fs_rows, $date_group, $column_totals);
+    avreports_account_type_balance_rows2($table_rows, $fs_accounts_by_type, AVTXN_AC_TYPE_COGS, $fs_rows, $date_group, $column_totals, TRUE, $user_filter);
     // Gross Profit Row.
     avreports_account_type_difference_row2($table_rows, 'GROSS PROFIT / (LOSS)', $column_totals, AVTXN_AC_TYPE_INCOME, AVTXN_AC_TYPE_COGS, $date_group);
     // Expenses.

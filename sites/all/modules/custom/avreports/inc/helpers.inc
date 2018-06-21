@@ -383,21 +383,24 @@ function avreports_count_max_rows_stock_status(&$form, &$query, $select, $where,
   $form['#report_rows_max'] = $rows_max;
 }
 
-function avreports_account_history_link($title, $user_filter = array(), $link_title = NULL) {
-  if (empty($user_filter)) {
+function avreports_account_history_link($title, $date = array(), $link_title = NULL, $mute_link = TRUE) {
+  if (empty($date)) {
     return $title;
   }
   $link_title = is_null($link_title) ? $title : $link_title;
   $link_options = array('attributes' => array('target' => '_blank'));
+  if ($mute_link) {
+    $link_options['attributes']['class'] = array('uk-link-muted');
+  }
   $link_options['query']['custom_reset'] = 1; // Important.
   $link_options['query']['account_name'] = $title;
   $link_options['query']['date_auto'] = 'custom';
-  $link_options['query']['date_from'] = $user_filter['date_from'];
-  $link_options['query']['date_to'] = $user_filter['date_to'];
-  $link_options['attributes']['title'] = 'View account history';
+  $link_options['query']['date_from'] = $date['date_from'];
+  $link_options['query']['date_to'] = $date['date_to'];
+  $link_options['attributes']['title'] = 'View this account history';
 
 
-  return l($link_title, 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_JOURNAL, $link_options);
+  return l($link_title, 'av/reports/account-history', $link_options);
 }
 
 function avreports_account_type_balance_rows2(&$table_rows, $pl_accounts_by_type, $account_type, $fs_rows, $date_group, &$column_totals, $spacer_at_bottom = TRUE, $user_filter = array()) {
@@ -471,11 +474,12 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
     }
 
     // Do not link to history if account type is a match.
-    $link_to_history = !in_array($account_row['account_type'], array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP));
-    $link_to_history = $link_to_history && !in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_EQUITY_ID));
+    // $link_to_history = !in_array($account_row['account_type'], array(AVTXN_AC_TYPE_AR, AVTXN_AC_TYPE_AP));
+    // $link_to_history = $link_to_history && !in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_EQUITY_ID));
 
     $data = array();
-    $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
+    // $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
+    $data['account'] = $depth_html . avreports_account_history_link($account_row['title'], $user_filter, NULL, FALSE);
     // $data['account'] .= $account_row['id'];
     $this_row_amount = 0;
     $prev_amount = 0;
@@ -489,7 +493,8 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
       // Only show if not in base column, we only use base for correct difference computation if needed.
       // Also, base amount shouldn't be added in total row amount.
       if ($dg_id != 'base') {
-        $data[$date_to] = '<div class="uk-text-right">' . avbase_accounting_number_format($amount_to_show) . '</div>';
+        $history_link_date = array('date_from' => format_date($dg['date_from'], 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date($dg['date_to'], 'custom', AVREPORTS_LIST_DATE_FORMAT));
+        $data[$date_to] = '<div class="uk-text-right">' . avreports_account_history_link($account_row['title'], $history_link_date, avbase_accounting_number_format($amount_to_show)) . '</div>';
         $this_row_amount += $this_cell_amount;
       }
       $column_totals[$date_to] = empty($column_totals[$date_to]) ? $amount_to_show : ($column_totals[$date_to] + $amount_to_show);
