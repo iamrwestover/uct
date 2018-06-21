@@ -382,28 +382,28 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     //}
     $table_rows[] = $data;
 
-    if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL && $this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
-      // Repeat data to balance the debit/credit amounts for non-journal transactions.
-      $default_account = $this_ttd['default_account_id'];
-      $account_id = key($default_account);
-      $data['account_title'] = check_plain($default_account_details[$account_id]->title);
-
-      if (!empty($user_filter['avachart.title']) && $user_filter['avachart.title'] != $data['account_title']) {
-        continue;
-      }
-
-      // Switch debit/credit amounts.
-      $amt_type_of_default_account = $default_account[$account_id];
-      $data[$amt_type_of_default_account] =  $data[$amt_type];
-      $data[$amt_type] = NULL;
-
-      // Update debit/credit total.
-      $amt_type_of_default_account_total = "{$amt_type_of_default_account}_total";
-      $$amt_type_of_default_account_total += $row->$amt_type;
-
-      // Do duplicate row.
-      $table_rows[] = $data;
-    }
+    // if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL && $this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
+    //   // Repeat data to balance the debit/credit amounts for non-journal transactions.
+    //   $default_account = $this_ttd['default_account_id'];
+    //   $account_id = key($default_account);
+    //   $data['account_title'] = check_plain($default_account_details[$account_id]->title);
+    //
+    //   if (!empty($user_filter['avachart.title']) && $user_filter['avachart.title'] != $data['account_title']) {
+    //     continue;
+    //   }
+    //
+    //   // Switch debit/credit amounts.
+    //   $amt_type_of_default_account = $default_account[$account_id];
+    //   $data[$amt_type_of_default_account] =  $data[$amt_type];
+    //   $data[$amt_type] = NULL;
+    //
+    //   // Update debit/credit total.
+    //   $amt_type_of_default_account_total = "{$amt_type_of_default_account}_total";
+    //   $$amt_type_of_default_account_total += $row->$amt_type;
+    //
+    //   // Do duplicate row.
+    //   $table_rows[] = $data;
+    // }
   }
 
   if (!empty($table_rows) && $limit === NULL) {

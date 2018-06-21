@@ -8,6 +8,7 @@
  * @return array
  */
 function avreports_account_history_form($form, &$form_state) {
+  ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   $dad = avtxns_txn_list_filter_date_auto_options();
   $dad_default = empty($dad['this_month']) ? array() : $dad['this_month'];
   $filter_form_settings = array(
@@ -45,10 +46,10 @@ function avreports_account_history_form($form, &$form_state) {
   // $header['transaction_type'] = array('data' => 'TYPE');
   $header['transaction_date'] = array('data' => 'DATE', 'field' => 'avtxn.transaction_date');
   $header['transaction_id'] = array('data' => 'TXN. #', 'field' => 'avtxn.id');
-  $header['debit'] = array('data' => 'DEBIT', 'class' => array('uk-text-right'));
-  $header['credit'] = array('data' => 'CREDIT', 'class' => array('uk-text-right'));
   $header['display_name'] = array('data' => 'CLIENT');
   $header['description'] = array('data' => 'DESCRIPTION');
+  $header['debit'] = array('data' => 'DEBIT', 'class' => array('uk-text-right'));
+  $header['credit'] = array('data' => 'CREDIT', 'class' => array('uk-text-right'));
   $header['reference_id'] = array('data' => 'REF. ID');
 
   // Account details.
@@ -104,16 +105,26 @@ function avreports_account_history_form($form, &$form_state) {
     $select[] = 'avtxn.reference_id';
     $select[] = 'avtxn.memo';
     $where['transaction_status'] = 'avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ')';
+    // $where[] = 'avtxn.id IN(137826, 138004)';
+    // $where[] = "avtxn.transaction_type IN('crd')";
     // Client.
     $select[] = 'avclient.display_name';
     $joins[] = 'LEFT JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id';
     // Transaction details.
-    $account_transaction_types = avtxns_get_txn_account_types();
-    $select[] = "IF (avtxn.transaction_type IN ('" . implode("','", $account_transaction_types) . "'), avtxn_detail.id, avtxn.id) AS transaction_key";
-    $select[] = ($selected_account->id == AVTXN_AC_SPECIFIC_SALES_ID ? avtxns_txn_detail_sum_query() : avtxns_txn_detail_sum_query_discount_applied()) . ' AS grand_total';
+    // $account_transaction_types = ;
+    $select[] = "IF (avtxn.transaction_type IN ('" . implode("','", avtxns_get_txn_account_types()) . "'), avtxn_detail.id, avtxn.id) AS transaction_key";
+    if ($selected_account->id == AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
+      $select[] = "IF (avtxn.transaction_type IN ('" . implode("','", avtxns_get_txn_account_types()) . "'), (" . avtxns_txn_detail_sum_query() . "),(" . avtxns_txn_detail_discount_query(TRUE) . ")) AS grand_total";
+    }
+    elseif ($selected_account->id == AVTXN_AC_SPECIFIC_SALES_ID) {
+      $select[] = avtxns_txn_detail_sum_query() . ' AS grand_total';
+    }
+    else {
+      $select[] = avtxns_txn_detail_sum_query_discount_applied() . ' AS grand_total';
+    }
     $select[] = 'avtxn_detail.description';
-    $select[] = '(avtxn_detail.debit) AS debit';
-    $select[] = '(avtxn_detail.credit) AS credit';
+    $select[] = 'avtxn_detail.debit AS debit';
+    $select[] = 'avtxn_detail.credit AS credit';
     $select[] = 'avtxn_detail.ref_txn_type';
     $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
     $account_id_cases = array();
@@ -126,7 +137,7 @@ function avreports_account_history_form($form, &$form_state) {
         continue;
       }
       if (!empty($tt['account_ids'])) {
-        // Regular transactions that must be automatically recorded on specific account ids.
+        // Regular transactions that must automatically reflect on specific account ids.
         $ref_txn_types = $tt['account_ids'];
         foreach ($ref_txn_types as $rttype => $tt_account_ids) {
           if (empty($tt_account_ids)) {
@@ -141,41 +152,20 @@ function avreports_account_history_form($form, &$form_state) {
             $ref_txn_type_condition = "avtxn_detail.ref_txn_type IS NULL OR avtxn_detail.ref_txn_type = ''";
           }
           $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype' AND ($ref_txn_type_condition)) THEN 1";
-          // $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype' AND ($ref_txn_type_condition)) THEN " . (in_array($selected_account->id, array_keys($tt_account_ids)) ? 1 : 0);
-          // $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype' AND ($ref_txn_type_condition)) THEN (avtxn_detail.account_id IN (" . implode(',', array_keys($tt_account_ids)) . "))";
         }
       }
       elseif (!empty($tt['default_account_id'])) {
-        // Transactions where users input the account id, but must also be automatically recorded on another account id to balance it.
+        // Transactions where users input the account id, but must also automatically reflect on another account id to balance it.
         // e.g.: Credit memo, Charges, etc.
-        if (isset($tt['default_account_id'][$selected_account->id])) {
-          $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype') THEN 1";
-        }
-        // $tt_account_ids = array_keys($tt['default_account_id']);
-        // $tt_account_ids[] = $selected_account->id;
-        // $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype') THEN 1";
-        // $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype') THEN (avtxn_detail.account_id IN (" . implode(',', $tt_account_ids) . "))";
+        $default_account_id_match = isset($tt['default_account_id'][$selected_account->id]) ? 1 : 0;
+        $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype' AND ($default_account_id_match OR avtxn_detail.account_id = {$selected_account->id})) THEN 1";
       }
     }
 
     $account_id_cases = empty($account_id_cases) ? array('WHEN NULL THEN NULL') : $account_id_cases;
     $account_id_case_string = '(CASE ' . implode(' ', $account_id_cases) . ' ELSE (avtxn_detail.account_id = ' . $selected_account->id . ') END)';
     // $account_id_case_string = '(CASE ' . implode(' ', $account_id_cases) . ' ELSE (0) END)';
-
     $where['account_id'] = $account_id_case_string;
-    // Account Chart.
-    // $account_id_cases = array();
-    // $transaction_types = avtxns_txn_types();
-    // $account_transaction_types = avtxns_get_txn_account_types();
-    // foreach ($transaction_types as $tt) {
-    //   if (array_key_exists($ttype, $account_transaction_types)) {
-    //     continue;
-    //   }
-    //   $account_id_cases[] = "WHEN avtxn.transaction_type = '{$ttype}' THEN avtxn_detail.account_id";
-    // }
-    // $account_id_cases = empty($account_id_cases) ? array('WHEN NULL THEN NULL') : $account_id_cases;
-    // $account_id_case_string = '(CASE ' . implode(' ', $account_id_cases) . ' ELSE avtxn_detail.account_id END)';
-    // $joins[] = 'LEFT JOIN {avtbl_account_chart} AS avachart ON avachart.id = ' . $account_id_case_string;
 
     // Build query string.
     $group_by[] = 'transaction_key';
@@ -183,12 +173,14 @@ function avreports_account_history_form($form, &$form_state) {
     avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
     $rs = db_query($query, $args);
     foreach ($rs as $row) {
+
       $data = array();
       $this_ttd = $transaction_types[$row->transaction_type];
       // Columns.
       $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
       $data['id'] = l(avbase_txn_number_format($this_ttd['type'], $row->id), "{$this_ttd['base_path']}/$row->id/view");
-
+      $data['display_name'] = empty($row->display_name) ? NULL : check_plain($row->display_name);
+      $data['description'] = empty($row->description) ? (empty($row->memo) ? NULL : check_plain($row->memo)) : check_plain($row->description);
       // For non-journal transactions, use grand_total as debit/credit.
       $this_balance_type = NULL;
       if (!empty($this_ttd['account_ids'])) {
@@ -212,9 +204,6 @@ function avreports_account_history_form($form, &$form_state) {
       }
       $data['debit'] = empty((float) $row->debit) ? NULL : '<div class="uk-text-right">' . number_format($row->debit, 2) . '</div>';
       $data['credit'] = empty((float) $row->credit) ? NULL : '<div class="uk-text-right">' . number_format($row->credit, 2) . '</div>';
-
-      $data['display_name'] = empty($row->display_name) ? NULL : check_plain($row->display_name);
-      $data['description'] = empty($row->description) ? (empty($row->memo) ? NULL : check_plain($row->memo)) : check_plain($row->description);
       $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
 
       // Totals.

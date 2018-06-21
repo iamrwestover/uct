@@ -1768,14 +1768,14 @@ function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE) {
   return $sum ? "SUM($query)" : $query;
 }
 
-function avtxns_txn_detail_discount_query() {
+function avtxns_txn_detail_discount_query($sum = FALSE) {
   $amount_query = "(avtxn_detail.qty * avtxn_detail.cost)";
   $query = "$amount_query * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
     * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
     * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
     * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))";
   $query = "$amount_query - ($query)";
-  return $query;
+  return $sum ? "SUM($query)" : $query;
 }
 
 
