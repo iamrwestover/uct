@@ -45,10 +45,10 @@ function avreports_account_history_form($form, &$form_state) {
   // $header['transaction_type'] = array('data' => 'TYPE');
   $header['transaction_date'] = array('data' => 'DATE', 'field' => 'avtxn.transaction_date');
   $header['transaction_id'] = array('data' => 'TXN. #', 'field' => 'avtxn.id');
-  $header['display_name'] = array('data' => 'CLIENT');
-  $header['description'] = array('data' => 'DESCRIPTION');
   $header['debit'] = array('data' => 'DEBIT', 'class' => array('uk-text-right'));
   $header['credit'] = array('data' => 'CREDIT', 'class' => array('uk-text-right'));
+  $header['display_name'] = array('data' => 'CLIENT');
+  $header['description'] = array('data' => 'DESCRIPTION');
   $header['reference_id'] = array('data' => 'REF. ID');
 
   // Account details.
@@ -188,8 +188,6 @@ function avreports_account_history_form($form, &$form_state) {
       // Columns.
       $data['date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
       $data['id'] = l(avbase_txn_number_format($this_ttd['type'], $row->id), "{$this_ttd['base_path']}/$row->id/view");
-      $data['display_name'] = empty($row->display_name) ? NULL : check_plain($row->display_name);
-      $data['description'] = empty($row->description) ? (empty($row->memo) ? NULL : check_plain($row->memo)) : check_plain($row->description);
 
       // For non-journal transactions, use grand_total as debit/credit.
       $this_balance_type = NULL;
@@ -214,6 +212,9 @@ function avreports_account_history_form($form, &$form_state) {
       }
       $data['debit'] = empty((float) $row->debit) ? NULL : '<div class="uk-text-right">' . number_format($row->debit, 2) . '</div>';
       $data['credit'] = empty((float) $row->credit) ? NULL : '<div class="uk-text-right">' . number_format($row->credit, 2) . '</div>';
+
+      $data['display_name'] = empty($row->display_name) ? NULL : check_plain($row->display_name);
+      $data['description'] = empty($row->description) ? (empty($row->memo) ? NULL : check_plain($row->memo)) : check_plain($row->description);
       $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
 
       // Totals.
