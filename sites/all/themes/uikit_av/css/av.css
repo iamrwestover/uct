@@ -372,3 +372,10 @@ table.sticky-header {
 .page-user-login #avstatus-messages {
   border: none;
 }
+
+.uk-datepicker-heading .uk-form-select {
+  color: #07D;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-decoration: underline;
+}

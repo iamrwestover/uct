@@ -47,6 +47,9 @@
     <?php if (isset($form['avcat_prodcat.id'])): ?>
       <?php print drupal_render($form['avcat_prodcat.id']); ?>
     <?php endif; ?>
+    <?php if (isset($form['other_info'])): ?>
+      <?php print drupal_render($form['other_info']); ?>
+    <?php endif; ?>
   </div>
 </div>
 

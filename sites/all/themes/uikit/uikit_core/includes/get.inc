@@ -70,7 +70,21 @@ function uikit_get_cdn_assets($jquery_version = '2.1.4', $uikit_version = '2.26.
     'every_page' => TRUE,
     'version' => $uikit_version,
   ));
-  drupal_add_js(UIKIT_SRC . "/js/components/datepicker.js", array(
+  drupal_add_js(UIKIT_SRC . "/js/components/datepicker.min.js", array(
+    //'type' => 'external',
+    'group' => JS_THEME,
+    'every_page' => TRUE,
+    'version' => $uikit_version,
+  ));
+
+  // Form select - needed for improved datepicker experience.
+  drupal_add_css(UIKIT_SRC . "/css/components/form-select." . $css_extension, array(
+    //'type' => 'external',
+    'group' => CSS_THEME,
+    'every_page' => TRUE,
+    'version' => $uikit_version,
+  ));
+  drupal_add_js(UIKIT_SRC . "/js/components/form-select.min.js", array(
     //'type' => 'external',
     'group' => JS_THEME,
     'every_page' => TRUE,

@@ -69,6 +69,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
   $period_balance_only = $fs_type == AVREPORTS_FS_PL;
+  // $period_balance_only = FALSE;
   $ts = $period_balance_only ? strtotime('yesterday', $date_from_timestamp) : $ts;
   while ($ts <= $date_to_timestamp) {
     if ($period_balance_only && count($date_group) < 1) {

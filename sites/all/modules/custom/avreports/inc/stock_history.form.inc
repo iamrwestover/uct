@@ -75,35 +75,6 @@ function avreports_stock_history_form($form, &$form_state) {
   $table_rows = array();
   $selected_product_id = NULL;
   if (!empty($user_filter['avprod.title'])) {
-    // QUERY that utilizes temporary table to get onhand qty per transaction.
-//    db_query("create temporary table test (INDEX item_id (item_id), INDEX transaction_date (transaction_date), INDEX transaction_id (transaction_id), INDEX stest (transaction_date, transaction_id))
-//
-//SELECT avtxn.id as transaction_id, avtxn.transaction_date, avtxn.transaction_type, avtxn_detail.item_id,
-//SUM((avtxn_detail.qty * avtxn_detail.qty_per_uom) * (IF(avtxn.transaction_type IN ('dr','pr','stou'), -1, 1))) as row_qty
-//
-//FROM avtbl_transaction_details AS avtxn_detail
-//INNER JOIN avtbl_transactions AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN ('dr','sr','rcv','pr','stk','stou','stin')
-//INNER JOIN avtbl_products AS avprod ON avprod.id = avtxn_detail.item_id
-//
-//
-//GROUP BY avtxn.id, avtxn_detail.item_id
-//ORDER BY avtxn_detail.item_id ASC, avtxn.transaction_date ASC, avtxn.id ASC;");
-//
-//
-//$xs = db_query("SELECT avtxn.id as transaction_id, avtxn.transaction_type, avtxn_detail.item_id,
-//(avprod.initial_qty + IFNULL(SUM(s2.row_qty), 0)) AS onhand,
-//SUM((avtxn_detail.qty * avtxn_detail.qty_per_uom) * (IF(avtxn.transaction_type IN ('dr','pr','stou'), -1, 1))) as row_qty
-//
-//FROM avtbl_transaction_details AS avtxn_detail
-//INNER JOIN avtbl_transactions AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN ('dr','sr','rcv','pr','stk','stou','stin')
-//INNER JOIN avtbl_products AS avprod ON avprod.id = avtxn_detail.item_id
-//
-//LEFT JOIN test AS s2 ON s2.item_id = avtxn_detail.item_id AND (s2.transaction_date < avtxn.transaction_date OR (s2.transaction_date = avtxn.transaction_date AND s2.transaction_id < avtxn.id))
-//
-//
-//GROUP BY avtxn.id, avtxn_detail.item_id
-//ORDER BY avtxn_detail.item_id ASC, avtxn.transaction_date ASC, avtxn.id ASC;");
-
     $i_query = "SELECT avprod.id, avprod.title, initial_qty AS onhand, qty AS current_onhand,
       initial_value AS asset_value,
       initial_value/initial_qty AS ave_cost,

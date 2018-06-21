@@ -14,6 +14,8 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Heavily reworked Account History report.</li>
+      <li>- Date picker popup now has dropdown menu on Month and Year.</li>
       <li>- Improved quantity reservation.</li>
       <li>- Added validation of negative quantities when editing Received Item or Stock Transfer - In transactions.</li>
       <li>- Out of stock items are now organized at the very bottom of Delivery item list.</li>
@@ -29,7 +31,7 @@ function avbase_help_home() {
       <li class="uk-text-muted">- Easier input of dates.</li>
       <li class="uk-text-muted">- Fixed bug related to inconsistent product quantity.</li>
       <li class="uk-text-muted">- Added Payment Method column on Bills Payment report.</li>
-      <li class="uk-text-muted">- Fixed bug where filter by principal name doesnt work properly on Stock Status report.</li>
+      <li class="uk-text-muted">- Fixed bug where filter by principal name doesn't work properly on Stock Status report.</li>
       <li class="uk-text-muted">- Swapped credit/debit setting for accounting reports.</li>
       <li class="uk-text-muted">- Improved performance on stock status report export.</li>
       <li class="uk-text-muted">- Various bug fixes and performance improvements.</li>

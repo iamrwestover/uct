@@ -280,7 +280,7 @@ function avtxns_account_chart_autocomplete_matches($tree, $depth = 0) {
     $row = (array) $row;
     $account_type = empty($row['account_type']) ? '' : $row['account_type'];
     if (in_array($row['id'], array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
-      continue;
+      // continue;
     }
 
     $row = (object) $row;
