@@ -110,7 +110,7 @@ function avreports_account_history_form($form, &$form_state) {
     // Transaction details.
     $account_transaction_types = avtxns_get_txn_account_types();
     $select[] = "IF (avtxn.transaction_type IN ('" . implode("','", $account_transaction_types) . "'), avtxn_detail.id, avtxn.id) AS transaction_key";
-    $select[] = avtxns_txn_detail_sum_query_discount_applied() . ' AS grand_total';
+    $select[] = ($selected_account->id == AVTXN_AC_SPECIFIC_SALES_ID ? avtxns_txn_detail_sum_query() : avtxns_txn_detail_sum_query_discount_applied()) . ' AS grand_total';
     $select[] = 'avtxn_detail.description';
     $select[] = '(avtxn_detail.debit) AS debit';
     $select[] = '(avtxn_detail.credit) AS credit';
