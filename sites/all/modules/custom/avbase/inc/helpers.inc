@@ -645,6 +645,16 @@ function avbase_element_validate_non_negative_integer($element, &$form_state) {
 }
 
 /**
+ * Form element validation handler for number elements.
+ */
+function avbase_element_validate_more_than_zero($element, &$form_state) {
+  $value = $element['#value'];
+  if ($value !== '' && (!is_numeric($value) || $value < 0.1)) {
+    form_error($element, t('%name must be a valid number and is not less than 0.1', array('%name' => $element['#title'])));
+  }
+}
+
+/**
  * Append extra user details to user object.
  * @param $account
  */
