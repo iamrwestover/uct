@@ -42,7 +42,7 @@ function avreports_stock_history_form($form, &$form_state) {
   $header['reference_id'] = array('data' => 'REF. ID');
   $header['client_name'] = array('data' => 'CLIENT');
   $header['row_qty'] = array('data' => 'QTY.', 'class' => array('uk-text-right'));
-  $header['cost'] = array('data' => 'COST', 'class' => array('uk-text-right'));
+  $header['cost'] = array('data' => 'TOTAL', 'class' => array('uk-text-right'));
   //$header['price'] = array('data' => 'PRICE', 'class' => array('uk-text-right'));
   $header['onhand'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'));
   $header['ave_cost'] = array('data' => 'AVG COST', 'class' => array('uk-text-right'));

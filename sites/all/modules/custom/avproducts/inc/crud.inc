@@ -269,7 +269,7 @@ function avproducts_product_form_info_fields(&$form, &$form_state, $row, $view_m
     ),
     '#special_element_type' => 'number',
     '#required' => TRUE,
-    '#disabled' => empty($row->id) ? FALSE : db_query("SELECT COUNT(id) FROM {avtbl_transaction_details} WHERE item_id = :item_id", array(':item_id' => $row->id))->fetchField(),
+    // '#disabled' => empty($row->id) ? FALSE : db_query("SELECT COUNT(id) FROM {avtbl_transaction_details} WHERE item_id = :item_id", array(':item_id' => $row->id))->fetchField(),
   );
 
   //$date_format = 'M. d, Y';
