@@ -151,6 +151,11 @@ function avimport_db_insert_products_row($excel_row) {
     return t('Product with same title already exists.');
   }
 
+  // Check if cost is correct.
+  if (!is_numeric($insert_row['cost']) || $insert_row['cost'] < 0.1) {
+    return 'COST must be a valid number and must not be less than 0.1';
+  }
+
   // Add base uom_id.
   $title = empty($excel_row['BASE UOM']) ? '' : trim($excel_row['BASE UOM']);
   if (!empty($title)) {
