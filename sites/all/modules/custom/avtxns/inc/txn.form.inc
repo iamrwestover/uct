@@ -175,7 +175,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
   $form['#theme'] = 'avtxns_item_list_form';
 
   // Set generic submit handler.
-  if (!isset($ttd['pending_txns_reference_type'])) {
+  if (!isset($ttd['pending_txns_reference_type']) && empty($ttd['cost_change'])) {
     $form['#submit'] = array('avbase_crud_form_submit', 'avtxns_txn_form_submit', 'avtxns_redirect_transaction_form');
   }
   else {
@@ -339,7 +339,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
     }
   }
 
-  if (isset($buttons['submit']) && isset($ttd['pending_txns_reference_type'])) {
+  if (isset($buttons['submit']) && (isset($ttd['pending_txns_reference_type']) || !empty($ttd['cost_change']))) {
     $buttons['submit']['#id'] = 'detect-cost-change-btn';
     $buttons['submit']['#attributes']['class'][] = 'av-ajax-trigger';
     $buttons['submit']['#ajax'] = array(

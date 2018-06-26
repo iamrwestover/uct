@@ -77,7 +77,7 @@ function avreports_stock_history_form($form, &$form_state) {
   if (!empty($user_filter['avprod.title'])) {
     $i_query = "SELECT avprod.id, avprod.title, initial_qty AS onhand, qty AS current_onhand,
       initial_value AS asset_value,
-      initial_value/initial_qty AS ave_cost,
+      initial_value AS ave_cost,
       initial_qty_date,
       avclients.display_name AS vendor_name,
       avcat_uom.title AS uom_title
@@ -95,7 +95,7 @@ function avreports_stock_history_form($form, &$form_state) {
     }
 
     if (!empty($prod_init)) {
-      $ave_cost_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN, AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);
+      $ave_cost_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
       $select = array();
       $select[] = 'avtxn_detail.item_id';
       $select[] = 'SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom * (IF(avtxn.transaction_type IN (:neg_ttypes), -1, 1))) AS row_qty';
