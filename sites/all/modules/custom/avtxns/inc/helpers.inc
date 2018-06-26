@@ -760,17 +760,24 @@ function avtxns_element_validate_resulting_qty(&$element, &$form_state) {
 
     // Get default qty if available.
     $item_row_default_base_qty = empty($item_row['def_bq']) ? 0 : $item_row['def_bq'];
+    if (isset($element['#attributes']['data-column-name']) && $element['#attributes']['data-column-name'] == 'qty-diff') {
+      // For Stock adjustment edit.
+      $inputted_base_qty = $element_value;
+    }
+    else {
+      // For other "qty_change = increment" transactions.
+      $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
+      $qty = empty($item_row['qty']) ? 0 : (int)$item_row['qty'];
+      $inputted_base_qty = $qty_per_uom * $qty;
+    }
 
-    $qty_per_uom = empty($item_row['qty_per_uom']) ? 1 : (int)$item_row['qty_per_uom'];
-    $qty = empty($item_row['qty']) ? 0 : (int)$item_row['qty'];
-    $inputted_base_qty = $qty_per_uom * $qty;
     $total_product_qty += $inputted_base_qty - $item_row_default_base_qty;
   }
 
   $on_hand_qty = (int) avtxns_item_on_hand_qty($item_id);
   $resulting_qty = $on_hand_qty + $total_product_qty;
   if ($resulting_qty < 0) {
-    form_error($element, t('Current on-hand quantity of %product is <strong>@onhand</strong>. Deducting @qty1 from it will end up with a negative quantity.', array(
+    form_error($element, t('Current on-hand quantity of %product is <strong>@onhand</strong>. Deducting @qty1 from current transaction value will end up with a negative quantity.', array(
       '@onhand' => number_format($on_hand_qty),
       '@qty1' => number_format(abs($total_product_qty)),
       '%product' => $element_item_row['product_title'],

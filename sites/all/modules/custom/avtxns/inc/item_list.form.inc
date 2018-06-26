@@ -952,7 +952,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         '#title_display' => 'none',
         '#maxlength' => 10,
         '#element_validate' => array('avtxns_item_list_row_element_validate'),
-        '#av_prod_element_validate' => array('element_validate_integer'),
+        '#av_prod_element_validate' => array('element_validate_integer', 'avtxns_element_validate_resulting_qty'),
         '#attributes' => array(
           'data-column-name' => 'qty-diff',
           'class' => array('prod-column-qty-diff uk-text-right'),
