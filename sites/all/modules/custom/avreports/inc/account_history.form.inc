@@ -106,7 +106,7 @@ function avreports_account_history_form($form, &$form_state) {
     $select[] = 'avtxn.memo';
     $where['transaction_status'] = 'avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ')';
     // $where[] = 'avtxn.id IN(137826, 138004)';
-    // $where[] = "avtxn.transaction_type IN('crd')";
+    // $where[] = "avtxn.transaction_type IN('obll')";
     // Client.
     $select[] = 'avclient.display_name';
     $joins[] = 'LEFT JOIN {avtbl_clients} AS avclient ON avclient.id = avtxn.client_id';
@@ -158,7 +158,7 @@ function avreports_account_history_form($form, &$form_state) {
         // Transactions where users input the account id, but must also automatically reflect on another account id to balance it.
         // e.g.: Credit memo, Charges, etc.
         $default_account_id_match = isset($tt['default_account_id'][$selected_account->id]) ? 1 : 0;
-        $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype' AND ($default_account_id_match OR avtxn_detail.account_id = {$selected_account->id})) THEN 1";
+        $account_id_cases[] = "WHEN (avtxn.transaction_type = '$ttype' AND (avtxn_detail.ref_txn_type IS NULL OR avtxn_detail.ref_txn_type = '') AND ($default_account_id_match OR avtxn_detail.account_id = {$selected_account->id})) THEN 1";
       }
     }
 
@@ -256,10 +256,11 @@ function avreports_account_history_form($form, &$form_state) {
       '#title_display' => 'inline-before',
     );
     $transaction_list_table['product_name']['#markup'] = '<h2 class="uk-margin-remove">' . check_plain($user_filter['avachart.title']) . '</h2>';
-    $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small uk-margin-small-right">Opening balance: ' . avbase_accounting_number_format($account_opening_balance) . '</div>';
-    $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small uk-margin-small-right">Debits: ' . number_format($debit_total, 2) . '</div>';
-    $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small">Credits: ' . number_format($credit_total, 2) . '</div>';
-    $transaction_list_table['product_name']['#markup'] .= '<div class="uk-tsext-large">Ending balance: ' . avbase_accounting_number_format($account_opening_balance + $debit_total - $credit_total) . '</div>';
+    $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small">Opening balance: ' . avbase_accounting_number_format($account_opening_balance) . '</div>';
+    $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small">Period balance: ' . avbase_accounting_number_format($debit_total - $credit_total) . '</div>';
+    $transaction_list_table['product_name']['#markup'] .= '<div class="">Ending balance: ' . avbase_accounting_number_format($account_opening_balance + $debit_total - $credit_total) . '</div>';
+    $transaction_list_table['other_info']['#markup'] = '<div class="uk-text-muted uk-text-small uk-text-right">Debits: ' . number_format($debit_total, 2) . '</div>';
+    $transaction_list_table['other_info']['#markup'] .= '<div class="uk-text-muted uk-text-small uk-text-right">Credits: ' . number_format($credit_total, 2) . '</div>';
   }
   $form['transaction_list_table'] = array(
     '#type' => 'container',
