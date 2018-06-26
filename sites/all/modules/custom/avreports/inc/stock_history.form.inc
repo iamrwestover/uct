@@ -95,7 +95,7 @@ function avreports_stock_history_form($form, &$form_state) {
     }
 
     if (!empty($prod_init)) {
-      $ave_cost_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
+      $ave_cost_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN, AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT);
       $select = array();
       $select[] = 'avtxn_detail.item_id';
       $select[] = 'SUM(avtxn_detail.qty * avtxn_detail.qty_per_uom * (IF(avtxn.transaction_type IN (:neg_ttypes), -1, 1))) AS row_qty';

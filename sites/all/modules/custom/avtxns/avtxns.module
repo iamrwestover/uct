@@ -797,7 +797,7 @@ function avtxns_txn_types($type = NULL) {
       'plural_name' => 'Stock Transfers - IN',
       'ctd' => avclients_client_types(AVCLIENT_TYPE_BRANCH),
       'qty_change' => 'increment',
-      //'cost_change' => TRUE,
+      // 'cost_change' => TRUE,
       'no_terms' => TRUE,
       'no_agent' => TRUE,
       'no_discount' => TRUE,
@@ -949,7 +949,7 @@ function avtxns_txn_list_form($form, &$form_state, $options = array()) {
 
     $group_by[] = 'avtxn.id';
 
-    $rows_per_page = empty($options['#hide_filter_form']) ? 30 : 20;
+    $rows_per_page = empty($options['#hide_filter_form']) ? 15 : 15;
     $joins_for_count = $joins;
     unset($joins_for_count['avtxn_detail']);
     $query = "SELECT COUNT(avtxn.id) FROM {avtbl_transactions} AS avtxn " . implode(' ', $joins_for_count);
