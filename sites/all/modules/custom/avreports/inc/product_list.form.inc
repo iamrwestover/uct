@@ -112,6 +112,9 @@ function avreports_product_list_form($form, &$form_state, $complete_columns = TR
       break;
   }
 
+  // $where[] = "(avprod.initial_value IS NULL OR avprod.initial_value = '' OR avprod.initial_value < 1)";
+  // $where[] = "(avprod.initial_qty IS NULL OR avprod.initial_qty = '' OR avprod.initial_qty < 1)";
+
   //$where[] = 'avclients.client_type = :ctype';
   //$args[':ctype'] = $client_type;
   $query = "SELECT _expression_ FROM {avtbl_products} AS avprod " . implode(' ', $joins);
