@@ -298,3 +298,11 @@ function avbase_update_7104() {
 function avbase_update_7105() {
   db_query("UPDATE {avtbl_account_chart} SET fixed = NULL, status = 0 WHERE id = 8");
 }
+
+/**
+ * Changes to product table.
+ */
+function avbase_update_7106() {
+  db_query("UPDATE {avtbl_products} SET initial_value = (initial_value / initial_qty) WHERE initial_qty > 0");
+}
+

@@ -17,7 +17,14 @@
 $element = $variables['element'];
 if (!empty($element['#av_date_inputmask'])) {
   drupal_add_library('avbase', 'avbase.dateInputMask');
-  $element['#attributes']['data-inputmask'] = "'alias': 'mm/dd/yyyy', 'placeholder': '', 'positionCaretOnTab': false";
+  $date_input_format = empty($element['#av_date_inputmask_format']) ? 'mm/dd/yyyy' : $element['#av_date_inputmask_format'];
+  $element['#attributes']['data-inputmask'] = "
+    'alias': 'datetime',
+    'inputFormat': '$date_input_format',
+    'placeholder': ' ',
+    'tabThrough': false,
+    'positionCaretOnTab': false
+  ";
 }
 
 $element['#attributes']['type'] = isset($element['#special_element_type']) ? $element['#special_element_type'] : 'text';

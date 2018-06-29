@@ -9,7 +9,7 @@
  * @return mixed
  */
 function avreports_fs_form($form, &$form_state, $fs_type) {
-  $dad = avtxns_txn_list_filter_date_auto_options();
+  $dad = avtxns_txn_list_filter_date_auto_options('Y-m');
   $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
   $filter_form_settings = array(
     'date_auto' => array(
@@ -19,14 +19,32 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
     'date_from' => array(
       '#title' => t('Date from'),
       '#default_value' => $dad_default['date_from'],
+      '#attributes' => array(
+        'data-uk-datepicker' => "{format:'YYYY-MM',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+        }",
+        'class' => array('trigger-ajax-search'),
+      ),
+      '#av_date_format' => 'Y-m',
+      '#av_date_inputmask_format' => 'yyyy-mm',
     ),
     'date_to' => array(
       '#title' => t('Date to'),
       '#default_value' => $dad_default['date_to'],
+      '#attributes' => array(
+        'data-uk-datepicker' => "{format:'YYYY-MM',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+        }",
+        'class' => array('trigger-ajax-search'),
+      ),
+      '#av_date_format' => 'Y-m',
+      '#av_date_inputmask_format' => 'yyyy-mm',
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
-  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings);
+  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings, 'Y-m');
 
   // Show update notif.
   // variable_set('avreports_last_scan', strtotime('last week'));
@@ -61,11 +79,12 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+  $args[':date_to_stamp'] = strtotime('last day of this month', $args[':date_to_stamp']);
 
   // Add table columns depending on date difference.
   $date_group = array();
   $date_from_timestamp = strtotime($user_filter['date_from']);
-  $date_to_timestamp = strtotime($user_filter['date_to']);
+  $date_to_timestamp = $args[':date_to_stamp'];
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
   $period_balance_only = $fs_type == AVREPORTS_FS_PL;
@@ -287,7 +306,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
     ),
   );
 
-  avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
+  // avtxns_txn_list_table_add_date_from($transaction_list_table, $user_filter);
 
   $form['transaction_list_table'] += $transaction_list_table;
 

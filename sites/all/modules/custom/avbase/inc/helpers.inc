@@ -999,11 +999,11 @@ function avbase_order_db_rows_by_best_match($rows, $field_name, $search_string =
   return $ordered_rows;
 }
 
-function avbase_accounting_number_format($number) {
-  $rounded = round((float)$number, 2);
-  $text = number_format($rounded, 2);
+function avbase_accounting_number_format($number, $decimals = 2) {
+  $rounded = round((float)$number, $decimals);
+  $text = number_format($rounded, $decimals);
   if ($rounded < 0) {
-    $text = '(' . number_format(($rounded * -1), 2) . ')';
+    $text = '(' . number_format(($rounded * -1), $decimals) . ')';
   }
   return $text;
 }

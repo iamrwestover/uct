@@ -1092,7 +1092,7 @@ function avtxns_transaction_list_table_submit($form, &$form_state) {
  *
  * @return mixed
  */
-function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
+function avtxns_txn_list_filter_form($form, &$form_state, $settings = array(), $date_format = AVBASE_DATE_FORMAT) {
   $fields = array(
     '#theme' => 'avtxns_txn_list_filter_form',
     '#tree' => TRUE,
@@ -1271,7 +1271,10 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#av_date_format' => AVBASE_DATE_FORMAT,
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_DATE_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_DATE_FORMAT) . "',
+        }",
         'class' => array('trigger-ajax-search'),
         // 'readonly' => 'readonly',
       ),
@@ -1287,13 +1290,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
     $fields['settings'][$fld_name] += array(
       '#id' => 'date-auto',
       '#type' => 'select',
-      '#options' => avtxns_txn_list_filter_date_auto_options_array(),
+      '#options' => avtxns_txn_list_filter_date_auto_options_array($date_format),
       '#attributes' => array(
         //'class' => array('trigger-ajax-search'),
       ),
     );
     $js_settings = array('avbase' => array());
-    $js_settings['avbase']['date_auto'] = avtxns_txn_list_filter_date_auto_options();
+    $js_settings['avbase']['date_auto'] = avtxns_txn_list_filter_date_auto_options($date_format);
     drupal_add_js($js_settings, 'setting');
   }
   $fld_name = 'date_to';
@@ -1305,7 +1308,10 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_DATE_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_DATE_FORMAT) . "',
+        }",
         'class' => array('trigger-ajax-search'),
         // 'readonly' => 'readonly',
       ),
@@ -1323,7 +1329,10 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       '#type' => 'textfield',
       '#icon_key' => 'calendar',
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "'}",
+        'data-uk-datepicker' => "{format:'" . AVBASE_DATE_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_DATE_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_DATE_FORMAT) . "',
+        }",
         'class' => array('trigger-ajax-search'),
         // 'readonly' => 'readonly',
       ),

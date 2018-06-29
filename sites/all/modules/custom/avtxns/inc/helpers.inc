@@ -1753,26 +1753,33 @@ function avtxns_txn_list_filter_date_auto_options($date_format = AVBASE_DATE_FOR
     ),
   );
 
+  if ($date_format == 'Y-m') {
+    unset($options['today']);
+    unset($options['yesterday']);
+    unset($options['this_week']);
+    unset($options['last_week']);
+  }
+
   $data[$date_format] = $options;
   return $data[$date_format];
 }
 
-function avtxns_txn_detail_sum_query_discount_applied($increment = 1, $sum = TRUE) {
+function avtxns_txn_detail_sum_query_discount_applied($increment = 1, $sum = TRUE, $cost = 'avtxn_detail.cost') {
   $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
   $query .= 'avtxn_detail.qty
-    * avtxn_detail.cost
+    * ' . $cost . '
     * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
     * (IF(avtxn_detail.discount2, (1 - avtxn_detail.discount2 / 100), 1))
     * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
     * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))';
-  return $sum ? "SUM($query)" : $query;
+  return $sum ? "SUM($query)" : "($query)";
 }
 
-function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE) {
+function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE, $cost = 'avtxn_detail.cost') {
   $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
-  $query .= 'avtxn_detail.qty * avtxn_detail.cost';
+  $query .= 'avtxn_detail.qty * ' . $cost;
   // return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
-  return $sum ? "SUM($query)" : $query;
+  return $sum ? "SUM($query)" : "($query)";
 }
 
 function avtxns_txn_detail_discount_query($sum = FALSE) {
@@ -1782,9 +1789,15 @@ function avtxns_txn_detail_discount_query($sum = FALSE) {
     * (IF(avtxn_detail.discount3, (1 - avtxn_detail.discount3 / 100), 1))
     * (IF(avtxn_detail.discount4, (1 - avtxn_detail.discount4 / 100), 1))";
   $query = "$amount_query - ($query)";
-  return $sum ? "SUM($query)" : $query;
+  return $sum ? "SUM($query)" : "($query)";
 }
 
+function avtxns_txn_detail_qty_query($increment = 1, $sum = TRUE) {
+  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query .= 'avtxn_detail.qty * avtxn_detail.qty_per_uom';
+  // return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
+  return $sum ? "SUM($query)" : "($query)";
+}
 
 function avtxns_get_item_row_key($item) {
   $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;

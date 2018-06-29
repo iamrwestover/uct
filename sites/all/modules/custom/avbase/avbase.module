@@ -39,6 +39,8 @@ define('AVBASE_EXPANDED_MEMORY_LIMIT', '512M');
 // Date formats.
 define('AVBASE_DATE_FORMAT', 'm/d/Y');
 define('AVBASE_DATE_FORMAT_JS', 'MM/DD/YYYY');
+define('AVBASE_DATE_MIN_TIMESTAMP', strtotime('first day of January this year', time()) - (60 * 60 * 24 * 365 * 5));
+define('AVBASE_DATE_MAX_TIMESTAMP', strtotime('first day of January next year', time()) + (60 * 60 * 24 * 365 * 7));
 
 
 /**
@@ -697,6 +699,15 @@ function avbase_general_settings_form() {
     ),
     '#required' => TRUE,
   );
+  // $form['company_information']['av_datepicker_ref_year'] = array(
+  //   '#type' => 'textfield',
+  //   '#title' => 'Date picker reference year',
+  //   '#description' => 'This will be used by date picker\'s as reference for min and max date.',
+  //   '#default_value' => variable_get('av_datepicker_ref_year', 0),
+  //   '#element_validate' => array('element_validate_integer_positive'),
+  //   '#special_element_type' => 'number',
+  //   '#required' => TRUE,
+  // );
   $form['company_information']['av_discount_multiplier'] = array(
     '#type' => 'textfield',
     '#maxlength' => 4,
