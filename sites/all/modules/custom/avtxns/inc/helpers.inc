@@ -2208,15 +2208,15 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   $order_by[] = 'avtxn.transaction_date';
   $order_by[] = 'avtxn.id';
 
-  // Compute total purchased quantity and purchase value on selected date ranges.
+  // Compute total received quantity and total value on selected date ranges.
   $query = "SELECT
-    " . avtxns_txn_detail_sum_query_discount_applied("avtxn.transaction_type IN (:inc_types)") . " purchased_amount,
-    " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:inc_types)") . " purchased_quantity
+    " . avtxns_txn_detail_sum_query_discount_applied("avtxn.transaction_type IN (:inc_types)") . " qty_in_amount,
+    " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:inc_types)") . " qty_in
     FROM {avtbl_transaction_details} avtxn_detail
     INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
     WHERE avtxn_detail.item_id = :item_id
     AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types)
-    AND avtxn.transaction_date <= :date_from
+    AND avtxn.transaction_date >= :date_from
     AND avtxn.transaction_date < :date_to";
   if (!empty($order_by)) {
     $query .= " ORDER BY " . implode(', ', $order_by);
@@ -2229,25 +2229,58 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
     ':date_from' => $date_start,
     ':date_to' => $date_end,
   ))->fetchObject();
-  $purchased_quantity = empty($row->purchased_quantity) ? 0 : $row->purchased_quantity;
-  $purchase_amount = empty($row->purchased_amount) ? 0 : $row->purchased_amount;
+  $qty_in = empty($row->qty_in) ? 0 : $row->qty_in;
+  $qty_in_amount = empty($row->qty_in_amount) ? 0 : $row->qty_in_amount;
 
 
-  // Compute onhand quantity on selected date ranges.
-  $query = "SELECT " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:pos_types)") . " onhand
+  // Compute total released quantity on selected date ranges.
+  $query = "SELECT " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:pos_types)") . " qty_out
     FROM {avtbl_transaction_details} avtxn_detail
     INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
     WHERE avtxn_detail.item_id = :item_id
-    AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:qty_change_types)
+    AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
+    AND avtxn.transaction_date >= :date_from
     AND avtxn.transaction_date < :date_to";
-  $onhand = db_query($query, array(
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
+  }
+  $qty_out = db_query($query, array(
     ':item_id' => $selected_product->id,
     ':void_status' => AVTXNS_TXN_STATUS_VOID,
     ':pos_types' => avtxns_get_qty_change_txn_types('increment'),
-    ':qty_change_types' => $qty_change_types,
+    ':this_types' => array_diff($qty_change_types, $fixed_cost_types),
+    ':date_from' => $date_start,
     ':date_to' => $date_end,
   ))->fetchField();
-  $onhand = empty($onhand) ? 0 : $onhand;
+  $qty_out = empty($qty_out) ? 0 : $qty_out;
+  $qty_out *= -1;
+  // if ($qty_out != 0) dpm($qty_out);
+  // if ($selected_product->initial_qty_date >= $date_start && $selected_product->initial_qty_date < $date_end) {
+  //   dpm($query);
+  //   dpm(array(
+  //     ':item_id' => $selected_product->id,
+  //     ':void_status' => AVTXNS_TXN_STATUS_VOID,
+  //     ':this_types' => array_diff($qty_change_types, $fixed_cost_types),
+  //     ':date_from' => $date_start,
+  //     ':date_to' => $date_end,
+  //   ));
+  // }
+
+  // // Compute onhand quantity on selected date ranges.
+  // $query = "SELECT " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:pos_types)") . " onhand
+  //   FROM {avtbl_transaction_details} avtxn_detail
+  //   INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+  //   WHERE avtxn_detail.item_id = :item_id
+  //   AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:qty_change_types)
+  //   AND avtxn.transaction_date < :date_to";
+  // $onhand = db_query($query, array(
+  //   ':item_id' => $selected_product->id,
+  //   ':void_status' => AVTXNS_TXN_STATUS_VOID,
+  //   ':pos_types' => avtxns_get_qty_change_txn_types('increment'),
+  //   ':qty_change_types' => $qty_change_types,
+  //   ':date_to' => $date_end,
+  // ))->fetchField();
+  // $onhand = empty($onhand) ? 0 : $onhand;
 
 
   // Get most recent product cost based on selected end date.
@@ -2257,7 +2290,7 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
     INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
     WHERE avtxn_detail.item_id = :item_id 
     AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:inc_types) AND avtxn.transaction_date > :init_qty_date
-    AND avtxn.transaction_date <= :date_from
+    AND avtxn.transaction_date >= :date_from
     AND avtxn.transaction_date < :date_to
     ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
   $item_cost_args = array(
@@ -2273,31 +2306,39 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
 
   // Add initial product values if necessary.
   if ($selected_product->initial_qty_date >= $date_start && $selected_product->initial_qty_date < $date_end) {
-    $purchase_amount += $selected_product->asset_value;
-    $purchased_quantity += $selected_product->initial_qty;
-    $onhand += $selected_product->initial_qty;
-    dpm('------------------------');
+    $qty_in_amount += $selected_product->asset_value;
+    $qty_in += $selected_product->initial_qty;
+    // dpm('------------------------' . $qty_in);
+    // dpm(format_date($date_start));
+    // dpm(array_diff($qty_change_types, $fixed_cost_types));
+    // dpm($qty_in);
+    // dpm($qty_out);
+    // dpm(format_date($date_end));
   }
 
-  if ($onhand != 0) {
-    dpm($onhand . '=' . format_date($date_start) . '--' . format_date($date_end));
-  }
+  $onhand = $qty_in - $qty_out;
+
+
+  // if ($onhand != 0) {
+  //   dpm($onhand . '=' . format_date($date_start) . '--' . format_date($date_end));
+  // }
 
   // Add data to cache.
   // Get last amount and add it to current amount.
-  $query = "SELECT purchased, purchase_amount, onhand FROM {avtbl_inventory_cache} WHERE product_id = :product_id ORDER BY before_this_day DESC LIMIT 1";
+  $query = "SELECT qty_in, qty_out, qty_in_amount FROM {avtbl_inventory_cache} WHERE product_id = :product_id ORDER BY before_this_day DESC LIMIT 1";
   $row = db_query($query, array(':product_id' => $selected_product->id))->fetchObject();
-  $last_purchased_quantity = empty($row->purchased) ? 0 : $row->purchased;
-  $last_amount = empty($row->purchase_amount) ? 0 : $row->purchase_amount;
-  $last_onhand = empty($row->onhand) ? 0 : $row->onhand;
+  $last_qty_in = empty($row->qty_in) ? 0 : $row->qty_in;
+  $last_qty_out = empty($row->qty_out) ? 0 : $row->qty_out;
+  $last_amount = empty($row->qty_in_amount) ? 0 : $row->qty_in_amount;
+  $last_onhand = $last_qty_in - $last_qty_out;
   if ($onhand != $last_onhand) {
     $history_row = array();
     $history_row['product_id'] = $selected_product->id;
     $history_row['before_this_day'] = $date_end;
     $history_row['item_cost'] = $item_cost;
-    $history_row['onhand'] = $onhand;
-    $history_row['purchased'] = $purchased_quantity + $last_purchased_quantity;
-    $history_row['purchase_amount'] = $purchase_amount + $last_amount;
+    $history_row['qty_out'] = $qty_out + $last_qty_out;
+    $history_row['qty_in'] = $qty_in + $last_qty_in;
+    $history_row['qty_in_amount'] = $qty_in_amount + $last_amount;
     db_insert('avtbl_inventory_cache')->fields($history_row)->execute();
   }
 }

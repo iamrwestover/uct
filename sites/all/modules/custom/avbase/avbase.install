@@ -265,20 +265,20 @@ function avbase_schema() {
         'precision' => '18',
         'scale' => '6',
       ),
-      'onhand' => array(
-        'description' => 'Actual on-hand quantity.',
+      'qty_out' => array(
+        'description' => 'Total released quantity.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
-      'purchased' => array(
-        'description' => 'Total purchased quantity',
+      'qty_in' => array(
+        'description' => 'Total received quantity',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
-      'purchase_amount' => array(
-        'description' => 'Total amount of purchased quantity',
+      'qty_in_amount' => array(
+        'description' => 'Total amount of received quantity',
         'type' => 'numeric',
         'not null' => TRUE,
         'precision' => '18',
