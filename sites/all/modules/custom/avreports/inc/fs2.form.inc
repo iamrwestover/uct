@@ -17,7 +17,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
       '#default_value' => 'last_month_to_date',
     ),
     'date_from' => array(
-      '#title' => t('Date from'),
+      '#title' => t('From'),
       '#default_value' => $dad_default['date_from'],
       '#attributes' => array(
         'data-uk-datepicker' => "{format:'YYYY-MM',
@@ -30,7 +30,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
       '#av_date_inputmask_format' => 'yyyy-mm',
     ),
     'date_to' => array(
-      '#title' => t('Date to'),
+      '#title' => t('To'),
       '#default_value' => $dad_default['date_to'],
       '#attributes' => array(
         'data-uk-datepicker' => "{format:'YYYY-MM',
@@ -472,7 +472,8 @@ function avreports_fs_update_form_submit($form, &$form_state) {
 function avreports_batch_scan_accounts($account_row, $date_start, $date_end, &$context) {
   if (!isset($context['sandbox']['progress'])) {
     $date_diff = $date_end - $date_start;
-    $context['sandbox']['max'] = round($date_diff / (60 * 60 * 24));
+    // $context['sandbox']['max'] = round($date_diff / (60 * 60 * 24));
+    $context['sandbox']['max'] = $date_diff;
     $context['results'] = array();
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['date_start'] = $date_start;
@@ -491,15 +492,20 @@ function avreports_batch_scan_accounts($account_row, $date_start, $date_end, &$c
     $limit = $remaining;
   }
   for ($i = 0; $i < $limit; $i++) {
-    $_end = strtotime('tomorrow midnight', $_start);
+    $_end = strtotime('first day of next month', $_start);
+    // $_end = strtotime('tomorrow midnight', $_start);
     avtxns_test($account_row->id, $account_row->account_type, $_start, $_end);
+    // Update progress counter.
+    $_progress += $_end - $_start;
+    // Update start date for next loop.
     $_start = $_end;
+    break;
   }
 
   // Update progress counter.
-  $_progress += $limit;
+  // $_progress += $limit;
 
-  $context['message'] = t('Scanned @progress of @max transaction days for %title.', array('@progress' => $_progress, '@max' => $_max, '%title' => $account_row->title));
+  $context['message'] = t('Scanned @progress of @max transaction days for %title.', array('@progress' => round($_progress / (60 * 60 * 24)), '@max' => round($_max / (60 * 60 * 24)), '%title' => $account_row->title));
   $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top">' . t('Earliest transaction included on scan: ' . format_date($date_start, 'custom', 'M. d, Y')) . '</div>';
   $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Latest transaction included on scan: ' . format_date(strtotime('yesterday', $date_end), 'custom', 'M. d, Y')) . '</div>';
   $context['message'] .= '<div class="uk-text-muted uk-text-small"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and pending transactions are excluded from scan.</div>';

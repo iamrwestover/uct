@@ -479,7 +479,8 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
 
     $data = array();
     // $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
-    $data['account'] = $depth_html . avreports_account_history_link($account_row['title'], $user_filter, NULL, FALSE);
+    // $data['account'] = $depth_html . avreports_account_history_link($account_row['title'], $user_filter, NULL, FALSE);
+    $data['account'] = $depth_html . check_plain($account_row['title']);
     // $data['account'] .= $account_row['id'];
     $this_row_amount = 0;
     $prev_amount = 0;
