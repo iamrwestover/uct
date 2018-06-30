@@ -225,8 +225,67 @@ function avbase_schema() {
         'precision' => '18',
         'scale' => '6',
       ),
+      'onhand' => array(
+        'description' => 'Actual on-hand quantity.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+      'cost' => array(
+        'description' => 'Product cost',
+        'type' => 'numeric',
+        'default' => NULL,
+        'not null' => FALSE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
     ),
     'primary key' => array('account_id', 'before_this_day'),
+  );
+
+  $schema['avtbl_inventory_cache'] = array(
+    'description' => 'Cache data for Inventory data',
+    'fields' => array(
+      'product_id' => array(
+        'description' => 'Product ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'before_this_day' => array(
+        'description' => 'Day timestamp',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'item_cost' => array(
+        'description' => 'The relative item cost',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+      'onhand' => array(
+        'description' => 'Actual on-hand quantity.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'purchased' => array(
+        'description' => 'Total purchased quantity',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'purchase_amount' => array(
+        'description' => 'Total amount of purchased quantity',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+      ),
+    ),
+    'primary key' => array('product_id', 'before_this_day'),
   );
 
   return $schema;
@@ -306,3 +365,12 @@ function avbase_update_7106() {
   db_query("UPDATE {avtbl_products} SET initial_value = (initial_value / initial_qty) WHERE initial_qty > 0");
 }
 
+/**
+ * Add table for Inventory and COGS data cache.
+ */
+function avbase_update_7107() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_inventory_cache';
+  $table = $schema[$table_name];
+  db_create_table($table_name, $table);
+}

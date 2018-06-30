@@ -61,7 +61,6 @@ function avreports_stock_history_form($form, &$form_state) {
     $query = "SELECT 
       avprod.id,
       avprod.title,
-      initial_qty AS onhand,
       qty AS current_onhand,
       initial_qty,
       initial_value AS last_cost,
@@ -598,7 +597,7 @@ function avreports_old_stock_history_form($form, &$form_state) {
       $transaction_list_table['product_name']['#markup'] .= '<br />Asset Value: ' . number_format($init->asset_value, 2);
 
       // Update qty.
-      if ($init->current_onhand != $init->onhand) {
+      if ($init->current_onhand != $init->onhand && $args[':date_to_stamp'] >= strtotime('tomorrow midnight')) {
         db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(':qty' => $init->onhand, ':id' => $init->id));
       }
     }

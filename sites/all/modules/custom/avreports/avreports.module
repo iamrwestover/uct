@@ -233,7 +233,7 @@ function avreports_menu() {
   );
 
   $items['av/reports/stock-history2'] = array(
-    'title' => 'OLD Stock History',
+    'title' => 'OLD Module - Stock History',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avreports_old_stock_history_form'),
     'access arguments' => array(AVREPORTS_PERM_INVENTORY),
