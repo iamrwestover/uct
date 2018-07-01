@@ -436,18 +436,25 @@ function avreports_fs_update_form_submit($form, &$form_state) {
   // Set end date.
   $date_end = avreports_get_that_transaction_date(FALSE);
   $date_end = strtotime('tomorrow midnight', $date_end);
-  // $date_end = strtotime('tomorrow midnight');
+
+  $operations = array();
 
   // Get all products available.
-  $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
-    (initial_value * initial_qty) AS asset_value
-    FROM {avtbl_products} WHERE id=4087
-    ORDER BY id DESC";
+  $query = "SELECT id, title FROM {avtbl_products} ORDER BY id DESC";
   $rs = db_query($query);
-  $operations = array();
-  foreach ($rs as $account_row) {
-    $operations[] = array('avreports_batch_scan_transactions', array('products', $account_row, $date_start, $date_end));
+  foreach ($rs as $product_row) {
+    $params = array(
+      'scan_type' => 'products',
+      'row_id' => $product_row->id,
+      'row_title' => $product_row->title,
+      'date_start' => $date_start,
+      'date_end' => $date_end,
+    );
+    $operations[] = array('avreports_batch_scan_transactions', array(serialize($params)));
   }
+  // dpm($operations);
+  // return;
+  // $operations[] = array('avreports_batch_scan_transactions', array('products', NULL, $date_start, $date_end));
 
   // Get all accounts available.
   // $query = "SELECT id, title, account_type FROM {avtbl_account_chart} WHERE status = 1 ORDER BY id DESC";
@@ -484,7 +491,9 @@ function avreports_fs_update_form_submit($form, &$form_state) {
  * @param $date_end
  * @param $context
  */
-function avreports_batch_scan_transactions($scan_type = '', $row, $date_start, $date_end, &$context) {
+function avreports_batch_scan_transactions($params, &$context) {
+  $params = unserialize($params);
+  extract($params);
   if (!isset($context['sandbox']['progress'])) {
     $date_diff = $date_end - $date_start;
     // $context['sandbox']['max'] = round($date_diff / (60 * 60 * 24));
@@ -501,31 +510,41 @@ function avreports_batch_scan_transactions($scan_type = '', $row, $date_start, $
   $_start = &$context['sandbox']['date_start'];
 
   // Set limit per iteration.
-  $limit = 1;
+  $period_limit = 1;
   $remaining = $_max - $_progress;
-  if ($limit > $remaining) {
-    $limit = $remaining;
+  if ($period_limit > $remaining) {
+    $period_limit = $remaining;
   }
-  for ($i = 0; $i < $limit; $i++) {
-    $_end = strtotime('first day of next month', $_start);
-    // $_end = strtotime('tomorrow midnight', $_start);
-    if ($scan_type == 'accounts') {
-      avtxns_read_account_transactions($row->id, $row->account_type, $_start, $_end);
-    }
-    elseif ($scan_type == 'products') {
-      avtxns_read_product_transactions($row, $_start, $_end);
-    }
-    // Update progress counter.
-    $_progress += $_end - $_start;
-    // Update start date for next loop.
-    $_start = $_end;
-    break;
-  }
+  // for ($i = 0; $i < $period_limit; $i++) {
+  //   $_end = strtotime('first day of next month', $_start);
+  //   // $_end = strtotime('tomorrow midnight', $_start);
+  //   $row_title = '-';
+  //   if ($scan_type == 'accounts') {
+  //     avtxns_read_account_transactions($row->id, $row->account_type, $_start, $_end);
+  //     $row_title = $row->title;
+  //   }
+  //   elseif ($scan_type == 'products') {
+  //     avtxns_read_product_transactions($row->id, $_start, $_end);
+  //     $row_title = $row->title;
+  //     // $row_limit =
+  //     // $query = "SELECT id, title FROM {avtbl_products} ORDER BY id DESC LIMIT 50";
+  //     // $rs = db_query($query);
+  //     // foreach ($rs as $product_row) {
+  //     //   avtxns_read_product_transactions($product_row->id, $_start, $_end);
+  //     // }
+  //     // $row = empty($product_row) ? NULL : $product_row;
+  //   }
+  //   // Update progress counter.
+  //   $_progress += $_end - $_start;
+  //   // Update start date for next loop.
+  //   $_start = $_end;
+  //   break;
+  // }
 
   // Update progress counter.
-  // $_progress += $limit;
+  $_progress += $period_limit;
 
-  $context['message'] = t('Scanned @progress of @max transaction days for %title.', array('@progress' => round($_progress / (60 * 60 * 24)), '@max' => round($_max / (60 * 60 * 24)), '%title' => $row->title));
+  $context['message'] = t('Scanned @progress of @max transaction days for %title.', array('@progress' => round($_progress / (60 * 60 * 24)), '@max' => round($_max / (60 * 60 * 24)), '%title' => $row_title));
   $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top">' . t('Earliest transaction included on scan: ' . format_date($date_start, 'custom', 'M. d, Y')) . '</div>';
   $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Latest transaction included on scan: ' . format_date(strtotime('yesterday', $date_end), 'custom', 'M. d, Y')) . '</div>';
   $context['message'] .= '<div class="uk-text-muted uk-text-small"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and pending transactions are excluded from scan.</div>';

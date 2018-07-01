@@ -2193,11 +2193,20 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
 
 /**
  * Scan all transactions related to specified product id.
- * @param $selected_product
+ * @param $product_id
  * @param $date_start
  * @param $date_end
  */
-function avtxns_read_product_transactions($selected_product, $date_start, $date_end) {
+function avtxns_read_product_transactions($product_id, $date_start, $date_end) {
+  // Get product details.
+  $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
+    (initial_value * initial_qty) AS asset_value
+    FROM {avtbl_products} WHERE id = :id";
+  $selected_product = db_query($query, array(':id' => $product_id))->fetchObject();
+  if (empty($selected_product->id)) {
+    return;
+  }
+
   $increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
   $decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
   $fixed_cost_types = array_merge($increment_types, $decrement_types);
