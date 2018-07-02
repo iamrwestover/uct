@@ -153,7 +153,7 @@ function uikit_av_process_block(&$variables) {
 function uikit_av_select($variables) {
   $element = $variables['element'];
   element_set_attributes($element, array('id', 'name', 'size'));
-  $classes = array('form-select');
+  $classes = array('form-select uk-width-1-1');
   if (isset($element['#parents']) && form_get_error($element)) {
     $classes[] = 'uk-form-danger';
   }

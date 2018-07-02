@@ -28,10 +28,12 @@
     <?php if (isset($form['return_type'])): ?>
       <?php print drupal_render($form['return_type']); ?>
     <?php endif; ?>
-     <?php if (isset($form['avtxn.reference_id'])): ?>
+    <?php if (isset($form['avtxn.reference_id'])): ?>
       <?php print drupal_render($form['avtxn.reference_id']); ?>
     <?php endif; ?>
-
+    <?php if (isset($form['mid_info'])): ?>
+      <?php print drupal_render($form['mid_info']); ?>
+    <?php endif; ?>
   </div>
   <div class="uk-width-1-3 uk-text-right">
     <?php if (isset($form['simplified_status'])): ?>

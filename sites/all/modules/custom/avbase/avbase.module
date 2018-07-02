@@ -731,6 +731,30 @@ function avbase_general_settings_form() {
     '#collapsible' => TRUE,
     //'#collapsed' => TRUE,
   );
+
+  $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
+  $form['system_settings']['avtxns_as_of_date_lock'] = array(
+    '#title' => t('Lock transactions on or before'),
+    '#type' => 'textfield',
+    '#icon_key' => 'calendar',
+    '#required' => TRUE,
+    '#default_value' => empty($transaction_lock_date) ? NULL : format_date($transaction_lock_date, 'custom', 'Y-m'),
+    '#access' => !empty($transaction_lock_date),
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'YYYY-MM',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+        }",
+      'class' => array('trigger-ajax-search uk-width-1-6'),
+      'placeholder' => 'YYYY-MM',
+      'autocomplete' => 'off',
+    ),
+    '#av_date_inputmask' => TRUE,
+    '#av_date_format' => 'Y-m',
+    '#av_date_inputmask_format' => 'yyyy-mm',
+    '#element_validate' => array('avbase_element_validate_date'),
+  );
+
   $export_limit_min = 100;
   $export_limit_max = 5000;
   $form['system_settings']['av_export_row_limit'] = array(

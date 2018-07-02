@@ -180,7 +180,7 @@ function avreports_menu() {
     'file' => 'inc/fs2.form.inc',
   );
   $items['av/reports/fs-update-options'] = array(
-    'title' => 'Scan transactions',
+    'title' => 'Scan and Lock Transactions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avreports_fs_update_form', 2),
     'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),

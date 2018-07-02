@@ -409,7 +409,7 @@ function avtxns_txns_home_form($form, &$form_state) {
  * @return array
  */
 function avtxns_txn_types($type = NULL) {
-  $ret = &drupal_static(__FUNCTION__, array());
+  static $ret;
   if (empty($ret)) {
     // Sales.
     $ret[AVTXNS_TXN_TYPE_SALES_ORDER] = array(
