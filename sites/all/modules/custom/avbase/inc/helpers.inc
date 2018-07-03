@@ -56,12 +56,17 @@ function avbase_get_categories_multiple($group_ids) {
  * @return array
  */
 function avbase_get_category_options_array($group_id) {
+  $data = &drupal_static(__FUNCTION__, array());
+  if (isset($data[$group_id])) {
+    return $data[$group_id];
+  }
   $categories = avbase_get_categories($group_id);
   $options = array();
   foreach ($categories as $v) {
     $options[$v->id] = $v->title;
   }
-  return $options;
+  $data[$group_id] = $options;
+  return $data[$group_id];
 }
 
 /**

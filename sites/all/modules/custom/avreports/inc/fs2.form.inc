@@ -11,10 +11,15 @@
 function avreports_fs_form($form, &$form_state, $fs_type) {
   $dad = avtxns_txn_list_filter_date_auto_options(AVBASE_MONTH_ONLY_FORMAT);
   $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
+  $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
+  if (!empty($transaction_lock_date)) {
+    $dad_default['date_from'] = format_date(strtotime('first day of this month - 2 months', $transaction_lock_date), 'custom', AVBASE_MONTH_ONLY_FORMAT);
+    $dad_default['date_to'] = format_date($transaction_lock_date, 'custom', AVBASE_MONTH_ONLY_FORMAT);
+  }
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
-      '#default_value' => 'last_month_to_date',
+      '#default_value' => 'custom',
     ),
     'date_from' => array(
       '#title' => t('From'),
@@ -89,7 +94,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
   $period_balance_only = $fs_type == AVREPORTS_FS_PL;
-  // $period_balance_only = FALSE;
+  $period_balance_only = FALSE;
   $ts = $period_balance_only ? strtotime('yesterday', $date_from_timestamp) : $ts;
   while ($ts <= $date_to_timestamp) {
     if ($period_balance_only && count($date_group) < 1) {
@@ -671,7 +676,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
     // $context['sandbox']['max'] = $date_diff;
 
     if ($scan_type == 'products') {
-      $query = "SELECT COUNT(id) FROM {avtbl_products} WHERE id < 3500";
+      $query = "SELECT COUNT(id) FROM {avtbl_products}";
     }
     elseif ($scan_type == 'accounts') {
       $query = "SELECT COUNT(id) FROM {avtbl_account_chart} WHERE status = 1";
@@ -714,25 +719,27 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
 
   if (empty($_db_rows)) {
     if ($scan_type == 'products') {
-      $query = "SELECT avprod.id, avprod.title, avprod.initial_qty, avprod.initial_value item_cost, avprod.initial_qty_date,
-      (avprod.initial_value * avprod.initial_qty) AS asset_value FROM avtbl_transaction_details avtxn_detail
-      INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
-      INNER JOIN {avtbl_products} avprod ON avprod.id = avtxn_detail.item_id
-      WHERE avprod.id > $_last_row_id AND avprod.id < 3500
-      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
-      AND avtxn.transaction_date >= :date_from
-      AND avtxn.transaction_date < :date_to
-      ORDER BY avprod.id LIMIT $row_limit";
-      $_db_rows = db_query($query, array(
-        ':void_status' => AVTXNS_TXN_STATUS_VOID,
-        ':this_types' => avtxns_get_qty_change_txn_types(),
-        ':date_from' => $date_start,
-        ':date_to' => $date_end,
-      ))->fetchAllAssoc('id');
+      // $query = "SELECT avprod.id, avprod.title, avprod.initial_qty, avprod.initial_value item_cost, avprod.initial_qty_date,
+      // (avprod.initial_value * avprod.initial_qty) AS asset_value FROM {avtbl_transaction_details} avtxn_detail
+      // INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+      // INNER JOIN {avtbl_products} avprod ON avprod.id = avtxn_detail.item_id
+      // WHERE avprod.id > $_last_row_id AND avprod.id < 3500
+      // AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
+      // AND avtxn.transaction_date >= :date_from
+      // AND avtxn.transaction_date < :date_to
+      // ORDER BY avprod.id LIMIT $row_limit";
+      // $_db_rows = db_query($query, array(
+      //   ':void_status' => AVTXNS_TXN_STATUS_VOID,
+      //   ':this_types' => avtxns_get_qty_change_txn_types(),
+      //   ':date_from' => $date_start,
+      //   ':date_to' => $date_end,
+      // ))->fetchAllAssoc('id');
 
-      // $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
-      // (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
-      // WHERE id > $_last_row_id AND id < 2300 ORDER BY id LIMIT $row_limit";
+      // 3500
+      $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
+      (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
+      WHERE id > $_last_row_id AND id < 2230 ORDER BY id LIMIT $row_limit";
+      $_db_rows = db_query($query)->fetchAllAssoc('id');
     }
     elseif ($scan_type == 'accounts') {
       $query = "SELECT id, title, account_type FROM {avtbl_account_chart} WHERE id > $_last_row_id AND status = 1 ORDER BY id LIMIT $row_limit";

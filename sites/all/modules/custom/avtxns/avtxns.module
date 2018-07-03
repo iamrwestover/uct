@@ -1089,6 +1089,7 @@ function avtxns_transaction_list_table_submit($form, &$form_state) {
  * @param $form
  * @param $form_state
  * @param array $settings
+ * @param $date_format
  *
  * @return mixed
  */
@@ -1320,6 +1321,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array(), $
       '#element_validate' => array('avbase_element_validate_date'),
       '#av_date_format' => AVBASE_DATE_FORMAT,
     );
+    if ($fields[$fld_name]['#av_date_format'] == AVBASE_MONTH_ONLY_FORMAT) {
+      $fields[$fld_name]['#attributes']['data-uk-datepicker'] = "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
+        minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+        maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+      }";
+      $fields[$fld_name]['#av_date_inputmask_format'] = AVBASE_MONTH_ONLY_FORMAT_MASK;
+    }
   }
   $fld_name = 'date_from';
   if (!empty($settings[$fld_name])) {
@@ -1342,6 +1350,13 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array(), $
       '#element_validate' => array('avbase_element_validate_date'),
       '#av_date_format' => AVBASE_DATE_FORMAT,
     );
+    if ($fields[$fld_name]['#av_date_format'] == AVBASE_MONTH_ONLY_FORMAT) {
+      $fields[$fld_name]['#attributes']['data-uk-datepicker'] = "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
+        minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+        maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+      }";
+      $fields[$fld_name]['#av_date_inputmask_format'] = AVBASE_MONTH_ONLY_FORMAT_MASK;
+    }
   }
   $fld_name = 'payment_date_to';
   if (!empty($settings[$fld_name])) {

@@ -250,6 +250,15 @@ function avreports_menu() {
     'file' => 'inc/stock_history.form.inc',
   );
 
+  $items['av/reports/stock-history3'] = array(
+    'title' => 'OLD Module - Stock History',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_stock_history_form3'),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/stock_history.form3.inc',
+  );
+
   $items['av/reports/stock-shortage'] = array(
     'title' => 'Stock Shortage',
     'page callback' => 'drupal_get_form',
