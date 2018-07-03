@@ -2094,98 +2094,98 @@ function avtxns_get_txn_account_types() {//meeee
  * @param $date_end
  */
 function avtxns_read_account_transactions($current_account_id, $account_type, $date_start, $date_end) {
-  $actd = avtxns_account_chart_types($account_type);
-  $account_balance_type = $actd['balance_type'];
-  $types_with_account_id = avtxns_get_types_with_account_id($current_account_id);
-  // if (empty($types_with_account_id)) {
-  //   $types_with_account_id[AVTXNS_TXN_TYPE_JOURNAL] = array(
-  //     'default_account_id'
-  //   );
-  // }
-  // $types_with_account_id = array('inv' => $types_with_account_id['inv']);
-  // $types_with_account_id = array('pmt' => $types_with_account_id['pmt']);
-  // $types_with_account_id = array('crd' => $types_with_account_id['crd']);
-  // $types_with_account_id = array('chg' => $types_with_account_id['chg']);
-  // $types_with_account_id = array('pr' => $types_with_account_id['pr']);
-  // $types_with_account_id = array('bill' => $types_with_account_id['bill']);
-  // $types_with_account_id = array('bpmt' => $types_with_account_id['bpmt']);
-  // $types_with_account_id = array('vcrd' => $types_with_account_id['vcrd']);
-  // $types_with_account_id = array('obll' => $types_with_account_id['obll']);
-  // dpm($types_with_account_id);
-  $cases = array();
-  $where = array();
-  foreach ($types_with_account_id AS $_txn_type => $_refs) {
-    foreach ($_refs AS $_ref_ttype => $_v) {
-      $case_conditions = array();
-      $case_conditions[] = "avtxn.transaction_type = '$_txn_type'";
-      if (in_array($_ref_ttype, array('default', 'default_account_id'))) {
-        $case_conditions[] = "avtxn_detail.ref_txn_type IS NULL";
-      }
-      else {
-        $case_conditions[] = "avtxn_detail.ref_txn_type = '$_ref_ttype'";
-      }
-
-      $multiplier = $_v == $account_balance_type ? 1 : -1;
-      // $multiplier = $_v == 'debit' ? 1 : -1;
-      if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID, AVTXN_AC_SPECIFIC_SALES_RETURN_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
-        $amount_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
-      }
-      elseif ($current_account_id == AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
-        $amount_query = avtxns_txn_detail_discount_query();
-      }
-      else {
-        $amount_query = avtxns_txn_detail_sum_query(1, FALSE);
-      }
-
-      $cases[] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * (" . $amount_query . "))";
+  $add_previous_amount = TRUE;
+  if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+    $add_previous_amount = FALSE;
+    $query = "SELECT SUM(item_cost * (qty_in - qty_out)) AS inventory,
+      SUM(qty_in_amount) AS total_purchase_cost
+      FROM {avtbl_inventory_cache}
+      WHERE before_this_day > $date_start AND before_this_day <= $date_end";
+    $data = db_query($query)->fetchObject();
+    $inventory = empty($data->inventory) ? 0 : $data->inventory;
+    $purchase_cost = empty($data->total_purchase_cost) ? 0 : $data->total_purchase_cost;
+    if ($current_account_id == AVTXN_AC_SPECIFIC_INVENTORY_ID) {
+      $amount = $inventory;
+    }
+    else {
+      $amount = $purchase_cost - $inventory;
     }
   }
-  // dpm($cases);
-  // if (empty($cases) || !in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
-  if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
-    $account_txn_types = avtxns_get_txn_account_types();
-    foreach ($account_txn_types as $k) {
-      if (isset($types_with_account_id[$k])) {
-        continue;
-      }
-      $this_account_txn_type = avtxns_txn_types($k);
-      $types_with_account_id[$k] = NULL;
-      $_case = "WHEN (avtxn.transaction_type = '$k' AND avtxn_detail.account_id = $current_account_id) THEN ";
-      if (!empty($this_account_txn_type['default_account_id'])) {
-        $balance_type = array_shift($this_account_txn_type['default_account_id']);
-        $multiplier = $balance_type == $account_balance_type ? -1 : 1;
-        $_case .= "(avtxn_detail.cost * $multiplier)" ;
-      }
-      else {
-        $multiplier = $account_balance_type == 'credit' ? -1 : 1;
-        $_case .= "((avtxn_detail.debit - avtxn_detail.credit) * $multiplier)";
-      }
-      $cases[] = $_case;
-    }
-  }
+  else {
+    $actd = avtxns_account_chart_types($account_type);
+    $account_balance_type = $actd['balance_type'];
+    $types_with_account_id = avtxns_get_types_with_account_id($current_account_id);
+    $cases = array();
+    $where = array();
+    foreach ($types_with_account_id AS $_txn_type => $_refs) {
+      foreach ($_refs AS $_ref_ttype => $_v) {
+        $case_conditions = array();
+        $case_conditions[] = "avtxn.transaction_type = '$_txn_type'";
+        if (in_array($_ref_ttype, array('default', 'default_account_id'))) {
+          $case_conditions[] = "avtxn_detail.ref_txn_type IS NULL";
+        }
+        else {
+          $case_conditions[] = "avtxn_detail.ref_txn_type = '$_ref_ttype'";
+        }
 
-  $query = "SELECT SUM(CASE " . implode(' ', $cases) . " END) AS amount";
-  $query .= " FROM avtbl_transactions avtxn
+        $multiplier = $_v == $account_balance_type ? 1 : -1;
+        if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID, AVTXN_AC_SPECIFIC_SALES_RETURN_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+          $amount_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
+        }
+        elseif ($current_account_id == AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
+          $amount_query = avtxns_txn_detail_discount_query();
+        }
+        else {
+          $amount_query = avtxns_txn_detail_sum_query(1, FALSE);
+        }
+
+        $cases[] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * (" . $amount_query . "))";
+      }
+    }
+    if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+      $account_txn_types = avtxns_get_txn_account_types();
+      foreach ($account_txn_types as $k) {
+        if (isset($types_with_account_id[$k])) {
+          continue;
+        }
+        $this_account_txn_type = avtxns_txn_types($k);
+        $types_with_account_id[$k] = NULL;
+        $_case = "WHEN (avtxn.transaction_type = '$k' AND avtxn_detail.account_id = $current_account_id) THEN ";
+        if (!empty($this_account_txn_type['default_account_id'])) {
+          $balance_type = array_shift($this_account_txn_type['default_account_id']);
+          $multiplier = $balance_type == $account_balance_type ? -1 : 1;
+          $_case .= "(avtxn_detail.cost * $multiplier)" ;
+        }
+        else {
+          $multiplier = $account_balance_type == 'credit' ? -1 : 1;
+          $_case .= "((avtxn_detail.debit - avtxn_detail.credit) * $multiplier)";
+        }
+        $cases[] = $_case;
+      }
+    }
+
+    $query = "SELECT SUM(CASE " . implode(' ', $cases) . " END) AS amount";
+    $query .= " FROM avtbl_transactions avtxn
   INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
   WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end
   AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")";
-  // 1517414400
-  if (!empty($where)) {
-    $query .= " AND " . implode(' AND ', $where);
+    // 1517414400
+    if (!empty($where)) {
+      $query .= " AND " . implode(' AND ', $where);
+    }
+
+    $rs = db_query($query);
+    $amount = $rs->fetchField();
+    $amount = empty($amount) ? 0 : $amount;
   }
 
-  $rs = db_query($query);
-  $amount = $rs->fetchField();
-  $amount = empty($amount) ? 0 : $amount;
-
-  // dpm('000');
-  // dpm(format_date($date_start, 'long'));
-  // dpm(format_date($date_start, 'long'));
-  // dpm($amount);
+  // Log this unless amount is empty.
   if (!empty($amount)) {
     // Get last amount and add it to current amount.
-    $query = "SELECT amount FROM {avtbl_fs} WHERE account_id = :account_id ORDER BY before_this_day DESC LIMIT 1";
-    $last_amount = db_query($query, array(':account_id' => $current_account_id))->fetchField();
+    if ($add_previous_amount) {
+      $query = "SELECT amount FROM {avtbl_fs} WHERE account_id = :account_id ORDER BY before_this_day DESC LIMIT 1";
+      $last_amount = db_query($query, array(':account_id' => $current_account_id))->fetchField();
+    }
     $last_amount = empty($last_amount) ? 0 : $last_amount;
 
     $history_row = array();

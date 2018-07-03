@@ -11,8 +11,19 @@
   //  $('#loading').delay(500).fadeOut('fast');
   //});
   //
-  $(window).on('beforeunload', function() {
-    $('#loading').fadeIn('fast');
+  $(window).on('beforeunload', function(e) {
+    if (window.location.pathname == '/batch') {
+      // e = e || window.event;
+      // var message = 'Scan is running. Are you sure you want to leave?';
+      // // For IE and Firefox prior to version 4
+      // if (e) {
+      //   e.returnValue = message;
+      // }
+      // return message;
+    }
+    else {
+      $('#loading').fadeIn('fast');
+    }
   });
 
 

@@ -671,7 +671,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
     // $context['sandbox']['max'] = $date_diff;
 
     if ($scan_type == 'products') {
-      $query = "SELECT COUNT(id) FROM {avtbl_products} WHERE id < 2300";
+      $query = "SELECT COUNT(id) FROM {avtbl_products} WHERE id < 3500";
     }
     elseif ($scan_type == 'accounts') {
       $query = "SELECT COUNT(id) FROM {avtbl_account_chart} WHERE status = 1";
@@ -718,7 +718,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       (avprod.initial_value * avprod.initial_qty) AS asset_value FROM avtbl_transaction_details avtxn_detail
       INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
       INNER JOIN {avtbl_products} avprod ON avprod.id = avtxn_detail.item_id
-      WHERE avprod.id > $_last_row_id
+      WHERE avprod.id > $_last_row_id AND avprod.id < 3500
       AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
       AND avtxn.transaction_date >= :date_from
       AND avtxn.transaction_date < :date_to
@@ -777,7 +777,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
     $_period_start = $period_end;
   }
 
-  $context['message'] = t('<span class="uk-text-capitalize">@type</span> scanned: @progress of @total - @period<br />... %title',
+  $context['message'] = t('<span class="uk-text-capitalize">@type</span> scanned: @progress of @total<br />... %title - @period',
     array(
       '@period' => format_date($last_period_scanned, 'custom', 'F Y'),
       '@type' => $scan_type,

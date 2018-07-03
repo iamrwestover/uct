@@ -223,8 +223,17 @@ function avreports_menu() {
     'file' => 'inc/stock_status_old.form.inc',
   );
 
-  $items['av/reports/stock-history'] = array(
-    'title' => 'Stock History',
+  $items['av/reports/stock-history-summary'] = array(
+    'title' => 'Summarized Items History',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_stock_history_summary_form'),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/stock_history_summary.form.inc',
+  );
+
+  $items['av/reports/stock-history-detailed'] = array(
+    'title' => 'Detailed Item History',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('avreports_stock_history_form'),
     'access arguments' => array(AVREPORTS_PERM_INVENTORY),
@@ -407,7 +416,8 @@ function avreports_home_form($form, &$form_state) {
   // Inventory.
   $buttons = array();
   $buttons['stock_status'] = array('#markup' => l('Stock Status', 'av/reports/stock-status', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
-  $buttons['stock_history'] = array('#markup' => l('Stock History', 'av/reports/stock-history', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['stock_history_summary'] = array('#markup' => l('Summarized Items History', 'av/reports/stock-history-summary', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['stock_history'] = array('#markup' => l('Detailed Item History', 'av/reports/stock-history-detailed', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['stock_shortage'] = array('#markup' => l('Stock Shortage', 'av/reports/stock-shortage', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons[AVTXNS_TXN_TYPE_SALES_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Sales', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_SALES_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons[AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Purchase', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
