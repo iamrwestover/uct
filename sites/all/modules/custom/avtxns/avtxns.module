@@ -1827,11 +1827,19 @@ function avtxns_txn_can_status_change($transaction, $status) {
     }
   }
   elseif ($status == AVTXNS_TXN_STATUS_OPEN || $status == AVTXNS_TXN_STATUS_PENDING) {
+    $allow = FALSE;
     if (!empty($ttd['payment'])) {
-      return user_access(constant('AVTXNS_PERM_EDIT_' . $transaction_type));
+      $allow = user_access(constant('AVTXNS_PERM_EDIT_' . $transaction_type));
     }
     else {
-      return user_access(constant('AVTXNS_PERM_OPEN_' . $transaction_type));
+      $allow = user_access(constant('AVTXNS_PERM_OPEN_' . $transaction_type));
+    }
+    if ($allow) {
+      return TRUE;
+    }
+    else {
+      drupal_set_message('You do not have permission to change transaction status.', 'error');
+      return FALSE;
     }
   }
   else {

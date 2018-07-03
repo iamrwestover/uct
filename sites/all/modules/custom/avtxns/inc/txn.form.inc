@@ -310,7 +310,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
           //'#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)) && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_VOID),
         );
       }
-      if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN)) && $row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN)) {
+      if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN)) && $row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY/* && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN)*/) {
         $buttons['pending_btn'] = array(
           '#markup' => l('For approval', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_PENDING, array(
             'attributes' => array('class' => 'uk-button uk-margin-small-right'),
@@ -323,7 +323,7 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
           //'#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN)) && $row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN),
         );
       }
-      if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_PENDING)) && ($row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY || !empty($ttd['payment'])) && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN)) {
+      if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_PENDING)) && ($row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY || !empty($ttd['payment']))/* && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN)*/) {
         $buttons['open_btn'] = array(
           '#markup' => l('Approve', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_OPEN, array(
             'attributes' => array('class' => 'uk-button uk-button-success uk-margin-small-right', 'data-ks' => 'CTRL+O'),
