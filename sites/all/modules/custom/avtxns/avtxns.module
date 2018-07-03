@@ -1780,8 +1780,13 @@ function avtxns_txn_can_status_change($transaction, $status) {
     return FALSE;
   }
 
-  $transaction_type = strtoupper($transaction->transaction_type);
+  $error_message = avbase_validate_date_vs_lock_date($transaction->transaction_date);
+  if (!empty($error_message)) {
+    drupal_set_message($error_message, 'error', FALSE);
+    return FALSE;
+  }
 
+  $transaction_type = strtoupper($transaction->transaction_type);
   if ($status == AVTXNS_TXN_STATUS_VOID) {
     if (user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type))) {
       // Validate outgoing quantities to prevent negative resulting quantity.

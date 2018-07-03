@@ -290,7 +290,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       '#title' => 'Date',
       //'#title_display' => 'none',
       '#default_value' => $transaction_date_text,
-      '#element_validate' => array('avbase_element_validate_date'),
+      '#element_validate' => array('avbase_element_validate_transaction_date'),
       '#av_date_format' => $date_format,
       '#icon_key' => 'calendar',
       '#attributes' => array(

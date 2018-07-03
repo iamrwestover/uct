@@ -9,7 +9,7 @@
  * @return mixed
  */
 function avreports_fs_form($form, &$form_state, $fs_type) {
-  $dad = avtxns_txn_list_filter_date_auto_options('Y-m');
+  $dad = avtxns_txn_list_filter_date_auto_options(AVBASE_MONTH_ONLY_FORMAT);
   $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
   $filter_form_settings = array(
     'date_auto' => array(
@@ -20,31 +20,31 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
       '#title' => t('From'),
       '#default_value' => $dad_default['date_from'],
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'YYYY-MM',
-          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
-          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+        'data-uk-datepicker' => "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
         }",
         'class' => array('trigger-ajax-search'),
       ),
-      '#av_date_format' => 'Y-m',
-      '#av_date_inputmask_format' => 'yyyy-mm',
+      '#av_date_format' => AVBASE_MONTH_ONLY_FORMAT,
+      '#av_date_inputmask_format' => AVBASE_MONTH_ONLY_FORMAT_MASK,
     ),
     'date_to' => array(
       '#title' => t('To'),
       '#default_value' => $dad_default['date_to'],
       '#attributes' => array(
-        'data-uk-datepicker' => "{format:'YYYY-MM',
-          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
-          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+        'data-uk-datepicker' => "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
         }",
         'class' => array('trigger-ajax-search'),
       ),
-      '#av_date_format' => 'Y-m',
-      '#av_date_inputmask_format' => 'yyyy-mm',
+      '#av_date_format' => AVBASE_MONTH_ONLY_FORMAT,
+      '#av_date_inputmask_format' => AVBASE_MONTH_ONLY_FORMAT_MASK,
     ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
-  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings, 'Y-m');
+  $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings, AVBASE_MONTH_ONLY_FORMAT);
 
   // Show update notif.
   // variable_set('avreports_last_scan', strtotime('last week'));
@@ -358,20 +358,20 @@ function avreports_fs_update_form($form, &$form_state) {
     '#type' => 'textfield',
     '#icon_key' => 'calendar',
     '#required' => TRUE,
-    '#default_value' => format_date($date_from, 'custom', 'Y-m'),
+    '#default_value' => format_date($date_from, 'custom', AVBASE_MONTH_ONLY_FORMAT),
     '#disabled' => empty($transaction_lock_date),
     '#attributes' => array(
-      'data-uk-datepicker' => "{format:'YYYY-MM',
-          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
-          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+      'data-uk-datepicker' => "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
         }",
       'class' => array('trigger-ajax-search uk-width-1-6'),
-      'placeholder' => 'YYYY-MM',
+      'placeholder' => AVBASE_MONTH_ONLY_FORMAT_JS,
       'autocomplete' => 'off',
     ),
     '#av_date_inputmask' => TRUE,
-    '#av_date_format' => 'Y-m',
-    '#av_date_inputmask_format' => 'yyyy-mm',
+    '#av_date_format' => AVBASE_MONTH_ONLY_FORMAT,
+    '#av_date_inputmask_format' => AVBASE_MONTH_ONLY_FORMAT_MASK,
     '#element_validate' => array('avbase_element_validate_date'),
   );
   $form['date_to'] = $form['date_from'];
@@ -381,7 +381,7 @@ function avreports_fs_update_form($form, &$form_state) {
     unset($form['date_to']['#default_value']);
   }
   else {
-    $form['date_to']['#default_value'] = format_date(strtotime('first day of next month', $date_from), 'custom', 'Y-m');
+    $form['date_to']['#default_value'] = format_date(strtotime('first day of next month', $date_from), 'custom', AVBASE_MONTH_ONLY_FORMAT);
   }
   // $form['range'] = array(
   //   '#type' => 'radios',

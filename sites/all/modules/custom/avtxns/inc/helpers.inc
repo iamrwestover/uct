@@ -1659,7 +1659,7 @@ function avtxns_txn_list_filter_date_auto_options($date_format = AVBASE_DATE_FOR
     return $data[$date_format];
   }
 
-  $now = strtotime(format_date(time(), 'custom', $date_format));
+  $now = strtotime(format_date(time(), 'custom', AVBASE_DATE_FORMAT));
   $fiscal_date_timestamp = variable_get('av_fiscal_date', strtotime('January 01'));
   //$fiscal_date_timestamp = strtotime("March 1, 2016");
   //$fiscal_date_timestamp = strtotime("August 29, 2017");
@@ -1753,7 +1753,7 @@ function avtxns_txn_list_filter_date_auto_options($date_format = AVBASE_DATE_FOR
     ),
   );
 
-  if ($date_format == 'Y-m') {
+  if ($date_format != AVBASE_DATE_FORMAT) {
     unset($options['today']);
     unset($options['yesterday']);
     unset($options['this_week']);

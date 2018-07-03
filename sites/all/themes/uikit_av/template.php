@@ -478,3 +478,15 @@ function uikit_av_tablesort_indicator($variables) {
     return theme('image', array('attributes' => array('class' => array('not-printable')), 'path' => 'misc/arrow-desc.png', 'width' => 13, 'height' => 13, 'alt' => t('sort descending'), 'title' => t('sort descending')));
   }
 }
+
+/**
+ * Implements theme_password().
+ */
+function uikit_av_password(&$variables) {
+  $element = $variables['element'];
+  $element['#attributes']['type'] = 'password';
+  element_set_attributes($element, array('id', 'name', 'size', 'maxlength'));
+  _form_set_class($element, array('form-text uk-width-1-1'));
+
+  return '<input' . drupal_attributes($element['#attributes']) . ' />';
+}

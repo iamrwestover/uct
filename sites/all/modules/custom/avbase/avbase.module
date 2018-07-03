@@ -39,8 +39,11 @@ define('AVBASE_EXPANDED_MEMORY_LIMIT', '512M');
 // Date formats.
 define('AVBASE_DATE_FORMAT', 'm/d/Y');
 define('AVBASE_DATE_FORMAT_JS', 'MM/DD/YYYY');
+define('AVBASE_MONTH_ONLY_FORMAT', 'Y-m');
+define('AVBASE_MONTH_ONLY_FORMAT_JS', 'YYYY-MM');
+define('AVBASE_MONTH_ONLY_FORMAT_MASK', 'yyyy-mm');
 define('AVBASE_DATE_MIN_TIMESTAMP', strtotime('first day of January this year', time()) - (60 * 60 * 24 * 365 * 5));
-define('AVBASE_DATE_MAX_TIMESTAMP', strtotime('first day of January next year', time()) + (60 * 60 * 24 * 365 * 7));
+define('AVBASE_DATE_MAX_TIMESTAMP', strtotime('first day of January next year', time()) + (60 * 60 * 24 * 365 * 10));
 
 
 /**
@@ -686,19 +689,7 @@ function avbase_general_settings_form() {
   //  '#default_value' => variable_get('av_company_capital', ''),
   //  '#element_validate' => array('element_validate_number'),
   //);
-  $date_format = 'F d';
-  $form['company_information']['av_fiscal_date'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Fiscal Date',
-    '#default_value' => format_date(variable_get('av_fiscal_date', strtotime('January 01')), 'custom', $date_format),
-    '#element_validate' => array('avbase_element_validate_date'),
-    '#av_date_format' => $date_format,
-    '#icon_key' => 'calendar',
-    '#attributes' => array(
-      'data-uk-datepicker' => "{format:'MMMM DD'}",
-    ),
-    '#required' => TRUE,
-  );
+
   // $form['company_information']['av_datepicker_ref_year'] = array(
   //   '#type' => 'textfield',
   //   '#title' => 'Date picker reference year',
@@ -708,24 +699,11 @@ function avbase_general_settings_form() {
   //   '#special_element_type' => 'number',
   //   '#required' => TRUE,
   // );
-  $form['company_information']['av_discount_multiplier'] = array(
-    '#type' => 'textfield',
-    '#maxlength' => 4,
-    '#title' => 'Discount Multiplier',
-    '#description' => 'Discounts received from Vendors will use this value to set the Discount limit when selling products.',
-    '#required' => TRUE,
-    '#default_value' => (float) variable_get('av_discount_multiplier', '0.4'),
-    '#element_validate' => array('element_validate_number'),
-    '#special_element_type' => 'number',
-    '#attributes' => array(
-      'step' => 0.01,
-      'min' => 0.1,
-      'max' => 1,
-    ),
-  );
+
 
   // System settings.
   $form['system_settings'] = array(
+    '#id' => 'system-settings',
     '#type' => 'fieldset',
     '#title' => t('System settings'),
     '#collapsible' => TRUE,
@@ -738,20 +716,20 @@ function avbase_general_settings_form() {
     '#type' => 'textfield',
     '#icon_key' => 'calendar',
     '#required' => TRUE,
-    '#default_value' => empty($transaction_lock_date) ? NULL : format_date($transaction_lock_date, 'custom', 'Y-m'),
+    '#default_value' => empty($transaction_lock_date) ? NULL : format_date($transaction_lock_date, 'custom', AVBASE_MONTH_ONLY_FORMAT),
     '#access' => !empty($transaction_lock_date),
     '#attributes' => array(
-      'data-uk-datepicker' => "{format:'YYYY-MM',
-          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', 'Y-m') . "',
-          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', 'Y-m') . "',
+      'data-uk-datepicker' => "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
+          minDate: '" . format_date(AVBASE_DATE_MIN_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
+          maxDate: '" . format_date(AVBASE_DATE_MAX_TIMESTAMP, 'custom', AVBASE_MONTH_ONLY_FORMAT) . "',
         }",
       'class' => array('trigger-ajax-search uk-width-1-6'),
-      'placeholder' => 'YYYY-MM',
+      'placeholder' => AVBASE_MONTH_ONLY_FORMAT_JS,
       'autocomplete' => 'off',
     ),
     '#av_date_inputmask' => TRUE,
-    '#av_date_format' => 'Y-m',
-    '#av_date_inputmask_format' => 'yyyy-mm',
+    '#av_date_format' => AVBASE_MONTH_ONLY_FORMAT,
+    '#av_date_inputmask_format' => AVBASE_MONTH_ONLY_FORMAT_MASK,
     '#element_validate' => array('avbase_element_validate_date'),
   );
 
@@ -770,6 +748,37 @@ function avbase_general_settings_form() {
       'min' => $export_limit_min,
       'max' => $export_limit_max,
     ),
+  );
+
+  $form['system_settings']['av_discount_multiplier'] = array(
+    '#type' => 'textfield',
+    '#maxlength' => 4,
+    '#title' => 'Discount Multiplier',
+    '#description' => 'Discounts received from Vendors will use this value to set the Discount limit when selling products.',
+    '#required' => TRUE,
+    '#default_value' => (float) variable_get('av_discount_multiplier', '0.4'),
+    '#element_validate' => array('element_validate_number'),
+    '#special_element_type' => 'number',
+    '#attributes' => array(
+      'step' => 0.01,
+      'min' => 0.1,
+      'max' => 1,
+    ),
+  );
+
+  $date_format = 'F d';
+  $form['system_settings']['av_fiscal_date'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fiscal Date',
+    '#default_value' => format_date(variable_get('av_fiscal_date', strtotime('January 01')), 'custom', $date_format),
+    '#element_validate' => array('avbase_element_validate_date'),
+    '#av_date_format' => $date_format,
+    '#icon_key' => 'calendar',
+    '#attributes' => array(
+      'data-uk-datepicker' => "{format:'MMMM DD'}",
+      'class' => array('uk-width-1-6'),
+    ),
+    '#required' => TRUE,
   );
 
   // File system.
@@ -850,6 +859,13 @@ function avbase_general_settings_form() {
     $form['#submit'][] = 'avbase_general_settings_form_submit';
   }
   return system_settings_form($form);
+}
+
+function avbase_general_settings_form_validate($form, &$form_state) {
+  // Adjust lock date to make sure it uses selected month's last day.
+  if (!empty($form_state['values']['avtxns_as_of_date_lock'])) {
+    $form_state['values']['avtxns_as_of_date_lock'] = strtotime('last day of this month', $form_state['values']['avtxns_as_of_date_lock']);
+  }
 }
 
 function avbase_general_settings_form_submit($form, &$form_state) {

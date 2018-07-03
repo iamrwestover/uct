@@ -235,6 +235,16 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
     form_set_error('', 'No credits selected.');
     return;
   }
+
+  // Load transaction object.
+  $transaction_row = avtxns_txn_load($transaction_id);
+  // Validate lock date.
+  $error_message = avbase_validate_date_vs_lock_date($transaction_row->transaction_date);
+  if (!empty($error_message)) {
+    form_set_error('', $error_message);
+    return;
+  }
+
   $transaction_type = empty($form_state['values']['transaction_type']) ? NULL : $form_state['values']['transaction_type'];
   $ttd = avtxns_txn_types($transaction_type);
   $credit_rows = avtxns_get_client_credits($client_id, $transaction_type, $form_state['values']['existing_credit_items']);
@@ -253,7 +263,7 @@ function avtxns_txn_credits_form_validate($form, &$form_state) {
   }
 
 
-  $transaction_row = avtxns_txn_load($transaction_id);
+
   $transaction_row_total = empty($transaction_row->debit_total) ? 0 : $transaction_row->debit_total;
   $transaction_row_total -= $transaction_row->total_paid;
   $remaining_total = $transaction_row_total - $total_credits_used;

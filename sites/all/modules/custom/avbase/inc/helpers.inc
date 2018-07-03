@@ -166,6 +166,46 @@ function avbase_element_validate_date($element, &$form_state, $form) {
 }
 
 /**
+ * Check if transaction date is valid.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_transaction_date($element, &$form_state, $form) {
+  // Basic date validation.
+  avbase_element_validate_date($element, $form_state, $form);
+
+  // Make sure date is beyond lock date.
+  $date = $element['#value'];
+  if (trim($date) == '') {
+    return;
+  }
+  $error_message = avbase_validate_date_vs_lock_date(strtotime($date));
+  if (!empty($error_message)) {
+    form_error($element, $error_message);
+  }
+}
+
+/**
+ * Check if date is beyond lock date, return error message accordingly.
+ * @param $timestamp
+ * @return string
+ */
+function avbase_validate_date_vs_lock_date($timestamp) {
+  $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
+  if (!empty($transaction_lock_date)) {
+    if ($timestamp < strtotime('tomorrow midnight', $transaction_lock_date)) {
+      $error_message = t('All transactions dated on or before %date have already been locked.', array('%date' => format_date($transaction_lock_date, 'custom', 'F d, Y')));
+      // if (user_access(AVBASE_PERM_SYSTEM_SETTINGS)) {
+      //   $error_message .= t(' You can !link.', array('!link' => l('change the lock date here', 'av/settings', array('fragment' => 'system-settings', 'attributes' => array('target' => '_blank')))));
+      // }
+      return $error_message;
+    }
+  }
+  return NULL;
+}
+
+/**
  * Check if element is a valid and unique display_name.
  * @param $element
  * @param $form_state
