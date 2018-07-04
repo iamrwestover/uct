@@ -312,6 +312,8 @@ function avclients_table_fields_to_save($db_op = 'insert') {
     'agent_id' => array('type' => 'int'),
     'email',
     'address',
+    'street',
+    'barangay',
     'city',
     'province',
     'zip_code',
@@ -343,15 +345,20 @@ function avclients_table_fields_to_save($db_op = 'insert') {
  * @return string
  */
 function avclients_address_string_format($client) {
-  $city_province = array(
+  $barangay_city = array(
+    'barangay' => empty($client->barangay) ? NULL : check_plain($client->barangay),
     'city' => empty($client->city) ? NULL : check_plain($client->city),
+  );
+  $province_zip_code = array(
     'province' => empty($client->province) ? NULL : check_plain($client->province),
     'zip_code' => empty($client->zip_code) ? NULL : check_plain($client->zip_code),
   );
-  $city_province = array_filter($city_province);
+  $barangay_city = array_filter($barangay_city);
+  $province_zip_code = array_filter($province_zip_code);
   $address_details = array(
-    'address' => empty($client->address) ? NULL : check_plain($client->address),
-    'city_province' => implode(', ', $city_province),
+    'street' => empty($client->street) ? NULL : check_plain($client->street),
+    'barangay_city' => implode(', ', $barangay_city),
+    'province_zip_code' => implode(', ', $province_zip_code),
   );
   $address_details = array_filter($address_details);
   $address_string = implode("\n", $address_details);

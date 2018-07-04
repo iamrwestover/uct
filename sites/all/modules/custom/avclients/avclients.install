@@ -95,6 +95,18 @@ function avclients_schema() {
         'length' => '255',
         'not null' => FALSE,
       ),
+      'street' => array(
+        'description' => 'Street',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+      'barangay' => array(
+        'description' => 'Barangay',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
       'city' => array(
         'description' => 'City',
         'type' => 'varchar',
@@ -249,4 +261,19 @@ function avclients_update_7101() {
   db_add_field($table_name, $field_name, $fields[$field_name]);
 
   return t('Notes field added.');
+}
+
+/**
+ * Add "street" and "barangay" fields.
+ */
+function avclients_update_7102() {
+  $schema = avclients_schema();
+  $table_name = 'avtbl_clients';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'street';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+
+  $field_name = 'barangay';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
 }

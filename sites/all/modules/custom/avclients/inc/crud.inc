@@ -358,11 +358,23 @@ function avclients_client_form_address_fields(&$form, $ctd, $row, $view_mode = F
     '#type' => 'fieldset',
     '#title' => 'Address',
   );
-  $address['address'] = array(
-    '#type' => 'textarea',
-    '#title' => 'Address',
-    '#default_value' => isset($row->address) ? $row->address : '',
-    '#maxlength' => 255,
+  // $address['address'] = array(
+  //   '#type' => 'textarea',
+  //   '#title' => 'Other address information',
+  //   '#default_value' => isset($row->address) ? $row->address : '',
+  //   '#maxlength' => 255,
+  // );
+  $address['street'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Street',
+    '#default_value' => isset($row->street) ? $row->street : '',
+    '#maxlength' => 64,
+  );
+  $address['barangay'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Barangay',
+    '#default_value' => isset($row->barangay) ? $row->barangay : '',
+    '#maxlength' => 64,
   );
   $address['city'] = array(
     '#type' => 'textfield',

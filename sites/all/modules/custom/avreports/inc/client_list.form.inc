@@ -81,7 +81,8 @@ function avreports_client_list_form($form, &$form_state, $client_type, $limit = 
   if ($col_area_show) {
     $header['area'] = array('data' => 'AREA', 'field' => 'avcat_area.title');
   }
-  $header['address'] = array('data' => 'ADDRESS');
+  $header['street'] = array('data' => 'STREET', 'field' => 'street');
+  $header['barangay'] = array('data' => 'BARANGAY', 'field' => 'barangay');
   $header['city'] = array('data' => 'CITY', 'field' => 'city');
   $header['province'] = array('data' => 'PROVINCE', 'field' => 'province');
   $header['zip_code'] = array('data' => 'ZIP CODE', 'field' => 'zip_code');
@@ -142,22 +143,23 @@ function avreports_client_list_form($form, &$form_state, $client_type, $limit = 
     //$data['first_name'] = $row->first_name;
     //$data['last_name'] = $row->last_name;
     if ($col_agent_show) {
-      $data['agent'] = $row->agent_name;
+      $data['agent'] = check_plain($row->agent_name);
     }
     //$data['email'] = $row->email;
-    $data['contact_number'] = $row->contact_number;
+    $data['contact_number'] = check_plain($row->contact_number);
     if ($col_category_show) {
-      $data['category'] = $row->category_name;
+      $data['category'] = check_plain($row->category_name);
     }
     if ($col_area_show) {
-      $data['area'] = $row->area_name;
+      $data['area'] = check_plain($row->area_name);
     }
-    $data['address'] = $row->address;
-    $data['city'] = $row->city;
-    $data['province'] = $row->province;
-    $data['zip_code'] = $row->zip_code;
+    $data['street'] = check_plain($row->street);
+    $data['barangay'] = check_plain($row->barangay);
+    $data['city'] = check_plain($row->city);
+    $data['province'] = check_plain($row->province);
+    $data['zip_code'] = check_plain($row->zip_code);
     if ($col_payment) {
-      $data['term'] = $row->term_name;
+      $data['term'] = check_plain($row->term_name);
       //$data['payment_method'] = $row->payment_method_id;
     }
     if ($col_credit_limit) {

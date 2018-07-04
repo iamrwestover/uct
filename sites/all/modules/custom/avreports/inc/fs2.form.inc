@@ -94,7 +94,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
   $period_balance_only = $fs_type == AVREPORTS_FS_PL;
-  $period_balance_only = FALSE;
+  // $period_balance_only = FALSE;
   $ts = $period_balance_only ? strtotime('yesterday', $date_from_timestamp) : $ts;
   while ($ts <= $date_to_timestamp) {
     if ($period_balance_only && count($date_group) < 1) {
@@ -738,7 +738,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       // 3500
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
       (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
-      WHERE id > $_last_row_id AND id < 2230 ORDER BY id LIMIT $row_limit";
+      WHERE id > $_last_row_id AND id < 3500 ORDER BY id LIMIT $row_limit";
       $_db_rows = db_query($query)->fetchAllAssoc('id');
     }
     elseif ($scan_type == 'accounts') {

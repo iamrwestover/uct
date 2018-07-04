@@ -28,7 +28,7 @@ $form['address']['address']['#attributes']['rows'] = 3;
 //unset($form['address']['city']['#title']);
 //unset($form['address']['province']['#title']);
 //unset($form['address']['zip_code']['#title']);
-$form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # / Street / etc.';
+// $form['address']['address']['#attributes']['placeholder'] = 'Building / Unit # / Street / etc.';
 //$form['address']['city']['#attributes']['placeholder'] = 'City';
 //$form['address']['province']['#attributes']['placeholder'] = 'Province';
 //$form['address']['zip_code']['#attributes']['placeholder'] = 'ZIP Code';
@@ -112,14 +112,17 @@ if (isset($form['payment'])) {
         <div class="uk-grid">
           <div class="uk-width-1-2">
             <div class="uk-grid uk-grid-small">
-              <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['address']); ?></div>
-              <div class="uk-width-2-6 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['city']); ?></div>
-              <div class="uk-width-2-6 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['province']); ?></div>
-              <div class="uk-width-2-6 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['zip_code']); ?></div>
+              <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['street']); ?></div>
+              <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['barangay']); ?></div>
+              <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['city']); ?></div>
+              <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['province']); ?></div>
+              <div class="uk-width-1-2 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['zip_code']); ?></div>
+
             </div>
           </div>
 
           <div class="uk-width-1-2">
+            <div class="uk-width-1-1 <?php print $vertical_margin_class; ?>"><?php print drupal_render($form['address']['address']); ?></div>
             <?php print drupal_render($form['address']['same_addr']); ?>
           </div>
         </div>
