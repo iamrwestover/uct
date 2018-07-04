@@ -1,3 +1,7 @@
+html.uct-not-current,
+html.uct-not-current #loading {
+  background: ivory;
+}
 /* Off canvas */
 body {
   margin-left: 50px;

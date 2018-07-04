@@ -13,6 +13,10 @@
  * Implements template_preprocess_html().
  */
 function uikit_av_preprocess_html(&$variables) {
+  global $base_url;
+  if (strstr($base_url, '//uct.ais') === FALSE && strstr($base_url, '//uct.av') === FALSE) {
+    $variables['html_attributes_array']['class'][] = 'uct-not-current';
+  }
 }
 
 /**
@@ -25,7 +29,6 @@ function uikit_av_process_html(&$variables) {
  * Implements template_preprocess_page().
  */
 function uikit_av_preprocess_page(&$variables) {
-
 }
 
 /**
