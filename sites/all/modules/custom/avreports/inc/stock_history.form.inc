@@ -234,7 +234,6 @@ function avreports_stock_history_form($form, &$form_state) {
       if (!isset($table_rows[$ending_inventory_key])) {
         if ($ending_inventory_key <= strtotime('first day of this month midnight', $selected_product->initial_qty_date)) {
           $period_row = $selected_product;
-          $onhand = empty($period_row->onhand) ? 0 : $period_row->onhand;
         }
         else {
           // Get data from cache.
@@ -247,6 +246,7 @@ function avreports_stock_history_form($form, &$form_state) {
 
         // Re-init.
         $item_cost = empty($period_row->item_cost) ? 0 : $period_row->item_cost;
+        $onhand = empty($period_row->onhand) ? 0 : $period_row->onhand;
         $inventory = empty($period_row->inventory) ? 0 : $period_row->inventory;
         $cogafs = $inventory;
 
@@ -263,7 +263,7 @@ function avreports_stock_history_form($form, &$form_state) {
         // $data['cogafs'] = in_array($row->transaction_type, $fixed_cost_types) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>') : NULL;
         $data['onhand'] = '<div class="uk-text-right uk-text-bold">' .number_format($onhand) . '</div>';
         $data['cogafs'] = '<div class="uk-text-right uk-text-bold">' . avbase_accounting_number_format($inventory) . '</div>';
-        // $data['#avclass'] = 'uk-row-mute';
+        $data['#avclass'] = 'uk-bg-gray';
         // Careful when adding classes on rows, check if tableselect mode is ON.
         $table_rows[$ending_inventory_key] = $data;
       }

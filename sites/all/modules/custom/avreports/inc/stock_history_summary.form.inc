@@ -40,11 +40,24 @@ function avreports_stock_history_summary_form($form, &$form_state) {
 
   // Header.
   $header = array();
-  $header['product_title'] = array('data' => 'TITLE');
-  $header['onhand'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'));
-  $header['item_cost'] = array('data' => 'UNIT COST', 'class' => array('uk-text-right'));
-  $header['inventory'] = array('data' => 'ENDING INVENTORY', 'class' => array('uk-text-right'));
-  $header['cogs'] = array('data' => 'COGS', 'class' => array('uk-text-right'));
+  $header['product_title'] = array('data' => 'TITLE', 'field' => 'title');
+  $header['onhand'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'), 'field' => 'onhand');
+  $header['item_cost'] = array('data' => 'UNIT COST', 'class' => array('uk-text-right'), 'field' => 'item_cost');
+  $header['inventory'] = array('data' => 'ENDING INVENTORY', 'class' => array('uk-text-right'), 'field' => 'inventory');
+  $header['cogs'] = array('data' => 'COGS', 'class' => array('uk-text-right'), 'field' => 'cogs');
+
+  // Set table pagination and sort settings.
+  if (!empty($user_filter['settings']['table_href'])) {
+    $table_ajax_href = $user_filter['settings']['table_href'];
+    $href_parts = parse_url($table_ajax_href);
+    if (!empty($href_parts['query'])) {
+      parse_str($href_parts['query'], $href_query);
+      foreach ($href_query as $k => $v) {
+        $_GET[$k] = $v;
+      }
+    }
+  }
+  $order_by = avbase_build_header_order_array($header);
 
   // Build table rows.
   $table_rows = array();
