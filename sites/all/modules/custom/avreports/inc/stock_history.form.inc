@@ -51,7 +51,9 @@ function avreports_stock_history_form($form, &$form_state) {
   $header['qty_in'] = array('data' => 'QTY. IN', 'class' => array('uk-text-right'));
   $header['qty_out'] = array('data' => 'QTY. OUT', 'class' => array('uk-text-right'));
   $header['onhand'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'));
-  $header['purchase_cost'] = array('data' => 'TOTAL PURCHASE COST', 'class' => array('uk-text-right'));
+  $header['cogafs'] = array('data' => 'COGAFS', 'class' => array('uk-text-right'));
+  $header['cogafs']['data-uk-tooltip'] = '{cls: "tt-blue"}';
+  $header['cogafs']['title'] = 'Cost of Goods Available for Sale';
   // $header['sales_cost'] = array('data' => 'COST OF SALES', 'class' => array('uk-text-right'));
   // $header['ave_cost'] = array('data' => 'UNIT COST', 'class' => array('uk-text-right'));
   // $header['asset_value'] = array('data' => 'ASSET VALUE', 'class' => array('uk-text-right'));
@@ -68,8 +70,7 @@ function avreports_stock_history_form($form, &$form_state) {
     $query = "SELECT avprod.id, avprod.title,
       initial_qty AS onhand,
       initial_value AS item_cost,
-      (initial_value * initial_qty) AS opening_inventory,
-      (initial_value * initial_qty) AS total_purchase_cost,
+      (initial_value * initial_qty) AS inventory,
       initial_qty_date, avcat_uom.title AS uom_title, avclients.display_name AS vendor_name
       FROM {avtbl_products} avprod
       LEFT JOIN avtbl_clients AS avclients ON avclients.id = avprod.vendor_id
@@ -80,83 +81,98 @@ function avreports_stock_history_form($form, &$form_state) {
   // Only do stuff if selected product exists.
   $do_stuff = !empty($selected_product->id) && $date_start < $date_end;
   if ($do_stuff) {
-    $item_cost = empty($selected_product->item_cost) ? 0 : $selected_product->item_cost;
-    $onhand = empty($selected_product->onhand) ? 0 : $selected_product->onhand;
-    $opening_inventory = empty($selected_product->opening_inventory) ? 0 : $selected_product->opening_inventory;
-    $total_purchase_cost = empty($selected_product->total_purchase_cost) ? 0 : $selected_product->total_purchase_cost;
+    // Get product initial values.
+    // if ($date_start <= strtotime('first day of this month', $selected_product->initial_qty_date)) {
+    //   $initial_data_row = $selected_product;
+    //   $initial_date_timestamp = strtotime('today', $selected_product->initial_qty_date);
+    // }
+    // else {
+    //   // Get data from cache.
+    //   $query = "SELECT item_cost, (qty_in - qty_out) onhand,
+    //   (qty_in_amount - ((qty_in - qty_out) * item_cost)) cogafs
+    //   FROM {avtbl_inventory_cache}
+    //   WHERE product_id = {$selected_product->id} AND before_this_day = $date_start";
+    //   $initial_data_row = db_query($query)->fetchObject();
+    //   $initial_date_timestamp = $date_start;
+    // }
+
+    // $item_cost = empty($selected_product->item_cost) ? 0 : $selected_product->item_cost;
+    // $onhand = empty($selected_product->onhand) ? 0 : $selected_product->onhand;
+    // $opening_inventory = empty($selected_product->opening_inventory) ? 0 : $selected_product->opening_inventory;
+    // $total_purchase_cost = empty($selected_product->total_purchase_cost) ? 0 : $selected_product->total_purchase_cost;
 
     // Get most recent product cost based on selected end date.
     // Use beginning cost if no incoming transactions yet.
-    $item_cost_query = "SELECT (avtxn_detail.cost / avtxn_detail.qty_per_uom) item_cost
-      FROM {avtbl_transaction_details} avtxn_detail
-      INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
-      WHERE avtxn_detail.item_id = :item_id 
-      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types)
-      AND avtxn.transaction_date < :date_to
-      ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
-    $item_cost_args = array(
-      ':item_id' => $selected_product->id,
-      ':void_status' => AVTXNS_TXN_STATUS_VOID,
-      ':fixed_cost_types' => $fixed_cost_types,
-      ':date_to' => $date_end,
-    );
-    $this_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
-    $item_cost = empty($this_cost) ? $item_cost : $this_cost;
+    // $item_cost_query = "SELECT (avtxn_detail.cost / avtxn_detail.qty_per_uom) item_cost
+    //   FROM {avtbl_transaction_details} avtxn_detail
+    //   INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+    //   WHERE avtxn_detail.item_id = :item_id
+    //   AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types)
+    //   AND avtxn.transaction_date < :date_to
+    //   ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
+    // $item_cost_args = array(
+    //   ':item_id' => $selected_product->id,
+    //   ':void_status' => AVTXNS_TXN_STATUS_VOID,
+    //   ':fixed_cost_types' => $fixed_cost_types,
+    //   ':date_to' => $date_end,
+    // );
+    // $this_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
+    // $item_cost = empty($this_cost) ? $item_cost : $this_cost;
 
 
     // Compute total received quantity up to selected start date then add it to initial quantity.
-    $query = "SELECT " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:pos_types)") . " onhand
-      FROM {avtbl_transaction_details} avtxn_detail
-      INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
-      WHERE avtxn_detail.item_id = :item_id
-      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:qty_change_types) AND avtxn.transaction_date < :date_from";
-    $this_onhand = db_query($query, array(
-      ':item_id' => $selected_product->id,
-      ':void_status' => AVTXNS_TXN_STATUS_VOID,
-      ':pos_types' => avtxns_get_qty_change_txn_types('increment'),
-      ':qty_change_types' => avtxns_get_qty_change_txn_types(),
-      ':date_from' => $date_start,
-    ))->fetchField();
-    $this_onhand = empty($this_onhand) ? 0 : $this_onhand;
-    $onhand += $this_onhand;
+    // $query = "SELECT " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:pos_types)") . " onhand
+    //   FROM {avtbl_transaction_details} avtxn_detail
+    //   INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+    //   WHERE avtxn_detail.item_id = :item_id
+    //   AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:qty_change_types) AND avtxn.transaction_date < :date_from";
+    // $this_onhand = db_query($query, array(
+    //   ':item_id' => $selected_product->id,
+    //   ':void_status' => AVTXNS_TXN_STATUS_VOID,
+    //   ':pos_types' => avtxns_get_qty_change_txn_types('increment'),
+    //   ':qty_change_types' => avtxns_get_qty_change_txn_types(),
+    //   ':date_from' => $date_start,
+    // ))->fetchField();
+    // $this_onhand = empty($this_onhand) ? 0 : $this_onhand;
+    // $onhand += $this_onhand;
 
     // Compute total received inventory value up to selected start date then add it to initial inventory value.
-    $query = "SELECT " . avtxns_txn_detail_sum_query_discount_applied("avtxn.transaction_type IN (:inc_types)") . " total_purchase_cost
-      FROM {avtbl_transaction_details} avtxn_detail
-      INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
-      WHERE avtxn_detail.item_id = :item_id
-      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types) AND avtxn.transaction_date < :date_from";
-    if (!empty($order_by)) {
-      $query .= " ORDER BY " . implode(', ', $order_by);
-    }
-    $this_value = db_query($query, array(
-      ':item_id' => $selected_product->id,
-      ':void_status' => AVTXNS_TXN_STATUS_VOID,
-      ':inc_types' => $increment_types,
-      ':fixed_cost_types' => $fixed_cost_types,
-      ':date_from' => $date_start,
-    ))->fetchField();
-    $this_value = empty($this_value) ? 0 : $this_value;
-    $total_purchase_cost += $this_value;
+    // $query = "SELECT " . avtxns_txn_detail_sum_query_discount_applied("avtxn.transaction_type IN (:inc_types)") . " total_purchase_cost
+    //   FROM {avtbl_transaction_details} avtxn_detail
+    //   INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+    //   WHERE avtxn_detail.item_id = :item_id
+    //   AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types) AND avtxn.transaction_date < :date_from";
+    // if (!empty($order_by)) {
+    //   $query .= " ORDER BY " . implode(', ', $order_by);
+    // }
+    // $this_value = db_query($query, array(
+    //   ':item_id' => $selected_product->id,
+    //   ':void_status' => AVTXNS_TXN_STATUS_VOID,
+    //   ':inc_types' => $increment_types,
+    //   ':fixed_cost_types' => $fixed_cost_types,
+    //   ':date_from' => $date_start,
+    // ))->fetchField();
+    // $this_value = empty($this_value) ? 0 : $this_value;
+    // $total_purchase_cost += $this_value;
 
 
     // Add initial product row.
-    $initial_date_timestamp = $date_start > $selected_product->initial_qty_date ? $date_start : $selected_product->initial_qty_date;
-    $data = array();
-    $beg_inventory_label = t('Beginning inventory', array('%date' => format_date($initial_date_timestamp, 'custom', 'F Y')));
-    $data['transaction_type'] = $beg_inventory_label . (empty($item_cost) ? '<br /><em class="">data not yet available</em>' : '');
-    $data['transaction_date'] = empty($item_cost) ? '-' : format_date($initial_date_timestamp, 'custom', AVREPORTS_LIST_DATE_FORMAT);
-    $data['transaction_id'] = NULL;
-    $data['reference_id'] = NULL;
-    $data['client_name'] = NULL;
-    $data['qty_in'] = NULL;
-    $data['qty_out'] = NULL;
-    $data['onhand'] =  empty($item_cost) ? '-' : ('<div class="uk-text-right">' . avbase_accounting_number_format($onhand, 0) . '</div>');
-    $data['purchase_cost'] = empty($item_cost) ? '-' : ('<div class="uk-text-right">' . avbase_accounting_number_format($total_purchase_cost) . '</div>');
-    // $data['sales_cost'] = NULL;
-    // $data['purchase_cost'] = NULL;
-    // Careful when adding classes on rows, check if tableselect mode is ON.
-    $table_rows[$selected_product->id . '_init'] = $data;
+    // $initial_date_timestamp = $date_start > $selected_product->initial_qty_date ? $date_start : $selected_product->initial_qty_date;
+    // $data = array();
+    // $beg_inventory_label = t('Beginning inventory', array('%date' => format_date($initial_date_timestamp, 'custom', 'F Y')));
+    // $data['transaction_type'] = $beg_inventory_label . (empty($item_cost) ? '<br /><em class="">data not yet available</em>' : '');
+    // $data['transaction_date'] = empty($item_cost) ? '-' : format_date($initial_date_timestamp, 'custom', AVREPORTS_LIST_DATE_FORMAT);
+    // $data['transaction_id'] = NULL;
+    // $data['reference_id'] = NULL;
+    // $data['client_name'] = NULL;
+    // $data['qty_in'] = NULL;
+    // $data['qty_out'] = NULL;
+    // $data['onhand'] =  empty($item_cost) ? '-' : ('<div class="uk-text-right">' . avbase_accounting_number_format($onhand, 0) . '</div>');
+    // $data['cogafs'] = empty($item_cost) ? '-' : ('<div class="uk-text-right">' . avbase_accounting_number_format($total_purchase_cost) . '</div>');
+    // // $data['sales_cost'] = NULL;
+    // // $data['cogafs'] = NULL;
+    // // Careful when adding classes on rows, check if tableselect mode is ON.
+    // $table_rows[$selected_product->id . '_init'] = $data;
 
     // Get transactions made on selected date ranges.
     // Transaction details.
@@ -209,17 +225,60 @@ function avreports_stock_history_form($form, &$form_state) {
     // dpm($query);
     // dpm($args);
     $rs = db_query($query, $args);
-    $beg_onhand = $onhand;
-    $beg_purchase_cost = $total_purchase_cost;
-    $qty_in = $qty_out = 0;
+    // $beg_onhand = $onhand;
+    // $beg_purchase_cost = $total_purchase_cost;
+    $item_cost = $onhand = $qty_in = $qty_out = $cogafs = $cogs = 0;
     foreach ($rs as $row) {
+      // Insert ending inventory per month.
+      $ending_inventory_key = strtotime('first day of this month midnight', $row->transaction_date);
+      if (!isset($table_rows[$ending_inventory_key])) {
+        if ($ending_inventory_key <= strtotime('first day of this month midnight', $selected_product->initial_qty_date)) {
+          $period_row = $selected_product;
+          $onhand = empty($period_row->onhand) ? 0 : $period_row->onhand;
+        }
+        else {
+          // Get data from cache.
+          $query = "SELECT item_cost, (qty_in - qty_out) onhand,
+            ((qty_in - qty_out) * item_cost) inventory
+            FROM {avtbl_inventory_cache}
+            WHERE product_id = {$selected_product->id} AND before_this_day = $ending_inventory_key";
+          $period_row = db_query($query)->fetchObject();
+        }
+
+        // Re-init.
+        $item_cost = empty($period_row->item_cost) ? 0 : $period_row->item_cost;
+        $inventory = empty($period_row->inventory) ? 0 : $period_row->inventory;
+        $cogafs = $inventory;
+
+        $data = array();
+        $data['transaction_type'] = '<div class="uk-text-bold">' . t('Beginning inventory, <span class="uk-text-muted">@cost each</span><br />%date' . '</div>',
+          array('%date' => format_date($ending_inventory_key, 'custom', 'F Y'), '@cost' => number_format($item_cost, 2))
+        );
+        $data['transaction_date'] = NULL;
+        $data['transaction_id'] = NULL;
+        $data['reference_id'] = NULL;
+        $data['client_name'] = NULL;
+        $data['qty_in'] = NULL;
+        $data['qty_out'] = NULL;
+        // $data['cogafs'] = in_array($row->transaction_type, $fixed_cost_types) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>') : NULL;
+        $data['onhand'] = '<div class="uk-text-right uk-text-bold">' .number_format($onhand) . '</div>';
+        $data['cogafs'] = '<div class="uk-text-right uk-text-bold">' . avbase_accounting_number_format($inventory) . '</div>';
+        // $data['#avclass'] = 'uk-row-mute';
+        // Careful when adding classes on rows, check if tableselect mode is ON.
+        $table_rows[$ending_inventory_key] = $data;
+      }
+
+
+
+      // Now on with the transaction row.
       $this_qty_in = in_array($row->transaction_type, $args[':pos_types']) ? $row->row_qty : 0;
       $this_qty_out = !in_array($row->transaction_type, $args[':pos_types']) ? $row->row_qty : 0;
       $purchase_cost = in_array($row->transaction_type, $fixed_cost_types) ? $row->purchase_cost : 0;
+      $item_cost = in_array($row->transaction_type, $fixed_cost_types) ? ($purchase_cost / ($this_qty_in + $this_qty_out)) : $item_cost;
       $qty_in += $this_qty_in;
       $qty_out += $this_qty_out;
       $onhand += empty($row->row_qty) ? 0 : $row->row_qty;
-      $total_purchase_cost += $purchase_cost;
+      $cogafs += $purchase_cost;
 
       // Only show selected transaction type.
       if (!empty($user_filter['avtxn.transaction_type']) && $row->transaction_type != $user_filter['avtxn.transaction_type']) {
@@ -236,9 +295,9 @@ function avreports_stock_history_form($form, &$form_state) {
       $data['client_name'] = empty($ttd['ctd']) ? NULL : l($row->client_name, $ttd['ctd']['base_path'] . '/' . $row->client_id . '/view');
       $data['qty_in'] = !empty($this_qty_in) ? ('<div class="uk-text-right">' . number_format($this_qty_in) . '</div>') : NULL;
       $data['qty_out'] = !empty($this_qty_out) ? ('<div class="uk-text-right">' . number_format($this_qty_out) . '</div>') : NULL;
-      // $data['purchase_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>') : NULL;
+      // $data['cogafs'] = in_array($row->transaction_type, $fixed_cost_types) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>') : NULL;
       $data['onhand'] = '<div class="uk-text-right">' . $onhand . '</div>';
-      $data['purchase_cost'] = !empty($purchase_cost) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($row->purchase_cost) . '</div>') : NULL;
+      $data['cogafs'] = !empty($purchase_cost) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($row->purchase_cost) . '</div>') : NULL;
       // $data['sales_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? NULL : '<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>';
       // $data['ave_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? NULL : '<div class="uk-text-right">' . number_format($item_cost, 2) . '</div>';
       // $data['asset_value'] = '<div class="uk-text-right">' . avbase_accounting_number_format($last_value) . '</div>';
@@ -256,7 +315,7 @@ function avreports_stock_history_form($form, &$form_state) {
         $totals_table_row[] = '<div class="uk-text-right">' . number_format($qty_in) . '</div>';
         $totals_table_row[] = '<div class="uk-text-right">' . number_format($qty_out) . '</div>';
         $totals_table_row[] = '<div class="uk-text-right">' . number_format($onhand) . '</div>';
-        $totals_table_row[] = '<div class="uk-text-right">' . avbase_accounting_number_format($total_purchase_cost) . '</div>';
+        $totals_table_row[] = '<div class="uk-text-right">' . avbase_accounting_number_format($cogafs) . '</div>';
         $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
         if ($remaining_cols) {
           $totals_table_row[] = array('data' => NULL, 'colspan' => $remaining_cols);
@@ -291,12 +350,12 @@ function avreports_stock_history_form($form, &$form_state) {
     $uom_title = empty($selected_product->uom_title) ? '' : check_plain($selected_product->uom_title);
     $transaction_list_table['product_name']['#markup'] .= '<br />Preferred vendor: ' . check_plain($selected_product->vendor_name);
     $transaction_list_table['product_name']['#markup'] .= "<div class=\"\">On hand: " . number_format($onhand) . " ($uom_title)</div>";
-    $transaction_list_table['product_name']['#markup'] .= '<div class="">Recent purchase cost: ' . avbase_accounting_number_format($item_cost) . "</div>";
-    $transaction_list_table['other_info']['#markup'] = '<div class=""><span class="uk-margin-right uk-text-muted">Cost of goods available for sale:</span>' . avbase_accounting_number_format($total_purchase_cost) . '</div>';
+    $transaction_list_table['product_name']['#markup'] .= '<div class="">Most recent item cost: ' . avbase_accounting_number_format($item_cost) . "</div>";
+    $transaction_list_table['other_info']['#markup'] = '<div class=""><span class="uk-margin-right uk-text-muted">Cost of goods available for sale:</span>' . avbase_accounting_number_format($cogafs) . '</div>';
     // $ending_inventory = $onhand * round($item_cost, 2);
     $ending_inventory = $onhand * $item_cost;
     $transaction_list_table['other_info']['#markup'] .= '<div class=""><span class="uk-margin-right uk-text-muted">Ending inventory:</span>' . avbase_accounting_number_format($ending_inventory) . '</div>';
-    $cogs = $total_purchase_cost - $ending_inventory;
+    $cogs = $cogafs - $ending_inventory;
     $transaction_list_table['other_info']['#markup'] .= '<div class=""><span class="uk-margin-right uk-text-muted">Cost of sales:</span>' . avbase_accounting_number_format($cogs) . '</div>';
   }
   $form['transaction_list_table'] = array(

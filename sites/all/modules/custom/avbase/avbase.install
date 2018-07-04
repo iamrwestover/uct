@@ -278,7 +278,7 @@ function avbase_schema() {
         'default' => 0,
       ),
       'qty_in_amount' => array(
-        'description' => 'Total amount of received quantity',
+        'description' => 'Cost of goods available for sale',
         'type' => 'numeric',
         'not null' => TRUE,
         'precision' => '18',

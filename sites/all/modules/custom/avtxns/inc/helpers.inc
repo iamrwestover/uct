@@ -2098,17 +2098,17 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
   if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
     $add_previous_amount = FALSE;
     $query = "SELECT SUM(item_cost * (qty_in - qty_out)) AS inventory,
-      SUM(qty_in_amount) AS total_purchase_cost
+      SUM(qty_in_amount) AS cogafs
       FROM {avtbl_inventory_cache}
       WHERE before_this_day > $date_start AND before_this_day <= $date_end";
     $data = db_query($query)->fetchObject();
     $inventory = empty($data->inventory) ? 0 : $data->inventory;
-    $purchase_cost = empty($data->total_purchase_cost) ? 0 : $data->total_purchase_cost;
+    $cogafs = empty($data->cogafs) ? 0 : $data->cogafs;
     if ($current_account_id == AVTXN_AC_SPECIFIC_INVENTORY_ID) {
       $amount = $inventory;
     }
     else {
-      $amount = $purchase_cost - $inventory;
+      $amount = $cogafs - $inventory;
     }
   }
   else {
