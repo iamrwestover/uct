@@ -374,3 +374,28 @@ function avbase_update_7107() {
   $table = $schema[$table_name];
   db_create_table($table_name, $table);
 }
+
+/**
+ * Database optimizations:
+ * - Exclude {avtbl_reserved_qty}, {avtbl_fs} and {avtbl_inventory_cache} tables from all backup profile settings.
+ */
+function avbase_update_7108() {
+  $query = "SELECT profile_id, filters FROM {backup_migrate_profiles}";
+  $rs = db_query($query);
+  foreach ($rs as $row) {
+    $filters = unserialize($row->filters);
+
+    $tables = array(
+      'avtbl_reserved_qty',
+      'avtbl_fs',
+      'avtbl_inventory_cache',
+    );
+    foreach ($tables as $t) {
+      $filters['sources']['db']['nodata_tables'][$t] = $t;
+    }
+
+    $filters = serialize($filters);
+    db_query("UPDATE {backup_migrate_profiles} SET filters = :filters WHERE profile_id = " . $row->profile_id, array(':filters' => $filters));
+  }
+  return t('Database optimization processes finished.');
+}

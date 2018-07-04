@@ -54,7 +54,9 @@ function avimport_get_valid_headers($type) {
       $optional['CONTACT NUMBER'] = 'contact_number';
       $optional['CATEGORY'] = 'category';
       $optional['TERM'] = 'term';
-      $optional['ADDRESS'] = 'address';
+      // $optional['ADDRESS'] = 'address';
+      $optional['STREET'] = 'street';
+      $optional['BARANGAY'] = 'barangay';
       $optional['CITY'] = 'city';
       $optional['PROVINCE'] = 'province';
       $optional['ZIP CODE'] = 'zip_code';
@@ -369,14 +371,17 @@ function avimport_db_insert_clients_row($excel_row, $client_type) {
   // Check if customer title already exists.
   if ($same_name_count = db_query('SELECT COUNT(id) FROM {avtbl_clients} WHERE display_name LIKE :display_name', array(':display_name' => db_like($insert_row['display_name']) . '%'))->fetchField()) {
     // Check if customer address also matches.
-    $address = empty($excel_row['ADDRESS']) ? '' : trim($excel_row['ADDRESS']);
+    // $address = empty($excel_row['ADDRESS']) ? '' : trim($excel_row['ADDRESS']);
+    $street = empty($excel_row['STREET']) ? '' : trim($excel_row['STREET']);
+    $barangay = empty($excel_row['BARANGAY']) ? '' : trim($excel_row['BARANGAY']);
     $province = empty($excel_row['PROVINCE']) ? '' : trim($excel_row['PROVINCE']);
     $city = empty($excel_row['CITY']) ? '' : trim($excel_row['CITY']);
     $same_name_same_addr = db_query(
-      'SELECT COUNT(id) FROM {avtbl_clients} WHERE display_name LIKE :display_name AND address = :addr AND province = :prov AND city = :city',
+      'SELECT COUNT(id) FROM {avtbl_clients} WHERE display_name LIKE :display_name AND street = :street AND barangay = :barangay AND province = :prov AND city = :city',
       array(
         ':display_name' => db_like($insert_row['display_name']) . '%',
-        ':addr' => $address,
+        ':street' => $street,
+        ':barangay' => $barangay,
         ':prov' => $province,
         ':city' => $city,
       )
