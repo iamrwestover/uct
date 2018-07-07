@@ -80,9 +80,18 @@ function avreports_stock_history_form($form, &$form_state) {
   }
   // Only do stuff if selected product exists.
   $do_stuff = !empty($selected_product->id) && $date_start < $date_end;
-  // $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
-  // dpm(format_date($transaction_lock_date, 'long'));
-  // dpm(format_date($date_start, 'long'));
+  $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
+  // $transaction_lock_date = NULL;
+  if ($date_start > $transaction_lock_date) {
+    if (empty($transaction_lock_date)) {
+      $date_err = 'Please scan and lock transactions first.';
+    }
+    else {
+      $date_err = t('Start date must not be later than %date.', array('%date' => format_date($transaction_lock_date, 'custom', 'F d, Y')));
+    }
+    drupal_set_message($date_err, 'error');
+    $do_stuff = FALSE;
+  }
   if ($do_stuff) {
     // Get product initial values.
     // if ($date_start <= strtotime('first day of this month', $selected_product->initial_qty_date)) {

@@ -583,7 +583,7 @@ function avreports_batch_scan_transactions($scan_type, $date_start, $date_end, &
 
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
         (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
-        WHERE id > $_last_row_id AND id < 2300 ORDER BY id LIMIT $row_limit";
+        WHERE id > $_last_row_id ORDER BY id LIMIT $row_limit";
       $rows = db_query($query)->fetchAllAssoc('id');
       // $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
       //   (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
@@ -738,7 +738,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       // 3500
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
       (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
-      WHERE id > $_last_row_id AND id < 3500 ORDER BY id LIMIT $row_limit";
+      WHERE id > $_last_row_id ORDER BY id LIMIT $row_limit";
       $_db_rows = db_query($query)->fetchAllAssoc('id');
     }
     elseif ($scan_type == 'accounts') {

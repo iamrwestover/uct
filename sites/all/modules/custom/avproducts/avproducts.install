@@ -249,7 +249,7 @@ function avproducts_update_7102(&$sandbox) {
 
   // Get initial product details.
   $query = "SELECT id, initial_qty FROM {avtbl_products}
-    WHERE id > :gg AND id=2225 ORDER BY id LIMIT $limit";
+    WHERE id > :gg ORDER BY id LIMIT $limit";
   $product_rows = db_query($query, array(':gg' => $sandbox['last_row_id']))->fetchAllAssoc('id');
   // watchdog('s', serialize($sandbox['progress']));
   if (!empty($product_rows)) {
