@@ -658,12 +658,12 @@ function avreports_batch_scan_transactions($scan_type, $date_start, $date_end, &
 
   // Compute for progress percentage.
   $finished = $_progress / $_max;
-  if ($finished >= 1) {
-    $total_time = time() - $context['sandbox']['start_time'];
-    $minutes = floor($total_time / 60);
-    $seconds = $total_time - ($minutes * 60);
-    dpm("{$minutes}m {$seconds}s");
-  }
+  // if ($finished >= 1) {
+  //   $total_time = time() - $context['sandbox']['start_time'];
+  //   $minutes = floor($total_time / 60);
+  //   $seconds = $total_time - ($minutes * 60);
+  //   dpm("{$minutes}m {$seconds}s");
+  // }
 
   // Set progress percentage.
   $context['finished'] = $finished;
@@ -805,12 +805,12 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
 
   // Compute for progress percentage.
   $finished = $_progress / $_max;
-  if ($finished >= 1) {
-    $total_time = time() - $context['sandbox']['start_time'];
-    $minutes = floor($total_time / 60);
-    $seconds = $total_time - ($minutes * 60);
-    dpm("{$minutes}m {$seconds}s");
-  }
+  // if ($finished >= 1) {
+  //   $total_time = time() - $context['sandbox']['start_time'];
+  //   $minutes = floor($total_time / 60);
+  //   $seconds = $total_time - ($minutes * 60);
+  //   dpm("{$minutes}m {$seconds}s");
+  // }
 
   // Set progress percentage.
   $context['finished'] = $finished;
@@ -944,12 +944,12 @@ function avreports_batch_scan_finished($success, $results, $operations) {
     // Remove lock.
     variable_del('avreports_scan_lock');
 // dpm($results);
-    if (!empty($results['start_time'])) {
-      $total_time = time() - $results['start_time'];
-      $minutes = floor($total_time / 60);
-      $seconds = $total_time - ($minutes * 60);
-      dpm("{$minutes}m {$seconds}s");
-    }
+//     if (!empty($results['start_time'])) {
+//       $total_time = time() - $results['start_time'];
+//       $minutes = floor($total_time / 60);
+//       $seconds = $total_time - ($minutes * 60);
+//       dpm("{$minutes}m {$seconds}s");
+//     }
 
   }
   else {
