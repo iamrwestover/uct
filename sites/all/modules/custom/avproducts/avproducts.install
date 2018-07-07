@@ -232,3 +232,67 @@ function avproducts_update_7101() {
   db_change_field($table_name, $field_name, $field_name, $fields[$field_name]);
   return t('Successfully increased decimal precision of discount fields.');
 }
+
+/**
+ * Rescan all transactions to finally ensure integrity of current onhand quantity.
+ */
+function avproducts_update_7102(&$sandbox) {
+  $ret = array();
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last_row_id'] = 0;
+    $query = "SELECT COUNT(id) FROM {avtbl_products}";
+    $sandbox['max'] = db_query($query)->fetchField();
+  }
+
+  $limit = 10;
+
+  // Get initial product details.
+  $query = "SELECT id, initial_qty FROM {avtbl_products}
+    WHERE id > :gg AND id=2225 ORDER BY id LIMIT $limit";
+  $product_rows = db_query($query, array(':gg' => $sandbox['last_row_id']))->fetchAllAssoc('id');
+  // watchdog('s', serialize($sandbox['progress']));
+  if (!empty($product_rows)) {
+    foreach ($product_rows as $product) {
+      $query = "SELECT
+      " . avtxns_txn_detail_qty_query("avtxn.transaction_type IN (:inc_types)") . " onhand
+      FROM {avtbl_transaction_details} avtxn_detail
+      INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+      WHERE avtxn_detail.item_id = :item_id
+      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:qty_change_types)";
+      // Order by.
+      // $order_by = array();
+      // $order_by[] = 'avtxn.transaction_date';
+      // $order_by[] = 'avtxn.id';
+      // if (!empty($order_by)) {
+      //   $query .= " ORDER BY " . implode(', ', $order_by);
+      // }
+      $onhand = db_query($query, array(
+        ':item_id' => $product->id,
+        ':void_status' => AVTXNS_TXN_STATUS_VOID,
+        ':inc_types' => avtxns_get_qty_change_txn_types('increment'),
+        ':qty_change_types' => avtxns_get_qty_change_txn_types(),
+      ))->fetchField();
+      $onhand = empty($onhand) ? 0 : $onhand;
+      // dpm($onhand);
+      // Add current onhand qty.
+      $onhand += $product->initial_qty;
+      // dpm($onhand);
+      // Do update.
+      db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(
+        ':qty' => $onhand,
+        ':id' => $product->id
+      ));
+      $sandbox['last_row_id'] = $product->id;
+      $sandbox['progress']++;
+    }
+  }
+  else {
+    $sandbox['progress'] = $sandbox['max'];
+  }
+
+
+  $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['max'] ? TRUE : $sandbox['progress'] / $sandbox['max'];
+  // $sandbox['#finished'] = 1;
+}
+

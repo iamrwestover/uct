@@ -1,6 +1,13 @@
-html.uct-not-current,
+html.uct-not-current {
+  background: #fff;
+  background: #dbe5c0;
+}
 html.uct-not-current #loading {
-  background: ivory;
+  /*background: #88a825;*/
+  background: #dbe5c0;
+}
+html.uct-not-current .object  {
+  background: #88a825;
 }
 /* Off canvas */
 body {

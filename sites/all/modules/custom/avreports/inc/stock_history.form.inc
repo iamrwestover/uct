@@ -80,6 +80,9 @@ function avreports_stock_history_form($form, &$form_state) {
   }
   // Only do stuff if selected product exists.
   $do_stuff = !empty($selected_product->id) && $date_start < $date_end;
+  // $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
+  // dpm(format_date($transaction_lock_date, 'long'));
+  // dpm(format_date($date_start, 'long'));
   if ($do_stuff) {
     // Get product initial values.
     // if ($date_start <= strtotime('first day of this month', $selected_product->initial_qty_date)) {
@@ -228,47 +231,12 @@ function avreports_stock_history_form($form, &$form_state) {
     // $beg_onhand = $onhand;
     // $beg_purchase_cost = $total_purchase_cost;
     $item_cost = $onhand = $qty_in = $qty_out = $cogafs = $cogs = 0;
+    // if ($date_start <= $selected_product->initial_qty_date) {
+    avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $date_start, $item_cost, $onhand, $inventory, $cogafs);
+    // }
     foreach ($rs as $row) {
       // Insert ending inventory per month.
-      $ending_inventory_key = strtotime('first day of this month midnight', $row->transaction_date);
-      if (!isset($table_rows[$ending_inventory_key])) {
-        if ($ending_inventory_key <= strtotime('first day of this month midnight', $selected_product->initial_qty_date)) {
-          $period_row = $selected_product;
-        }
-        else {
-          // Get data from cache.
-          $query = "SELECT item_cost, (qty_in - qty_out) onhand,
-            ((qty_in - qty_out) * item_cost) inventory
-            FROM {avtbl_inventory_cache}
-            WHERE product_id = {$selected_product->id} AND before_this_day = $ending_inventory_key";
-          $period_row = db_query($query)->fetchObject();
-        }
-
-        // Re-init.
-        $item_cost = empty($period_row->item_cost) ? 0 : $period_row->item_cost;
-        $onhand = empty($period_row->onhand) ? 0 : $period_row->onhand;
-        $inventory = empty($period_row->inventory) ? 0 : $period_row->inventory;
-        $cogafs = $inventory;
-
-        $data = array();
-        $data['transaction_type'] = '<div class="uk-text-bold">' . t('Beginning inventory, <span class="uk-text-muted">@cost each</span><br />%date' . '</div>',
-          array('%date' => format_date($ending_inventory_key, 'custom', 'F Y'), '@cost' => number_format($item_cost, 2))
-        );
-        $data['transaction_date'] = NULL;
-        $data['transaction_id'] = NULL;
-        $data['reference_id'] = NULL;
-        $data['client_name'] = NULL;
-        $data['qty_in'] = NULL;
-        $data['qty_out'] = NULL;
-        // $data['cogafs'] = in_array($row->transaction_type, $fixed_cost_types) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>') : NULL;
-        $data['onhand'] = '<div class="uk-text-right uk-text-bold">' .number_format($onhand) . '</div>';
-        $data['cogafs'] = '<div class="uk-text-right uk-text-bold">' . avbase_accounting_number_format($inventory) . '</div>';
-        $data['#avclass'] = 'uk-bg-gray';
-        // Careful when adding classes on rows, check if tableselect mode is ON.
-        $table_rows[$ending_inventory_key] = $data;
-      }
-
-
+      avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $row->transaction_date, $item_cost, $onhand, $inventory, $cogafs);
 
       // Now on with the transaction row.
       $this_qty_in = in_array($row->transaction_type, $args[':pos_types']) ? $row->row_qty : 0;
@@ -661,4 +629,51 @@ function avreports_old_stock_history_form($form, &$form_state) {
     $form['#form_keys_no_cache'] = array('transaction_list_table');
   }
   return $form;
+}
+
+
+function avbase_stock_history_beg_inventory_row(&$table_rows, $selected_product, $date_start, &$item_cost, &$onhand, &$inventory, &$cogafs) {
+  $ending_inventory_key = strtotime('first day of this month midnight', $date_start);
+  if (!isset($table_rows[$ending_inventory_key])) {
+    if ($ending_inventory_key <= $selected_product->initial_qty_date) {
+      $period_row = $selected_product;
+      $beg_type_label = 'Added product';
+      $ending_inventory_key = $selected_product->initial_qty_date;
+    }
+    else {
+      // Get data from cache.
+      $query = "SELECT item_cost, (qty_in - qty_out) onhand,
+              ((qty_in - qty_out) * item_cost) inventory
+              FROM {avtbl_inventory_cache}
+              WHERE product_id = {$selected_product->id} AND before_this_day <= $ending_inventory_key ORDER BY before_this_day DESC LIMIT 1";
+      $period_row = db_query($query)->fetchObject();
+      $beg_type_label = 'Beginning inventory';
+    }
+
+    // Re-init.
+    $item_cost = empty($period_row->item_cost) ? 0 : $period_row->item_cost;
+    $onhand = empty($period_row->onhand) ? 0 : $period_row->onhand;
+    $inventory = empty($period_row->inventory) ? 0 : $period_row->inventory;
+    $cogafs = $inventory;
+
+    $data = array();
+    $data['transaction_type'] = '<div class="uk-text-bold">' . t('@beg_type_label, <span class="uk-text-muted">@cost each</span><br />%date' . '</div>',
+        array(
+          '@beg_type_label' => $beg_type_label,
+          '%date' => format_date($ending_inventory_key, 'custom', 'F Y'),
+          '@cost' => number_format($item_cost, 2)
+        )
+      );
+    $data['transaction_date'] = NULL;
+    $data['transaction_id'] = NULL;
+    $data['reference_id'] = NULL;
+    $data['client_name'] = NULL;
+    $data['qty_in'] = NULL;
+    $data['qty_out'] = NULL;
+    // $data['cogafs'] = in_array($row->transaction_type, $fixed_cost_types) ? ('<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>') : NULL;
+    $data['onhand'] = '<div class="uk-text-right uk-text-bold">' . number_format($onhand) . '</div>';
+    $data['cogafs'] = '<div class="uk-text-right uk-text-bold">' . avbase_accounting_number_format($inventory) . '</div>';
+    $data['#avclass'] = 'uk-bg-gray';
+    $table_rows[$ending_inventory_key] = $data;
+  }
 }
