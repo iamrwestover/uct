@@ -70,10 +70,11 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   $select[] = '(avinvcache.qty_in - avinvcache.qty_out) onhand';
   $select[] = '(avinvcache.item_cost * (avinvcache.qty_in - avinvcache.qty_out)) inventory';
   $select[] = '(avinvcache.qty_in_amount - (avinvcache.item_cost * (avinvcache.qty_in - avinvcache.qty_out))) cogs';
-  $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = :date_to_stamp';
+  $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = (SELECT ayay.before_this_day FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp ORDER BY before_this_day DESC LIMIT 1)';
+  // $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = :date_to_stamp';
 
 
-  // $where[] = 'avprod.id=3488';
+  // $where[] = 'avprod.id=2225';
   unset($where['date_to']);
 
   // Build query.
@@ -104,7 +105,7 @@ function avreports_stock_history_summary_form($form, &$form_state) {
     // $data['asset_value'] = '<div class="uk-text-right">' . avbase_accounting_number_format($last_value) . '</div>';
 
     // Careful when adding classes on rows, check if tableselect mode is ON.
-    $table_rows[$row->id] = $data;
+    $table_rows[] = $data;
   }
   // Add "totals" row.
   if (!empty($table_rows)) {
