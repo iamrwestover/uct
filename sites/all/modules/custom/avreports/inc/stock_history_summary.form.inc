@@ -144,6 +144,9 @@ function avreports_stock_history_summary_form($form, &$form_state) {
     $transaction_list_table['mid_info']['#markup'] = '<div class="uk-text-large">' . format_date(strtotime('yesterday', $date_end), 'custom', 'F Y') . '</div>';
     $transaction_list_table['mid_info']['#markup'] .= t('<div>Total Inventory: <span class="uk-text-bold">@inventory</span></div>', array('@inventory' => avbase_accounting_number_format($tot_inventory)));
     $transaction_list_table['mid_info']['#markup'] .= t('<div>Total COGS: <span class="uk-text-bold">@cogs</span></div>', array('@cogs' => avbase_accounting_number_format($tot_cogs)));
+    $transaction_list_table['other_info']['#markup'] = empty($transaction_lock_date)
+      ? '<span class="uk-text-danger uk-text-bold"><i class="uk-icon-exclamation-triangle uk-margin-small-right"></i>Scan and Lock has never been run before.</span>'
+      : t('<span class="uk-text-uppercase uk-text-bold">As of @date</span>', array('@date' => format_date($transaction_lock_date, 'custom', 'F d, Y')));
   }
   $form['transaction_list_table'] = array(
     '#type' => 'container',
