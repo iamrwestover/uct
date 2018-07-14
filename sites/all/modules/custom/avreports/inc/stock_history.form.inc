@@ -666,16 +666,18 @@ function avbase_stock_history_beg_inventory_row(&$table_rows, $selected_product,
     $cogafs = $inventory;
 
     $data = array();
-    $data['transaction_type'] = '<div class="uk-text-bold">' . t('@beg_type_label, <span class="uk-text-muted">@cost each</span><br />%date' . '</div>',
+    $data['transaction_type'] = array('data' => '<div class="uk-text-bold">' . t('@beg_type_label, <span class="uk-text-muted">@cost each</span><br />%date' . '</div>',
         array(
           '@beg_type_label' => $beg_type_label,
           '%date' => format_date($ending_inventory_key, 'custom', 'F Y'),
           '@cost' => number_format($item_cost, 2)
         )
-      );
-    $data['transaction_date'] = NULL;
-    $data['transaction_id'] = NULL;
-    $data['reference_id'] = NULL;
+      ),
+      'colspan' => 4,
+    );
+    // $data['transaction_date'] = NULL;
+    // $data['transaction_id'] = NULL;
+    // $data['reference_id'] = NULL;
     $data['client_name'] = NULL;
     $data['qty_in'] = NULL;
     $data['qty_out'] = NULL;
