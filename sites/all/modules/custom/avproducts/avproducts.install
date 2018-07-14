@@ -234,7 +234,7 @@ function avproducts_update_7101() {
 }
 
 /**
- * Rescan all transactions to finally ensure integrity of current onhand quantity.
+ * Rescan all transactions to ensure integrity of current onhand quantity, once and for all.
  */
 function avproducts_update_7102(&$sandbox) {
   $ret = array();

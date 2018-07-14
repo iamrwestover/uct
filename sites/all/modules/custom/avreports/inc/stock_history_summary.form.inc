@@ -70,11 +70,10 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   $select[] = '(avinvcache.qty_in - avinvcache.qty_out) onhand';
   $select[] = '(avinvcache.item_cost * (avinvcache.qty_in - avinvcache.qty_out)) inventory';
   $select[] = '(avinvcache.qty_in_amount - (avinvcache.item_cost * (avinvcache.qty_in - avinvcache.qty_out))) cogs';
-  $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = (SELECT ayay.before_this_day FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp ORDER BY before_this_day DESC LIMIT 1)';
+  $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = (SELECT ayay.before_this_day FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp AND ayay.product_id = avprod.id ORDER BY before_this_day DESC LIMIT 1)';
   // $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = :date_to_stamp';
 
-
-  // $where[] = 'avprod.id=2225';
+  // $where[] = 'avprod.id=2209';
   unset($where['date_to']);
 
   // Build query.
@@ -99,11 +98,11 @@ function avreports_stock_history_summary_form($form, &$form_state) {
 
     //////////////////////
     /// @todo remove this
-    $db_qty = db_query("SELECT qty FROM avtbl_products WHERE id = :id", array(':id' => $row->id))->fetchField();
-    $data['onhand'] = $db_qty . $data['onhand'];
-    $db_qty = (int) $db_qty;
-    $row->onhand = (int) $row->onhand;
-    $data['#avclass'] = $db_qty > $row->onhand ? 'uk-alert-danger' : ($db_qty < $row->onhand ? 'uk-alert-success' : '');
+    // $db_qty = db_query("SELECT qty FROM avtbl_products WHERE id = :id", array(':id' => $row->id))->fetchField();
+    // $data['onhand'] = $db_qty . $data['onhand'];
+    // $db_qty = (int) $db_qty;
+    // $row->onhand = (int) $row->onhand;
+    // $data['#avclass'] = $db_qty > $row->onhand ? 'uk-alert-danger' : ($db_qty < $row->onhand ? 'uk-alert-success' : '');
     ///////////////////////
 
     $data['item_cost'] = '<div class="uk-text-right">' . number_format($row->item_cost, 2) . '</div>';
