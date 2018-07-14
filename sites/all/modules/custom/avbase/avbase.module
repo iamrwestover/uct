@@ -131,7 +131,7 @@ function avbase_modules_installed($modules) {
 function avbase_init() {
   drupal_add_js(AVBASE_MODULE_PATH . '/js/avbase.js');
   global $base_url;
-  if (strstr($base_url, '//uctest.ais') === FALSE && strstr($base_url, '//uctest.av') === FALSE) {
+  if (strstr($base_url, '//uctest.ais') === FALSE && strstr($base_url, '//uctest.av') === FALSE && strstr($base_url, '//uct.av') === FALSE) {
     drupal_access_denied();
   }
 }

@@ -96,6 +96,16 @@ function avreports_stock_history_summary_form($form, &$form_state) {
       )
     );
     $data['onhand'] = '<div class="uk-text-right">' . number_format($row->onhand) . '</div>';
+
+    //////////////////////
+    /// @todo remove this
+    $db_qty = db_query("SELECT qty FROM avtbl_products WHERE id = :id", array(':id' => $row->id))->fetchField();
+    $data['onhand'] = $db_qty . $data['onhand'];
+    $db_qty = (int) $db_qty;
+    $row->onhand = (int) $row->onhand;
+    $data['#avclass'] = $db_qty < $row->onhand ? 'uk-alert-danger' : ($db_qty > $row->onhand ? 'uk-alert-success' : '');
+    ///////////////////////
+
     $data['item_cost'] = '<div class="uk-text-right">' . number_format($row->item_cost, 2) . '</div>';
     $data['inventory'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->inventory) . '</div>';
     $data['cogs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogs) . '</div>';

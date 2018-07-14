@@ -647,7 +647,7 @@ function avbase_stock_history_beg_inventory_row(&$table_rows, $selected_product,
     if ($ending_inventory_key <= $selected_product->initial_qty_date) {
       $period_row = $selected_product;
       $beg_type_label = 'Added product';
-      $ending_inventory_key = $selected_product->initial_qty_date;
+      $ending_inventory_key = strtotime('first day of this month midnight', $selected_product->initial_qty_date);
     }
     else {
       // Get data from cache.

@@ -245,7 +245,7 @@ function avproducts_update_7102(&$sandbox) {
     $sandbox['max'] = db_query($query)->fetchField();
   }
 
-  $limit = 10;
+  $limit = 5;
 
   // Get initial product details.
   $query = "SELECT id, initial_qty FROM {avtbl_products}
