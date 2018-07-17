@@ -1997,7 +1997,7 @@ function avtxns_txn_list_table_phl_link($product_title, $user_filter, $link_titl
   $link_options['attributes']['title'] = 'View stock history';
 
 
-  return l('<i class="uk-icon-history uk-margin-small-right"></i>' . check_plain($link_title), 'av/reports/stock-history', $link_options);
+  return l('<i class="uk-icon-history uk-margin-small-right"></i>' . check_plain($link_title), 'av/reports/stock-history-detailed', $link_options);
 }
 
 function avtxns_txn_list_table_pr_link($product_title, $user_filter, $link_title = NULL) {

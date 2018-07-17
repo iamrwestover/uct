@@ -243,12 +243,13 @@ function avproducts_update_7102(&$sandbox) {
     $sandbox['last_row_id'] = 0;
     $query = "SELECT COUNT(id) FROM {avtbl_products}";
     $sandbox['max'] = db_query($query)->fetchField();
+   variable_set('avbase_qty_integrity_date', time());
   }
 
   $limit = 5;
 
   // Get initial product details.
-  $query = "SELECT id, initial_qty FROM {avtbl_products}
+  $query = "SELECT id, initial_qty, qty FROM {avtbl_products}
     WHERE id > :gg ORDER BY id LIMIT $limit";
   $product_rows = db_query($query, array(':gg' => $sandbox['last_row_id']))->fetchAllAssoc('id');
   // watchdog('s', serialize($sandbox['progress']));
@@ -285,6 +286,13 @@ function avproducts_update_7102(&$sandbox) {
       ));
       $sandbox['last_row_id'] = $product->id;
       $sandbox['progress']++;
+
+      if ((int) $product->qty != (int) $onhand) {
+       $qty_integrity = variable_get('avbase_qty_integrity', '');
+       $qty_integrity = empty($qty_integrity) ? array() : unserialize($qty_integrity);
+       $qty_integrity[$product->id] = array('old' => $product->qty, 'new' => $onhand);
+       variable_set('avbase_qty_integrity', serialize($qty_integrity));
+      }
     }
   }
   else {

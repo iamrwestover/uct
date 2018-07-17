@@ -413,9 +413,9 @@ function avreports_account_history_link($title, $date = array(), $link_title = N
 }
 
 function avreports_product_history_link($title, $date = array(), $link_title = NULL, $mute_link = TRUE) {
-  if (empty($date)) {
-    return $title;
-  }
+  // if (empty($date)) {
+  //   return $title;
+  // }
   $link_title = is_null($link_title) ? $title : $link_title;
   $link_options = array('attributes' => array('target' => '_blank'));
   if ($mute_link) {
@@ -424,8 +424,12 @@ function avreports_product_history_link($title, $date = array(), $link_title = N
   $link_options['query']['custom_reset'] = 1; // Important.
   $link_options['query']['product_title'] = $title;
   $link_options['query']['date_auto'] = 'custom';
-  $link_options['query']['date_from'] = $date['date_from'];
-  $link_options['query']['date_to'] = $date['date_to'];
+  if (!empty($date['date_from'])) {
+    $link_options['query']['date_from'] = $date['date_from'];
+  }
+  if (!empty($date['date_to'])) {
+    $link_options['query']['date_to'] = $date['date_to'];
+  }
   $link_options['attributes']['title'] = 'View this product\'s history';
 
   $path = 'av/reports/stock-history-detailed';

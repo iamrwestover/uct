@@ -84,11 +84,12 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   // dpm($args);
   $rs = db_query($query, $args);
   $tot_inventory = $tot_cogs = 0;
+  $i=0;
   foreach ($rs as $row) {
     $tot_inventory += $row->inventory;
     $tot_cogs += $row->cogs;
     $data = array();
-    $data['product_title'] = avreports_product_history_link(
+    $data['product_title'] = $row->id . avreports_product_history_link(
       $row->title, array(
         'date_from' => format_date(strtotime('first day of this month - 1 month', $date_end), 'custom', AVBASE_DATE_FORMAT),
         'date_to' => format_date(strtotime('last day of this month - 1 month', $date_end), 'custom', AVBASE_DATE_FORMAT),
@@ -98,16 +99,17 @@ function avreports_stock_history_summary_form($form, &$form_state) {
 
     //////////////////////
     /// @todo remove this
-    // $db_qty = db_query("SELECT qty FROM avtbl_products WHERE id = :id", array(':id' => $row->id))->fetchField();
-    // $data['onhand'] = $db_qty . $data['onhand'];
-    // $db_qty = (int) $db_qty;
-    // $row->onhand = (int) $row->onhand;
-    // $data['#avclass'] = $db_qty > $row->onhand ? 'uk-alert-danger' : ($db_qty < $row->onhand ? 'uk-alert-success' : '');
+    $db_qty = db_query("SELECT qty FROM avtbl_products WHERE id = :id", array(':id' => $row->id))->fetchField();
+    $data['onhand'] = $db_qty . $data['onhand'];
+    $db_qty = (int) $db_qty;
+    $row->onhand = (int) $row->onhand;
+    if ($row->onhand == $db_qty) continue;
+    $data['#avclass'] = $db_qty > $row->onhand ? 'uk-alert-danger' : ($db_qty < $row->onhand ? 'uk-alert-success' : '');
     ///////////////////////
 
     $data['item_cost'] = '<div class="uk-text-right">' . number_format($row->item_cost, 2) . '</div>';
     $data['inventory'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->inventory) . '</div>';
-    $data['cogs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogs) . '</div>';
+    $data['cogs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogs) . '</div>' . ++$i;
 
     // $data['sales_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? NULL : '<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>';
     // $data['ave_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? NULL : '<div class="uk-text-right">' . number_format($item_cost, 2) . '</div>';
@@ -116,6 +118,7 @@ function avreports_stock_history_summary_form($form, &$form_state) {
     // Careful when adding classes on rows, check if tableselect mode is ON.
     $table_rows[] = $data;
   }
+
   // Add "totals" row.
   if (!empty($table_rows)) {
     $totals_table_row = array();
