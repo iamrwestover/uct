@@ -277,9 +277,9 @@ function avreports_stock_history_form($form, &$form_state) {
       $transaction_list_table['product_name']['#markup'] .= '<br />Asset Value: ' . number_format($init->asset_value, 2);
 
       // Update qty.
-      if ($init->current_onhand != $init->onhand && $args[':date_to_stamp'] >= strtotime('tomorrow midnight')) {
-        db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(':qty' => $init->onhand, ':id' => $init->id));
-      }
+      // if ($init->current_onhand != $init->onhand && $args[':date_to_stamp'] >= strtotime('tomorrow midnight')) {
+      //   db_query("UPDATE {avtbl_products} SET qty = :qty WHERE id = :id", array(':qty' => $init->onhand, ':id' => $init->id));
+      // }
     }
   }
   $form['transaction_list_table'] = array(

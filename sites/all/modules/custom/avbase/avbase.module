@@ -308,6 +308,13 @@ function avbase_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'inc/help/help.inc',
   );
+
+  $items['av/updated-qty'] = array(
+    'title' => 'Updated quantities',
+    'page callback' => 'avbase_updated_quantities',
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
@@ -974,3 +981,48 @@ function avbase_preprocess_html(&$vars) {
 //    variable_set('avbase_cron_next_execution', time() + $interval);
 //  }
 //}
+
+/**
+ * Show list of products which quantities doesn't match that when all transactions where scanned.
+ * @return string
+ */
+function avbase_updated_quantities() {
+  $date_updated = variable_get('avbase_qty_integrity_date', 0);
+  $qty_integrity = variable_get('avbase_qty_integrity', '');
+  $qty_integrity = empty($qty_integrity) ? array() : unserialize($qty_integrity);
+
+  $output = '<div class="uk-text-large uk-text-center uk-text-uppercase">List of products with incorrect on-hand qty after reading every transaction</div>';
+  $output .= '<div class="uk-text-center"><em>As of ' . format_date($date_updated, 'custom', 'F d, Y - H:i a') . '</em></div>';
+  if (empty($qty_integrity)) {
+    $output .= '<div class="uk-text-muted">No product quantities were changed during the update</div>';
+    return $output;
+  }
+
+
+  $query = "SELECT id, title FROM {avtbl_products} WHERE id IN (:ids)";
+  $rs = db_query($query, array(':ids' => array_keys($qty_integrity)));
+  $rows = array();
+  foreach ($rs as $row) {
+    $data = array();
+    $old_qty = $qty_integrity[$row->id]['old'];
+    $new_qty = $qty_integrity[$row->id]['new'];
+    $data[] = avreports_product_history_link($row->title);
+    $data[] = '<div class="uk-text-right">' . number_format($old_qty) . '</div>';
+    $data[] = '<div class="uk-text-right">' . number_format($new_qty) . '</div>';
+    $data['#avclass'] = $old_qty < $new_qty ? '' : 'uk-alert-danger';
+    $rows[] = $data;
+  }
+
+  $header = array(
+    'PRODUCT',
+    array('data' => 'INCORRECT QTY', 'class' => array('uk-text-right')),
+    array('data' => 'UPDATED QTY', 'class' => array('uk-text-right')),
+  );
+  $output .= theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => 'updated-qty-list', 'class' => array('uk-table-hover uk-table-condensed uk-text-small')),
+  ));
+
+  return $output;
+}
