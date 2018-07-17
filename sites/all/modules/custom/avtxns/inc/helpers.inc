@@ -1778,6 +1778,12 @@ function avtxns_txn_detail_discount_query() {
   return $query;
 }
 
+function avtxns_txn_detail_qty_query($increment = 1, $sum = TRUE) {
+  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query .= 'avtxn_detail.qty * avtxn_detail.qty_per_uom';
+  // return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
+  return $sum ? "SUM($query)" : "($query)";
+}
 
 function avtxns_get_item_row_key($item) {
   $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
