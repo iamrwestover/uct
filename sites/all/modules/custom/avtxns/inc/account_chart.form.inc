@@ -34,11 +34,12 @@ function avtxns_account_chart_home_form($form, &$form_state) {
     //
     // Each entry will be an array using the the unique id for that item as
     // the array key, and an array of table row data as the value.
+    $prefix = empty($row->account_code) ? '' : (check_plain($row->account_code) . ' ');
     $form['tabledrag'][$row->id] = array(
 
       // We'll use a form element of type '#markup' to display the item name.
       'title' => array(
-        '#markup' => l($row->title, 'av/chart-of-accounts/' . $row->id . '/view', array('query' => drupal_get_destination())),
+        '#markup' => $prefix . l($row->title, 'av/chart-of-accounts/' . $row->id . '/view', array('query' => drupal_get_destination())),
       ),
       'edit' => array(
         '#markup' => l('EDIT', 'av/chart-of-accounts/' . $row->id . '/edit', array('query' => drupal_get_destination())),
@@ -280,6 +281,7 @@ function avtxns_account_chart_form_settings(&$form, $row, $view_mode = FALSE) {
 function avtxns_account_chart_table_fields_to_save($db_op = 'insert') {
   $fields = array(
     'title',
+    'account_code',
     'account_type',
     'parent',
     //'weight' => array('type' => 'int'),
@@ -310,6 +312,13 @@ function avtxns_account_chart_form_fields(&$form, &$form_state, $row, $view_mode
     '#maxlength' => 255,
     '#required' => TRUE,
     '#element_validate' => array('avbase_element_validate_unique_field'),
+  );
+  $form['account_code'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Account code',
+    '#default_value' => isset($row->account_code) ? $row->account_code : '',
+    '#maxlength' => 10,
+    '#required' => TRUE,
   );
 
   $chart_types_options = avtxns_account_chart_types_option_array();

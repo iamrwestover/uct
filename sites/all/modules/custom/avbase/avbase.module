@@ -1042,16 +1042,18 @@ function avbase_preprocess_html(&$vars) {
  * @return string
  */
 function avbase_updated_quantities() {
+  $output = '';
   $date_updated = variable_get('avbase_qty_integrity_date', 0);
   $qty_integrity = variable_get('avbase_qty_integrity', '');
   $qty_integrity = empty($qty_integrity) ? array() : unserialize($qty_integrity);
 
-  $output = '<div class="uk-text-large uk-text-center uk-text-uppercase">List of products with incorrect on-hand qty after reading every transaction</div>';
-  $output .= '<div class="uk-text-center"><em>As of ' . format_date($date_updated, 'custom', 'F d, Y - H:i a') . '</em></div>';
-  if (empty($qty_integrity)) {
+  if (empty($qty_integrity) || empty($date_updated)) {
     $output .= '<div class="uk-text-muted">No product quantities were changed during the update</div>';
     return $output;
   }
+
+  $output .= '<div class="uk-text-large uk-text-center uk-text-uppercase">List of products with incorrect on-hand qty after reading every transaction</div>';
+  $output .= '<div class="uk-text-center"><em>As of ' . format_date($date_updated, 'custom', 'F d, Y - H:i a') . '</em></div>';
 
 
   $query = "SELECT id, title FROM {avtbl_products} WHERE id IN (:ids)";

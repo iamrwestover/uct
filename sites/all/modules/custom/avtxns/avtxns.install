@@ -303,6 +303,12 @@ function avtxns_schema() {
         'length' => '8',
         'not null' => TRUE,
       ),
+      'account_code' => array(
+        'description' => 'Account Code',
+        'type' => 'varchar',
+        'length' => '10',
+        'not null' => FALSE,
+      ),
       'parent' => array(
         'description' => 'Parent ID',
         'type' => 'int',
@@ -744,4 +750,16 @@ function avtxns_update_7111() {
   $table_name = 'avtbl_reserved_qty';
   $table = $schema[$table_name];
   db_create_table($table_name, $table);
+}
+
+/**
+ * Add "account code" field for Account Chart.
+ */
+function avtxns_update_7112() {
+  $schema = avtxns_schema();
+  $table_name = 'avtbl_account_chart';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'account_code';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
 }
