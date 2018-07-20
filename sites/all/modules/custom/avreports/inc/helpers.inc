@@ -481,7 +481,7 @@ function avreports_account_type_balance_rows2(&$table_rows, $pl_accounts_by_type
     $date_to = $dg['date_to'];
     $column_total = empty($column_totals[$account_type][$date_to]) ? 0 : $column_totals[$account_type][$date_to];
     $this_total_text = avbase_accounting_number_format($column_total);
-    if ($dg_id != 'base') {
+    if (!in_array($dg_id, array('base', 'beg_bal'))) {
       $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $this_total_text . '</div>';
     }
   }
@@ -515,18 +515,33 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
     // $data['account'] .= $account_row['id'];
     $this_row_amount = 0;
     $prev_amount = 0;
+    $beginning_balance = 0;
     foreach ($date_group as $dg_id => $dg) {
       $date_to = $dg['date_to'];
       $ending_amount = empty($fs_rows[$account_id][$date_to]) ? 0 : $fs_rows[$account_id][$date_to];
       // If base is set, presume that period amount should be used instead of ending amount.
-      $this_cell_amount = isset($date_group['base']) ? ($ending_amount - $prev_amount) : $ending_amount;
+      if (isset($date_group['base'])) {
+        $this_cell_amount = $ending_amount - $prev_amount;
+      }
+      elseif (isset($date_group['beg_bal']) && $dg_id != 'beg_bal') {
+        $this_cell_amount = $ending_amount - $beginning_balance;
+      }
+      else {
+        $this_cell_amount = $ending_amount;
+      }
+
       // If in total column, show row total.
       $amount_to_show = $dg_id == 'total' ? $this_row_amount : $this_cell_amount;
-      // Only show if not in base column, we only use base for correct difference computation if needed.
+      // Only show if not in base or beg_bal column, we only use these columns for correct difference computation if needed.
       // Also, base amount shouldn't be added in total row amount.
-      if ($dg_id != 'base') {
+      if ($dg_id == 'beg_bal') {
+        // dpm(format_date($date_to, 'custom', AVBASE_MONTH_ONLY_FORMAT) . '=' .  format_date(variable_get('av_fiscal_date', 0), 'custom', AVBASE_MONTH_ONLY_FORMAT));
+        $beginning_balance = $this_cell_amount;
+      }
+      elseif ($dg_id != 'base') {
         $history_link_date = array('date_from' => format_date($dg['date_from'], 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date($dg['date_to'], 'custom', AVREPORTS_LIST_DATE_FORMAT));
-        $data[$date_to] = '<div class="uk-text-right">' . avreports_account_history_link($account_row['title'], $history_link_date, avbase_accounting_number_format($amount_to_show), TRUE, $account_row['id']) . '</div>';
+        $amount_text = $account_row['id'] == AVTXN_AC_SPECIFIC_EQUITY_ID ? avbase_accounting_number_format($amount_to_show) : avreports_account_history_link($account_row['title'], $history_link_date, avbase_accounting_number_format($amount_to_show), TRUE, $account_row['id']);
+        $data[$date_to] = '<div class="uk-text-right">' . $amount_text . '</div>';
         $this_row_amount += $this_cell_amount;
       }
       $column_totals[$date_to] = empty($column_totals[$date_to]) ? $amount_to_show : ($column_totals[$date_to] + $amount_to_show);
@@ -576,7 +591,7 @@ function avreports_account_type_difference_row2(&$table_rows, $account_label, &$
     }
     $period_total_text = avbase_accounting_number_format($period_total);
     $column_totals[$totals_id][$date_to] = $period_total;
-    if ($dg_id != 'base') {
+    if (!in_array($dg_id, array('base', 'beg_bal'))) {
       $data[$date_to] = '<div class="uk-text-bold uk-text-right">' . $period_total_text . '</div>';
     }
   }

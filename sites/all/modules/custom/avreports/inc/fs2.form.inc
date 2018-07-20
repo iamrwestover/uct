@@ -94,12 +94,22 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
   $period_balance_only = $fs_type == AVREPORTS_FS_PL;
+  // Start with 0 balance for BS, unless selected start date is same less than or equal to fiscal year.
+  $start_with_zero_balance = $fs_type == AVREPORTS_FS_BS;
+  $start_with_zero_balance = $start_with_zero_balance && $ts > variable_get('av_fiscal_date', 0);
+  // $start_with_zero_balance = FALSE;
+
   // $period_balance_only = FALSE;
-  $ts = $period_balance_only ? strtotime('yesterday', $date_from_timestamp) : $ts;
+  $ts = ($period_balance_only || $start_with_zero_balance) ? strtotime('yesterday', $date_from_timestamp) : $ts;
   while ($ts <= $date_to_timestamp) {
     if ($period_balance_only && count($date_group) < 1) {
       $tc_label = 'Base';
       $date_group_id = 'base';
+      $last_day_timestamp = $ts;
+    }
+    elseif ($start_with_zero_balance && count($date_group) < 1) {
+      $tc_label = 'Beginning Balance';
+      $date_group_id = 'beg_bal';
       $last_day_timestamp = $ts;
     }
     else {
@@ -159,7 +169,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $header = array();
   $header['account'] = '';
   foreach ($date_group as $dg_id => $tc) {
-    if ($dg_id == 'base') {
+    if ($dg_id == 'base' || $dg_id == 'beg_bal') {
       continue;
     }
     $header[$dg_id] = array('data' => $tc['label'], 'class' => array('uk-text-right'));
