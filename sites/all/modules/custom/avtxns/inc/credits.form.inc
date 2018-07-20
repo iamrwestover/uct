@@ -72,6 +72,10 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#type' => 'item',
       '#markup' => l(strtoupper($credit_row->transaction_type) . '# ' . $credit_row->id, $crtd['base_path'] . '/' . $credit_row->id . '/view'),
     );
+    $table_cols['transaction_date'] = array(
+      '#type' => 'item',
+      '#markup' => format_date($credit_row->transaction_date, 'custom', AVBASE_DATE_FORMAT),
+    );
     $table_cols['transaction_type_text'] = array(
       '#type' => 'item',
       '#markup' => !empty($crtd['payment']) ? 'Excess payment' : $crtd['name'],
@@ -130,6 +134,7 @@ function avtxns_txn_credits_form($form, &$form_state, $transaction_type, $row) {
       '#theme' => 'avbase_form_table',
       '#header' => array(
         'transaction_id' => array('data' => '#', 'class' => 'suk-text-right'),
+        'transaction_date' => array('data' => t('Date')),
         'transaction_type_text' => array('data' => t('Type')),
         'original_amount' => array('data' => t('Original Amount'), 'class' => 'uk-text-right'),
         'open_balance' => array('data' => t('Remaining Balance'), 'class' => 'uk-text-right'),

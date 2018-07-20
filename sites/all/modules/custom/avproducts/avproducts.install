@@ -303,4 +303,3 @@ function avproducts_update_7102(&$sandbox) {
   $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['max'] ? TRUE : $sandbox['progress'] / $sandbox['max'];
   // $sandbox['#finished'] = 1;
 }
-
