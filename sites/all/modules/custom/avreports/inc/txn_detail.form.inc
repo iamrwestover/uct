@@ -240,6 +240,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     $select[] = 'avtxn_detail.debit';
     $select[] = 'avtxn_detail.credit';
     $select[] = 'avachart.title AS account_title';
+    $select[] = 'avachart.account_code';
     $joins[] = 'LEFT JOIN {avtbl_account_chart} AS avachart ON avachart.id = avtxn_detail.account_id';
   }
 
@@ -318,7 +319,7 @@ function avreports_txn_detail_form($form, &$form_state, $transaction_type, $limi
     }
     $data['id'] = l(avbase_txn_number_format($this_ttype, $row->id), "{$this_ttd['base_path']}/$row->id/view");
     if ($col_accounts) {
-      $data['account_title'] = check_plain($row->account_title);
+      $data['account_title'] = avreports_account_name_format($row);
       $data['description'] = check_plain($row->description);
       if ($transaction_type == AVTXNS_TXN_TYPE_JOURNAL && $this_ttype != AVTXNS_TXN_TYPE_JOURNAL) {
         $default_account = $this_ttd['default_account_id'];

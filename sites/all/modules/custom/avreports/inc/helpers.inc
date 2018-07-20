@@ -511,9 +511,7 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
     // $link_to_history = $link_to_history && !in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_CASH_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_EQUITY_ID));
 
     $data = array();
-    // $data['account'] = $depth_html . ($link_to_history ? avreports_account_history_link($account_row['title'], $user_filter) : $account_row['title']);
-    // $data['account'] = $depth_html . avreports_account_history_link($account_row['title'], $user_filter, NULL, FALSE);
-    $data['account'] = $depth_html . check_plain($account_row['title']);
+    $data['account'] = $depth_html . avreports_account_name_format($account_row);
     // $data['account'] .= $account_row['id'];
     $this_row_amount = 0;
     $prev_amount = 0;
@@ -591,4 +589,16 @@ function avreports_account_type_difference_row2(&$table_rows, $account_label, &$
   $table_rows[] = $data;
 
   $column_totals[$totals_id]['at_total'] = $this_total;
+}
+
+function avreports_account_name_format($row) {
+  $row = (object) $row;
+  $prefix = empty($row->account_code) ? '' : ($row->account_code . ' ');
+  if (isset($row->account_title)) {
+    $title = $row->account_title;
+  }
+  else {
+    $title = $row->title;
+  }
+  return check_plain($prefix . $title);
 }
