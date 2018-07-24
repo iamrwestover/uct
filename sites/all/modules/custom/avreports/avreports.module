@@ -118,6 +118,24 @@ function avreports_menu() {
     'file' => 'inc/sales_to_trade.form.inc',
   );
 
+  $items['av/reports/register/' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN] = array(
+    'title' => 'Stock Transfer - IN Register',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_sales_to_trade_form', AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/sales_to_trade.form.inc',
+  );
+
+  $items['av/reports/register/' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT] = array(
+    'title' => 'Stock Transfer - OUT Register',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_sales_to_trade_form', AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT),
+    'access arguments' => array(AVREPORTS_PERM_INVENTORY),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/sales_to_trade.form.inc',
+  );
+
   $items['av/reports/register/' . AVTXNS_TXN_TYPE_RECEIVE] = array(
     'title' => 'Received Items Register',
     'page callback' => 'drupal_get_form',
@@ -392,11 +410,13 @@ function avreports_home_form($form, &$form_state) {
   $buttons['stock_shortage'] = array('#markup' => l('Stock Shortage', 'av/reports/stock-shortage', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons[AVTXNS_TXN_TYPE_SALES_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Sales', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_SALES_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons[AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_detail'] = array('#markup' => l('Stocks Returned - Purchase', 'av/reports/transaction-detail/' . AVTXNS_TXN_TYPE_PURCHASE_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
-  $buttons['so_register'] = array('#markup' => l('Sales Order Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_SALES_ORDER, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['so_register'] = array('#markup' => '<br />' . l('Sales Order Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_SALES_ORDER, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['dr_register'] = array('#markup' => l('Delivery Receipt Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_DELIVERY, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['sr_register'] = array('#markup' => l('Sales Return Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_SALES_RETURN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['rcv_register'] = array('#markup' => l('Received Items Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_RECEIVE, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
-  $buttons['inventory_ranking_sales'] = array('#markup' => l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['stin_register'] = array('#markup' => l('Stock Transfer- IN Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['stou_register'] = array('#markup' => l('Stock Transfer- OUT Register', 'av/reports/register/' . AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT, array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
+  $buttons['inventory_ranking_sales'] = array('#markup' => '<br />' . l('Inventory Ranking - Sales', 'av/reports/inventory-ranking/sales', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $buttons['inventory_ranking_purchase'] = array('#markup' => l('Inventory Ranking - Purchase', 'av/reports/inventory-ranking/purchase', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right uk-margin-small-bottom')))));
   $form['inventory_reports'] = array(
     '#type' => 'fieldset',
