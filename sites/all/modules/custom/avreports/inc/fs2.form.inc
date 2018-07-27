@@ -512,7 +512,7 @@ function avreports_fs_update_form_submit($form, &$form_state) {
 
   $operations = array();
   $operations['products'] = array('avreports_batch_scan_inventory_transactions2', array('products', $date_start, $date_end)); // Faster for products.
-  $operations['accounts'] = array('avreports_batch_scan_transactions', array('accounts', $date_start, $date_end)); // Wayyyyy faster for accounts.
+  // $operations['accounts'] = array('avreports_batch_scan_transactions', array('accounts', $date_start, $date_end)); // Wayyyyy faster for accounts.
   if (empty($operations)) {
     drupal_set_message('Scan is not required yet.', 'warning');
     return;
@@ -748,7 +748,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       // 3500
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date,
       (initial_value * initial_qty) AS asset_value FROM {avtbl_products}
-      WHERE id > $_last_row_id ORDER BY id LIMIT $row_limit";
+      WHERE id > $_last_row_id AND id < 2210 ORDER BY id LIMIT $row_limit";
       $_db_rows = db_query($query)->fetchAllAssoc('id');
     }
     elseif ($scan_type == 'accounts') {

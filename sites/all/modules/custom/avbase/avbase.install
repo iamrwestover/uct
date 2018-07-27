@@ -267,6 +267,41 @@ function avbase_schema() {
         'precision' => '18',
         'scale' => '6',
       ),
+      AVTXNS_TXN_TYPE_RECEIVE . '_qty' => array( // A fixed cost and a qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN . '_qty' => array( // A fixed cost and a qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_qty' => array( // A fixed cost and a qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT . '_qty' => array( // A fixed cost and a qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      AVTXNS_TXN_TYPE_DELIVERY . '_qty' => array( // A qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      AVTXNS_TXN_TYPE_SALES_RETURN . '_qty' => array( // A qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT . '_qty' => array( // A qty-change transaction type.
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'qty_out' => array(
         'description' => 'Total released quantity.',
         'type' => 'int',
@@ -285,6 +320,22 @@ function avbase_schema() {
         'not null' => TRUE,
         'precision' => '18',
         'scale' => '6',
+      ),
+      'fixed_qty_in_amt' => array(
+        'description' => 'Cost of received and transferred-in items',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+        'default' => 0,
+      ),
+      'fixed_qty_out_amt' => array(
+        'description' => 'Cost of pr and transferred-out items',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+        'default' => 0,
       ),
     ),
     'primary key' => array('product_id', 'before_this_day'),
@@ -403,7 +454,7 @@ function avbase_update_7108() {
 }
 
 /**
- * Add "debit" and "credit" field for accounting reports cache table
+ * Add "debit" and "credit" field for accounting reports cache table.
  */
 function avbase_update_7109() {
   $schema = avbase_schema();
@@ -415,3 +466,53 @@ function avbase_update_7109() {
   $field_name = 'credit';
   db_add_field($table_name, $field_name, $fields[$field_name]);
 }
+
+/**
+ * Add fields for each transaction type that changes product qty into Inventory cache table.
+ */
+function avbase_update_7110() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_inventory_cache';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = AVTXNS_TXN_TYPE_RECEIVE . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = AVTXNS_TXN_TYPE_DELIVERY . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = AVTXNS_TXN_TYPE_SALES_RETURN . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT . '_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+}
+
+/**
+ * Add fields for fixed_qty_in_amt and fixed_qty_out_amt into Inventory cache table.
+ */
+function avbase_update_7111() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_inventory_cache';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'fixed_qty_in_amt';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = 'fixed_qty_out_amt';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+}
+
+/**
+ * Remove fields from report cache tables.
+ */
+// function avbase_update_7111() {
+//   $table_name = 'avtbl_fs';
+//   db_drop_field($table_name, 'amount');
+//   $table_name = 'avtbl_inventory_cache';
+//   db_drop_field($table_name, 'qty_in');
+//   db_drop_field($table_name, 'qty_out');
+//   db_drop_field($table_name, 'qty_in_amount');
+// }
