@@ -218,6 +218,22 @@ function avbase_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'debit' => array(
+        'description' => 'Debit amount',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+        'default' => 0,
+      ),
+      'credit' => array(
+        'description' => 'Credit amount',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+        'default' => 0,
+      ),
       'amount' => array(
         'description' => 'Total amount',
         'type' => 'numeric',
@@ -225,20 +241,6 @@ function avbase_schema() {
         'precision' => '18',
         'scale' => '6',
       ),
-      // 'onhand' => array(
-      //   'description' => 'Actual on-hand quantity.',
-      //   'type' => 'int',
-      //   'not null' => FALSE,
-      //   'default' => NULL,
-      // ),
-      // 'cost' => array(
-      //   'description' => 'Product cost',
-      //   'type' => 'numeric',
-      //   'default' => NULL,
-      //   'not null' => FALSE,
-      //   'precision' => '18',
-      //   'scale' => '6',
-      // ),
     ),
     'primary key' => array('account_id', 'before_this_day'),
   );
@@ -398,4 +400,18 @@ function avbase_update_7108() {
     db_query("UPDATE {backup_migrate_profiles} SET filters = :filters WHERE profile_id = " . $row->profile_id, array(':filters' => $filters));
   }
   return t('Database optimization processes finished.');
+}
+
+/**
+ * Add "debit" and "credit" field for accounting reports cache table
+ */
+function avbase_update_7109() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_fs';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'debit';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = 'credit';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
 }
