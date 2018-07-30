@@ -2285,12 +2285,6 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   if ($selected_product->initial_qty_date >= $date_start && $selected_product->initial_qty_date < $date_end) {
     $qty_in_amount += $selected_product->asset_value;
     $qty_in += $selected_product->initial_qty;
-    // dpm('------------------------' . $qty_in);
-    // dpm(format_date($date_start));
-    // dpm(array_diff($qty_change_types, $fixed_cost_types));
-    // dpm($qty_in);
-    // dpm($qty_out);
-    // dpm(format_date($date_end));
   }
 
   // Do nothing if no product activity.
@@ -2344,5 +2338,49 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   $history_row['qty_out'] = $qty_out + $last_qty_out;
   $history_row['qty_in'] = $qty_in + $last_qty_in;
   $history_row['qty_in_amount'] = $qty_in_amount + $last_ending_inventory;
+
+  avtxns_read_product_transactions_detailed($history_row, $selected_product, $date_start, $date_end);
   db_insert('avtbl_inventory_cache')->fields($history_row)->execute();
+}
+
+function avtxns_read_product_transactions_detailed(&$history_row, $selected_product, $date_start, $date_end) {
+  $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
+  $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
+  $fixed_cost_types = array_merge($fc_increment_types, $fc_decrement_types);
+  $qty_change_types = avtxns_get_qty_change_txn_types();
+
+  $fixed_qty_in_amt = $fixed_qty_out_amt = 0;
+  $beg_qty = $rcv_qty = $stin_qty = $pr_qty = $stou_qty = $dr_qty = $sr_qty = $stk_qty = 0;
+
+  // If product's initial quantity date is within start and end date, use it as beginning quantity and beginning $fixed_qty_in_amt.
+  if ($selected_product->initial_qty_date >= $date_start && $selected_product->initial_qty_date < $date_end) {
+    $fixed_qty_in_amt += $selected_product->asset_value;
+    $beg_qty += $selected_product->initial_qty;
+  }
+  else {
+    // Get from last data in inventory cache.
+    // Get last amount and add its values to current.
+    $query = "SELECT * FROM {avtbl_inventory_cache} WHERE product_id = :product_id ORDER BY before_this_day DESC LIMIT 1";
+    $row = db_query($query, array(':product_id' => $selected_product->id))->fetchObject();
+    foreach ($qty_change_types as $qctype) {
+      $$_varname = $qctype . '_qty';
+      if (!isset($row->$_varname)) {
+        continue;
+      }
+      // if ($qctype == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
+      //   $multiplier = 1;
+      // }
+      // else {
+      //   $ttd = avtxns_txn_types($qctype);
+      //   $inventory_account_type = isset($ttd['account_ids']['default'][AVTXN_AC_SPECIFIC_INVENTORY_ID]) ? '' : $ttd['account_ids']['default'][AVTXN_AC_SPECIFIC_INVENTORY_ID];
+      //   if (empty($inventory_account_type)) {
+      //     continue;
+      //   }
+      //   $multiplier = $inventory_account_type == 'credit' ? -1 : 1;
+      // }
+      // $this_type_qty = $row->$_varname * $multiplier;
+      // if ($this_type_qty < 0) {}
+      $beg_qty += $row->$_varname;
+    }
+  }
 }
