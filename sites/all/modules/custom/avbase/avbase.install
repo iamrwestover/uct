@@ -234,13 +234,6 @@ function avbase_schema() {
         'scale' => '6',
         'default' => 0,
       ),
-      'amount' => array(
-        'description' => 'Total amount',
-        'type' => 'numeric',
-        'not null' => TRUE,
-        'precision' => '18',
-        'scale' => '6',
-      ),
     ),
     'primary key' => array('account_id', 'before_this_day'),
   );
@@ -270,6 +263,14 @@ function avbase_schema() {
       'beg_qty' => array(
         'type' => 'int',
         'not null' => TRUE,
+        'default' => 0,
+      ),
+      'beg_amt' => array(
+        'description' => 'Equivalent amount of beginning quantity',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
         'default' => 0,
       ),
       AVTXNS_TXN_TYPE_RECEIVE . '_qty' => array( // A fixed cost and a qty-change transaction type.
@@ -306,25 +307,6 @@ function avbase_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-      ),
-      'qty_out' => array(
-        'description' => 'Total released quantity.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'qty_in' => array(
-        'description' => 'Total received quantity',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'qty_in_amount' => array(
-        'description' => 'Cost of goods available for sale',
-        'type' => 'numeric',
-        'not null' => TRUE,
-        'precision' => '18',
-        'scale' => '6',
       ),
       AVTXNS_TXN_TYPE_RECEIVE . '_amt' => array(
         'description' => 'Cost of received items',
@@ -539,6 +521,18 @@ function avbase_update_7112() {
   $fields = $schema[$table_name]['fields'];
 
   $field_name = 'beg_qty';
+  db_add_field($table_name, $field_name, $fields[$field_name]);
+}
+
+/**
+ * Add field "beg_amt" into Inventory cache table.
+ */
+function avbase_update_7113() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_inventory_cache';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'beg_amt';
   db_add_field($table_name, $field_name, $fields[$field_name]);
 }
 
