@@ -514,7 +514,7 @@ function avreports_fs_update_form_submit($form, &$form_state) {
   variable_set('avtxns_as_of_date_lock', strtotime('yesterday', $date_end));
 
   $operations = array();
-  // $operations['products'] = array('avreports_batch_scan_inventory_transactions2', array('products', $date_start, $date_end)); // Faster for products.
+  $operations['products'] = array('avreports_batch_scan_inventory_transactions2', array('products', $date_start, $date_end)); // Faster for products.
   $operations['accounts'] = array('avreports_batch_scan_transactions', array('accounts', $date_start, $date_end)); // Wayyyyy faster for accounts.
   if (empty($operations)) {
     drupal_set_message('Scan is not required yet.', 'warning');

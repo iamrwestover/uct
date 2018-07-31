@@ -2096,7 +2096,7 @@ function avtxns_get_txn_account_types() {//meeee
  * @param $date_end
  */
 function avtxns_read_account_transactions($current_account_id, $account_type, $date_start, $date_end) {
-  if ($current_account_id != AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
+  if ($current_account_id != 70) {
     return;
   }
   $add_previous_amount = TRUE;
@@ -2185,7 +2185,7 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
   }
 
   // Log this unless amount is empty.
-  if (!empty($amount)) {
+  if (1) {
     // Get last amount and add it to current amount.
     if ($add_previous_amount) {
       $query = "SELECT amount FROM {avtbl_fs} WHERE account_id = :account_id ORDER BY before_this_day DESC LIMIT 1";
@@ -2245,7 +2245,8 @@ function avtxns_read_account_transactions_detailed(&$history_row, $current_accou
           $amount_query = avtxns_txn_detail_sum_query(1, FALSE);
         }
 
-        $cases[$multiplier][] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * (" . $amount_query . "))";
+        // $cases[$multiplier][] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * (" . $amount_query . "))";
+        $cases[$multiplier][] = "WHEN " . implode(' AND ', $case_conditions) . " THEN (" . $amount_query . ")";
       }
     }
 
@@ -2261,13 +2262,19 @@ function avtxns_read_account_transactions_detailed(&$history_row, $current_accou
         if (!empty($this_account_txn_type['default_account_id'])) {
           $balance_type = array_shift($this_account_txn_type['default_account_id']);
           $multiplier = $balance_type == $account_balance_type ? -1 : 1;
-          $_case .= "(avtxn_detail.cost * $multiplier)" ;
+          // $_case .= "(avtxn_detail.cost * $multiplier)" ;
+          $_case .= "(avtxn_detail.cost)";
+          $cases[$multiplier][] = $_case;
         }
         else {
-          $multiplier = $account_balance_type == 'credit' ? -1 : 1;
-          $_case .= "((avtxn_detail.debit - avtxn_detail.credit) * $multiplier)";
+          // $multiplier = $account_balance_type == 'credit' ? -1 : 1;
+          // $multiplier = $account_balance_type == 'credit' ? 1 : -1;
+          // $_case .= "((avtxn_detail.debit - avtxn_detail.credit) * $multiplier)";
+          // $_case .= "(avtxn_detail.debit - avtxn_detail.credit)";
+          $cases[1][] = $_case . "(avtxn_detail.debit)";
+          $cases[-1][] = $_case . "(avtxn_detail.credit)";
         }
-        $cases[$multiplier][] = $_case;
+        // $cases[$multiplier][] = $_case;
       }
     // }
 
@@ -2393,7 +2400,7 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
 
   // Do nothing if no product activity.
   if (empty($qty_in) && empty($qty_out)) {
-    return;
+    // return;
   }
 
   // Get last amount and add its values to current.
