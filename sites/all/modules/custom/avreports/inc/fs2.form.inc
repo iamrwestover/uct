@@ -9,6 +9,7 @@
  * @return mixed
  */
 function avreports_fs_form($form, &$form_state, $fs_type) {
+  // variable_set('avtxns_as_of_date_lock', NULL);
   $dad = avtxns_txn_list_filter_date_auto_options(AVBASE_MONTH_ONLY_FORMAT);
   $dad_default = empty($dad['last_month_to_date']) ? array() : $dad['last_month_to_date'];
   $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
@@ -373,7 +374,8 @@ function avreports_fs_update_form($form, &$form_state) {
     '#type' => 'textfield',
     '#icon_key' => 'calendar',
     '#required' => TRUE,
-    '#default_value' => format_date($date_from, 'custom', AVBASE_MONTH_ONLY_FORMAT),
+    // '#default_value' => format_date($date_from, 'custom', AVBASE_MONTH_ONLY_FORMAT),
+    '#default_value' => '2013-01',
     '#disabled' => empty($transaction_lock_date),
     '#attributes' => array(
       'data-uk-datepicker' => "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
@@ -396,7 +398,8 @@ function avreports_fs_update_form($form, &$form_state) {
     unset($form['date_to']['#default_value']);
   }
   else {
-    $form['date_to']['#default_value'] = format_date(strtotime('first day of next month', $date_from), 'custom', AVBASE_MONTH_ONLY_FORMAT);
+    // $form['date_to']['#default_value'] = format_date(strtotime('first day of next month', $date_from), 'custom', AVBASE_MONTH_ONLY_FORMAT);
+    $form['date_to']['#default_value'] = '2018-07';
   }
   // $form['range'] = array(
   //   '#type' => 'radios',
@@ -511,8 +514,8 @@ function avreports_fs_update_form_submit($form, &$form_state) {
   variable_set('avtxns_as_of_date_lock', strtotime('yesterday', $date_end));
 
   $operations = array();
-  $operations['products'] = array('avreports_batch_scan_inventory_transactions2', array('products', $date_start, $date_end)); // Faster for products.
-  // $operations['accounts'] = array('avreports_batch_scan_transactions', array('accounts', $date_start, $date_end)); // Wayyyyy faster for accounts.
+  // $operations['products'] = array('avreports_batch_scan_inventory_transactions2', array('products', $date_start, $date_end)); // Faster for products.
+  $operations['accounts'] = array('avreports_batch_scan_transactions', array('accounts', $date_start, $date_end)); // Wayyyyy faster for accounts.
   if (empty($operations)) {
     drupal_set_message('Scan is not required yet.', 'warning');
     return;

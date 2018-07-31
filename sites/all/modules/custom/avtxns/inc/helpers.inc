@@ -1764,8 +1764,9 @@ function avtxns_txn_list_filter_date_auto_options($date_format = AVBASE_DATE_FOR
   return $data[$date_format];
 }
 
-function avtxns_txn_detail_sum_query_discount_applied($increment = 1, $sum = TRUE, $cost = 'avtxn_detail.cost') {
-  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+function avtxns_txn_detail_sum_query_discount_applied($increment = 1, $sum = TRUE, $cost = 'avtxn_detail.cost', $true_multiplier = 1, $false_multiplier = -1) {
+  // $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query = $increment == 1  ? '' : "IF($increment, $true_multiplier, $false_multiplier) * ";
   $query .= 'avtxn_detail.qty
     * ' . $cost . '
     * (IF(avtxn_detail.discount1, (1 - avtxn_detail.discount1 / 100), 1))
@@ -1775,8 +1776,9 @@ function avtxns_txn_detail_sum_query_discount_applied($increment = 1, $sum = TRU
   return $sum ? "SUM($query)" : "($query)";
 }
 
-function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE, $cost = 'avtxn_detail.cost') {
-  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+function avtxns_txn_detail_sum_query($increment = 1, $sum = TRUE, $cost = 'avtxn_detail.cost', $true_multiplier = 1, $false_multiplier = -1) {
+  // $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query = $increment == 1  ? '' : "IF($increment, $true_multiplier, $false_multiplier) * ";
   $query .= 'avtxn_detail.qty * ' . $cost;
   // return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
   return $sum ? "SUM($query)" : "($query)";
@@ -1792,10 +1794,10 @@ function avtxns_txn_detail_discount_query($sum = FALSE) {
   return $sum ? "SUM($query)" : "($query)";
 }
 
-function avtxns_txn_detail_qty_query($increment = 1, $sum = TRUE) {
-  $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
-  $query .= 'avtxn_detail.qty * avtxn_detail.qty_per_uom';
-  // return 'SUM(IF(' . $increment . ', 1, -1) * avtxn_detail.qty * avtxn_detail.cost)';
+function avtxns_txn_detail_qty_query($increment = 1, $sum = TRUE, $true_multiplier = 1, $false_multiplier = -1) {
+  // $query = ($increment == 1  ? '' : 'IF(' . $increment . ', 1, -1) * ');
+  $query = $increment == 1  ? '' : "IF($increment, $true_multiplier, $false_multiplier) * ";
+  $query .= "avtxn_detail.qty * avtxn_detail.qty_per_uom";
   return $sum ? "SUM($query)" : "($query)";
 }
 
@@ -2094,6 +2096,9 @@ function avtxns_get_txn_account_types() {//meeee
  * @param $date_end
  */
 function avtxns_read_account_transactions($current_account_id, $account_type, $date_start, $date_end) {
+  if ($current_account_id != AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
+    return;
+  }
   $add_previous_amount = TRUE;
   if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
     $add_previous_amount = FALSE;
@@ -2133,7 +2138,7 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
           $amount_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
         }
         elseif ($current_account_id == AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
-          $amount_query = avtxns_txn_detail_discount_query();
+          $amount_query = avtxns_txn_detail_discount_query(FALSE);
         }
         else {
           $amount_query = avtxns_txn_detail_sum_query(1, FALSE);
@@ -2166,9 +2171,9 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
 
     $query = "SELECT SUM(CASE " . implode(' ', $cases) . " END) AS amount";
     $query .= " FROM avtbl_transactions avtxn
-  INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
-  WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end
-  AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")";
+      INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
+      WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end
+      AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")";
     // 1517414400
     if (!empty($where)) {
       $query .= " AND " . implode(' AND ', $where);
@@ -2192,7 +2197,106 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
     $history_row['account_id'] = $current_account_id;
     $history_row['before_this_day'] = $date_end;
     $history_row['amount'] = $amount + $last_amount;
-    db_insert('avtbl_fs')->fields($history_row)->execute();
+
+    avtxns_read_account_transactions_detailed($history_row, $current_account_id, $account_type, $date_start, $date_end);
+    // unset($history_row['skip_insert']);
+    // db_insert('avtbl_fs')->fields($history_row)->execute();
+    if (empty($history_row['skip_insert'])) {
+      unset($history_row['skip_insert']);
+
+      db_insert('avtbl_fs')->fields($history_row)->execute();
+    }
+  }
+}
+
+// @todo test with AP and AR
+// @todo Inventory and COGS
+function avtxns_read_account_transactions_detailed(&$history_row, $current_account_id, $account_type, $date_start, $date_end) {
+  $history_row['skip_insert'] = TRUE;
+  $debit_amount = $credit_amount = 0;
+  if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+
+  }
+  else {
+    $actd = avtxns_account_chart_types($account_type);
+    $account_balance_type = $actd['balance_type'];
+    $types_with_account_id = avtxns_get_types_with_account_id($current_account_id);
+    $cases = array();
+    $where = array();
+    foreach ($types_with_account_id AS $_txn_type => $_refs) {
+      foreach ($_refs AS $_ref_ttype => $_v) {
+        $case_conditions = array();
+        $case_conditions[] = "avtxn.transaction_type = '$_txn_type'";
+        if (in_array($_ref_ttype, array('default', 'default_account_id'))) {
+          $case_conditions[] = "avtxn_detail.ref_txn_type IS NULL";
+        }
+        else {
+          $case_conditions[] = "avtxn_detail.ref_txn_type = '$_ref_ttype'";
+        }
+
+        $multiplier = $_v == $account_balance_type ? 1 : -1;
+        if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID, AVTXN_AC_SPECIFIC_SALES_RETURN_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+          $amount_query = avtxns_txn_detail_sum_query_discount_applied(1, FALSE);
+        }
+        elseif ($current_account_id == AVTXN_AC_SPECIFIC_SALES_DISCOUNT_ID) {
+          $amount_query = avtxns_txn_detail_discount_query(FALSE);
+        }
+        else {
+          $amount_query = avtxns_txn_detail_sum_query(1, FALSE);
+        }
+
+        $cases[$multiplier][] = "WHEN " . implode(' AND ', $case_conditions) . " THEN ($multiplier * (" . $amount_query . "))";
+      }
+    }
+
+    // if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_AR_ID, AVTXN_AC_SPECIFIC_AP_ID))) {
+      $account_txn_types = avtxns_get_txn_account_types();
+      foreach ($account_txn_types as $k) {
+        if (isset($types_with_account_id[$k])) {
+          continue;
+        }
+        $this_account_txn_type = avtxns_txn_types($k);
+        $types_with_account_id[$k] = NULL;
+        $_case = "WHEN (avtxn.transaction_type = '$k' AND avtxn_detail.account_id = $current_account_id) THEN ";
+        if (!empty($this_account_txn_type['default_account_id'])) {
+          $balance_type = array_shift($this_account_txn_type['default_account_id']);
+          $multiplier = $balance_type == $account_balance_type ? -1 : 1;
+          $_case .= "(avtxn_detail.cost * $multiplier)" ;
+        }
+        else {
+          $multiplier = $account_balance_type == 'credit' ? -1 : 1;
+          $_case .= "((avtxn_detail.debit - avtxn_detail.credit) * $multiplier)";
+        }
+        $cases[$multiplier][] = $_case;
+      }
+    // }
+
+    $query = "SELECT SUM(CASE " . implode(' ', $cases[1]) . " END) AS debit, SUM(CASE " . implode(' ', $cases[-1]) . " END) AS credit";
+    $query .= " FROM avtbl_transactions avtxn
+      INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
+      WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end
+      AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")";
+    // 1517414400
+    if (!empty($where)) {
+      $query .= " AND " . implode(' AND ', $where);
+    }
+
+    $row = db_query($query)->fetchObject();
+    $debit_amount = empty($row->debit) ? 0 : $row->debit;
+    $credit_amount = empty($row->credit) ? 0 : $row->credit;
+  }
+
+  if (!empty($debit_amount) || !empty($credit_amount)) {
+    $history_row['skip_insert'] = FALSE;
+    // // Add previous amounts.
+    // $query = "SELECT debit, credit FROM {avtbl_fs} WHERE account_id = :account_id ORDER BY before_this_day DESC LIMIT 1";
+    // $row = db_query($query, array(':account_id' => $current_account_id))->fetchObject();
+    // $debit_amount += empty($row->debit) ? 0 : $row->debit;
+    // $credit_amount += empty($row->credit) ? 0 : $row->credit;
+
+    // Finally add to history row array.
+    $history_row['debit'] = $debit_amount;
+    $history_row['credit'] = $credit_amount;
   }
 }
 
@@ -2340,47 +2444,91 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   $history_row['qty_in_amount'] = $qty_in_amount + $last_ending_inventory;
 
   avtxns_read_product_transactions_detailed($history_row, $selected_product, $date_start, $date_end);
-  db_insert('avtbl_inventory_cache')->fields($history_row)->execute();
+  if (empty($history_row['skip_insert'])) {
+    unset($history_row['skip_insert']);
+    db_insert('avtbl_inventory_cache')->fields($history_row)->execute();
+  }
 }
 
-function avtxns_read_product_transactions_detailed(&$history_row, $selected_product, $date_start, $date_end) {
+function avtxns_read_product_transactions_detailed(&$hr, $selected_product, $date_start, $date_end) {
+  $skip_insert = TRUE;
   $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
   $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
   $fixed_cost_types = array_merge($fc_increment_types, $fc_decrement_types);
   $qty_change_types = avtxns_get_qty_change_txn_types();
 
-  $fixed_qty_in_amt = $fixed_qty_out_amt = 0;
-  $beg_qty = $rcv_qty = $stin_qty = $pr_qty = $stou_qty = $dr_qty = $sr_qty = $stk_qty = 0;
+  // Get qty for each transaction types.
+  $type_queries = array();
+  foreach ($qty_change_types as $qctype) {
+    if ($qctype == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
+      $type_multiplier = 1;
+    }
+    else {
+      $ttd = avtxns_txn_types($qctype);
+      $inventory_account_type = isset($ttd['account_ids']['default'][AVTXN_AC_SPECIFIC_INVENTORY_ID]) ? $ttd['account_ids']['default'][AVTXN_AC_SPECIFIC_INVENTORY_ID] : '';
+      if (empty($inventory_account_type)) {
+        continue;
+      }
+      $type_multiplier = $inventory_account_type == 'credit' ? -1 : 1;
+    }
+
+    if (in_array($qctype, $fixed_cost_types)) {
+      $type_queries[$qctype . '_amt'] = avtxns_txn_detail_sum_query_discount_applied("avtxn.transaction_type = '$qctype'", TRUE, 'avtxn_detail.cost', 1, 0) . " * $type_multiplier {$qctype}_amt";
+    }
+    $type_queries[$qctype . '_qty'] = avtxns_txn_detail_qty_query("avtxn.transaction_type = '$qctype'", TRUE, 1, 0) . " * $type_multiplier {$qctype}_qty";
+  }
+
+  $query = "SELECT " . implode($type_queries, ', ') . "
+    FROM {avtbl_transaction_details} avtxn_detail
+    INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+    WHERE avtxn_detail.item_id = :item_id
+    AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
+    AND avtxn.transaction_date >= :date_from
+    AND avtxn.transaction_date < :date_to";
+  if (!empty($order_by)) {
+    $query .= " ORDER BY " . implode(', ', $order_by);
+  }
+  $row = db_query($query, array(
+    ':item_id' => $selected_product->id,
+    ':void_status' => AVTXNS_TXN_STATUS_VOID,
+    ':this_types' => $qty_change_types,
+    ':date_from' => $date_start,
+    ':date_to' => $date_end,
+  ))->fetchObject();
+
+  // Assign retrieved values into $history_row array.
+  foreach ($qty_change_types as $qctype) {
+    $_varname = $qctype . '_amt';
+    if (isset($row->$_varname)) {
+      $hr[$_varname] = $row->$_varname;
+      $skip_insert = FALSE;
+    }
+    $_varname = $qctype . '_qty';
+    if (isset($row->$_varname)) {
+      $hr[$_varname] = $row->$_varname;
+      $skip_insert = FALSE;
+    }
+  }
 
   // If product's initial quantity date is within start and end date, use it as beginning quantity and beginning $fixed_qty_in_amt.
   if ($selected_product->initial_qty_date >= $date_start && $selected_product->initial_qty_date < $date_end) {
-    $fixed_qty_in_amt += $selected_product->asset_value;
-    $beg_qty += $selected_product->initial_qty;
+    $hr['beg_qty'] = $selected_product->initial_qty;
+    $skip_insert = FALSE;
   }
-  else {
+  elseif (!$skip_insert) {
     // Get from last data in inventory cache.
-    // Get last amount and add its values to current.
     $query = "SELECT * FROM {avtbl_inventory_cache} WHERE product_id = :product_id ORDER BY before_this_day DESC LIMIT 1";
     $row = db_query($query, array(':product_id' => $selected_product->id))->fetchObject();
     foreach ($qty_change_types as $qctype) {
-      $$_varname = $qctype . '_qty';
+      $_varname = $qctype . '_qty';
       if (!isset($row->$_varname)) {
         continue;
       }
-      // if ($qctype == AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT) {
-      //   $multiplier = 1;
-      // }
-      // else {
-      //   $ttd = avtxns_txn_types($qctype);
-      //   $inventory_account_type = isset($ttd['account_ids']['default'][AVTXN_AC_SPECIFIC_INVENTORY_ID]) ? '' : $ttd['account_ids']['default'][AVTXN_AC_SPECIFIC_INVENTORY_ID];
-      //   if (empty($inventory_account_type)) {
-      //     continue;
-      //   }
-      //   $multiplier = $inventory_account_type == 'credit' ? -1 : 1;
-      // }
-      // $this_type_qty = $row->$_varname * $multiplier;
-      // if ($this_type_qty < 0) {}
-      $beg_qty += $row->$_varname;
+      $hr['beg_qty'] = $row->$_varname;
     }
   }
+
+
+
+  $hr['skip_insert'] = $skip_insert;
 }
