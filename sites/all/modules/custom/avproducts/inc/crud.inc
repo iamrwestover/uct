@@ -617,7 +617,7 @@ function avproducts_avbase_crud_dbchange_product($op, $row, $form_state) {
       }
 
       if (empty($row['id'])) {
-        $row['initial_value'] = $row['cost'] * $row['initial_qty'];
+        $row['initial_value'] = $row['cost'];
         if (empty($row['initial_qty_date'])) {
           $row['initial_qty_date'] = time();
         }
