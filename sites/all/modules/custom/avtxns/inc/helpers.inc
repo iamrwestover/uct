@@ -2146,9 +2146,9 @@ function avtxns_get_txn_account_types() {//meeee
  * @param $date_end
  */
 function avtxns_read_account_transactions($current_account_id, $account_type, $date_start, $date_end) {
-  if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
-    return;
-  }
+  // if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+  //   return;
+  // }
 
   $debit_amount = $credit_amount = 0;
   if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
@@ -2158,10 +2158,10 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
     $qty_change_types = avtxns_get_qty_change_txn_types();
     // $select = array('item_cost', "SUM(beg_amt) beg_amt");
     $select = array();
-    $select[] = avtxns_inv_cache_query('inventory_debit') . " inventory_debit";
-    $select[] = avtxns_inv_cache_query('inventory_credit') . " inventory_credit";
-    $select[] = avtxns_inv_cache_query('cogs_debit') . " cogs_debit";
-    $select[] = avtxns_inv_cache_query('cogs_credit') . " cogs_credit";
+    $select[] = avtxns_inv_cache_query('inventory_debit', TRUE) . " inventory_debit";
+    $select[] = avtxns_inv_cache_query('inventory_credit', TRUE) . " inventory_credit";
+    $select[] = avtxns_inv_cache_query('cogs_debit', TRUE) . " cogs_debit";
+    $select[] = avtxns_inv_cache_query('cogs_credit', TRUE) . " cogs_credit";
     $query = "SELECT " . implode(', ', $select) . "
       FROM {avtbl_inventory_cache} avinvcache
       WHERE before_this_day = $date_end";

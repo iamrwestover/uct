@@ -539,8 +539,14 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
         $beginning_balance = $this_cell_amount;
       }
       elseif ($dg_id != 'base') {
-        $history_link_date = array('date_from' => format_date($dg['date_from'], 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date($dg['date_to'], 'custom', AVREPORTS_LIST_DATE_FORMAT));
-        $amount_text = $account_row['id'] == AVTXN_AC_SPECIFIC_EQUITY_ID ? avbase_accounting_number_format($amount_to_show) : avreports_account_history_link($account_row['title'], $history_link_date, avbase_accounting_number_format($amount_to_show), TRUE, $account_row['id']);
+        if ($account_row['id'] == AVTXN_AC_SPECIFIC_EQUITY_ID || $dg_id == 'total') {
+          $amount_text = avbase_accounting_number_format($amount_to_show);
+        }
+        else {
+          $history_link_date = array('date_from' => format_date($dg['date_from'], 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date($dg['date_to'], 'custom', AVREPORTS_LIST_DATE_FORMAT));
+          $amount_text = avreports_account_history_link($account_row['title'], $history_link_date, avbase_accounting_number_format($amount_to_show), TRUE, $account_row['id']);
+        }
+
         // $data[$date_to] = '<div class="uk-text-right" data-uk-tooltip="{cls: \'tt-blue\'}" title="' . $dg['label'] . ': ' . avreports_account_name_format($account_row) . '">' . $amount_text . '</div>';
         $data[$date_to] = '<div class="uk-text-right" title="' . avreports_account_name_format($account_row) . '">' . $amount_text . '</div>';
         $this_row_amount += $this_cell_amount;

@@ -98,11 +98,11 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $date_to_timestamp = $args[':date_to_stamp'];
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
-  $period_balance_only = $fs_type == AVREPORTS_FS_PL;
+  // $period_balance_only = $fs_type == AVREPORTS_FS_PL;
   $period_balance_only = FALSE;
   // Start with 0 balance for BS, unless selected start date is same less than or equal to fiscal year.
-  $start_with_zero_balance = $fs_type == AVREPORTS_FS_BS;
-  $start_with_zero_balance = $start_with_zero_balance && $ts > variable_get('av_fiscal_date', 0);
+  // $start_with_zero_balance = $fs_type == AVREPORTS_FS_BS;
+  // $start_with_zero_balance = $start_with_zero_balance && $ts > variable_get('av_fiscal_date', 0);
   $start_with_zero_balance = FALSE;
   // $start_with_zero_balance = FALSE;
   $running_balance = empty($user_filter['settings']['running_balance']) ? FALSE : TRUE;

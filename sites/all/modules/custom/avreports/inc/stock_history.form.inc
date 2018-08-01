@@ -1,13 +1,17 @@
 <?php
 
 function avreports_stock_history_form($form, &$form_state) {
-  ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
+  // ini_set('memory_limit', AVBASE_EXPANDED_MEMORY_LIMIT);
   $dad = avtxns_txn_list_filter_date_auto_options();
-  $dad_default = empty($dad['this_month']) ? array() : $dad['this_month'];
+  $dad_default = empty($dad['this_week']) ? array() : $dad['this_week'];
+  $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
+  if (!empty($transaction_lock_date)) {
+    $dad_default['date_from'] = format_date(strtotime('first day of this month', $transaction_lock_date), 'custom', AVBASE_DATE_FORMAT);
+  }
   $filter_form_settings = array(
     'date_auto' => array(
       '#title' => t('Dates'),
-      '#default_value' => 'this_month',
+      '#default_value' => 'custom',
     ),
     'date_from' => array(
       '#title' => t('Date from'),

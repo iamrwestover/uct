@@ -83,9 +83,9 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   $header['end_qty']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['end_qty']['title'] = 'Ending quantity';
 
-  // $header['cogafs'] = array('data' => 'COGAFS', 'class' => array('uk-text-right'), 'field' => 'cogafs');
-  // $header['cogafs']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  // $header['cogafs']['title'] = 'Cost of goods available for sale';
+  $header['cogafs'] = array('data' => 'COGAFS', 'class' => array('uk-text-right'), 'field' => 'cogafs');
+  $header['cogafs']['data-uk-tooltip'] = '{cls: "tt-blue"}';
+  $header['cogafs']['title'] = 'Cost of goods available for sale';
 
   $header['inventory'] = array('data' => 'INV', 'class' => array('uk-text-right'), 'field' => 'inventory');
   $header['inventory']['data-uk-tooltip'] = '{cls: "tt-blue"}';
@@ -115,12 +115,12 @@ function avreports_stock_history_summary_form($form, &$form_state) {
 
   // Group by.
   $group_by = array();
-  $group_by[] = 'avprod.id';
+  // $group_by[] = 'avprod.id';
   $select[] = 'avprod.id';
   $select[] = 'avprod.title';
   $select[] = 'avinvcache.*';
   $select[] = avtxns_inv_cache_query('end_qty') . " end_qty";
-  // $select[] = avtxns_inv_cache_query('cogafs') . " cogafs";
+  $select[] = avtxns_inv_cache_query('cogafs') . " cogafs";
   $select[] = avtxns_inv_cache_query('inventory') . " inventory";
   $select[] = avtxns_inv_cache_query('cogs') . " cogs";
   $joins[] = "LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = :date_to_stamp";
@@ -143,7 +143,7 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   $tot_inventory = $tot_cogafs = $tot_cogs = 0;
   foreach ($rs as $row) {
     $tot_inventory += $row->inventory;
-    // $tot_cogafs += $row->cogafs;
+    $tot_cogafs += $row->cogafs;
     $tot_cogs += $row->cogs;
     $data = array();
     $data['product_title'] = avreports_product_history_link(
@@ -163,7 +163,7 @@ function avreports_stock_history_summary_form($form, &$form_state) {
     $data['pr_qty'] = '<div class="uk-text-right">' . number_format($row->pr_qty) . '</div>';
     $data['stk_qty'] = '<div class="uk-text-right">' . number_format($row->stk_qty) . '</div>';
     $data['end_qty'] = '<div class="uk-text-right">' . number_format($row->end_qty) . '</div>';
-    // $data['cogafs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogafs) . '</div>';
+    $data['cogafs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogafs) . '</div>';
     $data['inventory'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->inventory) . '</div>';
     $data['cogs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogs) . '</div>';
 

@@ -197,6 +197,14 @@ function avreports_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'inc/fs2.form.inc',
   );
+  $items['av/reports/trial-balance'] = array(
+    'title' => 'Trial Balance',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avreports_trial_balance_form'),
+    'access arguments' => array(AVREPORTS_PERM_ACCOUNTING),
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/trial_balance.form.inc',
+  );
   $items['av/reports/fs-update-options'] = array(
     'title' => 'Scan and Lock Transactions',
     'page callback' => 'drupal_get_form',
@@ -484,9 +492,10 @@ function avreports_home_form($form, &$form_state) {
   $buttons['vendor_balances'] = array('#markup' => l('Vendor Balances', 'av/reports/vendor-balances', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
   $buttons['soa'] = array('#markup' => l('Statement of Account', 'av/reports/soa', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
   $buttons['sales_to_trade'] = array('#markup' => l('Sales to Trade', 'av/reports/sales-to-trade', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['accounts_history'] = array('#markup' => l('Account History', 'av/reports/account-history', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
+  $buttons['trial_balance'] = array('#markup' => l('Trial Balance', 'av/reports/trial-balance', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
   $buttons['profit_loss'] = array('#markup' => l('Profit & Loss', 'av/reports/fs1', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
   $buttons['balance_sheet'] = array('#markup' => l('Balance Sheet', 'av/reports/fs2', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
-  $buttons['accounts_history'] = array('#markup' => l('Account History', 'av/reports/account-history', array('attributes' => array('class' => array('uk-button uk-button-mini uk-text-uppercase', 'uk-button-primary uk-margin-small-right')))));
   $form['accounting_reports'] = array(
     '#type' => 'fieldset',
     '#title' => t('Accounting'),
