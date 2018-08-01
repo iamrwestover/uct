@@ -753,7 +753,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       // 3500
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date
       FROM {avtbl_products}
-      WHERE id > $_last_row_id AND id <= 2210
+      WHERE id > $_last_row_id
       ORDER BY id LIMIT $row_limit";
       $_db_rows = db_query($query)->fetchAllAssoc('id');
     }

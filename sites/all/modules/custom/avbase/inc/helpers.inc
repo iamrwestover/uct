@@ -1122,3 +1122,22 @@ function avbase_query_supplements_stock_status(&$query, $where = array(), $order
     }
   }
 }
+
+/**
+ * Check if element contains an existing reference id.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function avbase_element_validate_ref_id_exists($element, &$form_state, $form) {
+  if (trim($element['#value']) == '') {
+    return;
+  }
+  //$save_value = &drupal_array_get_nested_value($form_state['values'], $element['#parents']);
+  $transaction_type = empty($form_state['values']['transaction_type']) ? '' : $form_state['values']['transaction_type'];
+  $query = "SELECT COUNT(id) FROM {avtbl_transactions} avtxns WHERE avtxns.transaction_type = :txn_type AND avtxns.reference_id = :ref_id AND avtxns.status <> :void_status";
+  $found = db_query($query, array(':txn_type' => $transaction_type, ':ref_id' => $element['#value'], ':void_status' => AVTXNS_TXN_STATUS_VOID))->fetchField();
+  if (!empty($found)) {
+    form_error($element, 'Entered reference ID already exists.');
+  }
+}
