@@ -14,6 +14,19 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Added Trial Balance report.</li>
+      <li>- Updated Balance Sheet Report.</li>
+      <li>- Updated Profit & Loss Report.</li>
+      <li>- Reference ID will now validate if entered value already exists for that transaction type.</li>
+      <li>- Added Stock Transfer IN and OUT Register reports.</li>
+      <li>- Added Account Code field for chart of accounts.</li>
+      <li>- Added Transaction Date column on list of credits.</li>
+    </ul>
+    <!--<hr class="uk-margin-bottom" />-->
+    <button class="uk-button uk-button-small" data-uk-toggle="{target:'#more-changelog'}">more...</button>
+    <ul id="more-changelog" class="uk-list uk-text-muted uk-hidden">
+      <li>- Added customer street and barangay fields.</li>
+      <li>- Start and End date can now be chosen before scanning transactions for BS, PL and TB reports. Transactions on selected dates will now be considered Locked.</li>
       <li>- Heavily reworked Account History report.</li>
       <li>- Date picker popup now has dropdown menu on Month and Year.</li>
       <li>- Improved quantity reservation.</li>
@@ -21,25 +34,21 @@ function avbase_help_home() {
       <li>- Out of stock items are now organized at the very bottom of Delivery item list.</li>
       <li>- Added Sales Return Register report.</li>
       <li>- Statement of Account now shows for reference numbers.</li>
-      <li>- Updated Balance Sheet Report.</li>
-      <li>- Updated Profit & Loss Report.</li>
       <li>- Received Payment and Bills Payment List Reports now shows Excess payment column data.</li>
       <li>- Invoice and Bills List Reports now shows Credited amount column data.</li>
-      <li>- Usability and performance improvements.</li>
-      <li><hr class="uk-margin-bottom" /></li>
-      <li class="uk-text-muted">- Added Sales Order Register report.</li>
-      <li class="uk-text-muted">- Easier input of dates.</li>
-      <li class="uk-text-muted">- Fixed bug related to inconsistent product quantity.</li>
-      <li class="uk-text-muted">- Added Payment Method column on Bills Payment report.</li>
-      <li class="uk-text-muted">- Fixed bug where filter by principal name doesn't work properly on Stock Status report.</li>
-      <li class="uk-text-muted">- Swapped credit/debit setting for accounting reports.</li>
-      <li class="uk-text-muted">- Improved performance on stock status report export.</li>
-      <li class="uk-text-muted">- Various bug fixes and performance improvements.</li>
-      <li class="uk-text-muted">- Added "add rows" button when editing stock adjustment reports.</li>
-      <li class="uk-text-muted">- Added principal column on stock status report.</li>
-      <li class="uk-text-muted">- Account names on Profit and Loss report now links to account history.</li>
-      <li class="uk-text-muted">- Added filter by account name on Accounts History report.</li>
-      <li class="uk-text-muted">- Fixed Accounts History report to also include non-journal account transactions.</li>
+      <li>- Added Sales Order Register report.</li>
+      <li>- Easier input of dates.</li>
+      <li>- Fixed bug related to inconsistent product quantity.</li>
+      <li>- Added Payment Method column on Bills Payment report.</li>
+      <li>- Fixed bug where filter by principal name doesn't work properly on Stock Status report.</li>
+      <li>- Swapped credit/debit setting for accounting reports.</li>
+      <li>- Improved performance on stock status report export.</li>
+      <li>- Various bug fixes and performance improvements.</li>
+      <li>- Added "add rows" button when editing stock adjustment reports.</li>
+      <li>- Added principal column on stock status report.</li>
+      <li>- Account names on Profit and Loss report now links to account history.</li>
+      <li>- Added filter by account name on Accounts History report.</li>
+      <li>- Fixed Accounts History report to also include non-journal account transactions.</li>
     </ul>
   </div>
   <hr />
