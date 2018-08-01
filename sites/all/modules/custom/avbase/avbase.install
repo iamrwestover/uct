@@ -537,13 +537,13 @@ function avbase_update_7113() {
 }
 
 /**
- * Remove fields from report cache tables.
+ * Remove deprecated fields from report cache tables.
  */
-// function avbase_update_7111() {
-//   $table_name = 'avtbl_fs';
-//   db_drop_field($table_name, 'amount');
-//   $table_name = 'avtbl_inventory_cache';
-//   db_drop_field($table_name, 'qty_in');
-//   db_drop_field($table_name, 'qty_out');
-//   db_drop_field($table_name, 'qty_in_amount');
-// }
+function avbase_update_7114() {
+  $table_name = 'avtbl_fs';
+  db_drop_field($table_name, 'amount');
+  $table_name = 'avtbl_inventory_cache';
+  db_drop_field($table_name, 'qty_in');
+  db_drop_field($table_name, 'qty_out');
+  db_drop_field($table_name, 'qty_in_amount');
+}

@@ -376,8 +376,8 @@ function avreports_fs_update_form($form, &$form_state) {
     '#type' => 'textfield',
     '#icon_key' => 'calendar',
     '#required' => TRUE,
-    // '#default_value' => format_date($date_from, 'custom', AVBASE_MONTH_ONLY_FORMAT),
-    '#default_value' => '2013-01',
+    '#default_value' => format_date($date_from, 'custom', AVBASE_MONTH_ONLY_FORMAT),
+    // '#default_value' => '2013-01',
     '#disabled' => empty($transaction_lock_date),
     '#attributes' => array(
       'data-uk-datepicker' => "{format:'" . AVBASE_MONTH_ONLY_FORMAT_JS . "',
@@ -400,8 +400,8 @@ function avreports_fs_update_form($form, &$form_state) {
     unset($form['date_to']['#default_value']);
   }
   else {
-    // $form['date_to']['#default_value'] = format_date(strtotime('first day of next month', $date_from), 'custom', AVBASE_MONTH_ONLY_FORMAT);
-    $form['date_to']['#default_value'] = '2018-07';
+    $form['date_to']['#default_value'] = format_date(strtotime('first day of next month', $date_from), 'custom', AVBASE_MONTH_ONLY_FORMAT);
+    // $form['date_to']['#default_value'] = '2018-07';
   }
   // $form['range'] = array(
   //   '#type' => 'radios',

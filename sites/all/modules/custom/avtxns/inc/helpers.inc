@@ -2259,7 +2259,7 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
     $history_row = array();
     $history_row['account_id'] = $current_account_id;
     $history_row['before_this_day'] = $date_end;
-    $history_row['amount'] = 0;
+    // $history_row['amount'] = 0;
     $history_row['debit'] = $debit_amount;
     $history_row['credit'] = $credit_amount;
     db_insert('avtbl_fs')->fields($history_row)->execute();
@@ -2283,9 +2283,9 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   $history_row['product_id'] = $selected_product->id;
   $history_row['before_this_day'] = $date_end;
   // $history_row['item_cost'] = $item_cost;
-  $history_row['qty_out'] = 0; // remove this.
-  $history_row['qty_in'] = 0; // remove this.
-  $history_row['qty_in_amount'] = 0; // remove this.
+  // $history_row['qty_out'] = 0; // remove this.
+  // $history_row['qty_in'] = 0; // remove this.
+  // $history_row['qty_in_amount'] = 0; // remove this.
 
   $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
   $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
