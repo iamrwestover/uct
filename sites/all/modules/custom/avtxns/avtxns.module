@@ -1556,10 +1556,17 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array(), $
       ),
     );
   }
-  // Set fields' resistance to reset button.
-  //foreach ($fields as $k => $v) {
-  //
-  //}
+  if (!empty($settings['running_balance'])) {
+    $fields['settings']['running_balance'] = empty($settings['running_balance']) ? array() : $settings['running_balance'];
+    $fields['settings']['running_balance'] += array(
+      '#type' => 'checkbox',
+      '#title' => 'Running balance',
+      '#button_checkbox' => TRUE,
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
 
   // Buttons.
   $fields['buttons']['reset_button'] = empty($settings['reset_button']) ? array() : $settings['reset_button'];

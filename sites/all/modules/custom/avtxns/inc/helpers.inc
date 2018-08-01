@@ -2096,9 +2096,9 @@ function avtxns_get_txn_account_types() {//meeee
  * @param $date_end
  */
 function avtxns_read_account_transactions($current_account_id, $account_type, $date_start, $date_end) {
-  if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
-    return;
-  }
+  // if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+  //   return;
+  // }
 
   $debit_amount = $credit_amount = 0;
   if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {

@@ -181,6 +181,12 @@ $table_columns_html = drupal_render($form['settings']['table_columns']);
     </div>
   <?php endif; ?>
 
+  <?php if (isset($form['settings']['running_balance'])): ?>
+    <div class="uk-width-2-10" style="margin-top: 25px;">
+      <?php print drupal_render($form['settings']['running_balance']); ?>
+    </div>
+  <?php endif; ?>
+
   <?php if (isset($form['client_status'])): ?>
     <div class="uk-width-2-10">
       <?php print drupal_render($form['client_status']); ?>

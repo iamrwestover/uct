@@ -258,7 +258,7 @@ function avreports_account_history_form($form, &$form_state) {
     // $transaction_list_table['product_name']['#markup'] = '<span class="uk-badge uk-text-uppercase uk-badge-warning">' . $actd['name'] . '</span>';
     $transaction_list_table['product_name']['#markup'] = '<h2 class="uk-margin-remove">' . check_plain($user_filter['avachart.title']) . '</h2>';
     // $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small">Opening balance: ' . avbase_accounting_number_format($account_opening_balance) . '</div>';
-    $period_balance = ($debit_total - $credit_total) * ($account_balance_type == 'credit' ? -1 : 1);
+    $period_balance = ($debit_total - $credit_total)/* * ($account_balance_type == 'credit' ? -1 : 1)*/;
     // dpm($account_balance_type);
     $transaction_list_table['product_name']['#markup'] .= '<div class="">Period balance: ' . avbase_accounting_number_format($period_balance) . '</div>';
     // $transaction_list_table['product_name']['#markup'] .= '<div class="">Ending balance: ' . avbase_accounting_number_format($account_opening_balance + $period_balance) . '</div>';

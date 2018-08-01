@@ -48,6 +48,10 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
       '#av_date_format' => AVBASE_MONTH_ONLY_FORMAT,
       '#av_date_inputmask_format' => AVBASE_MONTH_ONLY_FORMAT_MASK,
     ),
+    'running_balance' => array(
+      '#title' => 'Running balance',
+      '#default_value' =>  $fs_type == AVREPORTS_FS_BS,
+    ),
     'reset_button' => array('#attributes' => array('style' => 'margin-top: 25px;')),
   );
   $form['transaction_list_filter'] = avtxns_txn_list_filter_form($form, $form_state, $filter_form_settings, AVBASE_MONTH_ONLY_FORMAT);
@@ -95,10 +99,13 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   $ts = $date_from_timestamp;
   // Allow "base" date group for computation of first of the group's correct difference.
   $period_balance_only = $fs_type == AVREPORTS_FS_PL;
+  $period_balance_only = FALSE;
   // Start with 0 balance for BS, unless selected start date is same less than or equal to fiscal year.
   $start_with_zero_balance = $fs_type == AVREPORTS_FS_BS;
   $start_with_zero_balance = $start_with_zero_balance && $ts > variable_get('av_fiscal_date', 0);
+  $start_with_zero_balance = FALSE;
   // $start_with_zero_balance = FALSE;
+  $running_balance = empty($user_filter['settings']['running_balance']) ? FALSE : TRUE;
 
   // $period_balance_only = FALSE;
   $ts = ($period_balance_only || $start_with_zero_balance) ? strtotime('yesterday', $date_from_timestamp) : $ts;
@@ -148,7 +155,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
     $ts = strtotime('tomorrow', $last_day_timestamp);
   }
   // Add last group for Total column if necessary.
-  if ($period_balance_only && !empty($date_group)) {
+  if (!$running_balance && !empty($date_group)) {
     $date_group['total'] = array(
       'date_from' => strtotime('tomorrow', $last_day_timestamp),
       'date_to' => strtotime('tomorrow', $last_day_timestamp),
@@ -187,7 +194,6 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
       break;
   }
 
-
   // Retrieve accounts.
   $accounts_where = $accounts_args = array();
   $accounts_where[] = 'avachart.account_type IN (:account_types)';
@@ -214,47 +220,42 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
   }
 
   // Retrieve fs values.
+  $fiscal_date = variable_get('av_fiscal_date', 0);
   $fs_rows = array();
-  // if (!empty($date_tos)) {
-  //   $query = "SELECT * FROM {avtbl_fs} fs";
-  //   unset($where['date_from']);
-  //   unset($where['date_to']);
-  //   unset($args[':date_from_stamp']);
-  //   unset($args[':date_to_stamp']);
-  //   $where['date_to'] = "fs.before_this_day IN (:date_tos)";
-  //   $args[':date_tos'] = $date_tos;
-  //   if (!empty($where)) {
-  //     $query .= " WHERE " . implode(' AND ', $where);
-  //   }
-  //   $query .= " ORDER BY fs.before_this_day ASC";
-  //   $rs = db_query($query, $args);
-  //
-  //   foreach ($rs as $row) {
-  //     $timestamp = strtotime('yesterday', $row->before_this_day);
-  //     $fs_rows[$row->account_id][$timestamp] = $row;
-  //   }
-  // }
-
-  // unset($where['date_from']);
-  // unset($where['date_to']);
-  // unset($args[':date_from_stamp']);
-  // unset($args[':date_to_stamp']);
-
-
   foreach ($date_tos as $date_to) {
+    if ($running_balance && $fiscal_date > $date_to) {
+      continue;
+    }
+    $show_fiscal_beg_bal = $running_balance && $fiscal_date <= $date_to && $fiscal_date >= strtotime('first day of this month', $date_to);
     foreach ($fs_accounts as $account_id => $account_row) {
-      $query = "SELECT fs.amount FROM {avtbl_fs} fs";
-      $this_where['account_id'] = "fs.account_id = :account_id";
-      $this_args[':account_id'] = $account_id;
-      $this_where['date_to'] = "fs.before_this_day <= :date_to";
-      $this_args[':date_to'] = strtotime('tomorrow midnight', $date_to);
-      if (!empty($this_where)) {
-        $query .= " WHERE " . implode(' AND ', $this_where);
+      // if ($account_id != 1 && $account_id != 2) continue;
+      $this_where = $this_args = array();
+      if ($show_fiscal_beg_bal) {
+        $query = "SELECT SUM(fs.debit - fs.credit) amount FROM {avtbl_fs} fs";
+        $this_where['account_id'] = "fs.account_id = :account_id";
+        $this_args[':account_id'] = $account_id;
+        $this_where['date_to'] = "fs.before_this_day <= :date_to";
+        $this_args[':date_to'] = strtotime('tomorrow midnight', $date_to);
+        if (!empty($this_where)) {
+          $query .= " WHERE " . implode(' AND ', $this_where);
+        }
       }
-      $query .= " ORDER BY fs.before_this_day DESC LIMIT 1";
+      else {
+        $query = "SELECT (fs.debit - fs.credit) amount FROM {avtbl_fs} fs";
+        $this_where['account_id'] = "fs.account_id = :account_id";
+        $this_args[':account_id'] = $account_id;
+        $this_where['date_to'] = "fs.before_this_day = :date_to";
+        $this_args[':date_to'] = strtotime('tomorrow midnight', $date_to);
+        if (!empty($this_where)) {
+          $query .= " WHERE " . implode(' AND ', $this_where);
+        }
+      }
       $amount = db_query($query, $this_args)->fetchField();
       $amount = empty($amount) ? 0 : $amount;
-      $fs_rows[$account_id][$date_to] = $amount;
+
+
+      $last_amount = $running_balance ? (empty($fs_rows[$account_id]) ? 0 : end($fs_rows[$account_id])) : 0;
+      $fs_rows[$account_id][$date_to] = $amount + $last_amount;
     }
   }
 
@@ -310,8 +311,9 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => array(
       'id' => 'transaction-list-table',
-      'class' => array('uk-table-condensed uk-table-hover'),
+      'class' => array('uk-table-condensed uk-table-hover uk-text-small'),
     ),
+    // '#sticky' => FALSE,
   );
   $transaction_lock_date = variable_get('avtxns_as_of_date_lock', NULL);
   $transaction_list_table['other_info']['#markup'] = empty($transaction_lock_date)
@@ -323,7 +325,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
     '#theme' => 'avreports_txn_list',
     '#attributes' => array(
       'id' => 'transaction-list-table-wrapper',
-      'class' => array('printable')
+      'class' => array('printable av-sticky-small')
     ),
   );
 
@@ -751,7 +753,8 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       // 3500
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date
       FROM {avtbl_products}
-      WHERE id > $_last_row_id AND id IN (2209, 2212) ORDER BY id LIMIT $row_limit";
+      WHERE id > $_last_row_id AND id < 2300
+      ORDER BY id LIMIT $row_limit";
       $_db_rows = db_query($query)->fetchAllAssoc('id');
     }
     elseif ($scan_type == 'accounts') {

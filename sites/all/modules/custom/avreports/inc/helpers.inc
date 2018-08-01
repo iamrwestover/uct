@@ -397,7 +397,7 @@ function avreports_account_history_link($title, $date = array(), $link_title = N
   $link_options['query']['date_auto'] = 'custom';
   $link_options['query']['date_from'] = $date['date_from'];
   $link_options['query']['date_to'] = $date['date_to'];
-  $link_options['attributes']['title'] = 'View this account\'s history';
+  // $link_options['attributes']['title'] = 'View this account\'s history';
 
   switch ($account_id) {
     case AVTXN_AC_SPECIFIC_INVENTORY_ID:
@@ -541,7 +541,8 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
       elseif ($dg_id != 'base') {
         $history_link_date = array('date_from' => format_date($dg['date_from'], 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date($dg['date_to'], 'custom', AVREPORTS_LIST_DATE_FORMAT));
         $amount_text = $account_row['id'] == AVTXN_AC_SPECIFIC_EQUITY_ID ? avbase_accounting_number_format($amount_to_show) : avreports_account_history_link($account_row['title'], $history_link_date, avbase_accounting_number_format($amount_to_show), TRUE, $account_row['id']);
-        $data[$date_to] = '<div class="uk-text-right">' . $amount_text . '</div>';
+        // $data[$date_to] = '<div class="uk-text-right" data-uk-tooltip="{cls: \'tt-blue\'}" title="' . $dg['label'] . ': ' . avreports_account_name_format($account_row) . '">' . $amount_text . '</div>';
+        $data[$date_to] = '<div class="uk-text-right" title="' . avreports_account_name_format($account_row) . '">' . $amount_text . '</div>';
         $this_row_amount += $this_cell_amount;
       }
       $column_totals[$date_to] = empty($column_totals[$date_to]) ? $amount_to_show : ($column_totals[$date_to] + $amount_to_show);

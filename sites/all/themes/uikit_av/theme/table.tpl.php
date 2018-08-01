@@ -100,7 +100,7 @@ if (count($header) && $sticky) {
   $attributes['class'][] = 'sticky-enabled';
 }
 
-$output = '<div class="fuk-overflow-container">';
+$output = '<div class="' . ($sticky ? 'non-' : '') . 'uk-overflow-container">';
 $output .= '<table' . drupal_attributes($attributes) . ">\n";
 
 if (isset($caption)) {
