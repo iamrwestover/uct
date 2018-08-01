@@ -465,9 +465,9 @@ function avbase_update_7109() {
   $fields = $schema[$table_name]['fields'];
 
   $field_name = 'debit';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = 'credit';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
 }
 
 /**
@@ -479,19 +479,19 @@ function avbase_update_7110() {
   $fields = $schema[$table_name]['fields'];
 
   $field_name = AVTXNS_TXN_TYPE_RECEIVE . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_DELIVERY . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_SALES_RETURN . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_STOCK_ADJUSTMENT . '_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
 }
 
 /**
@@ -503,13 +503,13 @@ function avbase_update_7111() {
   $fields = $schema[$table_name]['fields'];
 
   $field_name = AVTXNS_TXN_TYPE_RECEIVE . '_amt';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN . '_amt';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_PURCHASE_RETURN . '_amt';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
   $field_name = AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT . '_amt';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
 }
 
 /**
@@ -521,7 +521,7 @@ function avbase_update_7112() {
   $fields = $schema[$table_name]['fields'];
 
   $field_name = 'beg_qty';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
 }
 
 /**
@@ -533,7 +533,7 @@ function avbase_update_7113() {
   $fields = $schema[$table_name]['fields'];
 
   $field_name = 'beg_amt';
-  db_add_field($table_name, $field_name, $fields[$field_name]);
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
 }
 
 /**

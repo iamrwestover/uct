@@ -328,10 +328,11 @@ function avbase_menu() {
 }
 
 function avbase_menu_alter(&$items) {
-  // Example - disable the page at node/add
-  $items[BACKUP_MIGRATE_MENU_PATH . '/export/advanced']['access callback'] = 'avbase_user_is_super_admin';
-  $items[BACKUP_MIGRATE_MENU_PATH . '/settings']['access callback'] = 'avbase_user_is_super_admin';
-  $items[BACKUP_MIGRATE_MENU_PATH . '/nodesquirrel']['access callback'] = 'avbase_user_is_super_admin';
+  if (module_exists('backup_migrate')) {
+    $items[BACKUP_MIGRATE_MENU_PATH . '/export/advanced']['access callback'] = 'avbase_user_is_super_admin';
+    $items[BACKUP_MIGRATE_MENU_PATH . '/settings']['access callback'] = 'avbase_user_is_super_admin';
+    $items[BACKUP_MIGRATE_MENU_PATH . '/nodesquirrel']['access callback'] = 'avbase_user_is_super_admin';
+  }
 }
 
 /**
