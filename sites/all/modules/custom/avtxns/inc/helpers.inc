@@ -2070,6 +2070,7 @@ function avtxns_get_types_with_reference_id() {
   return array(
     AVTXNS_TXN_TYPE_PAYMENT,
     AVTXNS_TXN_TYPE_PAY_BILL,
+    AVTXNS_TXN_TYPE_BILL,
     AVTXNS_TXN_TYPE_VENDOR_CREDIT,
     AVTXNS_TXN_TYPE_CREDIT_MEMO,
     AVTXNS_TXN_TYPE_OTHER_BILLS,

@@ -123,6 +123,10 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
     if (empty($row->id) && empty($form['reference_id']['#default_value']) && !empty($_SESSION['preload']['reference_id'])) {
       $form['reference_id']['#default_value'] = $_SESSION['preload']['reference_id'];
     }
+    // Override agent name with the one selected from pending transactions.
+    if (!empty($form_state['#pending_reference_id'])) {
+      $form_state['input']['reference_id'] = $form_state['#pending_reference_id'];
+    }
   }
   if (!empty($ttd['payment'])) {
     $form['pmt_method_id'] = array(
@@ -326,7 +330,7 @@ function avtxns_item_list_form_fields(&$form, &$form_state, $transaction_type, $
       $form['transaction_id']['#markup'] = $noi . ' ' . ($noi > 1 ? 'entries' : 'entry') . ' - ' . $form['transaction_id']['#markup'];
     }
     if (!empty($row->items_ref_txn_id) && !empty($row->items_ref_txn_type)) {
-      $form['transaction_id']['#markup'] .= '<br />Ref. ' . avbase_txn_number_format($row->items_ref_txn_type, $row->items_ref_txn_id);
+      $form['transaction_id']['#markup'] .= '<br />Ref. ' . l(avbase_txn_number_format($row->items_ref_txn_type, $row->items_ref_txn_id), "av/{$row->items_ref_txn_type}/{$row->items_ref_txn_id}/view");
     }
   }
 
