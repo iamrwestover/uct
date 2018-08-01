@@ -192,9 +192,11 @@ function avproducts_home_form($form, &$form_state) {
   if (!empty($user_filter['settings']['table_href'])) {
     $table_ajax_href = $user_filter['settings']['table_href'];
     $href_parts = parse_url($table_ajax_href);
-    parse_str($href_parts['query'], $href_query);
-    foreach ($href_query as $k => $v) {
-      $_GET[$k] = $v;
+    if (!empty($href_parts['query'])) {
+      parse_str($href_parts['query'], $href_query);
+      foreach ($href_query as $k => $v) {
+        $_GET[$k] = $v;
+      }
     }
   }
 
@@ -293,7 +295,7 @@ function avproducts_home_form($form, &$form_state) {
     );
   }
 
-  $table_attributes = array('id' => 'products-list-table', 'class' => array('uk-table-condensed uk-table-hover'));
+  $table_attributes = array('id' => 'products-list-table', 'class' => array('uk-table-condensed uk-table-hover uk-text-small'));
   //if (empty($rows)) {
   //  $table_markup = '<div class="uk-text-muted">Nothing recorded yet.</div>';
   //}
@@ -332,7 +334,7 @@ function avproducts_home_form($form, &$form_state) {
     '#rows' => $rows,
     '#empty' => '<div class="uk-text-muted">' . t('No match found.') . '</div>',
     '#attributes' => $table_attributes,
-    '#prefix' => '<div id="products-list-table-wrapper">',
+    '#prefix' => '<div id="products-list-table-wrapper" class="av-sticky-small">',
     '#suffix' => theme('pager', array('tags' => array())) . '<!--Do not remove me.--></div>',
   );
   return $form;

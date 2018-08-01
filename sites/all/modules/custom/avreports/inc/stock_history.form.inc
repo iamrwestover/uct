@@ -651,10 +651,12 @@ function avbase_stock_history_beg_inventory_row(&$table_rows, $selected_product,
     }
     else {
       // Get data from cache.
-      $query = "SELECT item_cost, (qty_in - qty_out) onhand,
-              ((qty_in - qty_out) * item_cost) inventory
-              FROM {avtbl_inventory_cache}
-              WHERE product_id = {$selected_product->id} AND before_this_day <= $ending_inventory_key ORDER BY before_this_day DESC LIMIT 1";
+      $select = array('avinvcache.*');
+      $select[] = avtxns_inv_cache_query('end_qty') . " onhand";
+      $select[] = avtxns_inv_cache_query('inventory') . " inventory";
+      $query = "SELECT " . implode(', ', $select) . "
+              FROM {avtbl_inventory_cache} avinvcache
+              WHERE product_id = {$selected_product->id} AND before_this_day = $ending_inventory_key";
       $period_row = db_query($query)->fetchObject();
       $beg_type_label = 'Beginning inventory';
     }

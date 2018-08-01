@@ -1801,6 +1801,56 @@ function avtxns_txn_detail_qty_query($increment = 1, $sum = TRUE, $true_multipli
   return $sum ? "SUM($query)" : "($query)";
 }
 
+function avtxns_inv_cache_query($type, $sum = FALSE) {
+  $qty_change_types = avtxns_get_qty_change_txn_types();
+  $all_qty = array();
+  foreach ($qty_change_types as $qctype) {
+    $all_qty[] = "avinvcache.{$qctype}_qty";
+  }
+  $end_qty_query = "avinvcache.beg_qty + " . implode(' + ', $all_qty);
+  $inventory_debit_query = "(avinvcache.beg_qty + avinvcache.rcv_qty + avinvcache.stin_qty + avinvcache.sr_qty + IF(avinvcache.stk_qty > 0, avinvcache.stk_qty, 0)) * avinvcache.item_cost";
+  $inventory_credit_query = "ABS((avinvcache.pr_qty + avinvcache.stou_qty + avinvcache.dr_qty + IF(avinvcache.stk_qty < 0, avinvcache.stk_qty, 0)) * avinvcache.item_cost)";
+  $cogafs_debit_query = "avinvcache.beg_amt + avinvcache.rcv_amt + IF(avinvcache.stin_amt > 0, avinvcache.stin_amt, 0)";
+  $cogafs_credit_query = "ABS(avinvcache.pr_amt + avinvcache.stou_amt + IF(avinvcache.stin_amt < 0, avinvcache.stin_amt, 0))";
+  switch ($type) {
+    case 'inventory_debit':
+      $query = $inventory_debit_query;
+      break;
+    case 'inventory_credit':
+      $query = $inventory_credit_query;
+      break;
+    case 'inventory':
+      // $query = "($inventory_debit_query) - ($inventory_credit_query)";
+      $query = "($end_qty_query) * avinvcache.item_cost";
+      break;
+    case 'cogafs_debit':
+      $query = $cogafs_debit_query;
+      break;
+    case 'cogafs_credit':
+      $query = $cogafs_credit_query;
+      break;
+    case 'cogafs':
+      $query = "avinvcache.beg_amt + avinvcache.rcv_amt + avinvcache.pr_amt + avinvcache.stou_amt + avinvcache.stin_amt";
+      break;
+    case 'cogs_debit':
+      $query = "($cogafs_debit_query) - ($inventory_debit_query)";
+      break;
+    case 'cogs_credit':
+      $query = "($cogafs_credit_query) - ($inventory_credit_query)";
+      break;
+    case 'cogs':
+      $query = "avinvcache.beg_amt + avinvcache.rcv_amt + avinvcache.pr_amt + avinvcache.stou_amt + avinvcache.stin_amt - (($end_qty_query) * avinvcache.item_cost)";
+      break;
+    case 'end_qty':
+      $query = $end_qty_query;
+      break;
+    default:
+      $query = '';
+  }
+
+  return $sum ? "SUM($query)" : "($query)";
+}
+
 function avtxns_get_item_row_key($item) {
   $reference_type = empty($item->ref_txn_type) ? '' : $item->ref_txn_type;
   return "{$reference_type}_db_item_{$item->transaction_id}_{$item->id}";
@@ -2096,9 +2146,9 @@ function avtxns_get_txn_account_types() {//meeee
  * @param $date_end
  */
 function avtxns_read_account_transactions($current_account_id, $account_type, $date_start, $date_end) {
-  // if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
-  //   return;
-  // }
+  if (!in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
+    return;
+  }
 
   $debit_amount = $credit_amount = 0;
   if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
@@ -2108,16 +2158,12 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
     $qty_change_types = avtxns_get_qty_change_txn_types();
     // $select = array('item_cost', "SUM(beg_amt) beg_amt");
     $select = array();
-    $inventory_debit_query = "SUM(beg_amt + rcv_amt + stin_amt + (sr_qty * item_cost) + (IF(stk_qty > 0, (stk_qty * item_cost), 0)))";
-    $inventory_credit_query = "SUM(pr_amt + stou_amt + (dr_qty * item_cost) + (IF(stk_qty < 0, (stk_qty * item_cost), 0)))";
-    $cogafs_debit_query = "SUM(beg_amt + rcv_amt + stin_amt)";
-    $cogafs_credit_query = "SUM(pr_amt + stou_amt)";
-    $select[] = $inventory_debit_query . " inventory_debit";
-    $select[] = $inventory_credit_query . " inventory_credit";
-    $select[] = "$cogafs_debit_query - $inventory_debit_query cogs_debit";
-    $select[] = "$cogafs_credit_query - $inventory_credit_query cogs_credit";
+    $select[] = avtxns_inv_cache_query('inventory_debit') . " inventory_debit";
+    $select[] = avtxns_inv_cache_query('inventory_credit') . " inventory_credit";
+    $select[] = avtxns_inv_cache_query('cogs_debit') . " cogs_debit";
+    $select[] = avtxns_inv_cache_query('cogs_credit') . " cogs_credit";
     $query = "SELECT " . implode(', ', $select) . "
-      FROM {avtbl_inventory_cache}
+      FROM {avtbl_inventory_cache} avinvcache
       WHERE before_this_day = $date_end";
     $data = db_query($query)->fetchObject();
     if (empty($data)) {
