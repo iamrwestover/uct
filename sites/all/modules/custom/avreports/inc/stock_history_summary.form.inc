@@ -87,9 +87,9 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   $header['cogafs']['data-uk-tooltip'] = '{cls: "tt-blue"}';
   $header['cogafs']['title'] = 'Cost of goods available for sale';
 
-  $header['inventory'] = array('data' => 'INV', 'class' => array('uk-text-right'), 'field' => 'inventory');
-  $header['inventory']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['inventory']['title'] = 'Inventory';
+  $header['inventory'] = array('data' => 'INVENTORY', 'class' => array('uk-text-right'), 'field' => 'inventory');
+  // $header['inventory']['data-uk-tooltip'] = '{cls: "tt-blue"}';
+  // $header['inventory']['title'] = 'Inventory';
 
   $header['cogs'] = array('data' => 'COGS', 'class' => array('uk-text-right'), 'field' => 'cogs');
   $header['cogs']['data-uk-tooltip'] = '{cls: "tt-blue"}';
