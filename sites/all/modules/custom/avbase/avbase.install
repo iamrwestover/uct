@@ -265,8 +265,16 @@ function avbase_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'beg_amt' => array(
-        'description' => 'Equivalent amount of beginning quantity',
+      'beg_cost' => array(
+        'description' => 'Beginning unit cost',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'precision' => '18',
+        'scale' => '6',
+        'default' => 0,
+      ),
+      'end_cost' => array(
+        'description' => 'Ending unit cost',
         'type' => 'numeric',
         'not null' => TRUE,
         'precision' => '18',
@@ -547,3 +555,21 @@ function avbase_update_7114() {
   db_drop_field($table_name, 'qty_out');
   db_drop_field($table_name, 'qty_in_amount');
 }
+
+/**
+ * Changes to Inventory cache table.
+ */
+function avbase_update_7115() {
+  $schema = avbase_schema();
+  $table_name = 'avtbl_inventory_cache';
+  $fields = $schema[$table_name]['fields'];
+
+  $field_name = 'beg_cost';
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
+  $field_name = 'end_cost';
+  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
+
+  db_drop_field($table_name, 'beg_amt');
+  db_drop_field($table_name, 'item_cost');
+}
+

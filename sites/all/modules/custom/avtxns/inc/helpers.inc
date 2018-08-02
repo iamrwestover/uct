@@ -1801,17 +1801,17 @@ function avtxns_txn_detail_qty_query($increment = 1, $sum = TRUE, $true_multipli
   return $sum ? "SUM($query)" : "($query)";
 }
 
-function avtxns_inv_cache_query($type, $sum = FALSE) {
+function avtxns_inv_cache_query($type, $sum = FALSE, $table_alias = 'avinvcache') {
   $qty_change_types = avtxns_get_qty_change_txn_types();
   $all_qty = array();
   foreach ($qty_change_types as $qctype) {
-    $all_qty[] = "avinvcache.{$qctype}_qty";
+    $all_qty[] = "$table_alias.{$qctype}_qty";
   }
-  $end_qty_query = "avinvcache.beg_qty + " . implode(' + ', $all_qty);
-  $inventory_debit_query = "(avinvcache.beg_qty + avinvcache.rcv_qty + avinvcache.stin_qty + avinvcache.sr_qty + IF(avinvcache.stk_qty > 0, avinvcache.stk_qty, 0)) * avinvcache.item_cost";
-  $inventory_credit_query = "ABS((avinvcache.pr_qty + avinvcache.stou_qty + avinvcache.dr_qty + IF(avinvcache.stk_qty < 0, avinvcache.stk_qty, 0)) * avinvcache.item_cost)";
-  $cogafs_debit_query = "avinvcache.beg_amt + avinvcache.rcv_amt + IF(avinvcache.stin_amt > 0, avinvcache.stin_amt, 0)";
-  $cogafs_credit_query = "ABS(avinvcache.pr_amt + avinvcache.stou_amt + IF(avinvcache.stin_amt < 0, avinvcache.stin_amt, 0))";
+  $end_qty_query = "$table_alias.beg_qty + " . implode(' + ', $all_qty);
+  $inventory_debit_query = "($table_alias.beg_qty + $table_alias.rcv_qty + $table_alias.stin_qty + $table_alias.sr_qty + IF($table_alias.stk_qty > 0, $table_alias.stk_qty, 0)) * $table_alias.end_cost";
+  $inventory_credit_query = "ABS(($table_alias.pr_qty + $table_alias.stou_qty + $table_alias.dr_qty + IF($table_alias.stk_qty < 0, $table_alias.stk_qty, 0)) * $table_alias.end_cost)";
+  $cogafs_debit_query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.stin_amt";
+  $cogafs_credit_query = "ABS($table_alias.pr_amt + $table_alias.stou_amt)";
   switch ($type) {
     case 'inventory_debit':
       $query = $inventory_debit_query;
@@ -1821,7 +1821,7 @@ function avtxns_inv_cache_query($type, $sum = FALSE) {
       break;
     case 'inventory':
       // $query = "($inventory_debit_query) - ($inventory_credit_query)";
-      $query = "($end_qty_query) * avinvcache.item_cost";
+      $query = "($end_qty_query) * $table_alias.end_cost";
       break;
     case 'cogafs_debit':
       $query = $cogafs_debit_query;
@@ -1830,7 +1830,7 @@ function avtxns_inv_cache_query($type, $sum = FALSE) {
       $query = $cogafs_credit_query;
       break;
     case 'cogafs':
-      $query = "avinvcache.beg_amt + avinvcache.rcv_amt + avinvcache.pr_amt + avinvcache.stou_amt + avinvcache.stin_amt";
+      $query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.pr_amt + $table_alias.stou_amt + $table_alias.stin_amt";
       break;
     case 'cogs_debit':
       $query = "($cogafs_debit_query) - ($inventory_debit_query)";
@@ -1839,7 +1839,7 @@ function avtxns_inv_cache_query($type, $sum = FALSE) {
       $query = "($cogafs_credit_query) - ($inventory_credit_query)";
       break;
     case 'cogs':
-      $query = "avinvcache.beg_amt + avinvcache.rcv_amt + avinvcache.pr_amt + avinvcache.stou_amt + avinvcache.stin_amt - (($end_qty_query) * avinvcache.item_cost)";
+      $query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.pr_amt + $table_alias.stou_amt + $table_alias.stin_amt - (($end_qty_query) * $table_alias.end_cost)";
       break;
     case 'end_qty':
       $query = $end_qty_query;
@@ -2153,11 +2153,6 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
 
   $debit_amount = $credit_amount = 0;
   if (in_array($current_account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID, AVTXN_AC_SPECIFIC_COGS_ID))) {
-    $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
-    $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
-    $fixed_cost_types = array_merge($fc_increment_types, $fc_decrement_types);
-    $qty_change_types = avtxns_get_qty_change_txn_types();
-    // $select = array('item_cost', "SUM(beg_amt) beg_amt");
     $select = array();
     $select[] = avtxns_inv_cache_query('inventory_debit', TRUE) . " inventory_debit";
     $select[] = avtxns_inv_cache_query('inventory_credit', TRUE) . " inventory_credit";
@@ -2170,14 +2165,28 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
     if (empty($data)) {
       return;
     }
+
     if ($current_account_id == AVTXN_AC_SPECIFIC_INVENTORY_ID) {
       $debit_amount = empty($data->inventory_debit) ? 0 : $data->inventory_debit;
       $credit_amount = empty($data->inventory_credit) ? 0 : $data->inventory_credit;
+
+      // // Get the sum of the very first (only the first for each product) beginning amount.
+      // $query = "SELECT SUM(t1.beg_qty * t1.beg_cost) first_beg_amt FROM (
+      //   SELECT t2.before_this_day, t2.beg_qty, t2.beg_cost FROM (
+      //     SELECT t3.product_id, t3.before_this_day, t3.beg_qty, t3.beg_cost
+      //     FROM `avtbl_inventory_cache` t3
+      //     ORDER BY t3.before_this_day ASC
+      //   ) t2 GROUP BY t2.product_id
+      // ) t1 WHERE t1.before_this_day = $date_end";
+      // $first_beg_amt = db_query($query)->fetchField();
+      // $debit_amount += empty($first_beg_amt) ? 0 : $first_beg_amt;
     }
     else {
       $debit_amount = empty($data->cogs_debit) ? 0 : $data->cogs_debit;
       $credit_amount = empty($data->cogs_credit) ? 0 : $data->cogs_credit;
     }
+
+
   }
   else {
     $actd = avtxns_account_chart_types($account_type);
@@ -2371,15 +2380,15 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   if ($do_insert) {
     // Last item cost used based on already saved data inside cache table.
     // Use beginning cost if no cached data yet.
-    if (empty($last_cache_row->item_cost)) {
+    if (empty($last_cache_row->end_cost)) {
       $item_cost = $selected_product->item_cost;
       $init_date = strtotime('today', $selected_product->initial_qty_date);
     }
     else {
-      $item_cost = $last_cache_row->item_cost;
+      $item_cost = $last_cache_row->end_cost;
       $init_date = $date_start;
     }
-    $beg_amt = $beg_qty * $item_cost;
+    $beg_cost = $item_cost;
 
     // Get most recent product cost based on selected end date.
     // Use last cached item cost used if no incoming relevant transactions yet.
@@ -2398,13 +2407,13 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
       ':init_qty_date' => $init_date,
       ':date_to' => $date_end,
     );
-    $found_item_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
-    $item_cost = empty($found_item_cost) ? $item_cost : $found_item_cost;
+    $end_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
+    $end_cost = empty($end_cost) ? $beg_cost : $end_cost;
 
     // Finally, insert history row into cache table.
     $history_row['beg_qty'] = $beg_qty;
-    $history_row['beg_amt'] = $beg_amt;
-    $history_row['item_cost'] = $item_cost;
+    $history_row['beg_cost'] = $beg_cost;
+    $history_row['end_cost'] = $end_cost;
     db_insert('avtbl_inventory_cache')->fields($history_row)->execute();
   }
 }

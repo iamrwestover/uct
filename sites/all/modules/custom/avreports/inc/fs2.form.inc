@@ -751,6 +751,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
       // ))->fetchAllAssoc('id');
 
       // 3500
+      // AND (id < 2220 OR id = 4443)
       $query = "SELECT id, title, initial_qty, initial_value item_cost, initial_qty_date
       FROM {avtbl_products}
       WHERE id > $_last_row_id

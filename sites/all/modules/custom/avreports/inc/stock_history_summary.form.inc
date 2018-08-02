@@ -119,11 +119,15 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   $select[] = 'avprod.id';
   $select[] = 'avprod.title';
   $select[] = 'avinvcache.*';
-  $select[] = avtxns_inv_cache_query('end_qty') . " end_qty";
-  $select[] = avtxns_inv_cache_query('cogafs') . " cogafs";
-  $select[] = avtxns_inv_cache_query('inventory') . " inventory";
-  $select[] = avtxns_inv_cache_query('cogs') . " cogs";
+  // $select[] = "IF (avinvcache.product_id IS NULL, (SELECT " . avtxns_inv_cache_query('end_qty', FALSE, 'ayay') . " FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp AND ayay.product_id = avprod.id ORDER BY before_this_day DESC LIMIT 1), avinvcache.beg_qty) beg_qty";
+  // $select[] = "IF (avinvcache.product_id IS NULL, (SELECT ayay.item_cost FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp AND ayay.product_id = avprod.id ORDER BY before_this_day DESC LIMIT 1), avinvcache.item_cost) item_cost";
+  // $select[] = "IF (avinvcache.product_id IS NULL, (SELECT ayay.beg_amt FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp AND ayay.product_id = avprod.id ORDER BY before_this_day DESC LIMIT 1), avinvcache.beg_amt) beg_amt";
+  // $select[] = avtxns_inv_cache_query('end_qty') . " end_qty";
+  // $select[] = avtxns_inv_cache_query('cogafs') . " cogafs";
+  // $select[] = avtxns_inv_cache_query('inventory') . " inventory";
+  // $select[] = avtxns_inv_cache_query('cogs') . " cogs";
   $joins[] = "LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = :date_to_stamp";
+  // $joins[] = "LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = (SELECT ayay.before_this_day FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp AND ayay.product_id = avprod.id ORDER BY before_this_day DESC LIMIT 1)";
   $select[] = 'avcat_uom.title AS uom_title';
   $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_uom ON avcat_uom.id = avprod.uom_id';
   // $joins[] = 'LEFT JOIN {avtbl_inventory_cache} avinvcache ON avinvcache.product_id = avprod.id AND avinvcache.before_this_day = (SELECT ayay.before_this_day FROM {avtbl_inventory_cache} ayay WHERE ayay.before_this_day <= :date_to_stamp AND ayay.product_id = avprod.id ORDER BY before_this_day DESC LIMIT 1)';
@@ -141,10 +145,32 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   // dpm($args);
   $rs = db_query($query, $args);
   $tot_inventory = $tot_cogafs = $tot_cogs = 0;
+  // dpm($date_end);
   foreach ($rs as $row) {
-    $tot_inventory += $row->inventory;
-    $tot_cogafs += $row->cogafs;
-    $tot_cogs += $row->cogs;
+    // If no matching cache on selected date. Find the very recent one.
+    if (empty($row->product_id)) {
+      $query = "SELECT
+        " . avtxns_inv_cache_query('end_qty') . " beg_qty,
+        avinvcache.end_cost
+        FROM {avtbl_inventory_cache} avinvcache
+        WHERE avinvcache.before_this_day <= :date_to_stamp AND avinvcache.product_id = {$row->id}
+        ORDER BY avinvcache.before_this_day DESC LIMIT 1";
+      $last_cache = db_query($query, $args)->fetchObject();
+      $row->beg_qty = empty($last_cache->beg_qty) ? 0 : $last_cache->beg_qty;
+      $row->beg_cost = empty($last_cache->end_cost) ? 0 : $last_cache->end_cost;
+      $row->end_cost = empty($last_cache->end_cost) ? 0 : $last_cache->end_cost;
+    }
+
+    $end_qty = $row->beg_qty + $row->rcv_qty + $row->stin_qty + $row->pr_qty + $row->stou_qty + $row->dr_qty + $row->sr_qty + $row->stk_qty;
+    $inventory = $end_qty * $row->end_cost;
+    // $end_qty = $row->rcv_qty + $row->stin_qty + $row->pr_qty + $row->stou_qty + $row->dr_qty + $row->sr_qty + $row->stk_qty;
+    // $inventory = ($row->beg_qty * $row->beg_cost) + ($end_qty * $row->end_cost);
+    $cogafs = ($row->beg_qty * $row->beg_cost) + $row->rcv_amt + $row->stin_amt + $row->pr_amt + $row->stou_amt;
+    $cogs = $cogafs - $inventory;
+    // Total.
+    $tot_inventory += $inventory;
+    $tot_cogafs += $cogafs;
+    $tot_cogs += $cogs;
     $data = array();
     $data['product_title'] = avreports_product_history_link(
       $row->title, array(
@@ -153,7 +179,7 @@ function avreports_stock_history_summary_form($form, &$form_state) {
       )
     );
     $data['uom'] = check_plain($row->uom_title);
-    $data['item_cost'] = '<div class="uk-text-right">' . number_format($row->item_cost, 2) . '</div>';
+    $data['item_cost'] = '<div class="uk-text-right">' . number_format($row->end_cost, 2) . '</div>';
     $data['beg_qty'] = '<div class="uk-text-right">' . number_format($row->beg_qty) . '</div>';
     $data['rcv_qty'] = '<div class="uk-text-right">' . number_format($row->rcv_qty) . '</div>';
     $data['dr_qty'] = '<div class="uk-text-right">' . number_format($row->dr_qty) . '</div>';
@@ -162,27 +188,11 @@ function avreports_stock_history_summary_form($form, &$form_state) {
     $data['sr_qty'] = '<div class="uk-text-right">' . number_format($row->sr_qty) . '</div>';
     $data['pr_qty'] = '<div class="uk-text-right">' . number_format($row->pr_qty) . '</div>';
     $data['stk_qty'] = '<div class="uk-text-right">' . number_format($row->stk_qty) . '</div>';
-    $data['end_qty'] = '<div class="uk-text-right">' . number_format($row->end_qty) . '</div>';
-    $data['cogafs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogafs) . '</div>';
-    $data['inventory'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->inventory) . '</div>';
-    $data['cogs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($row->cogs) . '</div>';
+    $data['end_qty'] = '<div class="uk-text-right">' . number_format($end_qty) . '</div>';
+    $data['cogafs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($cogafs) . '</div>';
+    $data['inventory'] = '<div class="uk-text-right">' . avbase_accounting_number_format($inventory) . '</div>';
+    $data['cogs'] = '<div class="uk-text-right">' . avbase_accounting_number_format($cogs) . '</div>';
 
-    // $header['product_title'] = array('data' => 'TITLE', 'field' => 'title');
-    // $header['uom'] = array('data' => 'UOM');
-    // $header['item_cost'] = array('data' => 'UNIT COST', 'class' => array('uk-text-right'), 'field' => 'item_cost');
-    // $header['beg_qty'] = array('data' => 'BEG INVTY', 'class' => array('uk-text-right'));
-    // $header['rcv_qty'] = array('data' => 'RCV', 'class' => array('uk-text-right'));
-    // $header['dr_qty'] = array('data' => 'DR', 'class' => array('uk-text-right'));
-    // $header['stou_qty'] = array('data' => 'STOU', 'class' => array('uk-text-right'));
-    // $header['stin_qty'] = array('data' => 'STIN', 'class' => array('uk-text-right'));
-    // $header['sr_qty'] = array('data' => 'SR', 'class' => array('uk-text-right'));
-    // $header['pr_qty'] = array('data' => 'PR', 'class' => array('uk-text-right'));
-    // $header['stk_qty'] = array('data' => 'ADJ', 'class' => array('uk-text-right'));
-    // $header['end_qty'] = array('data' => 'ON HAND', 'class' => array('uk-text-right'));
-    // $header['cogafs'] = array('data' => 'COGAFS', 'class' => array('uk-text-right'));
-    // $header['inventory'] = array('data' => 'INVENTORY', 'class' => array('uk-text-right'));
-    // $header['cogs'] = array('data' => 'COGS', 'class' => array('uk-text-right'));
-    //
     // Careful when adding classes on rows, check if tableselect mode is ON.
     $table_rows[] = $data;
   }
@@ -190,9 +200,10 @@ function avreports_stock_history_summary_form($form, &$form_state) {
   // Add "totals" row.
   if (!empty($table_rows)) {
     $totals_table_row = array();
-    $colspan = array_search('inventory', array_keys($header));
+    $colspan = array_search('cogafs', array_keys($header));
     if (!empty($colspan)) {
       $totals_table_row[] = array('data' => '<div class="uk-text-right">TOTAL</div>', 'colspan' => $colspan);
+      $totals_table_row[] = '<div class="uk-text-right">' . avbase_accounting_number_format($tot_cogafs) . '</div>';
       $totals_table_row[] = '<div class="uk-text-right">' . avbase_accounting_number_format($tot_inventory) . '</div>';
       $totals_table_row[] = '<div class="uk-text-right">' . avbase_accounting_number_format($tot_cogs) . '</div>';
       $remaining_cols = count($header) - ($colspan + (count($totals_table_row) - 1));
