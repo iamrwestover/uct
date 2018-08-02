@@ -532,6 +532,9 @@ function avreports_account_type_balance_row_children2(&$account_rows, $fs_rows, 
 
       // If in total column, show row total.
       $amount_to_show = $dg_id == 'total' ? $this_row_amount : $this_cell_amount;
+      if ($dg_id == 'total' && in_array($account_row['id'], array(AVTXN_AC_SPECIFIC_INVENTORY_ID))) {
+        $amount_to_show = $prev_amount;
+      }
       // Only show if not in base or beg_bal column, we only use these columns for correct difference computation if needed.
       // Also, base amount shouldn't be added in total row amount.
       if ($dg_id == 'beg_bal') {

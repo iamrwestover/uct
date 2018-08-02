@@ -254,7 +254,7 @@ function avreports_fs_form($form, &$form_state, $fs_type) {
       $amount = empty($amount) ? 0 : $amount;
 
 
-      $last_amount = $running_balance ? (empty($fs_rows[$account_id]) ? 0 : end($fs_rows[$account_id])) : 0;
+      $last_amount = ($running_balance && !in_array($account_id, array(AVTXN_AC_SPECIFIC_INVENTORY_ID))) ? (empty($fs_rows[$account_id]) ? 0 : end($fs_rows[$account_id])) : 0;
       $fs_rows[$account_id][$date_to] = $amount + $last_amount;
     }
   }

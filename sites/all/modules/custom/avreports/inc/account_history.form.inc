@@ -69,9 +69,9 @@ function avreports_account_history_form($form, &$form_state) {
     unset($args[':avacharttitle']);
 
     // Get opening balance.
-    $query = "SELECT amount FROM {avtbl_fs} WHERE account_id = :account_id AND before_this_day <= :today_midnight ORDER BY before_this_day DESC LIMIT 1";
-    $account_opening_balance = db_query($query, array(':account_id' => $selected_account->id, ':today_midnight' => $args[':date_from_stamp']))->fetchField();
-    $account_opening_balance = empty($account_opening_balance) ? 0 : $account_opening_balance;
+    // $query = "SELECT (debit - credit) amount FROM {avtbl_fs} WHERE account_id = :account_id AND before_this_day <= :today_midnight ORDER BY before_this_day DESC LIMIT 1";
+    // $account_opening_balance = db_query($query, array(':account_id' => $selected_account->id, ':today_midnight' => $args[':date_from_stamp']))->fetchField();
+    // $account_opening_balance = empty($account_opening_balance) ? 0 : $account_opening_balance;
 
     // If no balance, try the very last amount.
     // if (empty($account_opening_balance)) {

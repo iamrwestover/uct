@@ -150,13 +150,13 @@ function avreports_stock_history_summary_form($form, &$form_state) {
     // If no matching cache on selected date. Find the very recent one.
     if (empty($row->product_id)) {
       $query = "SELECT
-        " . avtxns_inv_cache_query('end_qty') . " beg_qty,
+        " . avtxns_inv_cache_query('end_qty') . " end_qty,
         avinvcache.end_cost
         FROM {avtbl_inventory_cache} avinvcache
         WHERE avinvcache.before_this_day <= :date_to_stamp AND avinvcache.product_id = {$row->id}
         ORDER BY avinvcache.before_this_day DESC LIMIT 1";
       $last_cache = db_query($query, $args)->fetchObject();
-      $row->beg_qty = empty($last_cache->beg_qty) ? 0 : $last_cache->beg_qty;
+      $row->beg_qty = empty($last_cache->end_qty) ? 0 : $last_cache->end_qty;
       $row->beg_cost = empty($last_cache->end_cost) ? 0 : $last_cache->end_cost;
       $row->end_cost = empty($last_cache->end_cost) ? 0 : $last_cache->end_cost;
     }

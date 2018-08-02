@@ -245,11 +245,11 @@ function avreports_stock_history_form($form, &$form_state) {
     // $beg_purchase_cost = $total_purchase_cost;
     $item_cost = $onhand = $qty_in = $qty_out = $cogafs = $cogs = 0;
     // if ($date_start <= $selected_product->initial_qty_date) {
-    // avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $date_start, $item_cost, $onhand, $inventory, $cogafs);
+    avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $date_start, $item_cost, $onhand, $inventory, $cogafs, $transaction_lock_date);
     // }
     foreach ($rs as $row) {
       // Insert ending inventory per month.
-      avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $row->transaction_date, $item_cost, $onhand, $inventory, $cogafs);
+      avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $row->transaction_date, $item_cost, $onhand, $inventory, $cogafs, $transaction_lock_date);
 
       // Now on with the transaction row.
       $this_qty_in = in_array($row->transaction_type, $args[':pos_types']) ? $row->row_qty : 0;
@@ -645,39 +645,52 @@ function avreports_old_stock_history_form($form, &$form_state) {
 }
 
 
-function avbase_stock_history_beg_inventory_row(&$table_rows, $selected_product, $date_start, &$item_cost, &$onhand, &$inventory, &$cogafs) {
+function avbase_stock_history_beg_inventory_row(&$table_rows, $selected_product, $date_start, &$item_cost, &$onhand, &$inventory, &$cogafs, $transaction_lock_date) {
   $ending_inventory_key = strtotime('first day of next month midnight', $date_start);
   if (!isset($table_rows[$ending_inventory_key])) {
-    // if ($ending_inventory_key <= $selected_product->initial_qty_date) {
-    if (0) {
-      $period_row = $selected_product;
-      $beg_type_label = 'Added product';
-      $ending_inventory_key = strtotime('first day of this month midnight', $selected_product->initial_qty_date);
-    }
-    else {
-      // dpm($ending_inventory_key . '-----');
-      // Get data from cache.
+    $beg_type_label = 'Beginning inventory';
+    $beg_cost = $item_cost;
+    // if ($transaction_lock_date >= $date_start) {
       $select = array('beg_cost', 'end_cost', 'beg_qty');
       $query = "SELECT " . implode(', ', $select) . "
-              FROM {avtbl_inventory_cache} avinvcache
-              WHERE product_id = {$selected_product->id} AND before_this_day = $ending_inventory_key";
+        FROM {avtbl_inventory_cache} avinvcache
+        WHERE product_id = {$selected_product->id} AND before_this_day = $ending_inventory_key";
       $period_row = db_query($query)->fetchObject();
-      $beg_type_label = 'Beginning inventory';
+    // $beg_type_label .= empty($period_row) ? 'aaa' : 'bb';
+
+    if (!empty($period_row)) {
+      $beg_cost = empty($period_row->beg_cost) ? 0 : $period_row->beg_cost;
+      $item_cost = $end_cost = empty($period_row->end_cost) ? 0 : $period_row->end_cost;
+      $onhand = empty($period_row->beg_qty) ? 0 : $period_row->beg_qty;
+      $inventory = $onhand * $end_cost;
+      $cogafs = $onhand * $beg_cost;
+    }
+    elseif (empty($table_rows)) {
+      // Get most recent cache instead.
+      $select = array('end_cost', avtxns_inv_cache_query('end_qty') . ' end_qty');
+      $query = "SELECT " . implode(', ', $select) . "
+        FROM {avtbl_inventory_cache} avinvcache
+        WHERE product_id = {$selected_product->id} AND before_this_day <= $ending_inventory_key ORDER BY before_this_day DESC LIMIT 1";
+      $period_row = db_query($query)->fetchObject();
+      $item_cost = $beg_cost = $end_cost = empty($period_row->end_cost) ? 0 : $period_row->end_cost;
+      $onhand = empty($period_row->end_qty) ? 0 : $period_row->end_qty;
+      $inventory = $onhand * $end_cost;
+      $cogafs = $onhand * $beg_cost;
+      // $beg_type_label .= serialize($period_row);
+      if (empty($period_row)) {
+        return;
+      }
     }
 
-    // Re-init.
-    $beg_cost = empty($period_row->beg_cost) ? 0 : $period_row->beg_cost;
-    $end_cost = empty($period_row->end_cost) ? 0 : $period_row->end_cost;
-    $item_cost = $end_cost;
-    $onhand = empty($period_row->beg_qty) ? 0 : $period_row->beg_qty;
-    $inventory = $onhand * $end_cost;
-    $cogafs = $onhand * $beg_cost;
+    // }
+
+
 
     $data = array();
     $data['transaction_type'] = array('data' => '<div class="uk-text-bold">' . t('@beg_type_label, <span class="uk-text-muted">@cost each</span><br />%date' . '</div>',
         array(
           '@beg_type_label' => $beg_type_label,
-          '%date' => format_date($ending_inventory_key, 'custom', 'F Y'),
+          '%date' => format_date($date_start, 'custom', 'F Y'),
           '@cost' => number_format($beg_cost, 2)
         )
       ),

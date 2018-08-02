@@ -1808,10 +1808,12 @@ function avtxns_inv_cache_query($type, $sum = FALSE, $table_alias = 'avinvcache'
     $all_qty[] = "$table_alias.{$qctype}_qty";
   }
   $end_qty_query = "$table_alias.beg_qty + " . implode(' + ', $all_qty);
+
   $inventory_debit_query = "($table_alias.beg_qty + $table_alias.rcv_qty + $table_alias.stin_qty + $table_alias.sr_qty + IF($table_alias.stk_qty > 0, $table_alias.stk_qty, 0)) * $table_alias.end_cost";
   $inventory_credit_query = "ABS(($table_alias.pr_qty + $table_alias.stou_qty + $table_alias.dr_qty + IF($table_alias.stk_qty < 0, $table_alias.stk_qty, 0)) * $table_alias.end_cost)";
   $cogafs_debit_query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.stin_amt";
   $cogafs_credit_query = "ABS($table_alias.pr_amt + $table_alias.stou_amt)";
+  $inventory_query = "($end_qty_query) * $table_alias.end_cost";
   switch ($type) {
     case 'inventory_debit':
       $query = $inventory_debit_query;
@@ -1821,7 +1823,7 @@ function avtxns_inv_cache_query($type, $sum = FALSE, $table_alias = 'avinvcache'
       break;
     case 'inventory':
       // $query = "($inventory_debit_query) - ($inventory_credit_query)";
-      $query = "($end_qty_query) * $table_alias.end_cost";
+      $query = $inventory_query;
       break;
     case 'cogafs_debit':
       $query = $cogafs_debit_query;
@@ -1830,7 +1832,8 @@ function avtxns_inv_cache_query($type, $sum = FALSE, $table_alias = 'avinvcache'
       $query = $cogafs_credit_query;
       break;
     case 'cogafs':
-      $query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.pr_amt + $table_alias.stou_amt + $table_alias.stin_amt";
+      $query = "($cogafs_debit_query) - ($cogafs_credit_query) ";
+      // $query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.stin_amt + $table_alias.pr_amt + $table_alias.stou_amt";
       break;
     case 'cogs_debit':
       $query = "($cogafs_debit_query) - ($inventory_debit_query)";
@@ -1839,7 +1842,7 @@ function avtxns_inv_cache_query($type, $sum = FALSE, $table_alias = 'avinvcache'
       $query = "($cogafs_credit_query) - ($inventory_credit_query)";
       break;
     case 'cogs':
-      $query = "($table_alias.beg_qty * $table_alias.beg_cost) + $table_alias.rcv_amt + $table_alias.pr_amt + $table_alias.stou_amt + $table_alias.stin_amt - (($end_qty_query) * $table_alias.end_cost)";
+      $query = "($cogafs_debit_query) - ($cogafs_credit_query) - ($inventory_query)";
       break;
     case 'end_qty':
       $query = $end_qty_query;
@@ -2170,16 +2173,18 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
       $debit_amount = empty($data->inventory_debit) ? 0 : $data->inventory_debit;
       $credit_amount = empty($data->inventory_credit) ? 0 : $data->inventory_credit;
 
-      // // Get the sum of the very first (only the first for each product) beginning amount.
-      // $query = "SELECT SUM(t1.beg_qty * t1.beg_cost) first_beg_amt FROM (
-      //   SELECT t2.before_this_day, t2.beg_qty, t2.beg_cost FROM (
-      //     SELECT t3.product_id, t3.before_this_day, t3.beg_qty, t3.beg_cost
-      //     FROM `avtbl_inventory_cache` t3
-      //     ORDER BY t3.before_this_day ASC
-      //   ) t2 GROUP BY t2.product_id
-      // ) t1 WHERE t1.before_this_day = $date_end";
-      // $first_beg_amt = db_query($query)->fetchField();
-      // $debit_amount += empty($first_beg_amt) ? 0 : $first_beg_amt;
+
+      // // Get the sum of the very last (only the last for each product) ending quantity amount.
+      $query = "SELECT SUM(t1.end_qty * t1.end_cost) first_beg_amt FROM (
+        SELECT t2.* FROM (
+          SELECT t3.product_id, t3.before_this_day, t3.end_cost, " . avtxns_inv_cache_query('end_qty', FALSE, 't3') . " end_qty
+          FROM `avtbl_inventory_cache` t3
+          WHERE t3.before_this_day < $date_end AND t3.product_id NOT IN (SELECT z.product_id FROM avtbl_inventory_cache z WHERE z.before_this_day = $date_end)
+          ORDER BY t3.before_this_day DESC
+        ) t2 GROUP BY t2.product_id
+      ) t1";
+      $last_beg_amt = db_query($query)->fetchField();
+      $debit_amount += empty($last_beg_amt) ? 0 : $last_beg_amt;
     }
     else {
       $debit_amount = empty($data->cogs_debit) ? 0 : $data->cogs_debit;
