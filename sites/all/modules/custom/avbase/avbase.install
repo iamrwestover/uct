@@ -535,14 +535,14 @@ function avbase_update_7112() {
 /**
  * Add field "beg_amt" into Inventory cache table.
  */
-function avbase_update_7113() {
-  $schema = avbase_schema();
-  $table_name = 'avtbl_inventory_cache';
-  $fields = $schema[$table_name]['fields'];
-
-  $field_name = 'beg_amt';
-  if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
-}
+// function avbase_update_7113() {
+//   $schema = avbase_schema();
+//   $table_name = 'avtbl_inventory_cache';
+//   $fields = $schema[$table_name]['fields'];
+//
+//   $field_name = 'beg_amt';
+//   if (!db_field_exists($table_name, $field_name)) db_add_field($table_name, $field_name, $fields[$field_name]);
+// }
 
 /**
  * Remove deprecated fields from report cache tables.
