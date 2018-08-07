@@ -573,3 +573,104 @@ function avbase_update_7115() {
   db_drop_field($table_name, 'item_cost');
 }
 
+/**
+ * Add maintenance mode permission to superadmin role.
+ */
+function avbase_update_7116() {
+  $permissions = array('access site in maintenance mode');
+  $role = user_role_load_by_name('Super Admin');
+  user_role_grant_permissions($role->rid, $permissions);
+}
+
+/**
+ * Update initial cost of products.
+ */
+function avbase_update_7117(&$sandbox) {
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last_row_id'] = 0;
+    $query = "SELECT COUNT(id) FROM {avtbl_products}";
+    $sandbox['max'] = db_query($query)->fetchField();
+    $sandbox['txn_types'] = avtxns_fixed_cost_types();
+  }
+
+  $limit = 1;
+
+  // Get initial product details.
+  $query = "SELECT id FROM {avtbl_products}
+    WHERE id > :id AND initial_value = 0 ORDER BY id LIMIT $limit";
+  $product_rows = db_query($query, array(':id' => $sandbox['last_row_id']))->fetchAllAssoc('id');
+  if (!empty($product_rows)) {
+    foreach ($product_rows as $product) {
+      $query = "SELECT (avtxn_detail.cost / avtxn_detail.qty_per_uom) initial_cost
+      FROM {avtbl_transaction_details} avtxn_detail
+      INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+      WHERE avtxn_detail.item_id = :item_id
+      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:txn_types)
+      ORDER BY avtxn.transaction_date ASC LIMIT 1";
+      $initial_cost = db_query($query, array(
+        ':item_id' => $product->id,
+        ':void_status' => AVTXNS_TXN_STATUS_VOID,
+        ':txn_types' => $sandbox['txn_types'],
+      ))->fetchField();
+
+      // Do update.
+      if (!empty($initial_cost)) {
+        db_query("UPDATE {avtbl_products} SET initial_value = :cost WHERE id = :id", array(':cost' => $initial_cost, ':id' => $product->id));
+      }
+      $sandbox['last_row_id'] = $product->id;
+      $sandbox['progress']++;
+    }
+  }
+  else {
+    $sandbox['progress'] = $sandbox['max'];
+  }
+
+
+  $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['max'] ? TRUE : $sandbox['progress'] / $sandbox['max'];
+}
+
+/*
+ * CODE TO GET ITEMS WITH INITIAL COST GREATER THAN INIITIAL TRANSACTION COST. INITIAL ITEM COST SHOULD ALWAYS BE LESSER!
+ */
+// if (!isset($sandbox['progress'])) {
+//   $sandbox['progress'] = 0;
+//   $sandbox['last_row_id'] = 0;
+//   $query = "SELECT COUNT(id) FROM {avtbl_products}";
+//   $sandbox['max'] = db_query($query)->fetchField();
+//   $sandbox['txn_types'] = avtxns_get_qty_change_txn_types();
+// }
+//
+// $limit = 1;
+//
+// // Get initial product details.
+// $query = "SELECT id, title, initial_value FROM {avtbl_products}
+//     WHERE id > :id AND initial_qty < 1 ORDER BY id";
+// $product_rows = db_query($query, array(':id' => $sandbox['last_row_id']))->fetchAllAssoc('id');
+// if (!empty($product_rows)) {
+//   foreach ($product_rows as $product) {
+//     $query = "SELECT avtxn.id, (avtxn_detail.cost / avtxn_detail.qty_per_uom) initial_cost
+//       FROM {avtbl_transaction_details} avtxn_detail
+//       INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+//       WHERE avtxn_detail.item_id = :item_id
+//       AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:txn_types) AND avtxn.transaction_type <> 'stk'
+//       ORDER BY avtxn.transaction_date ASC LIMIT 1";
+//     $r = db_query($query, array(
+//       ':item_id' => $product->id,
+//       ':void_status' => AVTXNS_TXN_STATUS_VOID,
+//       ':txn_types' => $sandbox['txn_types'],
+//     ))->fetchObject();
+//
+//     if (empty($r)) continue;
+//
+//     // Do update.
+//     if ($product->initial_value > $r->initial_cost) {
+//       dpm($product->id . '==' . $product->title . '==' . $product->initial_value . '==' . $r->initial_cost .  '==' . $r->id);
+//     }
+//     $sandbox['last_row_id'] = $product->id;
+//     $sandbox['progress']++;
+//   }
+// }
+// else {
+//   $sandbox['progress'] = $sandbox['max'];
+// }

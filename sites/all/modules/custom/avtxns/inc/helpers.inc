@@ -2422,3 +2422,33 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
     db_insert('avtbl_inventory_cache')->fields($history_row)->execute();
   }
 }
+
+/**
+ * Return transactions types that uses fixed cost.
+ * @param string $type
+ *
+ * @return array
+ */
+function avtxns_fixed_cost_types($type = NULL) {
+  static $data;
+  if (isset($data[$type])) {
+    return $data[$type];
+  }
+
+  $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
+  $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
+  if ($type == 'increment') {
+    $data[$type] = $fc_increment_types;
+  }
+  elseif ($type == 'decrement') {
+    $data[$type] = $fc_decrement_types;
+  }
+  elseif (is_null($type)) {
+    $fixed_cost_types = array_merge($fc_increment_types, $fc_decrement_types);
+    $data[$type] = $fixed_cost_types;
+  }
+  else {
+    $data[$type] = NULL;
+  }
+  return $data[$type];
+}
