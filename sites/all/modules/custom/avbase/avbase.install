@@ -653,7 +653,7 @@ function avbase_update_7117(&$sandbox) {
 //       FROM {avtbl_transaction_details} avtxn_detail
 //       INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
 //       WHERE avtxn_detail.item_id = :item_id
-//       AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:txn_types) AND avtxn.transaction_type <> 'stk'
+//       AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:txn_types) AND avtxn.transaction_type <> 'stk' AND avtxn_detail.qty > 0
 //       ORDER BY avtxn.transaction_date ASC LIMIT 1";
 //     $r = db_query($query, array(
 //       ':item_id' => $product->id,
