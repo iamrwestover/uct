@@ -2288,22 +2288,16 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
  */
 function avtxns_read_product_transactions($selected_product, $date_start, $date_end) {
   // Make sure we only start on products initial qty date.
-  if ($selected_product->initial_qty_date > $date_end) {
-    return;
-  }
+  // if ($selected_product->initial_qty_date > $date_end) {
+  //   return;
+  // }
 
   $do_insert = FALSE;
   $history_row = array();
   $history_row['product_id'] = $selected_product->id;
   $history_row['before_this_day'] = $date_end;
-  // $history_row['item_cost'] = $item_cost;
-  // $history_row['qty_out'] = 0; // remove this.
-  // $history_row['qty_in'] = 0; // remove this.
-  // $history_row['qty_in_amount'] = 0; // remove this.
 
-  $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
-  $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
-  $fixed_cost_types = array_merge($fc_increment_types, $fc_decrement_types);
+  $fixed_cost_types = avtxns_fixed_cost_types();
   $qty_change_types = avtxns_get_qty_change_txn_types();
 
   // Get qty for each transaction types.
@@ -2346,31 +2340,34 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   ))->fetchObject();
 
   // Assign retrieved values into $history_row array.
-  foreach ($qty_change_types as $qctype) {
-    $_varname = $qctype . '_amt';
-    if (isset($row->$_varname)) {
-      $history_row[$_varname] = $row->$_varname;
-      $do_insert = TRUE;
-    }
-    $_varname = $qctype . '_qty';
-    if (isset($row->$_varname)) {
-      $history_row[$_varname] = $row->$_varname;
-      $do_insert = TRUE;
+  if (!empty($row)) {
+    foreach ($qty_change_types as $qctype) {
+      $_varname = $qctype . '_amt';
+      if (isset($row->$_varname)) {
+        $history_row[$_varname] = $row->$_varname;
+        $do_insert = TRUE;
+      }
+      $_varname = $qctype . '_qty';
+      if (isset($row->$_varname)) {
+        $history_row[$_varname] = $row->$_varname;
+        $do_insert = TRUE;
+      }
     }
   }
 
-  // If product's initial quantity date is within start and end date, use it as beginning quantity.
+  // If product's initial quantity date is within start and end date, make sure it gets recorded into cache.
   if ($selected_product->initial_qty_date >= $date_start && $selected_product->initial_qty_date < $date_end) {
-    $beg_qty = $selected_product->initial_qty;
     $do_insert = TRUE;
   }
-  elseif ($do_insert) {
-    // Get from last data in inventory cache.
-    $beg_qty = 0;
+
+
+  if ($do_insert) {
+    // Get last cached data for beg_qty and beg_cost.
     $query = "SELECT * FROM {avtbl_inventory_cache} WHERE product_id = :product_id ORDER BY before_this_day DESC LIMIT 1";
     $last_cache_row = db_query($query, array(':product_id' => $selected_product->id))->fetchObject();
-    if (isset($last_cache_row->beg_qty)) {
-      $beg_qty += $last_cache_row->beg_qty;
+    if (!empty($last_cache_row)) {
+      // Compute new beginning quantity.
+      $beg_qty = $last_cache_row->beg_qty;
       foreach ($qty_change_types as $qctype) {
         $_varname = $qctype . '_qty';
         if (!isset($last_cache_row->$_varname)) {
@@ -2378,42 +2375,33 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
         }
         $beg_qty += $last_cache_row->$_varname;
       }
-    }
-  }
+      $beg_cost = $last_cache_row->end_cost;
 
-
-  if ($do_insert) {
-    // Last item cost used based on already saved data inside cache table.
-    // Use beginning cost if no cached data yet.
-    if (empty($last_cache_row->end_cost)) {
-      $item_cost = $selected_product->item_cost;
-      $init_date = strtotime('today', $selected_product->initial_qty_date);
+      // Get most recent product cost based on selected end date.
+      // Use last cached data's beginning cost used if no incoming relevant transactions yet.
+      $item_cost_query = "SELECT (avtxn_detail.cost / avtxn_detail.qty_per_uom) item_cost
+        FROM {avtbl_transaction_details} avtxn_detail
+        INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
+        WHERE avtxn_detail.item_id = :item_id
+        AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types)
+        AND avtxn.transaction_date >= :date_from
+        AND avtxn.transaction_date < :date_to
+        ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
+      $item_cost_args = array(
+        ':item_id' => $selected_product->id,
+        ':void_status' => AVTXNS_TXN_STATUS_VOID,
+        ':fixed_cost_types' => $fixed_cost_types,
+        ':date_from' => $date_start,
+        ':date_to' => $date_end,
+      );
+      $found_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
+      $end_cost = empty($found_cost) ? $beg_cost : $found_cost;
     }
     else {
-      $item_cost = $last_cache_row->end_cost;
-      $init_date = $date_start;
+      // No cached data yet, Initial product data should prevail.
+      $beg_qty = $selected_product->initial_qty;
+      $beg_cost = $end_cost = $selected_product->item_cost;
     }
-    $beg_cost = $item_cost;
-
-    // Get most recent product cost based on selected end date.
-    // Use last cached item cost used if no incoming relevant transactions yet.
-    $item_cost_query = "SELECT (avtxn_detail.cost / avtxn_detail.qty_per_uom) item_cost
-    FROM {avtbl_transaction_details} avtxn_detail
-    INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
-    WHERE avtxn_detail.item_id = :item_id
-    AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types)
-    AND avtxn.transaction_date >= :init_qty_date
-    AND avtxn.transaction_date < :date_to
-    ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
-    $item_cost_args = array(
-      ':item_id' => $selected_product->id,
-      ':void_status' => AVTXNS_TXN_STATUS_VOID,
-      ':fixed_cost_types' => $fixed_cost_types,
-      ':init_qty_date' => $init_date,
-      ':date_to' => $date_end,
-    );
-    $end_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
-    $end_cost = empty($end_cost) ? $beg_cost : $end_cost;
 
     // Finally, insert history row into cache table.
     $history_row['beg_qty'] = $beg_qty;
@@ -2429,26 +2417,16 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
  *
  * @return array
  */
-function avtxns_fixed_cost_types($type = NULL) {
+function avtxns_fixed_cost_types($type = 'all') {
   static $data;
+  if (!isset($data)) {
+    $data['increment'] = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
+    $data['decrement'] = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
+    $data['all'] = array_merge($data['increment'],  $data['decrement']);
+  }
+
   if (isset($data[$type])) {
     return $data[$type];
   }
-
-  $fc_increment_types = array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN);
-  $fc_decrement_types = array(AVTXNS_TXN_TYPE_PURCHASE_RETURN, AVTXNS_TXN_TYPE_STOCK_TRANSFER_OUT);
-  if ($type == 'increment') {
-    $data[$type] = $fc_increment_types;
-  }
-  elseif ($type == 'decrement') {
-    $data[$type] = $fc_decrement_types;
-  }
-  elseif (is_null($type)) {
-    $fixed_cost_types = array_merge($fc_increment_types, $fc_decrement_types);
-    $data[$type] = $fixed_cost_types;
-  }
-  else {
-    $data[$type] = NULL;
-  }
-  return $data[$type];
+  return $data['all'];
 }
