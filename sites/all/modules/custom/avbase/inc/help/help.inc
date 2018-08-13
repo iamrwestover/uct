@@ -14,6 +14,12 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
+      <li>- Fixed bug where account balance type is not properly reflected on debit/credit values of Trial Balance and Account history report.</li>
+    </ul>
+    <!--<hr class="uk-margin-bottom" />-->
+    <button class="uk-button uk-button-small" data-uk-toggle="{target:'#more-changelog'}">more...</button>
+    <ul id="more-changelog" class="uk-list uk-text-muted uk-hidden">
+      <li class="uk-text-bold">v1.180731:</li>
       <li>- Added Trial Balance report.</li>
       <li>- Updated Balance Sheet Report.</li>
       <li>- Updated Profit & Loss Report.</li>
@@ -21,10 +27,8 @@ function avbase_help_home() {
       <li>- Added Stock Transfer IN and OUT Register reports.</li>
       <li>- Added Account Code field for chart of accounts.</li>
       <li>- Added Transaction Date column on list of credits.</li>
-    </ul>
-    <!--<hr class="uk-margin-bottom" />-->
-    <button class="uk-button uk-button-small" data-uk-toggle="{target:'#more-changelog'}">more...</button>
-    <ul id="more-changelog" class="uk-list uk-text-muted uk-hidden">
+      <li>&nbsp;</li>
+      <li class="uk-text-bold">earlier versions:</li>
       <li>- Added customer street and barangay fields.</li>
       <li>- Start and End date can now be chosen before scanning transactions for BS, PL and TB reports. Transactions on selected dates will now be considered Locked.</li>
       <li>- Heavily reworked Account History report.</li>
