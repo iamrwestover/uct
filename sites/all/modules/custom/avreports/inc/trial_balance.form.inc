@@ -201,6 +201,21 @@ function avreports_trial_balance_form($form, &$form_state) {
 }
 
 function avreports_trial_balance_row(&$table_rows, &$totals, $account, $date_end) {
+  $actd = avtxns_account_chart_types($account['account_type']);
+  $account_balance_type = $actd['balance_type'];
+  if ($account_balance_type == 'debit') {
+    $account['credit_ftm'] *= -1;
+    $account['credit_ytd'] *= -1;
+  }
+  else {
+    // Swap.
+    $_credit = $account['debit_ftm'];
+    $account['debit_ftm'] = $account['credit_ftm'];
+    $account['credit_ftm'] = $_credit;
+    $account['debit_ftm'] *= -1;
+    $account['debit_ytd'] *= -1;
+  }
+
 
   $history_link_date = array('date_from' => format_date(strtotime('first day of last month', $date_end), 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date(strtotime('last day of last month', $date_end), 'custom', AVREPORTS_LIST_DATE_FORMAT));
 

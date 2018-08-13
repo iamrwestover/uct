@@ -54,7 +54,7 @@ function avreports_account_history_form($form, &$form_state) {
 
   // Account details.
   if (!empty($user_filter['avachart.title'])) {
-    $selected_account = avtxns_account_chart_query_load(array('avachart.title = :title'), array(':title' => $user_filter['avachart.title']));
+    $selected_account = avtxns_account_chart_query_load(array('avachart.title = :title', 'avachart.id NOT IN (:x_ids)'), array(':title' => $user_filter['avachart.title'], ':x_ids' => array(AVTXN_AC_SPECIFIC_COGS_ID, AVTXN_AC_SPECIFIC_INVENTORY_ID)));
     $selected_account = empty($selected_account) ? NULL : array_shift($selected_account);
   }
 
@@ -199,11 +199,13 @@ function avreports_account_history_form($form, &$form_state) {
         }
       }
       if (!empty($this_balance_type)) {
-        $this_balance_type = $this_balance_type == $account_balance_type ? 'debit' : 'credit';
+        // $this_balance_type = $this_balance_type == $account_balance_type ? 'debit' : 'credit';
         $row->$this_balance_type = $row->grand_total;
       }
-      $data['debit'] = empty((float) $row->debit) ? NULL : '<div class="uk-text-right">' . number_format($row->debit, 2) . '</div>';
-      $data['credit'] = empty((float) $row->credit) ? NULL : '<div class="uk-text-right">' . number_format($row->credit, 2) . '</div>';
+      $row->debit *= $account_balance_type == 'debit' ? 1 : -1;
+      $row->credit *= $account_balance_type == 'credit' ? 1 : -1;
+      $data['debit'] = empty((float) $row->debit) ? NULL : '<div class="uk-text-right">' . avbase_accounting_number_format($row->debit) . '</div>';
+      $data['credit'] = empty((float) $row->credit) ? NULL : '<div class="uk-text-right">' . avbase_accounting_number_format($row->credit) . '</div>';
       $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
 
       // Totals.
@@ -258,12 +260,12 @@ function avreports_account_history_form($form, &$form_state) {
     // $transaction_list_table['product_name']['#markup'] = '<span class="uk-badge uk-text-uppercase uk-badge-warning">' . $actd['name'] . '</span>';
     $transaction_list_table['product_name']['#markup'] = '<h2 class="uk-margin-remove">' . check_plain($user_filter['avachart.title']) . '</h2>';
     // $transaction_list_table['product_name']['#markup'] .= '<div class="uk-text-muted uk-text-small">Opening balance: ' . avbase_accounting_number_format($account_opening_balance) . '</div>';
-    $period_balance = ($debit_total - $credit_total)/* * ($account_balance_type == 'credit' ? -1 : 1)*/;
+    $period_balance = ($debit_total + $credit_total)/* * ($account_balance_type == 'credit' ? -1 : 1)*/;
     // dpm($account_balance_type);
     $transaction_list_table['product_name']['#markup'] .= '<div class="">Period balance: ' . avbase_accounting_number_format($period_balance) . '</div>';
     // $transaction_list_table['product_name']['#markup'] .= '<div class="">Ending balance: ' . avbase_accounting_number_format($account_opening_balance + $period_balance) . '</div>';
-    $transaction_list_table['other_info']['#markup'] = '<div class="uk-text-muted uk-text-small uk-text-right">Debits: ' . number_format($debit_total, 2) . '</div>';
-    $transaction_list_table['other_info']['#markup'] .= '<div class="uk-text-muted uk-text-small uk-text-right">Credits: ' . number_format($credit_total, 2) . '</div>';
+    $transaction_list_table['other_info']['#markup'] = '<div class="uk-text-muted uk-text-small uk-text-right">Debits: ' . avbase_accounting_number_format($debit_total) . '</div>';
+    $transaction_list_table['other_info']['#markup'] .= '<div class="uk-text-muted uk-text-small uk-text-right">Credits: ' . avbase_accounting_number_format($credit_total) . '</div>';
   }
   $form['transaction_list_table'] = array(
     '#type' => 'container',
