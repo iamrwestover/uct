@@ -16,6 +16,7 @@ function avreports_trial_balance_form($form, &$form_state) {
   else {
     $default_date = $transaction_lock_date;
   }
+  $last_scan_date = $transaction_lock_date;
   $filter_form_settings = array(
     'date_to' => array(
       '#title' => t('Period'),
@@ -42,6 +43,8 @@ function avreports_trial_balance_form($form, &$form_state) {
   $filter_query = empty($user_filter['filter_query']) ? array() : $user_filter['filter_query'];
   $where = empty($filter_query['where']) ? array() : $filter_query['where'];
   $args = empty($filter_query['args']) ? array() : $filter_query['args'];
+  $date_start = $args[':date_to_stamp'];
+  $date_end = strtotime('first day of next month', $args[':date_to_stamp']);
 
 
   // Header.
@@ -50,7 +53,7 @@ function avreports_trial_balance_form($form, &$form_state) {
   $header['account_title'] = array('data' => 'ACCOUNT TITLE');
   $header['debit_ftm'] = array('data' => 'DEBIT (FTM)', 'class' => array('uk-text-right'));
   $header['debit_ftm']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['debit_ftm']['title'] = t('For the month of @date', array('@date' => format_date($args[':date_to_stamp'], 'custom', 'F Y')));
+  $header['debit_ftm']['title'] = t('For the month of @date', array('@date' => format_date($date_start, 'custom', 'F Y')));
 
   $header['credit_ftm'] = array('data' => 'CREDIT (FTM)', 'class' => array('uk-text-right'));
   $header['credit_ftm']['data-uk-tooltip'] = $header['debit_ftm']['data-uk-tooltip'];
@@ -58,7 +61,7 @@ function avreports_trial_balance_form($form, &$form_state) {
 
   $header['debit_ytd'] = array('data' => 'DEBIT (YTD)', 'class' => array('uk-text-right'));
   $header['debit_ytd']['data-uk-tooltip'] = '{cls: "tt-blue"}';
-  $header['debit_ytd']['title'] = t('Year to Date - As of @date', array('@date' => format_date($default_date, 'custom', 'F d, Y')));
+  $header['debit_ytd']['title'] = t('Year to Date of @date', array('@date' => format_date($date_start, 'custom', 'Y')));
 
   $header['credit_ytd'] = array('data' => 'CREDIT (YTD)', 'class' => array('uk-text-right'));
   $header['credit_ytd']['data-uk-tooltip'] = $header['debit_ytd']['data-uk-tooltip'];
@@ -77,31 +80,47 @@ function avreports_trial_balance_form($form, &$form_state) {
   }
   $order_by = avbase_build_header_order_array($header);
 
+
+
   // Build table rows.
   $table_rows = array();
-  $date_end = $args[':date_to_stamp'] = strtotime('first day of next month', $args[':date_to_stamp']);
+
+  $fiscal_date = variable_get('av_fiscal_date', 0);
+  $fiscal_date_end = strtotime('first day of next month', $fiscal_date);
+  $show_fiscal_beg_bal = $fiscal_date_end <= $date_end && $fiscal_date_end >= strtotime('first day of this month', $date_end);
+
   // Build query for FTM.
   // Account chart.
   $select[] = 'avachart.*';
   $where[] = 'avachart.status = 1';
   // FS cache table.
-  $select[] = 'avfs.debit debit_ftm';
-  $select[] = 'avfs.credit credit_ftm';
-  $joins[] = "LEFT JOIN avtbl_fs avfs ON avfs.account_id = avachart.id AND avfs.before_this_day = :date_to_stamp";
+  $select['debit'] = 'avfs.debit debit_ftm';
+  $select['credit'] = 'avfs.credit credit_ftm';
+  $joins['avfs'] = "LEFT JOIN avtbl_fs avfs ON avfs.account_id = avachart.id AND avfs.before_this_day = :end_timestamp AND avfs.before_this_day > $fiscal_date_end";
+  if ($show_fiscal_beg_bal) {
+    $select['debit'] = 'SUM(avfs.debit) debit_ftm';
+    $select['credit'] = 'SUM(avfs.credit) credit_ftm';
+    $joins['avfs'] = "LEFT JOIN avtbl_fs avfs ON avfs.account_id = avachart.id AND avfs.before_this_day <= :end_timestamp";
+    $group_by[] = 'avachart.id';
+  }
+  $args[':end_timestamp'] = $date_end;
   // Remove unused where.
   unset($where['date_to']);
+  unset($args[':date_to_stamp']);
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_account_chart} AS avachart " . implode(' ', $joins);
   avbase_query_supplements($query, $where, $order_by, NULL, NULL, $group_by);
   $fs_accounts = db_query($query, $args)->fetchAllAssoc('id');
 
   // Build query for YTD.
   $select = $joins = $where = $group_by = array();
+  $ytd_end_timestamp = strtotime('first day of January next year', $date_start);
   $select[] = 'avfs.account_id';
   $select[] = 'SUM(avfs.debit) debit_ytd';
   $select[] = 'SUM(avfs.credit) credit_ytd';
   $group_by[] = 'avfs.account_id';
-  $where[] = 'avfs.before_this_day <= :date_to_stamp AND avfs.before_this_day > :year_start_timestamp';
-  $args[':year_start_timestamp'] = strtotime('first day of January this year', $date_end);
+  $where[] = 'avfs.before_this_day <= :end_timestamp AND avfs.before_this_day > :year_start_timestamp';
+  $args[':year_start_timestamp'] = strtotime('first day of January this year', $date_start);
+  $args[':end_timestamp'] = $ytd_end_timestamp;
   $query = "SELECT " . implode(', ', $select) . " FROM {avtbl_fs}  avfs " . implode(' ', $joins);
   avbase_query_supplements($query, $where, array(), NULL, NULL, $group_by);
   $accounts_ytd = db_query($query, $args)->fetchAllAssoc('account_id');
