@@ -2383,14 +2383,14 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
         FROM {avtbl_transaction_details} avtxn_detail
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
         WHERE avtxn_detail.item_id = :item_id
-        AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:fixed_cost_types)
+        AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:types)
         AND avtxn.transaction_date >= :date_from
         AND avtxn.transaction_date < :date_to
         ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
       $item_cost_args = array(
         ':item_id' => $selected_product->id,
         ':void_status' => AVTXNS_TXN_STATUS_VOID,
-        ':fixed_cost_types' => $fixed_cost_types,
+        ':types' => array(AVTXNS_TXN_TYPE_RECEIVE),
         ':date_from' => $date_start,
         ':date_to' => $date_end,
       );
