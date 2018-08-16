@@ -2390,7 +2390,7 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
       $item_cost_args = array(
         ':item_id' => $selected_product->id,
         ':void_status' => AVTXNS_TXN_STATUS_VOID,
-        ':types' => array(AVTXNS_TXN_TYPE_RECEIVE),
+        ':types' => array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN),
         ':date_from' => $date_start,
         ':date_to' => $date_end,
       );
