@@ -630,6 +630,14 @@ function avbase_update_7117(&$sandbox) {
   $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['max'] ? TRUE : $sandbox['progress'] / $sandbox['max'];
 }
 
+/**
+ * Changes to product table.
+ */
+function avbase_update_7118() {
+  db_query("UPDATE {avtbl_products} SET initial_value = cost WHERE initial_value = 0");
+}
+
+
 /*
  * CODE TO GET ITEMS WITH INITIAL COST GREATER THAN INIITIAL TRANSACTION COST. INITIAL ITEM COST SHOULD ALWAYS BE LESSER!
  */

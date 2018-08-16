@@ -2395,6 +2395,7 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
         ':date_to' => $date_end,
       );
       $found_cost = db_query($item_cost_query, $item_cost_args)->fetchField();
+      $found_cost = (float) $found_cost;
       $end_cost = empty($found_cost) ? $beg_cost : $found_cost;
     }
     else {
