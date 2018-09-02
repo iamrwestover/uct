@@ -1519,6 +1519,21 @@ function avtxns_txn_list_filter_form($form, &$form_state, $settings = array()) {
       ),
     );
   }
+  if (!empty($settings['date_filter_type'])) {
+    $fields['settings']['date_filter_type'] = empty($settings['date_filter_type']) ? array() : $settings['date_filter_type'];
+    $fields['settings']['date_filter_type'] += array(
+      '#type' => 'select',
+      '#title' => t('Date filter type'),
+      '#options' => array(
+        'txn_date' => t('Transaction date'),
+        'applied_date' => t('Credits used on date'),
+      ),
+      '#default_value' => 'txn_date',
+      '#attributes' => array(
+        'class' => array('trigger-ajax-search'),
+      ),
+    );
+  }
   if (!empty($settings['selectable'])) {
     $fields['settings']['selectable'] = empty($settings['selectable']) ? array() : $settings['selectable'];
     $fields['settings']['selectable'] += array(
