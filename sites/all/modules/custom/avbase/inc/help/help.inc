@@ -15,6 +15,7 @@ function avbase_help_home() {
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
       <li>- Fixed bug where account balance type is not properly reflected on debit/credit values of Trial Balance and Account history report.</li>
+      <li>- Sales return register report now has option to see all Sales Return credits applied on specific transactions made on selected dates.</li>
     </ul>
     <!--<hr class="uk-margin-bottom" />-->
     <button class="uk-button uk-button-small" data-uk-toggle="{target:'#more-changelog'}">more...</button>

@@ -110,6 +110,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   if (!empty($ttd['payment']) || $transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
     $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_PENDING] = 'Pending';
   }
+  if ($transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN) {
+    // $filter_form_settings['date_filter_type'] = array('#title' => 'Date filter type');
+  }
   // if (in_array($transaction_type, avtxns_get_creditable_txn_types())) {
     //$filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_LOCKED . '-' . AVTXNS_TXN_STATUS_OPEN] = 'With available credits';
   // }
@@ -176,7 +179,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $header['items_ref_txn_id'] = array('data' => 'REF. TXN.#', 'field' => 'avtxn_detail.ref_txn_id');
   }
   if ($col_return_type) {
-    $header['return_type'] = array('data' => 'RER. TYPE', 'field' => 'avtxn.return_type');
+    $header['return_type'] = array('data' => 'RET. TYPE', 'field' => 'avtxn.return_type');
   }
   if ($col_reference_id) {
     $header['reference_id'] = array('data' => 'REF. ID');
@@ -256,7 +259,8 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   //$where[] = "avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_VOID . ", " . AVTXNS_TXN_STATUS_PENDING . ")";
 
 
-
+  // $date_filter_type = empty($user_filter['settings']['date_filter_type']) ? 'txn_date' : $user_filter['settings']['date_filter_type'];
+  // $sr_date_applied = $transaction_type == AVTXNS_TXN_TYPE_SALES_RETURN && $date_filter_type == 'applied_date';
 
   $select = array();
   $select[] = 'avtxn.id';
@@ -317,7 +321,7 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
     $select[] = 'avtxn.memo';
   }
   $joins = array();
-  $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
+  $joins['avtxn_detail'] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id';
   if ($col_client) {
     $select[] = 'avclients.id AS client_id';
     $select[] = 'avclients.display_name';
