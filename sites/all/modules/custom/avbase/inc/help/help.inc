@@ -14,8 +14,11 @@ function avbase_help_home() {
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
-      <li>- Fixed bug where account balance type is not properly reflected on debit/credit values of Trial Balance and Account history report.</li>
+      <li>- Sales return now removed from Sales To Trade report.</li>
+      <li>- Sales To Trade is now called Invoice Register.</li>
       <li>- Sales return register report now has option to see all Sales Return credits applied on specific transactions made on selected dates.</li>
+      <li>- Fixed bug where account balance type is not properly reflected on debit/credit values of Trial Balance and Account history report.</li>
+      <li>- Fixed YTD date range on Trial Balance.</li>
     </ul>
     <!--<hr class="uk-margin-bottom" />-->
     <button class="uk-button uk-button-small" data-uk-toggle="{target:'#more-changelog'}">more...</button>

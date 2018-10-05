@@ -113,7 +113,8 @@ function avreports_trial_balance_form($form, &$form_state) {
 
   // Build query for YTD.
   $select = $joins = $where = $group_by = array();
-  $ytd_end_timestamp = strtotime('first day of January next year', $date_start);
+  // $ytd_end_timestamp = strtotime('first day of January next year', $date_start);
+  $ytd_end_timestamp = $date_end;
   $select[] = 'avfs.account_id';
   $select[] = 'SUM(avfs.debit) debit_ytd';
   $select[] = 'SUM(avfs.credit) credit_ytd';
