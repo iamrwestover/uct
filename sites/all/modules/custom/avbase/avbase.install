@@ -682,3 +682,10 @@ function avbase_update_7118() {
 // else {
 //   $sandbox['progress'] = $sandbox['max'];
 // }
+
+/**
+ * Scan reset.
+ */
+function avbase_update_7119() {
+  variable_del('avtxns_as_of_date_lock');
+}
