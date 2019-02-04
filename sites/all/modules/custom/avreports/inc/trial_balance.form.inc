@@ -94,12 +94,12 @@ function avreports_trial_balance_form($form, &$form_state) {
   $select[] = 'avachart.*';
   $where[] = 'avachart.status = 1';
   // FS cache table.
-  $select['debit'] = 'avfs.debit debit_ftm';
-  $select['credit'] = 'avfs.credit credit_ftm';
+  $select['ftm_amt'] = '(avfs.debit - avfs.credit) ftm_amt';
+//  $select['credit'] = 'avfs.credit credit_ftm';
   $joins['avfs'] = "LEFT JOIN avtbl_fs avfs ON avfs.account_id = avachart.id AND avfs.before_this_day = :end_timestamp AND avfs.before_this_day > $fiscal_date_end";
   if ($show_fiscal_beg_bal) {
-    $select['debit'] = 'SUM(avfs.debit) debit_ftm';
-    $select['credit'] = 'SUM(avfs.credit) credit_ftm';
+    $select['ftm_amt'] = 'SUM(avfs.debit - avfs.credit) ftm_amt';
+//    $select['credit'] = 'SUM(avfs.credit) credit_ftm';
     $joins['avfs'] = "LEFT JOIN avtbl_fs avfs ON avfs.account_id = avachart.id AND avfs.before_this_day <= :end_timestamp";
     $group_by[] = 'avachart.id';
   }
@@ -116,8 +116,8 @@ function avreports_trial_balance_form($form, &$form_state) {
   // $ytd_end_timestamp = strtotime('first day of January next year', $date_start);
   $ytd_end_timestamp = $date_end;
   $select[] = 'avfs.account_id';
-  $select[] = 'SUM(avfs.debit) debit_ytd';
-  $select[] = 'SUM(avfs.credit) credit_ytd';
+  $select[] = 'SUM(avfs.debit - avfs.credit) ytd_amt';
+//  $select[] = 'SUM(avfs.credit) credit_ytd';
   $group_by[] = 'avfs.account_id';
   $where[] = 'avfs.before_this_day <= :end_timestamp AND avfs.before_this_day > :year_start_timestamp';
   $args[':year_start_timestamp'] = strtotime('first day of January this year', $date_start);
@@ -128,8 +128,8 @@ function avreports_trial_balance_form($form, &$form_state) {
 
   // Append ytd data into fs_accounts.
   foreach ($fs_accounts as $fsa_id => $fsa) {
-    $fs_accounts[$fsa_id]->debit_ytd = isset($accounts_ytd[$fsa_id]->debit_ytd) ? $accounts_ytd[$fsa_id]->debit_ytd : 0;
-    $fs_accounts[$fsa_id]->credit_ytd = isset($accounts_ytd[$fsa_id]->credit_ytd) ? $accounts_ytd[$fsa_id]->credit_ytd : 0;
+    $fs_accounts[$fsa_id]->ytd_amt = isset($accounts_ytd[$fsa_id]->ytd_amt) ? $accounts_ytd[$fsa_id]->ytd_amt : 0;
+//    $fs_accounts[$fsa_id]->credit_ytd = isset($accounts_ytd[$fsa_id]->credit_ytd) ? $accounts_ytd[$fsa_id]->credit_ytd : 0;
   }
 
   $fs_accounts_hierarchy = avbase_rows_build_tree($fs_accounts, 0, FALSE, FALSE);
@@ -222,19 +222,19 @@ function avreports_trial_balance_form($form, &$form_state) {
 
 function avreports_trial_balance_row(&$table_rows, &$totals, $account, $date_end) {
   $actd = avtxns_account_chart_types($account['account_type']);
-  $account_balance_type = $actd['balance_type'];
-  if ($account_balance_type == 'debit') {
-    $account['credit_ftm'] *= -1;
-    $account['credit_ytd'] *= -1;
-  }
-  else {
-    // Swap.
-    $_credit = $account['debit_ftm'];
-    $account['debit_ftm'] = $account['credit_ftm'];
-    $account['credit_ftm'] = $_credit;
-    $account['debit_ftm'] *= -1;
-    $account['debit_ytd'] *= -1;
-  }
+//  $account_balance_type = $actd['balance_type'];
+//  if ($account_balance_type == 'debit') {
+//    $account['credit_ftm'] *= -1;
+//    $account['credit_ytd'] *= -1;
+//  }
+//  else {
+//    // Swap.
+//    $_credit = $account['debit_ftm'];
+//    $account['debit_ftm'] = $account['credit_ftm'];
+//    $account['credit_ftm'] = $_credit;
+//    $account['debit_ftm'] *= -1;
+//    $account['debit_ytd'] *= -1;
+//  }
 
 
   $history_link_date = array('date_from' => format_date(strtotime('first day of last month', $date_end), 'custom', AVREPORTS_LIST_DATE_FORMAT), 'date_to' => format_date(strtotime('last day of last month', $date_end), 'custom', AVREPORTS_LIST_DATE_FORMAT));
@@ -243,19 +243,29 @@ function avreports_trial_balance_row(&$table_rows, &$totals, $account, $date_end
   $data = array();
   $data['account_code'] = check_plain($account['account_code']);
   $data['account_title'] = check_plain($account['title']);
-  $amount_text = avreports_account_history_link($account['title'], $history_link_date, avbase_accounting_number_format($account['debit_ftm']), TRUE, $account['id']);
+
+  $debit_ftm = $account['ftm_amt'] < 0 ? 0 : (float) $account['ftm_amt'];
+  $amount_text = empty($debit_ftm) ? '' : avreports_account_history_link($account['title'], $history_link_date, avbase_accounting_number_format($debit_ftm), TRUE, $account['id']);
   $data['debit_ftm'] = '<div class="uk-text-right">' . $amount_text . '</div>';
-  $amount_text = avreports_account_history_link($account['title'], $history_link_date, avbase_accounting_number_format($account['credit_ftm']), TRUE, $account['id']);
+
+  $credit_ftm = $account['ftm_amt'] > 0 ? 0 : (float) abs($account['ftm_amt']);
+  $amount_text = empty($credit_ftm) ? '' : avreports_account_history_link($account['title'], $history_link_date, avbase_accounting_number_format($credit_ftm), TRUE, $account['id']);
   $data['credit_ftm'] = '<div class="uk-text-right">' . $amount_text . '</div>';
-  $data['debit_ytd'] = '<div class="uk-text-right">' . avbase_accounting_number_format($account['debit_ytd']) . '</div>';
-  $data['credit_ytd'] = '<div class="uk-text-right">' . avbase_accounting_number_format($account['credit_ytd']) . '</div>';
+
+  $debit_ytd = $account['ytd_amt'] < 0 ? 0 : (float) $account['ytd_amt'];
+  $amount_text = empty($debit_ytd) ? '' : avbase_accounting_number_format($debit_ytd);
+  $data['debit_ytd'] = '<div class="uk-text-right">' . $amount_text . '</div>';
+
+  $credit_ytd = $account['ytd_amt'] > 0 ? 0 : (float) abs($account['ytd_amt']);
+  $amount_text = empty($credit_ytd) ? '' : avbase_accounting_number_format($credit_ytd);
+  $data['credit_ytd'] = '<div class="uk-text-right">' . $amount_text . '</div>';
   // Careful when adding classes on rows, check if tableselect mode is ON.
   $table_rows[] = $data;
 
-  $totals['debit_ftm'] = (isset($totals['debit_ftm']) ? $totals['debit_ftm'] : 0) + $account['debit_ftm'];
-  $totals['credit_ftm'] = (isset($totals['credit_ftm']) ? $totals['credit_ftm'] : 0) + $account['credit_ftm'];
-  $totals['debit_ytd'] = (isset($totals['debit_ytd']) ? $totals['debit_ytd'] : 0) + $account['debit_ytd'];
-  $totals['credit_ytd'] = (isset($totals['credit_ytd']) ? $totals['credit_ytd'] : 0) + $account['credit_ytd'];
+  $totals['debit_ftm'] = (isset($totals['debit_ftm']) ? $totals['debit_ftm'] : 0) + $debit_ftm;
+  $totals['credit_ftm'] = (isset($totals['credit_ftm']) ? $totals['credit_ftm'] : 0) + $credit_ftm;
+  $totals['debit_ytd'] = (isset($totals['debit_ytd']) ? $totals['debit_ytd'] : 0) + $debit_ytd;
+  $totals['credit_ytd'] = (isset($totals['credit_ytd']) ? $totals['credit_ytd'] : 0) + $credit_ytd;
   if (!empty($account['children'])) {
     foreach ($account['children'] as $account_child) {
       avreports_trial_balance_row($table_rows, $totals, $account_child, $date_end);
