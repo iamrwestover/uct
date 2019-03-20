@@ -218,6 +218,7 @@ function avreports_stock_history_form($form, &$form_state) {
     $select[] = 'avtxn.transaction_type';
     $select[] = 'avtxn.client_id';
     $select[] = 'avtxn.reference_id';
+    $select[] = 'avtxn.status';
     $joins[] = "INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN (:ttypes)";
     $args[':ttypes'] = avtxns_get_qty_change_txn_types();
     $where[] = 'avtxn.status <> ' . AVTXNS_TXN_STATUS_VOID;
@@ -248,6 +249,12 @@ function avreports_stock_history_form($form, &$form_state) {
     avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $date_start, $item_cost, $onhand, $inventory, $cogafs, $transaction_lock_date);
     // }
     foreach ($rs as $row) {
+      $cancelled_transaction = $row->status == AVTXNS_TXN_STATUS_CANCELLED;
+      // $cancelled_transaction = FALSE;
+      if ($cancelled_transaction && isset($row->row_qty)) {
+        $row->row_qty = 0;
+      }
+
       // Insert ending inventory per month.
       avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $row->transaction_date, $item_cost, $onhand, $inventory, $cogafs, $transaction_lock_date);
 
@@ -269,7 +276,7 @@ function avreports_stock_history_form($form, &$form_state) {
       $ttd = avtxns_txn_types($row->transaction_type);
       $txn_view_path = $ttd['base_path'] . "/{$row->transaction_id}/view";
       $data = array();
-      $data['transaction_type'] = $ttd['name'];
+      $data['transaction_type'] = $ttd['name'] . ($cancelled_transaction ? ' (cancelled)' : '');
       $data['transaction_date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
       $data['transaction_id'] = l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $txn_view_path);
       $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
@@ -282,7 +289,9 @@ function avreports_stock_history_form($form, &$form_state) {
       // $data['sales_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? NULL : '<div class="uk-text-right">' . avbase_accounting_number_format($total_cost) . '</div>';
       // $data['ave_cost'] = in_array($row->transaction_type, $fixed_cost_types) ? NULL : '<div class="uk-text-right">' . number_format($item_cost, 2) . '</div>';
       // $data['asset_value'] = '<div class="uk-text-right">' . avbase_accounting_number_format($last_value) . '</div>';
-
+      if ($cancelled_transaction) {
+        $data['#avclass'] = 'uk-row-mute';
+      }
       // Careful when adding classes on rows, check if tableselect mode is ON.
       $table_rows[$row->transaction_id] = $data;
     }
