@@ -534,7 +534,7 @@ function avreports_soa_form($form, &$form_state) {
 
   $where[] = 'avtxn.transaction_type IN (:transaction_types)';
   $args[':transaction_types'] = array(AVTXNS_TXN_TYPE_INVOICE, AVTXNS_TXN_TYPE_PAYMENT, AVTXNS_TXN_TYPE_CUSTOMER_CHARGES);
-  $where[] = "avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_VOID . ")";
+  $where[] = "avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_VOID . "," . AVTXNS_TXN_STATUS_CANCELLED . ")";
 
   // Add today filter.
   $today = format_date(time(), 'custom', 'F d, Y');

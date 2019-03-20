@@ -1214,6 +1214,13 @@ function avtxns_txn_status_details($status = NULL) {
       'badge_icon' => 'minus-circle',
       'color_class' => 'uk-row-mute',
     ),
+    AVTXNS_TXN_STATUS_CANCELLED => array(
+      'status' => AVTXNS_TXN_STATUS_CANCELLED,
+      'title' => t('Cancelled'),
+      'badge_class' => 'uk-badge-void',
+      'badge_icon' => 'chain-broken',
+      'color_class' => 'uk-row-mute',
+    ),
   );
 
   if (isset($statuses[$status])) {
@@ -1255,24 +1262,31 @@ function avtxns_txn_change_status($id, $status) {
     case AVTXNS_TXN_STATUS_CLOSED:
     case AVTXNS_TXN_STATUS_LOCKED:
     case AVTXNS_TXN_STATUS_VOID:
-      drupal_set_message('Status of Closed, Locked and Void transactions cannot be changed.', 'error');
+    case AVTXNS_TXN_STATUS_CANCELLED:
+      drupal_set_message('Status of Closed, Locked, Cancelled, and Void transactions cannot be changed.', 'error');
       return FALSE;
       break;
     case AVTXNS_TXN_STATUS_OPEN:
-      if (!in_array($status, array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID))) {
+      if (!in_array($status, array(AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_CANCELLED))) {
         drupal_set_message(t('Cannot change transaction to %status', array('%status' => $tsd['title'])), 'error');
         return FALSE;
       }
       break;
     case AVTXNS_TXN_STATUS_PENDING:
-      if (!in_array($status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_VOID))) {
+      if (!in_array($status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_CANCELLED))) {
         drupal_set_message(t('Cannot change transaction to %status', array('%status' => $tsd['title'])), 'error');
         return FALSE;
       }
       break;
   }
 
-  if ($status == AVTXNS_TXN_STATUS_VOID) {
+  // If trying to cancel, make sure only DRs are accepted.
+  if ($status == AVTXNS_TXN_STATUS_CANCELLED && $row->transaction_type != AVTXNS_TXN_TYPE_DELIVERY) {
+    drupal_set_message(t('Cannot change transaction to %status', array('%status' => $tsd['title'])), 'error');
+    return FALSE;
+  }
+
+  if ($status == AVTXNS_TXN_STATUS_VOID || $status == AVTXNS_TXN_STATUS_CANCELLED) {
     // Re-open related transactions if possible.
     $item_rows = empty($row->items) ? array() : $row->items;
     $credit_items = empty($row->credit_items) ? array() : $row->credit_items;

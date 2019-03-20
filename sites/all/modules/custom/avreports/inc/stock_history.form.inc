@@ -470,6 +470,7 @@ function avreports_old_stock_history_form($form, &$form_state) {
       $select[] = 'avtxn.transaction_type';
       $select[] = 'avtxn.client_id';
       $select[] = 'avtxn.reference_id';
+      $select[] = 'avtxn.status';
       $joins[] = "INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.transaction_type IN (:ttypes)";
 
       //$select[] = 'avprod.title AS product_title';
@@ -536,7 +537,7 @@ function avreports_old_stock_history_form($form, &$form_state) {
 
 
         // Transaction values.
-        $init->onhand += $row->row_qty;
+        $init->onhand += $row->status == AVTXNS_TXN_STATUS_CANCELLED ? 0 : $row->row_qty;
         $init->ave_cost = in_array($row->transaction_type, $ave_cost_types) ? (((float)$row->row_cost + $init->asset_value) / $init->onhand) : $init->ave_cost;
         $init->asset_value = $init->ave_cost * $init->onhand;
 
@@ -556,7 +557,7 @@ function avreports_old_stock_history_form($form, &$form_state) {
           $data = array();
           $txn_view_path = $ttd['base_path'] . "/{$row->transaction_id}/view";
           // $data['transaction_type'] = l($ttd['name'], $txn_view_path);
-          $data['transaction_type'] = $ttd['name'];
+          $data['transaction_type'] = $ttd['name'] . ($row->status == AVTXNS_TXN_STATUS_CANCELLED ? ' (cancelled)' : '');
           $data['transaction_date'] = format_date($row->transaction_date, 'custom', AVREPORTS_LIST_DATE_FORMAT);
           $data['transaction_id'] = l(avbase_txn_number_format($row->transaction_type, $row->transaction_id), $txn_view_path);
           $data['reference_id'] = empty($row->reference_id) ? NULL : check_plain($row->reference_id);
@@ -566,7 +567,9 @@ function avreports_old_stock_history_form($form, &$form_state) {
           $data['onhand'] = '<div class="uk-text-right">' . number_format($init->onhand) . '</div>';
           $data['ave_cost'] = '<div class="uk-text-right">' . number_format($init->ave_cost, 2) . '</div>';
           $data['asset_value'] = '<div class="uk-text-right">' . number_format($init->asset_value, 2) . '</div>';
-
+          if ($row->status == AVTXNS_TXN_STATUS_CANCELLED) {
+            $data['#avclass'] = 'uk-row-mute';
+          }
           // Careful when adding classes on rows, check if tableselect mode is ON.
           $table_rows[$row->transaction_id] = $data;
           //$after_skips = FALSE;

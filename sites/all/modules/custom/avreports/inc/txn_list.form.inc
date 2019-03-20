@@ -120,6 +120,9 @@ function avreports_txn_list_form($form, &$form_state, $transaction_type, $second
   //  unset($filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CLOSED]);
   //}
   $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_VOID] = 'Void';
+  if ($transaction_type == AVTXNS_TXN_TYPE_DELIVERY && empty($secondary_transaction_type)) {
+    $filter_form_settings['simplified_status']['#options'][AVTXNS_TXN_STATUS_CANCELLED] = 'Cancelled';
+  }
   if ($col_due_date) {
     $filter_form_settings['overdue'] = array('#title' => 'Due status');
   }
