@@ -374,10 +374,11 @@ function avreports_stock_status_txn_total(&$table_rows, $txn_type, $filter_query
 FROM avtbl_transactions AS avtxn
 INNER JOIN avtbl_transaction_details AS avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
 INNER JOIN avtbl_products AS avprod ON avprod.id = avtxn_detail.item_id
-WHERE avtxn.status <> :void_type AND avtxn.transaction_type = :txn_type AND avtxn.transaction_date < :date_to_stamp AND avtxn.transaction_date >= :date_from_stamp
+WHERE avtxn.status <> :void_type AND avtxn.status <> :cancelled_type AND avtxn.transaction_type = :txn_type AND avtxn.transaction_date < :date_to_stamp AND avtxn.transaction_date >= :date_from_stamp
 AND avprod.id IN (:product_ids)
 GROUP BY avtxn_detail.item_id";
   $args[':void_type'] = AVTXNS_TXN_STATUS_VOID;
+  $args[':cancelled_type'] = AVTXNS_TXN_STATUS_CANCELLED;
   $args[':txn_type'] = $txn_type;
   $args[':product_ids'] = $product_ids;
   $totals = db_query($query, $args)->fetchAllKeyed();

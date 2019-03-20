@@ -104,7 +104,9 @@ function avreports_account_history_form($form, &$form_state) {
     $select[] = 'avtxn.transaction_type';
     $select[] = 'avtxn.reference_id';
     $select[] = 'avtxn.memo';
-    $where['transaction_status'] = 'avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ')';
+    // @todo Is it correct that pending transactions are excluded here? Especially pending DRs?
+    // I think so. because Inventory and COGS accounts are excluded from $selected_account.
+    $where['transaction_status'] = 'avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ',' . AVTXNS_TXN_STATUS_CANCELLED . ')';
     // $where[] = 'avtxn.id IN(137826, 138004)';
     // $where[] = "avtxn.transaction_type IN('obll')";
     // Client.

@@ -350,7 +350,7 @@ function avtxns_txn_query_load($conditions = array(), $offset = NULL, $limit = N
     if (!empty($ttd['payable'])) {
       $query = "SELECT SUM(avtxn_details.cost) FROM {avtbl_transaction_details} avtxn_details
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_details.transaction_id
-        WHERE avtxn_details.ref_txn_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID;
+        WHERE avtxn_details.ref_txn_id = :invoice_id AND avtxn.status <> " . AVTXNS_TXN_STATUS_VOID . " AND avtxn.status <> " . AVTXNS_TXN_STATUS_CANCELLED;
       $total_paid_for_invoice = db_query($query, array(':invoice_id' => $row->id))->fetchField();
       $total_paid_for_invoice = empty($total_paid_for_invoice) ? 0 : $total_paid_for_invoice;
       $row->total_paid = $total_paid_for_invoice;
@@ -1374,7 +1374,7 @@ function avtxns_txn_reconsider_status($ids = array()) {
   $update_txns = array();
   foreach ($transactions as $txn) {
     $current_status = $txn->status;
-    if (in_array($current_status, array(AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_PENDING))) {
+    if (in_array($current_status, array(AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_PENDING, AVTXNS_TXN_STATUS_CANCELLED))) {
       continue;
     }
     $update_txns[$txn->id] = array(
@@ -2003,8 +2003,8 @@ function avtxns_get_txn_references($txn_ids = array()) {
   $query = "SELECT avtxn_dtls.transaction_id, avtxn_dtls.ref_txn_id, avtxn_dtls.cost, avtxns.transaction_type, avtxns.transaction_date
     FROM {avtbl_transaction_details} avtxn_dtls
     INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_dtls.transaction_id
-    WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status <> :void_status";
-  $rs = db_query($query, array(':ids' => $txn_ids, ':void_status' => AVTXNS_TXN_STATUS_VOID));
+    WHERE avtxn_dtls.ref_txn_id IN (:ids) AND avtxns.status <> :void_status AND avtxns.status <> :cancelled_status";
+  $rs = db_query($query, array(':ids' => $txn_ids, ':void_status' => AVTXNS_TXN_STATUS_VOID, ':cancelled_status' => AVTXNS_TXN_STATUS_CANCELLED));
   $references = array();
   foreach ($rs as $row) {
     $references[$row->ref_txn_id]['simple_costs_total'] = isset($references[$row->ref_txn_id]['simple_costs_total']) ? $references[$row->ref_txn_id]['simple_costs_total'] : 0;
@@ -2019,7 +2019,7 @@ function avtxns_get_txn_references($txn_ids = array()) {
 }
 
 function avtxns_txn_overdue_query() {
-  return '(avtxn.due_date <= UNIX_TIMESTAMP() && avtxn.status != ' . AVTXNS_TXN_STATUS_CLOSED . ' && avtxn.status != ' . AVTXNS_TXN_STATUS_VOID . ')';
+  return '(avtxn.due_date <= UNIX_TIMESTAMP() && avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_CLOSED . ',' . AVTXNS_TXN_STATUS_VOID . ',' . AVTXNS_TXN_STATUS_CANCELLED . '))';
 }
 
 function avtxns_txn_list_table_add_date_from(&$transaction_list_table, $user_filter) {
@@ -2272,7 +2272,7 @@ function avtxns_read_account_transactions($current_account_id, $account_type, $d
     $query .= " FROM avtbl_transactions avtxn
       INNER JOIN avtbl_transaction_details avtxn_detail ON avtxn_detail.transaction_id = avtxn.id
       WHERE avtxn.transaction_type IN ('" . implode("','",array_keys($types_with_account_id)) . "') AND avtxn.transaction_date >= $date_start AND avtxn.transaction_date < $date_end
-      AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")";
+      AND avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ',' . AVTXNS_TXN_STATUS_CANCELLED . ")";
     // 1517414400
     if (!empty($where)) {
       $query .= " AND " . implode(' AND ', $where);
@@ -2339,7 +2339,7 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
     FROM {avtbl_transaction_details} avtxn_detail
     INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
     WHERE avtxn_detail.item_id = :item_id
-    AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
+    AND avtxn.status <> :void_status AND avtxn.status <> :cancelled_status AND avtxn.transaction_type IN (:this_types)
     AND avtxn.transaction_date >= :date_from
     AND avtxn.transaction_date < :date_to";
   if (!empty($order_by)) {
@@ -2348,6 +2348,7 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
   $row = db_query($query, array(
     ':item_id' => $selected_product->id,
     ':void_status' => AVTXNS_TXN_STATUS_VOID,
+    ':cancelled_status' => AVTXNS_TXN_STATUS_CANCELLED,
     ':this_types' => $qty_change_types,
     ':date_from' => $date_start,
     ':date_to' => $date_end,
@@ -2397,13 +2398,14 @@ function avtxns_read_product_transactions($selected_product, $date_start, $date_
         FROM {avtbl_transaction_details} avtxn_detail
         INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
         WHERE avtxn_detail.item_id = :item_id
-        AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:types)
+        AND avtxn.status <> :void_status AND avtxn.status <> :cancelled_status AND avtxn.transaction_type IN (:types)
         AND avtxn.transaction_date >= :date_from
         AND avtxn.transaction_date < :date_to
         ORDER BY avtxn.transaction_date DESC, avtxn.id DESC LIMIT 1";
       $item_cost_args = array(
         ':item_id' => $selected_product->id,
         ':void_status' => AVTXNS_TXN_STATUS_VOID,
+        ':cancelled_status' => AVTXNS_TXN_STATUS_CANCELLED,
         ':types' => array(AVTXNS_TXN_TYPE_RECEIVE, AVTXNS_TXN_TYPE_STOCK_TRANSFER_IN),
         ':date_from' => $date_start,
         ':date_to' => $date_end,

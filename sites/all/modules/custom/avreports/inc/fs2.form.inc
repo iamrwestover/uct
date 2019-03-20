@@ -657,7 +657,7 @@ function avreports_batch_scan_transactions($scan_type, $date_start, $date_end, &
     $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Transactions on or before end of @date are now locked.', array('@date' => format_date(strtotime('yesterday', $date_end), 'custom', 'F Y'))) . '</div>';
     // $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top">' . t('Earliest transaction included on scan: ' . format_date($date_start, 'custom', 'M. d, Y')) . '</div>';
     // $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Latest transaction included on scan: ' . format_date(strtotime('yesterday', $date_end), 'custom', 'M. d, Y')) . '</div>';
-    $context['message'] .= '<div class="uk-text-muted uk-text-small"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and pending transactions are excluded from scan.</div>';
+    $context['message'] .= '<div class="uk-text-muted uk-text-small"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and cancelled transactions are excluded from scan. Pending payments are also excluded.</div>';
   }
   else {
     // No more products to scan for this period. Proceed to next period.
@@ -816,7 +816,7 @@ function avreports_batch_scan_inventory_transactions2($scan_type, $date_start, $
   $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Transactions on or before end of @date are now locked.', array('@date' => format_date(strtotime('yesterday', $date_end), 'custom', 'F Y'))) . '</div>';
   // $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top">' . t('Earliest transaction included on scan: ' . format_date($date_start, 'custom', 'M. d, Y')) . '</div>';
   // $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Latest transaction included on scan: ' . format_date(strtotime('yesterday', $date_end), 'custom', 'M. d, Y')) . '</div>';
-  $context['message'] .= '<div class="uk-text-muted uk-text-small"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and pending transactions are excluded from scan.</div>';
+  $context['message'] .= '<div class="uk-text-muted uk-text-small"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and cancelled transactions are excluded from scan. Pending payments are also excluded.</div>';
 
 
 
@@ -867,12 +867,13 @@ function avreports_batch_scan_inventory_transactions3($scan_type, $date_start, $
       INNER JOIN {avtbl_transactions} avtxn ON avtxn.id = avtxn_detail.transaction_id
       INNER JOIN {avtbl_products} avprod ON avprod.id = avtxn_detail.item_id
       WHERE avprod.id > $_last_row_id
-      AND avtxn.status <> :void_status AND avtxn.transaction_type IN (:this_types)
+      AND avtxn.status <> :void_status AND avtxn.status <> :cancelled_status AND avtxn.transaction_type IN (:this_types)
       AND avtxn.transaction_date >= :date_from
       AND avtxn.transaction_date < :date_to
       ORDER BY avprod.id LIMIT $row_limit";
     $_db_rows = db_query($query, array(
       ':void_status' => AVTXNS_TXN_STATUS_VOID,
+      ':cancelled_status' => AVTXNS_TXN_STATUS_CANCELLED,
       ':this_types' => avtxns_get_qty_change_txn_types(),
       ':date_from' => $date_start,
       ':date_to' => $date_end,
@@ -928,7 +929,7 @@ function avreports_batch_scan_inventory_transactions3($scan_type, $date_start, $
 
   // $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top">' . t('Earliest transaction included on scan: ' . format_date($date_start, 'custom', 'M. d, Y')) . '</div>';
   // $context['message'] .= '<div class="uk-text-muted uk-text-small">' . t('Latest transaction included on scan: ' . format_date(strtotime('yesterday', $date_end), 'custom', 'M. d, Y')) . '</div>';
-  $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and pending transactions are excluded from scan.</div>';
+  $context['message'] .= '<div class="uk-text-muted uk-text-small uk-margin-top"><i class="uk-icon-exclamation-triangle uk-color-orange"></i> Void and cancelled transactions are excluded from scan. Pending payments are also excluded.</div>';
 
 
 
@@ -988,7 +989,7 @@ function avreports_get_that_transaction_date($get_first = TRUE) {
   }
 
   $query = "SELECT avtxn.transaction_date FROM {avtbl_transactions} avtxn
-    WHERE avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_VOID . ")
+    WHERE avtxn.status NOT IN (" . AVTXNS_TXN_STATUS_CANCELLED . ',' . AVTXNS_TXN_STATUS_VOID . ")
     ORDER BY avtxn.transaction_date $sort_dir LIMIT 1";
   $timestamp = db_query($query)->fetchField();
   if (empty($timestamp)) {
