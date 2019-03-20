@@ -34,6 +34,7 @@ define('AVTXNS_TXN_STATUS_OPEN', 1);
 define('AVTXNS_TXN_STATUS_PENDING', 2);
 define('AVTXNS_TXN_STATUS_VOID', 3);
 define('AVTXNS_TXN_STATUS_CLOSED', 4); // No more balance, or no more credits.
+define('AVTXNS_TXN_STATUS_CANCELLED', 5);
 
 define('AVTXN_DISCOUNT_MULTIPLIER', variable_get('av_discount_multiplier', '0.4'));
 

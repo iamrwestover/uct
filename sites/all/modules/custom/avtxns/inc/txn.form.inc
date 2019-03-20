@@ -152,6 +152,7 @@ function avtxns_txn_form_settings(&$form, &$form_state, $transaction_type, $row,
       //  $badge_color = 'uk-badge-warning';
       //  break;
       case AVTXNS_TXN_STATUS_VOID:
+      case AVTXNS_TXN_STATUS_CANCELLED:
         //$badge_color = 'uk-badge-void';
         $form_color_class = 'uk-alert uk-alert-mute';
         break;
@@ -309,6 +310,19 @@ function avtxns_transaction_buttons($form_state, $transaction_type, $row, $view_
           '#avposition' => 'opposite',
           //'#access' => isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN, AVTXNS_TXN_STATUS_PENDING)) && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_VOID),
         );
+
+        if ($row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
+          $buttons['cancel_txn_btn'] = array(
+            '#markup' => l('Cancel this transaction', 'av/transactions/' . $row->id . '/change-status/' . AVTXNS_TXN_STATUS_CANCELLED, array(
+              'attributes' => array('class' => 'uk-button uk-margin-small-right'),
+              'query' => array('destination' => $ttd['base_path'] . '/' . $row->id . '/view'),
+              'icon_key' => 'chain-broken',
+              'icon_classes' => array('uk-margin-small-right'),
+            )),
+            '#visible_in_view_mode' => TRUE,
+            '#avposition' => 'opposite',
+          );
+        }
       }
       if (isset($row->status) && in_array($row->status, array(AVTXNS_TXN_STATUS_OPEN)) && $row->transaction_type == AVTXNS_TXN_TYPE_DELIVERY && avtxns_txn_can_status_change($row, AVTXNS_TXN_STATUS_OPEN)) {
         $buttons['pending_btn'] = array(
@@ -407,10 +421,13 @@ function avtxns_txn_change_status_confirm_form($form, &$form_state, $row, $statu
       $prompt = 'Are you sure you want to send this transaction for admin approval?';
       break;
     case AVTXNS_TXN_STATUS_OPEN:
-      $prompt = 'Are you sure you want to open this transaction?';
+      $prompt = 'Are you sure you want to OPEN this transaction?';
       break;
     case AVTXNS_TXN_STATUS_VOID:
-      $prompt = 'Are you sure you want to void this transaction?';
+      $prompt = 'Are you sure you want to VOID this transaction?';
+      break;
+    case AVTXNS_TXN_STATUS_CANCELLED:
+      $prompt = 'Are you sure you want to CANCEL this transaction?';
       break;
     default:
       $prompt = 'Are you sure?';
@@ -426,7 +443,7 @@ function avtxns_txn_change_status_confirm_form($form, &$form_state, $row, $statu
   $client_name
 HTML;
 
-  if ($status == AVTXNS_TXN_STATUS_VOID) {
+  if (in_array($status, array(AVTXNS_TXN_STATUS_VOID, AVTXNS_TXN_STATUS_CANCELLED))) {
     $description .= '<br /><br /><em class="uk-text-large uk-margin-top">This action cannot be undone.</em>';
     $description = '<div class="uk-alert-danger" style="padding: 1em;">' . $description . '</div>';
   }

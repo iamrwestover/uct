@@ -378,7 +378,7 @@ function avreports_sales_to_trade_table(&$form, $form_state, $transaction_type, 
   //}
 
   $joins[] = 'INNER JOIN {avtbl_transaction_details} AS avtxn_detail ON avtxn_detail.item_id = avprod.id';
-  $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_VOID . ',' . AVTXNS_TXN_STATUS_PENDING . ')';
+  $joins[] = 'INNER JOIN {avtbl_transactions} AS avtxn ON avtxn.id = avtxn_detail.transaction_id AND avtxn.status NOT IN (' . AVTXNS_TXN_STATUS_VOID . ',' . AVTXNS_TXN_STATUS_PENDING . ',' . AVTXNS_TXN_STATUS_CANCELLED . ')';
   if (isset($table_columns['agent_name']) || !empty($user_filter['avcat_agent.title'])) {
     $select[] = 'avcat_agent.title AS agent_name';
     $joins[] = 'LEFT JOIN {avtbl_categories} AS avcat_agent ON avcat_agent.id = avtxn.agent_id';
