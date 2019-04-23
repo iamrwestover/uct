@@ -251,9 +251,6 @@ function avreports_stock_history_form($form, &$form_state) {
     foreach ($rs as $row) {
       $cancelled_transaction = $row->status == AVTXNS_TXN_STATUS_CANCELLED;
       // $cancelled_transaction = FALSE;
-      if ($cancelled_transaction && isset($row->row_qty)) {
-        $row->row_qty = 0;
-      }
 
       // Insert ending inventory per month.
       avbase_stock_history_beg_inventory_row($table_rows, $selected_product, $row->transaction_date, $item_cost, $onhand, $inventory, $cogafs, $transaction_lock_date);
@@ -264,8 +261,8 @@ function avreports_stock_history_form($form, &$form_state) {
       $purchase_cost = in_array($row->transaction_type, $fixed_cost_types) ? $row->purchase_cost : 0;
       $item_cost = in_array($row->transaction_type, $fixed_cost_types) ? ($purchase_cost / ($this_qty_in + $this_qty_out)) : $item_cost;
       $qty_in += $this_qty_in;
-      $qty_out += $this_qty_out;
-      $onhand += empty($row->row_qty) ? 0 : $row->row_qty;
+      $qty_out += $cancelled_transaction ? 0 : $this_qty_out;
+      $onhand += $cancelled_transaction || empty($row->row_qty) ? 0 : $row->row_qty;
       $cogafs += $purchase_cost;
 
       // Only show selected transaction type.
