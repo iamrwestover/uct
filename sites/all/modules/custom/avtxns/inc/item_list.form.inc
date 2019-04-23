@@ -732,7 +732,7 @@ function avtxns_item_list_product_fields(&$form, &$form_state, $transaction_type
         ),
         '#default_value' => isset($prod_row['cost']) ? avbase_number_format($prod_row['cost'], 2) : '',
       );
-      if (empty($view_mode) && $transaction_type == AVTXNS_TXN_TYPE_DELIVERY) {
+      if (empty($view_mode) && in_array($transaction_type, array(AVTXNS_TXN_TYPE_SALES_ORDER, AVTXNS_TXN_TYPE_DELIVERY))) {
         $fields['cost']['#attributes']['readonly'] = 'readonly';
       }
 

@@ -1287,36 +1287,21 @@ function avtxns_txn_change_status($id, $status) {
   }
 
   if ($status == AVTXNS_TXN_STATUS_VOID || $status == AVTXNS_TXN_STATUS_CANCELLED) {
-    // Re-open related transactions if possible.
     $item_rows = empty($row->items) ? array() : $row->items;
-    $credit_items = empty($row->credit_items) ? array() : $row->credit_items;
-    $all_item_rows = $item_rows + $credit_items;
-    $related_transaction_ids = array();
-    foreach ($all_item_rows as $item_row) {
-      $ref_txn_id = empty($item_row->ref_txn_id) ? NULL : $item_row->ref_txn_id;
-      if ($ref_txn_id) {
-        $related_transaction_ids[$ref_txn_id] = $ref_txn_id;
-      }
-    }
-    // Check if each related transaction IDs can be re-opened.
-    //if (!empty($related_transaction_ids)) {
-    //  avtxns_txn_reconsider_status($related_transaction_ids);
-    //  //$query = "SELECT avtxn_details.ref_txn_id, COUNT(avtxn_details.id) AS active_txn_count
-    //  //  FROM {avtbl_transaction_details} avtxn_details
-    //  //  INNER JOIN {avtbl_transactions} avtxns ON avtxns.id = avtxn_details.transaction_id
-    //  //  WHERE avtxn_details.ref_txn_id IN (:rel_txn_ids) AND avtxn_details.transaction_id <> :txn_id AND avtxns.status <> :txn_status
-    //  //  GROUP BY avtxn_details.ref_txn_id";
-    //  //$rs = db_query($query, array(':txn_id' => $row->id, ':txn_status' => AVTXNS_TXN_STATUS_VOID, ':rel_txn_ids' => $related_transaction_ids));
-    //  //$cannot_open = array();
-    //  //foreach ($rs as $rel_row) {
-    //  //  $cannot_open[] = $rel_row->ref_txn_id;
-    //  //}
-    //  //
-    //  //$can_be_reopened = array_diff($related_transaction_ids, $cannot_open);
-    //}
-
     // Refresh product quantities.
     avbase_product_qty_update($item_rows, $row, TRUE);
+    // If voiding a transaction, get all referenced txn ids to re-open related transactions if possible.
+    $related_transaction_ids = array();
+    if ($status == AVTXNS_TXN_STATUS_VOID) {
+      $credit_items = empty($row->credit_items) ? array() : $row->credit_items;
+      $all_item_rows = $item_rows + $credit_items;
+      foreach ($all_item_rows as $item_row) {
+        $ref_txn_id = empty($item_row->ref_txn_id) ? NULL : $item_row->ref_txn_id;
+        if ($ref_txn_id) {
+          $related_transaction_ids[$ref_txn_id] = $ref_txn_id;
+        }
+      }
+    }
   }
 
   $now = time();
