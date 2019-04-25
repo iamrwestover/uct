@@ -1772,7 +1772,17 @@ function avtxns_txn_can_status_change($transaction, $status) {
 
   $transaction_type = strtoupper($transaction->transaction_type);
 
-  if ($status == AVTXNS_TXN_STATUS_VOID) {
+  if ($status == AVTXNS_TXN_STATUS_CANCELLED) {
+    // Use void permission for now.
+    if (user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type))) {
+      return TRUE;
+    }
+    else {
+      drupal_set_message('You do not have permission to cancel deliveries.', 'error');
+      return FALSE;
+    }
+  }
+  elseif ($status == AVTXNS_TXN_STATUS_VOID) {
     if (user_access(constant('AVTXNS_PERM_VOID_' . $transaction_type))) {
       // Validate outgoing quantities to prevent negative resulting quantity.
       if (!empty($ttd['qty_change']) && $ttd['qty_change'] == 'increment') {
