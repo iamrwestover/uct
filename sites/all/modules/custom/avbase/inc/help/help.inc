@@ -9,8 +9,7 @@ function avbase_help_home() {
     variable_set('av_seen_updates', $seen_updates);
   }
 
-  $output = '';
-  $output .= <<<HTML
+  $changelog_html = <<<HTML
   <div class="uk-panel uk-panel-box">
     <div class="uk-badge uk-badge-primary uk-text-uppercase" style="position: absolute;top:-1px;left:-1px;">Notable changes from recent $vnum update:</div>
     <ul class="uk-list">
@@ -40,7 +39,7 @@ function avbase_help_home() {
       <li class="uk-text-muted">- Fixed Accounts History report to also include non-journal account transactions.</li>
     </ul>
   </div>
-  <hr />
+  <br />
 HTML;
 
 
@@ -57,15 +56,42 @@ HTML;
     'data' => '<a href="#help-print" data-uk-smooth-scroll>Printing with dot matrix printers</a>',
   );
   $help_items[] = array(
+    'data' => '<a href="#backup-create" data-uk-smooth-scroll>Creating backups</a>',
+  );
+  $help_items[] = array(
+    'data' => '<a href="#backup-restore" data-uk-smooth-scroll>Restoring a database backup</a>',
+  );
+  $help_items[] = array(
+    'data' => '<a href="#new-database" data-uk-smooth-scroll>System Reset with a New Database</a>',
+  );
+  $help_items[] = array(
     'data' => '<a href="#system-requirements" data-uk-smooth-scroll>System Requirements</a>',
   );
 
-  $item_list = array('items' => $help_items);
-  $output .= theme('item_list', $item_list);
+  $item_list = array('items' => $help_items, 'attributes' => array('class' => array('uk-nav uk-nav-side')));
+  $help_items_nav = theme('item_list', $item_list);
 
-  $output .= theme('avbase_help_txn_status', array('help_title' => 'Transaction statuses'));
-  $output .= theme('avbase_help_ks', array('help_title' => 'Keyboard shortcuts'));
-  $output .= theme('avbase_help_print', array('help_title' => 'Printing with dot matrix printers'));
-  $output .= theme('avbase_help_sys_req', array('help_title' => 'System Requirements'));
-  return '<div class="printable">' . $output . '</div>';
+  $help_items_html = theme('avbase_help_txn_status', array('help_title' => 'Transaction statuses'));
+  $help_items_html .= theme('avbase_help_ks', array('help_title' => 'Keyboard shortcuts'));
+  $help_items_html .= theme('avbase_help_print', array('help_title' => 'Printing with dot matrix printers'));
+  $help_items_html .= theme('avbase_help_backup_create', array('help_title' => 'Creating backups'));
+  $help_items_html .= theme('avbase_help_backup_restore', array('help_title' => 'Restoring a database backup'));
+  $help_items_html .= theme('avbase_help_new_db', array('help_title' => 'System Reset with a New Database'));
+  $help_items_html .= theme('avbase_help_sys_req', array('help_title' => 'System Requirements'));
+
+  $output = <<<HTML
+<div class="printable">
+  <div class="uk-grid">
+    <div class="uk-width-1-5">
+      $help_items_nav
+    </div>
+    <div class="uk-width-4-5">
+      $changelog_html
+      $help_items_html    
+    </div>
+  </div>
+  
+</div>
+HTML;
+  return $output;
 }

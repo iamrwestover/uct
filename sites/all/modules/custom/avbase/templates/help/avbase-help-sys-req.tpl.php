@@ -10,7 +10,7 @@
 </ul>
 <h6 class="uk-text-uppercase">Minimum Server Specifications</h6>
 <ul>
-  <li>Intel Core i3, 4GB RAM</li>
+  <li>Intel Core i5, 4GB RAM</li>
   <li><span class="uk-text-bold">64-bit</span> Windows 7 or higher</li>
   <li>Latest 64-bit version of Google Chrome</li>
 </ul>
